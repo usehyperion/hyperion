@@ -38,7 +38,7 @@
 </script>
 
 <div
-	class="bg-muted text-muted-foreground flex items-center justify-between overflow-hidden p-2 text-xs shadow"
+	class="text-muted-foreground flex items-center justify-between overflow-hidden border-b p-2 text-xs shadow"
 >
 	<p class="truncate" title={stream.title}>{stream.title}</p>
 

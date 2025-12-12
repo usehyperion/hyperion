@@ -160,4 +160,12 @@
 		color: var(--color-blue-400);
 		text-decoration: underline;
 	}
+
+	code {
+		padding: 0.2rem 0.3rem;
+		font-size: 85%;
+		font-family: var(--font-mono);
+		border-radius: var(--radius-md);
+		background-color: var(--color-muted);
+	}
 }

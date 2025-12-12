@@ -45,6 +45,7 @@
 		"gql.tada": "^1.9.0",
 		"graphql-web-lite": "16.6.0-4",
 		"mode-watcher": "^1.1.0",
+		"paneforge": "^1.0.2",
 		"tailwind-merge": "^3.4.0",
 		"tailwindcss": "^4.1.17",
 		"tauri-plugin-cache-api": "^0.1.5",

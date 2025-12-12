@@ -28,6 +28,7 @@ interface InputField extends BaseField {
 interface ChoiceItem {
 	label: string;
 	value: string;
+	description?: string;
 }
 
 interface RadioField extends BaseField {

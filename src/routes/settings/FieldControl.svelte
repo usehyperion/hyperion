@@ -71,11 +71,18 @@
 			bind:value={settings.state[field.id]}
 		>
 			{#each field.items as option (option.value)}
-				<Field.Field orientation="horizontal">
-					<RadioGroup.Item value={option.value} />
+				<Field.Field class={[option.description && "items-start"]} orientation="horizontal">
+					<RadioGroup.Item
+						class={[option.description && "mt-0.5"]}
+						value={option.value}
+					/>
 
 					<Field.Label aria-disabled={field.disabled?.()}>
-						{option.label}
+						<Field.Content>
+							{option.label}
+
+							{@render description(option.description)}
+						</Field.Content>
 					</Field.Label>
 				</Field.Field>
 			{/each}

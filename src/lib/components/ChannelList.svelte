@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { DragDropProvider } from "@dnd-kit-svelte/svelte";
-	import { RestrictToVerticalAxis } from "@dnd-kit/abstract/modifiers";
-	import { move } from "@dnd-kit/helpers";
 	import { onDestroy } from "svelte";
 	import { flip } from "svelte/animate";
 	import { app } from "$lib/app.svelte";
@@ -9,8 +6,8 @@
 	import type { Channel } from "$lib/models/channel.svelte";
 	import { settings } from "$lib/settings";
 	import Draggable from "./Draggable.svelte";
+	import DraggableChannel from "./DraggableChannel.svelte";
 	import Droppable from "./Droppable.svelte";
-	import StreamTooltip from "./StreamTooltip.svelte";
 	import { Separator } from "./ui/separator";
 
 	const sidebar = getSidebarContext();
@@ -79,40 +76,28 @@
 	onDestroy(() => clearInterval(interval));
 </script>
 
-<DragDropProvider
-	modifiers={[
-		// @ts-expect-error - type mismatch
-		RestrictToVerticalAxis,
-	]}
-	onDragOver={(event) => {
-		settings.state.pinned = move(settings.state.pinned, event);
-	}}
->
-	{#each groups as group}
-		{#if sidebar.collapsed}
-			<Separator />
-		{:else}
-			<span
-				class="text-muted-foreground mt-2 inline-block px-2 text-xs font-semibold uppercase"
-			>
-				{group.type}
-			</span>
-		{/if}
+{#each groups as group}
+	{#if sidebar.collapsed}
+		<Separator />
+	{:else}
+		<span class="text-muted-foreground mt-2 inline-block px-2 text-xs font-semibold uppercase">
+			{group.type}
+		</span>
+	{/if}
 
-		{#if group.type === "Pinned"}
-			{#key settings.state.pinned.length}
-				<Droppable id="pinned-channels" class="space-y-1.5">
-					{#each group.channels as channel, i (channel.user.id)}
-						<Draggable {channel} index={i} />
-					{/each}
-				</Droppable>
-			{/key}
-		{:else}
-			{#each group.channels as channel (channel.user.id)}
-				<div class="px-1.5" animate:flip={{ duration: 500 }}>
-					<StreamTooltip {channel} />
-				</div>
-			{/each}
-		{/if}
-	{/each}
-</DragDropProvider>
+	{#if group.type === "Pinned"}
+		{#key settings.state.pinned.length}
+			<Droppable id="pinned-channels" class="space-y-1.5">
+				{#each group.channels as channel, i (channel.user.id)}
+					<Draggable {channel} index={i} />
+				{/each}
+			</Droppable>
+		{/key}
+	{:else}
+		{#each group.channels as channel (channel.user.id)}
+			<div animate:flip={{ duration: 500 }}>
+				<DraggableChannel {channel} />
+			</div>
+		{/each}
+	{/if}
+{/each}

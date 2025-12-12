@@ -29,7 +29,7 @@
 	const showSuggestions = $derived(!!completer?.suggestions.length && completer.prefixed);
 
 	$effect(() => {
-		chat.input ??= input;
+		chat.input = input;
 		completer = new Completer(chat);
 	});
 

@@ -1,18 +1,16 @@
-<script lang="ts" module>
-	export interface ChannelListItemProps {
-		channel: Channel;
-	}
-</script>
-
 <script lang="ts">
 	import DotsThreeCircle from "~icons/ph/dots-three-circle";
 	import Users from "~icons/ph/users-bold";
 	import { getSidebarContext } from "$lib/context";
 	import type { Channel } from "$lib/models/channel.svelte";
 
-	const sidebar = getSidebarContext();
+	interface Props {
+		channel: Channel;
+	}
 
-	const { channel }: ChannelListItemProps = $props();
+	const { channel }: Props = $props();
+
+	const sidebar = getSidebarContext();
 
 	function formatViewers(viewers: number) {
 		if (viewers >= 1000) {

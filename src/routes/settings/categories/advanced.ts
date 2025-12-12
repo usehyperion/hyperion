@@ -12,7 +12,7 @@ export default {
 			type: "switch",
 			label: "Only join one channel at a time",
 			description:
-				"Limit the application to joining only one channel at a time to reduce resource usage. Enable this if you are experiencing performance issues.",
+				"Limit the application to joining only one channel at a time to reduce resource usage. Enable this if you are experiencing performance issues. Split view will be disabled when this is active.",
 		},
 		{
 			type: "group",

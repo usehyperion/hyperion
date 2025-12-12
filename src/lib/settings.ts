@@ -34,6 +34,12 @@ interface StoredUser {
 export interface UserSettings {
 	"appearance.theme": string;
 
+	"splits.defaultOrientation": "horizontal" | "vertical";
+	"splits.singleRestoreBehavior": "preserve" | "redirect" | "remove";
+	"splits.closeBehavior": "preserve" | "remove";
+	"splits.leaveOnClose": boolean;
+	"splits.goToChannelAfterClose": boolean;
+
 	"chat.hideScrollbar": boolean;
 	"chat.newSeparator": boolean;
 	"chat.embeds": boolean;
@@ -88,6 +94,11 @@ export const defaults: Settings = {
 	pinned: [],
 
 	"appearance.theme": "",
+	"splits.defaultOrientation": "horizontal",
+	"splits.singleRestoreBehavior": "redirect",
+	"splits.closeBehavior": "remove",
+	"splits.leaveOnClose": true,
+	"splits.goToChannelAfterClose": true,
 	"chat.hideScrollbar": false,
 	"chat.newSeparator": false,
 	"chat.embeds": true,
@@ -114,4 +125,4 @@ export const defaults: Settings = {
 	"advanced.logs.level": "info",
 };
 
-export const settings = new RuneStore<Settings>("settings", defaults);
+export const settings = new RuneStore<Settings>("settings", defaults, { autoStart: true });

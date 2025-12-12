@@ -5,6 +5,7 @@ import { History } from "./history.svelte";
 import { log } from "./log";
 import { ChannelManager } from "./managers/channel-manager";
 import { EmoteManager } from "./managers/emote-manager";
+import { SplitLayout } from "./split-layout";
 import { TwitchClient } from "./twitch/client";
 import type { EmoteSet } from "./emotes";
 import type { Badge } from "./graphql/twitch";
@@ -39,6 +40,11 @@ class App {
 	 * The channels the app is able to join.
 	 */
 	public readonly channels = new ChannelManager(this.twitch);
+
+	/**
+	 * The current split layout.
+	 */
+	public readonly splits = new SplitLayout();
 
 	/**
 	 * Route history.

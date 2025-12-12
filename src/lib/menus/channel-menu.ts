@@ -3,8 +3,49 @@ import { goto } from "$app/navigation";
 import { app } from "$lib/app.svelte";
 import type { Channel } from "$lib/models/channel.svelte";
 import { settings } from "$lib/settings";
+import type { SplitBranch, SplitDirection } from "$lib/split-layout";
+
+async function splitItem(channel: Channel, direction: SplitDirection) {
+	const enabled =
+		app.splits.focused !== null &&
+		app.splits.focused !== channel.id &&
+		app.splits.root !== null &&
+		!app.splits.contains(app.splits.root, channel.id);
+
+	return MenuItem.new({
+		id: `split-${direction}`,
+		text: `Split ${direction.charAt(0).toUpperCase() + direction.slice(1)}`,
+		enabled,
+		async action() {
+			await channel.join(true);
+
+			if (!app.splits.focused) return;
+
+			app.splits.root ??= app.splits.focused;
+
+			const node: SplitBranch = {
+				axis: direction === "up" || direction === "down" ? "vertical" : "horizontal",
+				before: channel.id,
+				after: app.splits.focused,
+			};
+
+			if (direction === "down" || direction === "right") {
+				node.before = app.splits.focused;
+				node.after = channel.id;
+			}
+
+			app.splits.insert(app.splits.focused, channel.id, node);
+
+			if (!app.splits.active) {
+				await goto("/channels/split");
+			}
+		},
+	});
+}
 
 export async function createChannelMenu(channel: Channel) {
+	const singleConnection = settings.state["advanced.singleConnection"];
+
 	const separator = await PredefinedMenuItem.new({
 		item: "Separator",
 	});
@@ -25,9 +66,21 @@ export async function createChannelMenu(channel: Channel) {
 		async action() {
 			await channel.leave();
 
-			if (app.focused === channel) {
+			if (!app.splits.active && app.focused === channel) {
 				await goto("/");
 			}
+		},
+	});
+
+	const isEmpty = typeof app.splits.root === "string" && app.splits.root.startsWith("split-");
+
+	const openInSplit = await MenuItem.new({
+		id: "open-in-split",
+		text: "Open in Split View",
+		enabled: !singleConnection && (!app.splits.active || isEmpty),
+		async action() {
+			app.splits.root = channel.id;
+			await goto("/channels/split");
 		},
 	});
 
@@ -49,7 +102,6 @@ export async function createChannelMenu(channel: Channel) {
 	const remove = await MenuItem.new({
 		id: "remove",
 		text: "Remove",
-		enabled: channel.ephemeral,
 		async action() {
 			await channel.leave();
 			app.channels.delete(channel.id);
@@ -57,7 +109,22 @@ export async function createChannelMenu(channel: Channel) {
 		},
 	});
 
-	return Menu.new({
-		items: [join, leave, pin, separator, remove],
-	});
+	const items = [join, leave, pin, separator, openInSplit];
+
+	if (app.splits.active && !singleConnection) {
+		const splitItems = await Promise.all([
+			splitItem(channel, "up"),
+			splitItem(channel, "down"),
+			splitItem(channel, "left"),
+			splitItem(channel, "right"),
+		]);
+
+		items.push(separator, ...splitItems);
+	}
+
+	if (channel.ephemeral) {
+		items.push(separator, remove);
+	}
+
+	return Menu.new({ items });
 }

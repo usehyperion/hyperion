@@ -2,15 +2,19 @@
 	import Users from "~icons/ph/users-bold";
 	import { getSidebarContext } from "$lib/context";
 	import { createChannelMenu } from "$lib/menus/channel-menu";
+	import type { Channel } from "$lib/models/channel.svelte";
 	import { openMenu } from "$lib/util";
 	import ChannelListItem from "./ChannelListItem.svelte";
 	import GuestList from "./GuestList.svelte";
 	import * as Tooltip from "./ui/tooltip";
-	import type { ChannelListItemProps } from "./ChannelListItem.svelte";
+
+	interface Props {
+		channel: Channel;
+	}
+
+	const { channel }: Props = $props();
 
 	const sidebar = getSidebarContext();
-
-	const { channel }: ChannelListItemProps = $props();
 </script>
 
 <Tooltip.Root>
