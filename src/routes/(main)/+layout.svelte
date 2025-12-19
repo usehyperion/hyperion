@@ -9,6 +9,10 @@
 		ScrollListener,
 	} from "@dnd-kit/dom";
 	import { move } from "@dnd-kit/helpers";
+	import { ask } from "@tauri-apps/plugin-dialog";
+	import { relaunch } from "@tauri-apps/plugin-process";
+	import { check } from "@tauri-apps/plugin-updater";
+	import { onMount } from "svelte";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
@@ -17,6 +21,29 @@
 	import { storage } from "$lib/stores";
 
 	const { children } = $props();
+
+	onMount(async () => {
+		const update = await check();
+		if (!update) return;
+
+		const install = await ask(
+			`A new update is available. Would you like to install it now?`,
+			"Update Available",
+		);
+
+		if (!install) return;
+
+		await update.downloadAndInstall();
+
+		const restart = await ask(
+			`Update installed. Would you like to restart the app now?`,
+			"Restart Required",
+		);
+
+		if (restart) {
+			await relaunch();
+		}
+	});
 </script>
 
 <svelte:window

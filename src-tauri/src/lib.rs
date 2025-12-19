@@ -63,7 +63,7 @@ pub fn run() {
     let mut system = sysinfo::System::new_all();
     system.refresh_all();
 
-    let mut builder = tauri::Builder::default();
+    let mut builder = tauri::Builder::default().plugin(tauri_plugin_process::init());
     let mut state = AppState::default();
 
     #[cfg(desktop)]
@@ -83,10 +83,12 @@ pub fn run() {
             ..Default::default()
         }))
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .setup(|app| {
             log::init_tracing(app);

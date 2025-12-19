@@ -36,6 +36,7 @@
 	"bundle": {
 		"active": true,
 		"targets": "all",
+		"createUpdaterArtifacts": true,
 		"icon": [
 			"icons/icon.icns",
 			"icons/icon.ico",
@@ -44,5 +45,13 @@
 			"icons/128x128.png",
 			"icons/128x128@2x.png"
 		]
+	},
+	"plugins": {
+		"updater": {
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFCRDk4MjZBMUM0QkY0MTkKUldRWjlFc2Nhb0xacTAzR3JRckxrVXJkaVJXTWFkMUdUeFMrVHJaL2tDbldpN1lERGJrcm1mZVMK",
+			"endpoints": [
+				"https://github.com/usehyperion/hyperion/releases/latest/download/latest.json"
+			]
+		}
 	}
 }
