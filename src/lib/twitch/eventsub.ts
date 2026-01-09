@@ -325,9 +325,18 @@ export interface StreamOnline extends WithBroadcaster {
 export interface SubscriptionEventMap {
 	"automod.message.hold": AutoModMessageHold;
 	"automod.message.update": AutoModMessageUpdate;
+	"channel.channel_points_automatic_reward_redemption.add": unknown;
+	"channel.channel_points_custom_reward_redemption.add": unknown;
 	"channel.chat.user_message_hold": ChannelChatUserMessageHold;
 	"channel.chat.user_message_update": ChannelChatUserMessageUpdate;
 	"channel.moderate": ChannelModerate;
+	"channel.poll.begin": unknown;
+	"channel.poll.end": unknown;
+	"channel.poll.progress": unknown;
+	"channel.prediction.begin": unknown;
+	"channel.prediction.end": unknown;
+	"channel.prediction.lock": unknown;
+	"channel.prediction.progress": unknown;
 	"channel.subscription.end": ChannelSubscriptionEnd;
 	"channel.suspicious_user.message": ChannelSuspiciousUserMessage;
 	"channel.suspicious_user.update": ChannelSuspiciousUserUpdate;

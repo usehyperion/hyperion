@@ -127,6 +127,22 @@ pub async fn join(
                     events.extend(mod_events)
                 }
 
+                if token.user_id.take() == id_clone {
+                    let broadcaster_events = vec![
+                        (Ev::ChannelPointsAutomaticRewardRedemptionAdd, &ch_cond),
+                        (Ev::ChannelPointsCustomRewardRedemptionAdd, &ch_cond),
+                        (Ev::ChannelPollBegin, &ch_cond),
+                        (Ev::ChannelPollEnd, &ch_cond),
+                        (Ev::ChannelPollProgress, &ch_cond),
+                        (Ev::ChannelPredictionBegin, &ch_cond),
+                        (Ev::ChannelPredictionEnd, &ch_cond),
+                        (Ev::ChannelPredictionLock, &ch_cond),
+                        (Ev::ChannelPredictionProgress, &ch_cond),
+                    ];
+
+                    events.extend(broadcaster_events);
+                }
+
                 if let Err(err) = eventsub.subscribe_all(login_clone.as_str(), events).await {
                     tracing::error!(%err, "Failed to batch subscribe to EventSub events");
                 }
