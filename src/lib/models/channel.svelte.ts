@@ -2,10 +2,11 @@ import { invoke } from "@tauri-apps/api/core";
 import * as cache from "tauri-plugin-cache-api";
 import { channelBadgesQuery, cheermoteQuery, streamQuery } from "$lib/graphql/twitch";
 import type { Cheermote } from "$lib/graphql/twitch";
-import { ChannelEmoteManager } from "$lib/managers/channel-emote-manager";
 import { fetch7tvId } from "$lib/seventv";
 import { storage } from "$lib/stores";
+import type { PollChoice } from "$lib/twitch/eventsub";
 import { app } from "../app.svelte";
+import { ChannelEmoteManager } from "../managers/channel-emote-manager";
 import { ViewerManager } from "../managers/viewer-manager";
 import { settings } from "../settings";
 import type { StreamMarker } from "../twitch/api";
@@ -15,6 +16,11 @@ import { Chat } from "./chat.svelte";
 import { Stream } from "./stream.svelte";
 import { Viewer } from "./viewer.svelte";
 import type { User } from "./user.svelte";
+
+export interface Poll {
+	title: string;
+	choices: PollChoice[];
+}
 
 export class Channel {
 	public readonly id: string;
@@ -50,6 +56,11 @@ export class Channel {
 	 * The stream associated with the channel if it's currently live.
 	 */
 	public stream = $state<Stream | null>(null);
+
+	/**
+	 * The active poll in the channel if any.
+	 */
+	public poll = $state<Poll | null>(null);
 
 	/**
 	 * Whether the channel is joined.

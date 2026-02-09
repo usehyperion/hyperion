@@ -50,6 +50,42 @@ export type AutoModMessageUpdate = (AutoModAutomated | AutoModBlockedTerm) &
 		status: AutoModMessageStatus;
 	};
 
+export interface AutomaticReward {
+	type:
+		| "single_message_bypass_sub_mode"
+		| "send_highlighted_message"
+		| "random_sub_emote_unlock"
+		| "chosen_sub_emote_unlock"
+		| "chosen_modified_sub_emote_unlock";
+	channel_points: number;
+	emotes?: {
+		id: string;
+		name: string;
+	};
+}
+
+export interface ChannelChannelPointsAutomaticRewardRedemptionAdd
+	extends WithBroadcaster, WithBasicUser {
+	id: string;
+	reward: AutomaticReward;
+	message?: Omit<StructuredMessage, "message_id">;
+}
+
+export interface Reward {
+	id: string;
+	title: string;
+	cost: number;
+	prompt: string;
+}
+
+export interface ChannelChannelPointsCustomRewardRedemptionAdd
+	extends WithBroadcaster, WithBasicUser {
+	user_input: string;
+	status: "unknown" | "unfulfilled" | "fulfilled" | "canceled";
+	reward: Reward;
+	redeemed_at: string;
+}
+
 export interface ChannelChatUserMessageHold extends WithBroadcaster, WithBasicUser {
 	message_id: string;
 	message: StructuredMessage;
@@ -236,6 +272,78 @@ export type ChannelModerate =
 	| WarnAction
 	| SharedChatAction;
 
+export interface PollChoice {
+	id: string;
+	title: string;
+	channel_points_votes: number;
+	votes: number;
+}
+
+export interface ChannelPointsVoting {
+	is_enabled: boolean;
+	amount_per_vote: number;
+}
+
+export interface Poll {
+	id: string;
+	title: string;
+	choices: PollChoice[];
+	channel_points_voting: ChannelPointsVoting;
+	started_at: string;
+}
+
+export interface ChannelPollBegin extends Poll, WithBroadcaster {
+	ends_at: string;
+}
+
+export interface ChannelPollEnd extends Poll, WithBroadcaster {
+	status: "completed" | "archived" | "terminated";
+	ended_at: string;
+}
+
+export type ChannelPollProgress = ChannelPollBegin;
+
+type PredictionEvent = "begin" | "end" | "lock" | "progress";
+
+export interface PredictionPredictor<E extends PredictionEvent> extends WithBasicUser {
+	channel_points_won: E extends "end" ? number : null;
+	channel_points_used: number;
+}
+
+export interface PredictionOutcome<E extends PredictionEvent> {
+	id: string;
+	title: string;
+	color: "blue" | "pink";
+	users: number;
+	channel_points: number;
+	top_predictors: E extends "begin" ? never : PredictionPredictor<E>[];
+}
+
+export interface Prediction<E extends PredictionEvent> {
+	id: string;
+	title: string;
+	outcomes: PredictionOutcome<E>[];
+	started_at: string;
+}
+
+export interface ChannelPredictionBegin extends Prediction<"begin">, WithBroadcaster {
+	locks_at: string;
+}
+
+export interface ChannelPredictionEnd extends Prediction<"end">, WithBroadcaster {
+	winning_outcome_id: string;
+	status: "resolved" | "canceled";
+	ended_at: string;
+}
+
+export interface ChannelPredictionLock extends Prediction<"lock">, WithBroadcaster {
+	locked_at: string;
+}
+
+export interface ChannelPredictionProgress extends Prediction<"progress">, WithBroadcaster {
+	locks_at: string;
+}
+
 export interface ChannelSubscriptionEnd extends WithBroadcaster, WithBasicUser {
 	tier: string;
 	is_gift: boolean;
@@ -325,18 +433,18 @@ export interface StreamOnline extends WithBroadcaster {
 export interface SubscriptionEventMap {
 	"automod.message.hold": AutoModMessageHold;
 	"automod.message.update": AutoModMessageUpdate;
-	"channel.channel_points_automatic_reward_redemption.add": unknown;
-	"channel.channel_points_custom_reward_redemption.add": unknown;
+	"channel.channel_points_automatic_reward_redemption.add": ChannelChannelPointsAutomaticRewardRedemptionAdd;
+	"channel.channel_points_custom_reward_redemption.add": ChannelChannelPointsCustomRewardRedemptionAdd;
 	"channel.chat.user_message_hold": ChannelChatUserMessageHold;
 	"channel.chat.user_message_update": ChannelChatUserMessageUpdate;
 	"channel.moderate": ChannelModerate;
-	"channel.poll.begin": unknown;
-	"channel.poll.end": unknown;
-	"channel.poll.progress": unknown;
-	"channel.prediction.begin": unknown;
-	"channel.prediction.end": unknown;
-	"channel.prediction.lock": unknown;
-	"channel.prediction.progress": unknown;
+	"channel.poll.begin": ChannelPollBegin;
+	"channel.poll.end": ChannelPollEnd;
+	"channel.poll.progress": ChannelPollProgress;
+	"channel.prediction.begin": ChannelPredictionBegin;
+	"channel.prediction.end": ChannelPredictionEnd;
+	"channel.prediction.lock": ChannelPredictionLock;
+	"channel.prediction.progress": ChannelPredictionProgress;
 	"channel.subscription.end": ChannelSubscriptionEnd;
 	"channel.suspicious_user.message": ChannelSuspiciousUserMessage;
 	"channel.suspicious_user.update": ChannelSuspiciousUserUpdate;

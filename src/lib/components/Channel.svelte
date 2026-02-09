@@ -8,6 +8,7 @@
 	import { handlers } from "$lib/handlers";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import type { IrcMessage } from "$lib/twitch/irc";
+	import Poll from "./Poll.svelte";
 
 	interface Props {
 		channel: Channel;
@@ -34,6 +35,10 @@
 <div class="flex h-full flex-col">
 	{#if channel.stream}
 		<StreamHeader stream={channel.stream} />
+	{/if}
+
+	{#if channel.poll}
+		<Poll poll={channel.poll} />
 	{/if}
 
 	<Chat class="grow" chat={channel.chat} />
