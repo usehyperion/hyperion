@@ -235,6 +235,22 @@ export class Channel {
 		return data;
 	}
 
+	public async blockTerm(term: string) {
+		if (!app.user?.moderating.has(this.id)) {
+			return;
+		}
+
+		await this.client.post("/moderation/blocked_terms", {
+			params: {
+				broadcaster_id: this.id,
+				moderator_id: app.user.id,
+			},
+			body: {
+				text: term,
+			},
+		});
+	}
+
 	public async raid(to: string) {
 		if (!app.user?.moderating.has(this.id)) {
 			return;
