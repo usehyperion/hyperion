@@ -1,4 +1,4 @@
-import type { DragDropEvents } from "@dnd-kit-svelte/svelte";
+import type { DragEndEvent } from "@dnd-kit/abstract";
 import type { PaneGroupProps } from "paneforge";
 import { goto } from "$app/navigation";
 import { resolve } from "$app/paths";
@@ -188,7 +188,7 @@ export class SplitLayout {
 		}
 	}
 
-	public handleDragEnd(event: Parameters<DragDropEvents["dragend"]>[0]) {
+	public handleDragEnd(event: Parameters<DragEndEvent>[0]) {
 		const { source, target } = event.operation;
 		if (!source || !target || source.id === target.id) return;
 

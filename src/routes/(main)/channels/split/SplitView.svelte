@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { useDraggable, useDroppable } from "@dnd-kit-svelte/svelte";
+	import { createDraggable, createDroppable } from "@dnd-kit/svelte";
 	import Layout from "~icons/ph/layout";
 	import { app } from "$lib/app.svelte";
 	import Channel from "$lib/components/Channel.svelte";
@@ -12,24 +12,26 @@
 
 	const { id }: Props = $props();
 
-	const { ref, handleRef, isDragging } = useDraggable({
-		id: () => `${id}:${crypto.randomUUID()}`,
-	});
+	const draggable = $derived(
+		createDraggable({
+			id: `${id}:${crypto.randomUUID()}`,
+		}),
+	);
 
-	const dropCenter = useDroppable({ id: () => `${id}:center` });
-	const dropUp = useDroppable({ id: () => `${id}:up` });
-	const dropDown = useDroppable({ id: () => `${id}:down` });
-	const dropLeft = useDroppable({ id: () => `${id}:left` });
-	const dropRight = useDroppable({ id: () => `${id}:right` });
+	const dropCenter = $derived(createDroppable({ id: `${id}:center` }));
+	const dropUp = $derived(createDroppable({ id: `${id}:up` }));
+	const dropDown = $derived(createDroppable({ id: `${id}:down` }));
+	const dropLeft = $derived(createDroppable({ id: `${id}:left` }));
+	const dropRight = $derived(createDroppable({ id: `${id}:right` }));
 
 	const channel = $derived(app.channels.get(id));
 
 	const activeClass = $derived.by(() => {
-		if (dropUp.isDropTarget.current) return "top-0 left-0 w-full h-1/2";
-		if (dropDown.isDropTarget.current) return "top-1/2 left-0 w-full h-1/2";
-		if (dropLeft.isDropTarget.current) return "top-0 left-0 w-1/2 h-full";
-		if (dropRight.isDropTarget.current) return "top-0 left-1/2 w-1/2 h-full";
-		if (dropCenter.isDropTarget.current) return "top-0 left-0 size-full";
+		if (dropUp.isDropTarget) return "top-0 left-0 w-full h-1/2";
+		if (dropDown.isDropTarget) return "top-1/2 left-0 w-full h-1/2";
+		if (dropLeft.isDropTarget) return "top-0 left-0 w-1/2 h-full";
+		if (dropRight.isDropTarget) return "top-0 left-1/2 w-1/2 h-full";
+		if (dropCenter.isDropTarget) return "top-0 left-0 size-full";
 	});
 
 	function setFocus() {
@@ -37,13 +39,13 @@
 	}
 </script>
 
-<div class="relative flex size-full flex-col" onfocusin={setFocus} {@attach ref}>
-	<SplitHeader {id} {handleRef} />
+<div class="relative flex size-full flex-col" onfocusin={setFocus} {@attach draggable.attach}>
+	<SplitHeader {id} attachHandle={draggable.attachHandle} />
 
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="relative h-full" onclick={setFocus}>
-		<div class={["h-full", isDragging.current && "opacity-50"]}>
+		<div class={["h-full", draggable.isDragging && "opacity-50"]}>
 			{#if channel}
 				{#key channel.id}
 					<Channel {channel} split />
@@ -84,6 +86,9 @@
 	</div>
 </div>
 
-{#snippet dropZone(dropper: ReturnType<typeof useDroppable>, className: string)}
-	<div class={["pointer-events-none absolute z-10 flex", className]} {@attach dropper.ref}></div>
+{#snippet dropZone(dropper: ReturnType<typeof createDroppable>, className: string)}
+	<div
+		class={["pointer-events-none absolute z-10 flex", className]}
+		{@attach dropper.attach}
+	></div>
 {/snippet}

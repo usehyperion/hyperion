@@ -12,10 +12,10 @@
 
 	interface Props {
 		id: string;
-		handleRef?: Attachment;
+		attachHandle?: Attachment<HTMLElement>;
 	}
 
-	const { id, handleRef }: Props = $props();
+	const { id, attachHandle }: Props = $props();
 
 	const channel = $derived(app.channels.get(id));
 
@@ -65,7 +65,7 @@
 <div class="bg-sidebar flex items-center justify-between border-b p-1" data-slot="split-header">
 	<div
 		class="flex h-full flex-1 cursor-grab items-center gap-x-2 overflow-hidden px-1 active:cursor-grabbing"
-		{@attach handleRef}
+		{@attach attachHandle}
 	>
 		{#if channel}
 			<img

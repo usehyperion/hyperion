@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { DragDropProvider, DragOverlay } from "@dnd-kit-svelte/svelte";
 	import {
 		Accessibility,
 		Cursor,
@@ -9,6 +8,7 @@
 		ScrollListener,
 	} from "@dnd-kit/dom";
 	import { move } from "@dnd-kit/helpers";
+	import { DragDropProvider, DragOverlay } from "@dnd-kit/svelte";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";

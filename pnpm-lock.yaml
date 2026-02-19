@@ -15,17 +15,20 @@ importers:
         specifier: ^0.1.6
         version: 0.1.6(svelte@5.53.0)
       '@dnd-kit/abstract':
-        specifier: ^0.2.4
-        version: 0.2.4
+        specifier: ^0.3.2
+        version: 0.3.2
       '@dnd-kit/collision':
-        specifier: ^0.2.4
-        version: 0.2.4
+        specifier: ^0.3.2
+        version: 0.3.2
       '@dnd-kit/dom':
-        specifier: ^0.2.4
-        version: 0.2.4
+        specifier: ^0.3.2
+        version: 0.3.2
       '@dnd-kit/helpers':
-        specifier: ^0.2.4
-        version: 0.2.4
+        specifier: ^0.3.2
+        version: 0.3.2
+      '@dnd-kit/svelte':
+        specifier: ^0.3.2
+        version: 0.3.2(svelte@5.53.0)
       '@tailwindcss/vite':
         specifier: ^4.2.0
         version: 4.2.0(rolldown-vite@7.3.1(@types/node@24.10.1)(jiti@2.6.1)(yaml@2.8.2))
@@ -280,11 +283,20 @@ packages:
   '@dnd-kit/abstract@0.2.4':
     resolution: {integrity: sha512-1F3JQaD8upvTNpfDrhvec57cldTEaUggmVrVJZIpRTIdZR7trKqS7vBYZR1mW3qNjWsxC91eEQAXYWv0vxXXuw==}
 
+  '@dnd-kit/abstract@0.3.2':
+    resolution: {integrity: sha512-uvPVK+SZYD6Viddn9M0K0JQdXknuVSxA/EbMlFRanve3P/XTc18oLa5zGftKSGjfQGmuzkZ34E26DSbly1zi3Q==}
+
   '@dnd-kit/collision@0.2.4':
     resolution: {integrity: sha512-w8Vzq8MKu8MYvrwtasqQhw2l27v9eRMzL+jOdj8Qp0jnPQ1FICGgUwjAStZ87wO1Pc2WIt0rQWDDPIEyRd6S8A==}
 
+  '@dnd-kit/collision@0.3.2':
+    resolution: {integrity: sha512-pNmNSLCI8S9fNQ7QJ3fBCDjiT0sqBhUFcKgmyYaGvGCAU+kq0AP8OWlh0JSisc9k5mFyxmRpmFQcnJpILz/RPA==}
+
   '@dnd-kit/dom@0.2.4':
     resolution: {integrity: sha512-ZYIJgx/uyZvmGOHPBDbIeJfqa2xlEUHnkHEHcKlR/VMQz9NoSkPGcjPdcAjpwB+T4dleRQ4tZ8h9X5I3UdTQPw==}
+
+  '@dnd-kit/dom@0.3.2':
+    resolution: {integrity: sha512-cIUAVgt2szQyz6JRy7I+0r+xeyOAGH21Y15hb5bIyHoDEaZBvIDH+OOlD9eoLjCbsxDLN9WloU2CBi3OE6LYDg==}
 
   '@dnd-kit/geometry@0.1.21':
     resolution: {integrity: sha512-Tir97wNJbopN2HgkD7AjAcoB3vvrVuUHvwdPALmNDUH0fWR637c4MKQ66YjjZAbUEAR8KL6mlDiHH4MzTLd7CQ==}
@@ -292,14 +304,25 @@ packages:
   '@dnd-kit/geometry@0.2.4':
     resolution: {integrity: sha512-S8wVj4rQIErimDQoRT0n1+lgxPvlO/gvzT9/1vzyyw1U4bB/S8avtrI+REVw/jH84c/dii+GwrrzVkDDoIluNw==}
 
-  '@dnd-kit/helpers@0.2.4':
-    resolution: {integrity: sha512-xKnkVPVH5YOeyerJGsqgzivTZq1lGSqnBiP5T+3G2jnM/KY5FCZBJSVcwNzFXcaIrMlj35N/sxlFHCX8kKgXEA==}
+  '@dnd-kit/geometry@0.3.2':
+    resolution: {integrity: sha512-3UBPuIS7E3oGiHxOE8h810QA+0pnrnCtGxl4Os1z3yy5YkC/BEYGY+TxWPTQaY1/OMV7GCX7ZNMlama2QN3n3w==}
+
+  '@dnd-kit/helpers@0.3.2':
+    resolution: {integrity: sha512-pj7pCE6BiysNetpPnzb3BJOrcKiqueUr1LFg6wYoi2fIFYpz66n2Ojd7HTwfwkpv0oyC3QlvA6Dk8cOmi6VavA==}
 
   '@dnd-kit/state@0.1.21':
     resolution: {integrity: sha512-pdhntEPvn/QttcF295bOJpWiLsRqA/Iczh1ODOJUxGiR+E4GkYVz9VapNNm9gDq6ST0tr/e1Q2xBztUHlJqQgA==}
 
   '@dnd-kit/state@0.2.4':
     resolution: {integrity: sha512-mPtQfmqBZBcVKa+Fi8AV2ocQWa+phvZa9Muq3PxFM3WIyjrFiEosGGPiPcx5hC3K+i2gkmr6Msc7iPrrpYkB5g==}
+
+  '@dnd-kit/state@0.3.2':
+    resolution: {integrity: sha512-dLUIkoYrIJhGXfF2wGLTfb46vUokEsO/OoE21TSfmahYrx7ysTmnwbePsznFaHlwgZhQEh6AlLvthLCeY21b1A==}
+
+  '@dnd-kit/svelte@0.3.2':
+    resolution: {integrity: sha512-HkTnx/3GnxfVNqHSojxhxp5r+KymL9Q7UI2gonXN2+bmdObw03FSQOjicOoRzlV2u9o5DtK1sU4YUQAfkLCGGQ==}
+    peerDependencies:
+      svelte: ^5.29.0
 
   '@dprint/formatter@0.3.0':
     resolution: {integrity: sha512-N9fxCxbaBOrDkteSOzaCqwWjso5iAe+WJPsHC021JfHNj2ThInPNEF13ORDKta3llq5D1TlclODCvOvipH7bWQ==}
@@ -605,14 +628,6 @@ packages:
 
   '@internationalized/date@3.11.0':
     resolution: {integrity: sha512-BOx5huLAWhicM9/ZFs84CzP+V3gBW6vlpM02yzsdYC7TGlZJX1OJiEEHcSayF00Z+3jLlm4w79amvSt6RqKN3Q==}
-
-  '@isaacs/balanced-match@4.0.1':
-    resolution: {integrity: sha512-yzMTt9lEb8Gv7zRioUilSglI0c0smZ9k5D65677DLWLtWJaXIS3CqcGyUFByYKlnUj6TkjLVs54fBl6+TiGQDQ==}
-    engines: {node: 20 || >=22}
-
-  '@isaacs/brace-expansion@5.0.1':
-    resolution: {integrity: sha512-WMz71T1JS624nWj2n2fnYAuPovhv7EUhk69R6i9dsVyzxt5eM3bjwvgk9L+APE1TRscGysAVMANkB0jh0LQZrQ==}
-    engines: {node: 20 || >=22}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -1302,6 +1317,10 @@ packages:
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
+  balanced-match@4.0.3:
+    resolution: {integrity: sha512-1pHv8LX9CpKut1Zp4EXey7Z8OfH11ONNH6Dhi2WDUt31VVZFXZzKwXcysBgqSumFCmR+0dqjMK5v5JiFHzi0+g==}
+    engines: {node: 20 || >=22}
+
   baseline-browser-mapping@2.9.19:
     resolution: {integrity: sha512-ipDqC8FrAl/76p2SSWKSI+H9tFwm7vYqXQrItCuiVPt26Km0jS+NzSsBWAaBusvSbQcfJG+JitdMm+wZAgTYqg==}
     hasBin: true
@@ -1318,6 +1337,10 @@ packages:
 
   brace-expansion@2.0.2:
     resolution: {integrity: sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ==}
+
+  brace-expansion@5.0.2:
+    resolution: {integrity: sha512-Pdk8c9poy+YhOgVWw1JNN22/HcivgKWwpxKq04M/jTmHyCZn12WPJebZxdjSa5TmBqISrUSgNYU3eRORljfCCw==}
+    engines: {node: 20 || >=22}
 
   browserslist@4.28.1:
     resolution: {integrity: sha512-ZC5Bd0LgJXgwGqUknZY/vkUQ04r8NXnJZ3yYi4vDmSiZmC/pdSN0NbNRPxZpbtO4uAfDUAFffO8IZoM3Gj8IkA==}
@@ -2143,8 +2166,8 @@ packages:
   micromark@4.0.2:
     resolution: {integrity: sha512-zpe98Q6kvavpCr1NPVSCMebCKfD7CA2NqZ+rykeNhONIJBpc1tFKt9hucLGwha3jNTNI8lHpctWJWoimVF4PfA==}
 
-  minimatch@10.1.2:
-    resolution: {integrity: sha512-fu656aJ0n2kcXwsnwnv9g24tkU5uSmOlTjd6WyyaKm2Z+h1qmY6bAjrcaIxF/BslFqbZ8UBtbJi7KgQOZD2PTw==}
+  minimatch@10.2.1:
+    resolution: {integrity: sha512-MClCe8IL5nRRmawL6ib/eT4oLyeKMGCghibcDWK+J0hh0Q8kqSdia6BvbRMVk6mPa6WqUa5uR2oxt6C5jd533A==}
     engines: {node: 20 || >=22}
 
   minimatch@9.0.5:
@@ -2571,8 +2594,8 @@ packages:
     peerDependencies:
       svelte: ^5.30.2
 
-  svelte2tsx@0.7.47:
-    resolution: {integrity: sha512-1aw/MFKVPM96OBevJdC12do2an9t5Zwr3Va9amLgTLpJje36ibD1iIHpuqCYWUrdR9vw6g6btKGQPmsqE8ZYCw==}
+  svelte2tsx@0.7.49:
+    resolution: {integrity: sha512-dMX/KwCAF70PE32WJo9qvUkAkOBy66Rl3TP3pExEa/pEtqMW1WT1AeUj/Hcjpf0hKbFYjnkQendMaZnLN/oF0g==}
     peerDependencies:
       svelte: ^3.55 || ^4.0.0-next.0 || ^4.0 || ^5.0.0-next.0
       typescript: ^4.9.4 || ^5.0.0
@@ -3008,10 +3031,22 @@ snapshots:
       '@dnd-kit/state': 0.2.4
       tslib: 2.8.1
 
+  '@dnd-kit/abstract@0.3.2':
+    dependencies:
+      '@dnd-kit/geometry': 0.3.2
+      '@dnd-kit/state': 0.3.2
+      tslib: 2.8.1
+
   '@dnd-kit/collision@0.2.4':
     dependencies:
       '@dnd-kit/abstract': 0.2.4
       '@dnd-kit/geometry': 0.2.4
+      tslib: 2.8.1
+
+  '@dnd-kit/collision@0.3.2':
+    dependencies:
+      '@dnd-kit/abstract': 0.3.2
+      '@dnd-kit/geometry': 0.3.2
       tslib: 2.8.1
 
   '@dnd-kit/dom@0.2.4':
@@ -3020,6 +3055,14 @@ snapshots:
       '@dnd-kit/collision': 0.2.4
       '@dnd-kit/geometry': 0.2.4
       '@dnd-kit/state': 0.2.4
+      tslib: 2.8.1
+
+  '@dnd-kit/dom@0.3.2':
+    dependencies:
+      '@dnd-kit/abstract': 0.3.2
+      '@dnd-kit/collision': 0.3.2
+      '@dnd-kit/geometry': 0.3.2
+      '@dnd-kit/state': 0.3.2
       tslib: 2.8.1
 
   '@dnd-kit/geometry@0.1.21':
@@ -3032,9 +3075,14 @@ snapshots:
       '@dnd-kit/state': 0.2.4
       tslib: 2.8.1
 
-  '@dnd-kit/helpers@0.2.4':
+  '@dnd-kit/geometry@0.3.2':
     dependencies:
-      '@dnd-kit/abstract': 0.2.4
+      '@dnd-kit/state': 0.3.2
+      tslib: 2.8.1
+
+  '@dnd-kit/helpers@0.3.2':
+    dependencies:
+      '@dnd-kit/abstract': 0.3.2
       tslib: 2.8.1
 
   '@dnd-kit/state@0.1.21':
@@ -3045,6 +3093,19 @@ snapshots:
   '@dnd-kit/state@0.2.4':
     dependencies:
       '@preact/signals-core': 1.13.0
+      tslib: 2.8.1
+
+  '@dnd-kit/state@0.3.2':
+    dependencies:
+      '@preact/signals-core': 1.13.0
+      tslib: 2.8.1
+
+  '@dnd-kit/svelte@0.3.2(svelte@5.53.0)':
+    dependencies:
+      '@dnd-kit/abstract': 0.3.2
+      '@dnd-kit/dom': 0.3.2
+      '@dnd-kit/state': 0.3.2
+      svelte: 5.53.0
       tslib: 2.8.1
 
   '@dprint/formatter@0.3.0':
@@ -3191,7 +3252,7 @@ snapshots:
     dependencies:
       '@eslint/object-schema': 3.0.1
       debug: 4.4.3
-      minimatch: 10.1.2
+      minimatch: 10.2.1
     transitivePeerDependencies:
       - supports-color
 
@@ -3262,7 +3323,7 @@ snapshots:
   '@gql.tada/svelte-support@1.0.1(svelte@5.53.0)(typescript@5.9.3)':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
-      svelte2tsx: 0.7.47(svelte@5.53.0)(typescript@5.9.3)
+      svelte2tsx: 0.7.49(svelte@5.53.0)(typescript@5.9.3)
       typescript: 5.9.3
       vscode-languageserver-textdocument: 1.0.12
     transitivePeerDependencies:
@@ -3294,12 +3355,6 @@ snapshots:
   '@internationalized/date@3.11.0':
     dependencies:
       '@swc/helpers': 0.5.18
-
-  '@isaacs/balanced-match@4.0.1': {}
-
-  '@isaacs/brace-expansion@5.0.1':
-    dependencies:
-      '@isaacs/balanced-match': 4.0.1
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -3924,6 +3979,8 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
+  balanced-match@4.0.3: {}
+
   baseline-browser-mapping@2.9.19: {}
 
   bits-ui@2.15.8(@internationalized/date@3.11.0)(@sveltejs/kit@2.52.2(@sveltejs/vite-plugin-svelte@6.2.4(rolldown-vite@7.3.1(@types/node@24.10.1)(jiti@2.6.1)(yaml@2.8.2))(svelte@5.53.0))(rolldown-vite@7.3.1(@types/node@24.10.1)(jiti@2.6.1)(yaml@2.8.2))(svelte@5.53.0)(typescript@5.9.3))(svelte@5.53.0):
@@ -3944,6 +4001,10 @@ snapshots:
   brace-expansion@2.0.2:
     dependencies:
       balanced-match: 1.0.2
+
+  brace-expansion@5.0.2:
+    dependencies:
+      balanced-match: 4.0.3
 
   browserslist@4.28.1:
     dependencies:
@@ -4391,7 +4452,7 @@ snapshots:
       imurmurhash: 0.1.4
       is-glob: 4.0.3
       json-stable-stringify-without-jsonify: 1.0.1
-      minimatch: 10.1.2
+      minimatch: 10.2.1
       natural-compare: 1.4.0
       optionator: 0.9.4
     optionalDependencies:
@@ -4978,9 +5039,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  minimatch@10.1.2:
+  minimatch@10.2.1:
     dependencies:
-      '@isaacs/brace-expansion': 5.0.1
+      brace-expansion: 5.0.2
 
   minimatch@9.0.5:
     dependencies:
@@ -5348,7 +5409,7 @@ snapshots:
       style-to-object: 1.0.14
       svelte: 5.53.0
 
-  svelte2tsx@0.7.47(svelte@5.53.0)(typescript@5.9.3):
+  svelte2tsx@0.7.49(svelte@5.53.0)(typescript@5.9.3):
     dependencies:
       dedent-js: 1.0.1
       scule: 1.3.0
