@@ -29,15 +29,29 @@ interface SplitRect {
 	height: number;
 }
 
+/**
+ * Split layout is implemented as a binary tree where each node is either a
+ * {@linkcode SplitBranch} or a leaf representing a pane ID.
+ *
+ * See also:
+ * - https://www.warp.dev/blog/using-tree-data-structures-to-implement-terminal-split-panes-more-fun-than-it-sounds
+ * - https://github.com/ghostty-org/ghostty/blob/main/macos/Sources/Features/Splits/SplitTree.swift
+ */
 export class SplitLayout {
 	public static readonly EMPTY_ROOT_ID = "split-root-empty";
 
 	#focused: string | null = null;
 
+	/**
+	 * Whether the split layout is currently active.
+	 */
 	public get active() {
 		return page.route.id === "/(main)/channels/split";
 	}
 
+	/**
+	 * The root of the layout tree.
+	 */
 	public get root() {
 		return layout.state.root;
 	}
@@ -58,6 +72,10 @@ export class SplitLayout {
 		this.#focused = value;
 	}
 
+	/**
+	 * Splits an existing leaf node into a branch containing the original node
+	 * and a new node.
+	 */
 	public insert(target: string, newNode: string, branch: SplitBranch) {
 		if (!this.root) {
 			this.root = target;
@@ -90,14 +108,20 @@ export class SplitLayout {
 		this.focused = id;
 	}
 
+	/**
+	 * Removes the target pane and collapses the tree.
+	 */
 	public remove(target: string) {
 		if (!this.root) return;
 
+		// target is the entire tree
 		if (this.root === target) {
 			this.root = null;
 			return;
 		}
 
+		// target is an immediate child of the root, so the root gets replaced
+		// entirely by its surviving child.
 		if (typeof this.root !== "string") {
 			if (this.root.before === target) {
 				this.root = this.root.after;
@@ -119,6 +143,24 @@ export class SplitLayout {
 		this.#update(target, () => replacement);
 	}
 
+	/**
+	 * Spatially navigates the layout using geometrical projection by
+	 * calculating synthetic bounding boxes for every pane and performing a
+	 * directional 2D search.
+	 *
+	 * Given the following layout and tree representation:
+	 *
+	 * ```txt
+	 * +-------+-------+       (H)
+	 * |       |   B   |      /   \
+	 * |   A   |-------|     A    (V)
+	 * |       |   C   |    /       \
+	 * +-------+-------+   B         C
+	 * ```
+	 *
+	 * Going "right" from `A`, `getLayoutRects` determines that `B` and `C` are
+	 * candidates, but `B` is closer, so it gets picked.
+	 */
 	public navigate(startId: string, direction: SplitDirection) {
 		if (!this.root || this.root === startId) return null;
 
@@ -156,14 +198,18 @@ export class SplitLayout {
 
 		if (!candidates.length) return null;
 
+		// Score candidates to find the best visual neighbor
 		const [best] = candidates.sort((a, b) => {
 			const distA = this.#getDistance(current, a, direction);
 			const distB = this.#getDistance(current, b, direction);
 
+			// Closest distance
 			if (Math.abs(distA - distB) > threshold) {
 				return distA - distB;
 			}
 
+			// If distances are equal, pick the pane with the most overlapping
+			// edge
 			return (
 				this.#getAlignmentScore(current, b, direction) -
 				this.#getAlignmentScore(current, a, direction)
@@ -273,6 +319,11 @@ export class SplitLayout {
 		};
 	}
 
+	/**
+	 * Recursively maps the tree's percentage-based ratios into a synthetic 2D
+	 * layout. This normalizes all pane coordinates into an absolute space,
+	 * relative to a 1x1 area, to perform geometrical calculations.
+	 */
 	#getLayoutRects(
 		node: SplitNode,
 		{ x, y, width, height }: Omit<SplitRect, "id"> = { x: 0, y: 0, width: 1, height: 1 },
@@ -323,6 +374,9 @@ export class SplitLayout {
 		}
 	}
 
+	/**
+	 * Calculates how well-aligned two panes are on the orthogonal axis.
+	 */
 	#getAlignmentScore(from: SplitRect, to: SplitRect, direction: SplitDirection) {
 		const isVerticalMove = direction === "up" || direction === "down";
 
