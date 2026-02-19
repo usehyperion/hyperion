@@ -7,13 +7,13 @@
 	interface Props {
 		channel: Channel;
 		dragging: boolean;
-		ref: Attachment;
+		attach: Attachment<HTMLElement>;
 	}
 
-	const { channel, dragging, ref }: Props = $props();
+	const { channel, dragging, attach }: Props = $props();
 </script>
 
-<div class="relative px-1.5" {@attach ref}>
+<div class="relative px-1.5" {@attach attach}>
 	<div class:invisible={dragging}>
 		<StreamTooltip {channel} />
 	</div>
