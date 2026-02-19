@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { useSortable } from "@dnd-kit-svelte/svelte/sortable";
+	import { createSortable } from "@dnd-kit/svelte/sortable";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import ChannelListItem from "./ChannelListItem.svelte";
 
@@ -10,11 +10,13 @@
 
 	const { channel, index }: Props = $props();
 
-	const { ref, isDragging } = useSortable({
-		id: () => `${channel.id}:channel-list/pinned`,
-		type: "channel-list-item",
-		index: () => index,
-	});
+	const sortable = $derived(
+		createSortable({
+			id: `${channel.id}:channel-list/pinned`,
+			type: "channel-list-item",
+			index,
+		}),
+	);
 </script>
 
-<ChannelListItem {channel} dragging={isDragging.current} {ref} />
+<ChannelListItem {channel} dragging={sortable.isDragging} attach={sortable.attach} />

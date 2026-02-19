@@ -1,22 +1,22 @@
 <script lang="ts">
-	import { useDroppable } from "@dnd-kit-svelte/svelte";
-	import type { UseDroppableInput } from "@dnd-kit-svelte/svelte";
 	import { closestCorners } from "@dnd-kit/collision";
+	import { createDroppable } from "@dnd-kit/svelte";
+	import type { CreateDroppableInput } from "@dnd-kit/svelte";
 	import type { Snippet } from "svelte";
 
-	interface Props extends UseDroppableInput {
+	interface Props extends CreateDroppableInput {
 		children: Snippet;
 		class?: string;
 	}
 
 	const { children, class: className, ...rest }: Props = $props();
 
-	const { ref } = useDroppable({
+	const droppable = createDroppable({
 		...rest,
-		collisionDetector: () => closestCorners,
+		collisionDetector: closestCorners,
 	});
 </script>
 
-<div class={className} {@attach ref}>
+<div class={className} {@attach droppable.attach}>
 	{@render children()}
 </div>
