@@ -11,10 +11,12 @@
 
 	const { children, class: className, ...rest }: Props = $props();
 
-	const droppable = createDroppable({
-		...rest,
-		collisionDetector: closestCorners,
-	});
+	const droppable = $derived(
+		createDroppable({
+			...rest,
+			collisionDetector: closestCorners,
+		}),
+	);
 </script>
 
 <div class={className} {@attach droppable.attach}>
