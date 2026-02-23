@@ -23,11 +23,11 @@
 		{#snippet child({ props })}
 			<div
 				{...props}
-				class="hover:bg-accent relative flex items-center gap-2 rounded-lg p-1.5 transition-colors"
+				class="hover:bg-accent relative flex cursor-pointer items-center gap-2 rounded-lg p-1.5 transition-colors"
 				oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}
 			>
 				<a
-					class="absolute inset-0 z-10"
+					class="pointer-events-none absolute inset-0 z-10"
 					href={resolve("/(main)/channels/[username]", {
 						username: channel.user.username,
 					})}
