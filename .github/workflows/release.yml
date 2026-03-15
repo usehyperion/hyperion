@@ -73,4 +73,5 @@ jobs:
           releaseDraft: true
           assetNamePattern: '[name]-v[version]-[arch][ext]'
           prerelease: false
+          includeUpdaterJson: true
           args: ${{ matrix.args }}
