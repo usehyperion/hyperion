@@ -15,10 +15,10 @@ jobs:
       matrix:
         include:
           - os: 'macos-latest'
-            args: '--target aarch64-apple-darwin --bundles dmg'
+            args: '--target aarch64-apple-darwin --bundles app,dmg'
             target: 'aarch64-apple-darwin'
           - os: 'macos-latest'
-            args: '--target x86_64-apple-darwin --bundles dmg'
+            args: '--target x86_64-apple-darwin --bundles app,dmg'
             target: 'x86_64-apple-darwin'
           - os: 'ubuntu-22.04'
             args: '--bundles appimage,deb'
