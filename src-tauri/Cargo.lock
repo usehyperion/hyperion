@@ -1931,7 +1931,7 @@ dependencies = [
 
 [[package]]
 name = "hyperion"
-version = "0.1.2"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "either",
