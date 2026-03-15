@@ -26,9 +26,7 @@
 		"security": {
 			"assetProtocol": {
 				"enable": true,
-				"scope": [
-					"$APPCONFIG/**"
-				]
+				"scope": ["$APPCONFIG/**"]
 			},
 			"csp": "default-src 'self' https: ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline' asset: http://asset.localhost; img-src 'self' data: https:"
 		}
@@ -48,7 +46,7 @@
 	},
 	"plugins": {
 		"updater": {
-			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFCRDk4MjZBMUM0QkY0MTkKUldRWjlFc2Nhb0xacTAzR3JRckxrVXJkaVJXTWFkMUdUeFMrVHJaL2tDbldpN1lERGJrcm1mZVMK",
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc1MDJBMzZDMDkyQUQwOUYKUldTZjBDb0piS01DZGErSzA2SE1NemZLb2lPL1lvMW1SSDBkMXpSWEpwNDhpVVhBbmJmZjZqR2kK",
 			"endpoints": [
 				"https://github.com/usehyperion/hyperion/releases/latest/download/latest.json"
 			]
