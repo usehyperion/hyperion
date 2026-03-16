@@ -37,24 +37,39 @@ impl IrcClient {
     pub async fn connect(&self) {
         let (return_tx, return_rx) = oneshot::channel();
 
-        self.client_loop_tx
+        if self
+            .client_loop_tx
             .send(ClientLoopCommand::Connect {
                 return_sender: return_tx,
             })
-            .unwrap();
+            .is_err()
+        {
+            tracing::error!("IRC client loop has stopped");
+            return;
+        }
 
-        return_rx.await.unwrap()
+        if return_rx.await.is_err() {
+            tracing::error!("IRC connect acknowledgment lost");
+        }
     }
 
     pub fn join(&self, channel_login: String) {
-        self.client_loop_tx
+        if self
+            .client_loop_tx
             .send(ClientLoopCommand::Join { channel_login })
-            .unwrap();
+            .is_err()
+        {
+            tracing::warn!("IRC client loop has stopped, cannot join channel");
+        }
     }
 
     pub fn part(&self, channel_login: String) {
-        self.client_loop_tx
+        if self
+            .client_loop_tx
             .send(ClientLoopCommand::Part { channel_login })
-            .unwrap();
+            .is_err()
+        {
+            tracing::warn!("IRC client loop has stopped, cannot part channel");
+        }
     }
 }

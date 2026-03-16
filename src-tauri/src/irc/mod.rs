@@ -43,7 +43,10 @@ pub async fn connect_irc(
 
             tracing::trace!(?tags, "Received {command} message");
 
-            channel.send(message).unwrap();
+            if channel.send(message).is_err() {
+                tracing::warn!("IRC frontend channel closed");
+                break;
+            }
         }
     });
 

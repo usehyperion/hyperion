@@ -85,7 +85,7 @@ impl ClientLoopWorker {
     #[must_use]
     fn make_new_connection(&mut self) -> PoolConnection {
         let connection_id = self.next_connection_id;
-        self.next_connection_id = self.next_connection_id.overflowing_add(1).0;
+        self.next_connection_id = self.next_connection_id.wrapping_add(1);
 
         let (connection_incoming_messages_rx, connection) =
             Connection::new(Arc::clone(&self.config));
@@ -120,16 +120,18 @@ impl ClientLoopWorker {
                     break;
                 }
                 incoming_message = connection_incoming_messages_rx.recv() => {
-                    if let Some(incoming_message) = incoming_message {
-                        if let Some(client_loop_tx) = client_loop_tx.upgrade() {
-                            client_loop_tx.send(ClientLoopCommand::IncomingMessage {
-                                source_connection_id: connection_id,
-                                message: Box::new(incoming_message)
-                            }).unwrap();
-                        } else {
-                            break;
-                        }
-                    } else {
+                    let Some(incoming_message) = incoming_message else {
+                        break;
+                    };
+
+                    let Some(client_loop_tx) = client_loop_tx.upgrade() else {
+                        break;
+                    };
+
+                    if client_loop_tx.send(ClientLoopCommand::IncomingMessage {
+                        source_connection_id: connection_id,
+                        message: Box::new(incoming_message)
+                    }).is_err() {
                         break;
                     }
                 }
