@@ -28,11 +28,11 @@ pub async fn connect_seventv(
     let (mut incoming, client) = SeventTvClient::new();
     let client = Arc::new(client);
 
-    state.seventv = Some(client.clone());
+    state.seventv = Some(Arc::clone(&client));
     drop(state);
 
     async_runtime::spawn(async move {
-        if client.clone().connect().await.is_err() {
+        if Arc::clone(&client).connect().await.is_err() {
             let state = app_handle.state::<Mutex<AppState>>();
             let mut state = state.lock().await;
 

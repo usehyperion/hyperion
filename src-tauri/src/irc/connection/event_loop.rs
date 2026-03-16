@@ -409,11 +409,8 @@ impl ConnectionLoopStateMethods for ConnectionLoopOpenState {
 
                 match server_message {
                     Ok(server_message) => {
-                        self.connection_incoming_tx
-                            .send(ConnectionIncomingMessage::IncomingMessage(Box::new(
-                                server_message.clone(),
-                            )))
-                            .ok();
+                        let should_close =
+                            matches!(&server_message, ServerMessage::Reconnect(_));
 
                         match &server_message {
                             ServerMessage::Ping(_) => {
@@ -422,10 +419,17 @@ impl ConnectionLoopStateMethods for ConnectionLoopOpenState {
                             ServerMessage::Pong(_) => {
                                 self.pong_received = true;
                             }
-                            ServerMessage::Reconnect(_) => {
-                                return self.transition_to_closed(Error::ReconnectCmd);
-                            }
                             _ => {}
+                        }
+
+                        self.connection_incoming_tx
+                            .send(ConnectionIncomingMessage::IncomingMessage(Box::new(
+                                server_message,
+                            )))
+                            .ok();
+
+                        if should_close {
+                            return self.transition_to_closed(Error::ReconnectCmd);
                         }
                     }
                     Err(parse_error) => {

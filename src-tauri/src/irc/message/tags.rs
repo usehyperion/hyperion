@@ -71,14 +71,13 @@ impl IrcTags {
             panic!("invalid input")
         }
 
-        let mut tags = IrcTags::new();
+        let tag_count = source.as_bytes().iter().filter(|&&b| b == b';').count() + 1;
+        let mut tags = IrcTags(HashMap::with_capacity(tag_count));
 
         for raw_tag in source.split(';') {
             let mut tag_split = raw_tag.splitn(2, '=');
 
-            // always expected to be present, even splitting an empty string yields [""]
             let key = tag_split.next().unwrap();
-            // can be missing if no = is present
             let value = tag_split
                 .next()
                 .map_or_else(|| "".to_owned(), decode_tag_value);

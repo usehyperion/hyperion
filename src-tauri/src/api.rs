@@ -82,22 +82,21 @@ pub async fn join(
     };
 
     let login_clone = login.clone();
-    let id_clone = id.clone();
 
     async_runtime::spawn(
         async move {
             if let Some(eventsub) = eventsub {
                 let ch_cond = json!({
-                    "broadcaster_user_id": id_clone
+                    "broadcaster_user_id": id
                 });
 
                 let ch_with_user_cond = json!({
-                    "broadcaster_user_id": id_clone,
+                    "broadcaster_user_id": id,
                     "user_id": token.user_id
                 });
 
                 let ch_with_mod_cond = json!({
-                    "broadcaster_user_id": id_clone,
+                    "broadcaster_user_id": id,
                     "moderator_user_id": token.user_id
                 });
 
@@ -136,7 +135,7 @@ pub async fn join(
                 let channel_cond = json!({
                     "ctx": "channel",
                     "platform": "TWITCH",
-                    "id": id_clone
+                    "id": id
                 });
 
                 seventv
@@ -219,15 +218,17 @@ pub async fn fetch_user_emotes(app_handle: AppHandle) {
     async_runtime::spawn(
         async move {
             let state = app_handle.state::<Mutex<AppState>>();
-            let state = state.lock().await;
 
-            let Some(token) = state.token.as_ref() else {
-                return Ok::<_, Error>(());
+            let (helix, token) = {
+                let state = state.lock().await;
+                let Some(token) = state.token.clone() else {
+                    return Ok::<_, Error>(());
+                };
+                (state.helix.clone(), token)
             };
 
-            let emotes: Vec<_> = state
-                .helix
-                .get_user_emotes(&token.user_id, token)
+            let emotes: Vec<_> = helix
+                .get_user_emotes(&token.user_id, &token)
                 .try_collect()
                 .await?;
 

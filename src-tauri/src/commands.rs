@@ -84,16 +84,22 @@ pub fn get_cache_size(app_handle: AppHandle) -> i64 {
 }
 
 fn format_bytes(bytes: u64) -> String {
-    let i = ((bytes as f64).ln() / 1024_f64.ln()).floor();
+    const UNITS: [&str; 5] = ["bytes", "KB", "MB", "GB", "TB"];
 
-    if i == 0.0 {
-        "0 bytes".to_string()
-    } else {
-        let value = bytes as f64 / 1024_f64.powf(i);
-        let unit = ["bytes", "KB", "MB", "GB", "TB"][i as usize];
-
-        format!("{value:.2} {unit}")
+    if bytes == 0 {
+        return "0 bytes".to_string();
     }
+
+    let i = ((bytes as f64).log2() / 10.0).floor() as usize;
+    let i = i.min(UNITS.len() - 1);
+
+    if i == 0 {
+        return format!("{bytes} bytes");
+    }
+
+    let value = bytes as f64 / (1u64 << (i * 10)) as f64;
+
+    format!("{value:.2} {}", UNITS[i])
 }
 
 #[tauri::command]

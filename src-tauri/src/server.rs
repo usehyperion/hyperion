@@ -114,18 +114,19 @@ async fn handle_connection(mut stream: TcpStream) -> Option<String> {
 		</html>"
     );
 
-    stream
-        .write_all(
-            format!(
-                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{response}",
-                response.len()
-            )
-            .as_bytes(),
-        )
-        .await
-        .unwrap();
+    let header = format!(
+        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{response}",
+        response.len()
+    );
 
-    stream.flush().await.unwrap();
+    if let Err(err) = stream.write_all(header.as_bytes()).await {
+        tracing::error!(%err, "Failed to write response");
+        return None;
+    }
+
+    if let Err(err) = stream.flush().await {
+        tracing::error!(%err, "Failed to flush response");
+    }
 
     None
 }

@@ -82,7 +82,10 @@ impl<'de> Deserialize<'de> for LogLevel {
             "info" => Ok(LogLevel::Info),
             "warn" => Ok(LogLevel::Warn),
             "error" => Ok(LogLevel::Error),
-            _ => unreachable!(),
+            other => Err(serde::de::Error::unknown_variant(
+                other,
+                &["trace", "debug", "info", "warn", "error"],
+            )),
         }
     }
 }

@@ -180,7 +180,7 @@ impl EventSubClient {
                 tracing::info!("Connected to EventSub");
                 self.set_connected(true);
 
-                let _ = self.clone().process_stream(stream).await;
+                let _ = Arc::clone(&self).process_stream(stream).await;
 
                 self.set_connected(false);
                 *self.session_id.lock().await = None;
@@ -201,7 +201,7 @@ impl EventSubClient {
                         stream.send(Message::Pong(data)).await?;
                     }
                     Message::Text(data) => {
-                        if let Some(new_stream) = self.clone().handle_text(&data).await? {
+                        if let Some(new_stream) = Arc::clone(&self).handle_text(&data).await? {
                             let frame = CloseFrame {
                                 code: CloseCode::Normal,
                                 reason: "Reconnecting".into(),
@@ -228,7 +228,7 @@ impl EventSubClient {
                 Some(Err(err)) => {
                     tracing::error!(%err, "EventSub connection error");
 
-                    match self.clone().reconnect(TWITCH_EVENTSUB_WS_URI).await {
+                    match Arc::clone(&self).reconnect(TWITCH_EVENTSUB_WS_URI).await {
                         Ok(new_stream) => {
                             stream = new_stream;
                         }
@@ -252,7 +252,7 @@ impl EventSubClient {
 
     async fn handle_text(self: Arc<Self>, data: &str) -> Result<Option<Stream>, Error> {
         if let Ok(msg) = serde_json::from_str(data)
-            && let Some(url) = self.clone().handle_message(msg).await?
+            && let Some(url) = Arc::clone(&self).handle_message(msg).await?
         {
             tracing::info!("Reconnecting to EventSub at {url}");
             return Ok(Some(self.reconnect(&url).await?));

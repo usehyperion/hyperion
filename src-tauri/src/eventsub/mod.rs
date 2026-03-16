@@ -31,11 +31,11 @@ pub async fn connect_eventsub(
     let (mut incoming, client) = EventSubClient::new(helix, Arc::new(token));
     let client = Arc::new(client);
 
-    guard.eventsub = Some(client.clone());
+    guard.eventsub = Some(Arc::clone(&client));
     drop(guard);
 
     async_runtime::spawn(async move {
-        if client.clone().connect().await.is_err() {
+        if Arc::clone(&client).connect().await.is_err() {
             let state = app_handle.state::<Mutex<AppState>>();
             let mut state = state.lock().await;
 

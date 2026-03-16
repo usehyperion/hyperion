@@ -1094,6 +1094,7 @@ impl IrcMessageParseExt for IrcMessage {
             return Ok(vec![]);
         }
 
+        let chars: Vec<char> = message_text.chars().collect();
         let mut emotes = Vec::new();
 
         let make_error = || MalformedTagValue(self.to_owned(), tag_key, tag_value.to_owned());
@@ -1107,13 +1108,11 @@ impl IrcMessageParseExt for IrcMessage {
                 let start = usize::from_str(start).map_err(|_| make_error())?;
                 let end = usize::from_str(end).map_err(|_| make_error())? + 1;
 
-                let code_length = end - start;
-
-                let code = message_text
-                    .chars()
-                    .skip(start)
-                    .take(code_length)
-                    .collect::<String>();
+                let code: String = chars
+                    .get(start..end)
+                    .unwrap_or_default()
+                    .iter()
+                    .collect();
 
                 emotes.push(Emote {
                     id: emote_id.to_owned(),
@@ -1142,7 +1141,6 @@ impl IrcMessageParseExt for IrcMessage {
     }
 
     fn try_get_badges(&self, tag_key: &'static str) -> Result<Vec<Badge>, ServerMessageParseError> {
-        // TODO same thing as above, could be optimized to not clone the tag value as well
         let tag_value = self.try_get_tag_value(tag_key)?;
 
         if tag_value.is_empty() {
