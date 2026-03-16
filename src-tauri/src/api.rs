@@ -126,7 +126,7 @@ pub async fn join(
                     events.extend(mod_events)
                 }
 
-                if let Err(err) = eventsub.subscribe_all(login_clone.as_str(), events).await {
+                if let Err(err) = eventsub.subscribe_all(login_clone.as_str(), &events).await {
                     tracing::error!(%err, "Failed to batch subscribe to EventSub events");
                 }
             }
@@ -202,7 +202,7 @@ pub async fn rejoin(state: State<'_, Mutex<AppState>>, channel: String) -> Resul
         let subscriptions = eventsub.unsubscribe_all(&channel).await?;
         let subs_ref: Vec<_> = subscriptions.iter().map(|(e, c)| (*e, c)).collect();
 
-        eventsub.subscribe_all(&channel, subs_ref).await?;
+        eventsub.subscribe_all(&channel, &subs_ref).await?;
     }
 
     if let Some(irc) = irc {

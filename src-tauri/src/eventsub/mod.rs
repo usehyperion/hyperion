@@ -35,19 +35,22 @@ pub async fn connect_eventsub(
     drop(guard);
 
     async_runtime::spawn(async move {
-        if Arc::clone(&client).connect().await.is_err() {
+        if let Err(err) = client.connect().await {
+            tracing::error!(%err, "EventSub connection failed");
+
             let state = app_handle.state::<Mutex<AppState>>();
             let mut state = state.lock().await;
 
             state.eventsub = None;
         }
-
-        Ok::<_, Error>(())
     });
 
     async_runtime::spawn(async move {
         while let Some(message) = incoming.recv().await {
-            channel.send(message).unwrap();
+            if channel.send(message).is_err() {
+                tracing::warn!("EventSub frontend channel closed");
+                break;
+            }
         }
     });
 

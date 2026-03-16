@@ -14,7 +14,6 @@ use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
-use tracing::Instrument;
 use twitch_api::HelixClient;
 use twitch_api::eventsub::{EventSubSubscription, EventType};
 use twitch_api::twitch_oauth2::{TwitchToken, UserToken};
@@ -163,37 +162,26 @@ impl EventSubClient {
     }
 
     #[tracing::instrument(name = "eventsub_connect", skip_all)]
-    pub async fn connect(self: Arc<Self>) -> Result<(), Error> {
-        tokio::spawn(
-            async move {
-                let ws_uri = TWITCH_EVENTSUB_WS_URI.to_string();
-                tracing::info!("Connecting to EventSub");
+    pub async fn connect(&self) -> Result<(), Error> {
+        tracing::info!("Connecting to EventSub");
 
-                let stream = match connect_async(&ws_uri).await {
-                    Ok((stream, _)) => stream,
-                    Err(err) => {
-                        tracing::error!(%err, "Failed to connect to EventSub");
-                        return Err(Error::WebSocket(err));
-                    }
-                };
+        let (stream, _) = connect_async(TWITCH_EVENTSUB_WS_URI).await.map_err(|err| {
+            tracing::error!(%err, "Failed to connect to EventSub");
+            Error::WebSocket(err)
+        })?;
 
-                tracing::info!("Connected to EventSub");
-                self.set_connected(true);
+        tracing::info!("Connected to EventSub");
+        self.set_connected(true);
 
-                let _ = Arc::clone(&self).process_stream(stream).await;
+        let _ = self.process_stream(stream).await;
 
-                self.set_connected(false);
-                *self.session_id.lock().await = None;
-
-                Ok(())
-            }
-            .in_current_span(),
-        );
+        self.set_connected(false);
+        *self.session_id.lock().await = None;
 
         Ok(())
     }
 
-    async fn process_stream(self: Arc<Self>, mut stream: Stream) -> Result<(), Error> {
+    async fn process_stream(&self, mut stream: Stream) -> Result<(), Error> {
         loop {
             match stream.next().await {
                 Some(Ok(message)) => match message {
@@ -201,7 +189,7 @@ impl EventSubClient {
                         stream.send(Message::Pong(data)).await?;
                     }
                     Message::Text(data) => {
-                        if let Some(new_stream) = Arc::clone(&self).handle_text(&data).await? {
+                        if let Some(new_stream) = self.handle_text(&data).await? {
                             let frame = CloseFrame {
                                 code: CloseCode::Normal,
                                 reason: "Reconnecting".into(),
@@ -228,7 +216,7 @@ impl EventSubClient {
                 Some(Err(err)) => {
                     tracing::error!(%err, "EventSub connection error");
 
-                    match Arc::clone(&self).reconnect(TWITCH_EVENTSUB_WS_URI).await {
+                    match self.reconnect(TWITCH_EVENTSUB_WS_URI).await {
                         Ok(new_stream) => {
                             stream = new_stream;
                         }
@@ -250,22 +238,25 @@ impl EventSubClient {
         Ok(())
     }
 
-    async fn handle_text(self: Arc<Self>, data: &str) -> Result<Option<Stream>, Error> {
-        if let Ok(msg) = serde_json::from_str(data)
-            && let Some(url) = Arc::clone(&self).handle_message(msg).await?
-        {
-            tracing::info!("Reconnecting to EventSub at {url}");
-            return Ok(Some(self.reconnect(&url).await?));
-        }
+    async fn handle_text(&self, data: &str) -> Result<Option<Stream>, Error> {
+        let msg: WebSocketMessage = match serde_json::from_str(data) {
+            Ok(msg) => msg,
+            Err(err) => {
+                tracing::warn!(%err, "Failed to deserialize EventSub message");
+                return Ok(None);
+            }
+        };
 
-        Ok(None)
+        let Some(url) = self.handle_message(msg).await? else {
+            return Ok(None);
+        };
+
+        tracing::info!("Reconnecting to EventSub at {url}");
+        Ok(Some(self.reconnect(&url).await?))
     }
 
     #[tracing::instrument(skip_all)]
-    async fn handle_message(
-        self: Arc<Self>,
-        msg: WebSocketMessage,
-    ) -> Result<Option<String>, Error> {
+    async fn handle_message(&self, msg: WebSocketMessage) -> Result<Option<String>, Error> {
         use WebSocketMessage as Ws;
 
         match msg {
@@ -273,32 +264,27 @@ impl EventSubClient {
                 tracing::debug!("Set EventSub session id to {}", payload.session.id);
                 *self.session_id.lock().await = Some(payload.session.id);
 
-                if self
-                    .reconnecting
-                    .compare_exchange(true, false, Ordering::Relaxed, Ordering::Relaxed)
-                    .is_err()
-                {
+                let was_reconnecting = self.reconnecting.swap(false, Ordering::Relaxed);
+
+                if was_reconnecting {
+                    tracing::info!("Reconnected to EventSub");
+                } else {
                     tracing::info!("Initial connection to EventSub established");
 
-                    let mut to_restore = Vec::new();
-
-                    {
+                    let to_restore: Vec<_> = {
                         let mut map = self.subscriptions.lock().await;
 
                         if !map.is_empty() {
                             tracing::info!("Restoring {} subscriptions", map.len());
-
-                            for (key, sub) in map.drain() {
-                                if let Some((username, _)) = key.split_once(':') {
-                                    to_restore.push((
-                                        username.to_string(),
-                                        sub.kind,
-                                        sub.condition,
-                                    ));
-                                }
-                            }
                         }
-                    }
+
+                        map.drain()
+                            .filter_map(|(key, sub)| {
+                                let (username, _) = key.split_once(':')?;
+                                Some((username.to_string(), sub.kind, sub.condition))
+                            })
+                            .collect()
+                    };
 
                     self.subscribe(
                         self.token.login.as_str(),
@@ -316,8 +302,6 @@ impl EventSubClient {
                             tracing::error!(%err, "Failed to restore {kind} subscription");
                         }
                     }
-                } else {
-                    tracing::info!("Reconnected to EventSub");
                 }
             }
             Ws::Notification(payload) => {
@@ -327,15 +311,18 @@ impl EventSubClient {
                     payload.event
                 );
 
-                self.sender.send(payload).unwrap();
+                if self.sender.send(payload).is_err() {
+                    tracing::warn!("EventSub notification receiver dropped");
+                }
             }
             Ws::Reconnect(payload) => {
                 tracing::warn!("Reconnect requested for {}", payload.session.id);
 
-                let url = payload
-                    .session
-                    .reconnect_url
-                    .expect("missing reconnect_url in reconnect payload");
+                let Some(url) = payload.session.reconnect_url else {
+                    return Err(Error::Generic(anyhow!(
+                        "missing reconnect_url in reconnect payload"
+                    )));
+                };
 
                 self.reconnecting.store(true, Ordering::Relaxed);
 
@@ -353,13 +340,13 @@ impl EventSubClient {
                     .await
                     .remove(&payload.subscription.kind.to_string());
             }
-            _ => (),
+            Ws::Keepalive => (),
         }
 
         Ok(None)
     }
 
-    async fn reconnect(self: Arc<Self>, url: &str) -> Result<Stream, Error> {
+    async fn reconnect(&self, url: &str) -> Result<Stream, Error> {
         let (mut stream, _) = connect_async(url).await.map_err(Error::WebSocket)?;
 
         loop {
@@ -388,7 +375,7 @@ impl EventSubClient {
         self.connected.load(Ordering::Relaxed)
     }
 
-    pub fn set_connected(&self, value: bool) {
+    fn set_connected(&self, value: bool) {
         self.connected.store(value, Ordering::Relaxed);
     }
 
@@ -445,15 +432,17 @@ impl EventSubClient {
     pub async fn subscribe_all(
         &self,
         channel: &str,
-        subscriptions: Vec<(EventType, &serde_json::Value)>,
+        subscriptions: &[(EventType, &serde_json::Value)],
     ) -> Result<(), Error> {
         let futures = subscriptions
             .iter()
             .map(|&(event, condition)| self.subscribe(channel, event, condition.clone()));
 
-        let success = join_all(futures).await.iter().filter(|r| r.is_ok()).count();
+        let results = join_all(futures).await;
+        let total = results.len();
+        let succeeded = results.iter().filter(|r| r.is_ok()).count();
 
-        tracing::info!("{} subscriptions created", success);
+        tracing::info!("{succeeded}/{total} subscriptions created");
 
         Ok(())
     }
@@ -461,13 +450,10 @@ impl EventSubClient {
     pub async fn unsubscribe(
         &self,
         channel: &str,
-        event: String,
+        event: &str,
     ) -> Result<Option<Subscription>, Error> {
-        let subscription = self
-            .subscriptions
-            .lock()
-            .await
-            .remove(&format!("{channel}:{event}"));
+        let key = format!("{channel}:{event}");
+        let subscription = self.subscriptions.lock().await.remove(&key);
 
         if let Some(ref sub) = subscription {
             self.helix
@@ -484,28 +470,25 @@ impl EventSubClient {
     ) -> Result<Vec<(EventType, serde_json::Value)>, Error> {
         let prefix = format!("{channel}:");
 
-        let events = {
+        let events: Vec<String> = {
             let subscriptions = self.subscriptions.lock().await;
 
             subscriptions
                 .keys()
-                .filter(|k| k.starts_with(&prefix))
-                .map(|k| k.strip_prefix(&prefix).unwrap().to_string())
-                .collect::<Vec<_>>()
+                .filter_map(|k| k.strip_prefix(&prefix).map(String::from))
+                .collect()
         };
 
         let futures = events
             .iter()
-            .map(|event| self.unsubscribe(channel, event.clone()));
+            .map(|event| self.unsubscribe(channel, event));
 
-        let results = join_all(futures).await;
-        let mut unsubscribed = Vec::new();
-
-        for result in results {
-            if let Ok(Some(sub)) = result {
-                unsubscribed.push((sub.kind, sub.condition));
-            }
-        }
+        let unsubscribed = join_all(futures)
+            .await
+            .into_iter()
+            .filter_map(|r| r.ok().flatten())
+            .map(|sub| (sub.kind, sub.condition))
+            .collect();
 
         Ok(unsubscribed)
     }
