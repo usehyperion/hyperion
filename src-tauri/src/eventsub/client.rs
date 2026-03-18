@@ -173,12 +173,12 @@ impl EventSubClient {
         tracing::info!("Connected to EventSub");
         self.set_connected(true);
 
-        let _ = self.process_stream(stream).await;
+        let result = self.process_stream(stream).await;
 
         self.set_connected(false);
         *self.session_id.lock().await = None;
 
-        Ok(())
+        result
     }
 
     async fn process_stream(&self, mut stream: Stream) -> Result<(), Error> {
@@ -479,9 +479,7 @@ impl EventSubClient {
                 .collect()
         };
 
-        let futures = events
-            .iter()
-            .map(|event| self.unsubscribe(channel, event));
+        let futures = events.iter().map(|event| self.unsubscribe(channel, event));
 
         let unsubscribed = join_all(futures)
             .await
