@@ -81,9 +81,7 @@ impl SeventTvClient {
                         }
                     });
 
-                    if let Err(err) =
-                        stream.send(Message::Text(payload.to_string().into())).await
-                    {
+                    if let Err(err) = stream.send(Message::Text(payload.to_string().into())).await {
                         tracing::error!(%err, "Error sending resume message");
                     }
                 }
@@ -99,27 +97,38 @@ impl SeventTvClient {
                             break;
                         }
                     }
-                    Some(Ok(message)) = stream.next() => {
-                        match message {
-                            Message::Text(text) => {
-                                match serde_json::from_str::<WebSocketMessage>(&text) {
-                                    Ok(msg) => self.handle_ws_message(msg).await,
-                                    Err(err) => tracing::warn!(%err, "Failed to deserialize 7TV message"),
+                    result = stream.next() => {
+                        match result {
+                            Some(Ok(message)) => match message {
+                                Message::Text(text) => {
+                                    match serde_json::from_str::<WebSocketMessage>(&text) {
+                                        Ok(msg) => self.handle_ws_message(msg).await,
+                                        Err(err) => tracing::warn!(%err, "Failed to deserialize 7TV message"),
+                                    }
                                 }
-                            }
-                            Message::Close(cf) => {
-                                if let Some(frame) = cf {
-                                    tracing::warn!(%frame, "Event API connection closed");
-                                }
+                                Message::Close(cf) => {
+                                    if let Some(frame) = cf {
+                                        tracing::warn!(%frame, "Event API connection closed");
+                                    }
 
-                                self.connected.store(false, Ordering::Relaxed);
+                                    break;
+                                }
+                                _ => (),
+                            },
+                            Some(Err(err)) => {
+                                tracing::error!(%err, "7TV WebSocket error");
                                 break;
                             }
-                            _ => (),
+                            None => {
+                                tracing::warn!("7TV WebSocket stream ended unexpectedly");
+                                break;
+                            }
                         }
                     }
                 }
             }
+
+            self.connected.store(false, Ordering::Relaxed);
         }
     }
 
