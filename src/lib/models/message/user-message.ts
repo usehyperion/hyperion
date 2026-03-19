@@ -199,7 +199,7 @@ export class UserMessage extends TextualMessage {
 	// attached later.
 	public get nodes() {
 		if (!this.#nodes.length) {
-			this.#nodes = parse(this).sort((a, b) => a.start - b.start);
+			this.#nodes = parse(this).toSorted((a, b) => a.start - b.start);
 		}
 
 		return this.#nodes;
@@ -284,7 +284,7 @@ export class UserMessage extends TextualMessage {
 
 					return true;
 				})
-				.sort((a, b) => b.setId.localeCompare(a.setId));
+				.toSorted((a, b) => b.setId.localeCompare(a.setId));
 
 			this.badges.push(...external);
 		}
