@@ -14,7 +14,7 @@ export default defineCommand({
 		const mods =
 			user?.mods?.edges
 				.flatMap((edge) => (edge.node ? [edge.node.displayName] : []))
-				.sort() ?? [];
+				.toSorted() ?? [];
 
 		if (!mods.length) {
 			message.text = "This channel has no moderators.";

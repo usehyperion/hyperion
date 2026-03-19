@@ -71,7 +71,7 @@ export class Badge {
 		this.imageUrl = data.imageUrl;
 	}
 
-	public static fromGql(data: ApiBadge) {
+	public static fromGql(this: void, data: ApiBadge) {
 		return new Badge({
 			setId: data.setID,
 			version: data.version,

@@ -14,7 +14,7 @@ export default defineCommand({
 		const vips =
 			user?.vips?.edges
 				?.flatMap((edge) => (edge.node ? [edge.node.displayName] : []))
-				.sort() ?? [];
+				.toSorted() ?? [];
 
 		if (!vips.length) {
 			message.text = "This channel has no VIPs.";

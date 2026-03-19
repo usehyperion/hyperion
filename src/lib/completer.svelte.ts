@@ -196,6 +196,6 @@ export class Completer {
 			)
 			.slice(0, 25)
 			.map(options.map)
-			.sort((a, b) => a.value.localeCompare(b.value));
+			.toSorted((a, b) => a.value.localeCompare(b.value));
 	}
 }
