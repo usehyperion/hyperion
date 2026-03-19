@@ -5,7 +5,6 @@ import icons from "unplugin-icons/vite";
 import { defineConfig } from "vite";
 import devtoolsJson from "vite-plugin-devtools-json";
 
-// eslint-disable-next-line node/prefer-global/process
 const host = process.env.TAURI_DEV_HOST;
 
 export default defineConfig(async () => ({
