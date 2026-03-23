@@ -9,7 +9,7 @@ export default defineCommand({
 	description: "Remove a permanent ban on a user",
 	modOnly: true,
 	args: ["username"],
-	async exec(args, channel) {
+	async exec(this: void, args, channel) {
 		const target = await getTarget(args[0], channel);
 
 		try {

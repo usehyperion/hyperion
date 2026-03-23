@@ -14,7 +14,7 @@ export default defineCommand({
 		const founders =
 			user?.channel?.founders
 				?.flatMap((founder) => (founder?.user ? [founder.user.displayName] : []))
-				.sort() ?? [];
+				.toSorted() ?? [];
 
 		if (!founders.length) {
 			message.text = "This channel has no founders.";
