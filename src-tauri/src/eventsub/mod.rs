@@ -11,6 +11,7 @@ use tauri::{AppHandle, Manager, State};
 use crate::AppState;
 use crate::api::get_access_token;
 use crate::error::Error;
+use crate::ws::forward_to_channel;
 
 #[tauri::command]
 pub async fn connect_eventsub(
@@ -28,7 +29,7 @@ pub async fn connect_eventsub(
         return Ok(());
     }
 
-    let (mut incoming, client) = EventSubClient::new(helix, Arc::new(token));
+    let (incoming, client) = EventSubClient::new(helix, Arc::new(token));
     let client = Arc::new(client);
 
     guard.eventsub = Some(Arc::clone(&client));
@@ -45,14 +46,7 @@ pub async fn connect_eventsub(
         }
     });
 
-    async_runtime::spawn(async move {
-        while let Some(message) = incoming.recv().await {
-            if channel.send(message).is_err() {
-                tracing::warn!("EventSub frontend channel closed");
-                break;
-            }
-        }
-    });
+    forward_to_channel(incoming, channel, "EventSub");
 
     Ok(())
 }

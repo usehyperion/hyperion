@@ -11,6 +11,7 @@ use tokio::sync::Mutex;
 use crate::AppState;
 use crate::error::Error;
 use crate::seventv::client::SeventTvHandles;
+use crate::ws::forward_to_channel;
 
 #[tauri::command]
 pub async fn connect_seventv(
@@ -26,13 +27,7 @@ pub async fn connect_seventv(
         return Ok(());
     }
 
-    let (
-        SeventTvHandles {
-            events: mut incoming,
-            outgoing,
-        },
-        client,
-    ) = SeventTvClient::new();
+    let (SeventTvHandles { events, outgoing }, client) = SeventTvClient::new();
 
     let client = Arc::new(client);
 
@@ -50,14 +45,7 @@ pub async fn connect_seventv(
         }
     });
 
-    async_runtime::spawn(async move {
-        while let Some(message) = incoming.recv().await {
-            if channel.send(message).is_err() {
-                tracing::warn!("7TV frontend channel closed");
-                break;
-            }
-        }
-    });
+    forward_to_channel(events, channel, "7TV");
 
     Ok(())
 }

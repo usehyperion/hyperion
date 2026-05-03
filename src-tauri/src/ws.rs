@@ -10,7 +10,24 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use tokio::sync::Mutex;
+use tauri::async_runtime;
+use tauri::ipc::Channel;
+use tokio::sync::{Mutex, mpsc};
+
+pub fn forward_to_channel<T: serde::Serialize + Send + 'static>(
+    mut incoming: mpsc::UnboundedReceiver<T>,
+    channel: Channel<T>,
+    label: &'static str,
+) {
+    async_runtime::spawn(async move {
+        while let Some(message) = incoming.recv().await {
+            if channel.send(message).is_err() {
+                tracing::warn!("{label} channel closed");
+                break;
+            }
+        }
+    });
+}
 
 /// Build the canonical `"channel:event"` key used by both clients.
 pub fn sub_key(channel: &str, event: &str) -> String {
