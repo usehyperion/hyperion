@@ -5,7 +5,7 @@ use tokio_tungstenite::tungstenite::Error as WsError;
 
 use super::message::IrcParseError;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone)]
 pub enum Error {
     /// Underlying transport failed to connect
     #[error("Underlying transport failed to connect: {0}")]
@@ -33,17 +33,3 @@ pub enum Error {
     RemoteUnexpectedlyClosedConnection,
 }
 
-impl Clone for Error {
-    fn clone(&self) -> Self {
-        match self {
-            Error::Connect(e) => Error::Connect(Arc::clone(e)),
-            Error::ConnectTimeout => Error::ConnectTimeout,
-            Error::Incoming(e) => Error::Incoming(Arc::clone(e)),
-            Error::Outgoing(e) => Error::Outgoing(Arc::clone(e)),
-            Error::IrcParse(e) => Error::IrcParse(*e),
-            Error::ReconnectCmd => Error::ReconnectCmd,
-            Error::PingTimeout => Error::PingTimeout,
-            Error::RemoteUnexpectedlyClosedConnection => Error::RemoteUnexpectedlyClosedConnection,
-        }
-    }
-}
