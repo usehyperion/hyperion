@@ -141,12 +141,12 @@ impl SeventTvClient {
                 tracing::debug!(payload = ?msg.d.to_string(), "Opcode acknowledged");
 
                 if let Some(false) = msg.d["data"]["success"].as_bool() {
+                    let to_restore = self.subscriptions.drain().await;
+
                     tracing::warn!(
                         "Resume unsuccessful, restoring {} events",
-                        self.subscriptions.len().await
+                        to_restore.len()
                     );
-
-                    let to_restore = self.subscriptions.drain().await;
 
                     for (key, condition) in to_restore {
                         let Some((channel, event)) = key.split_once(':') else {

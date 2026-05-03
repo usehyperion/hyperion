@@ -79,17 +79,21 @@ impl<V> SubscriptionStore<V> {
         self.inner.lock().await.remove(&sub_key(channel, event))
     }
 
-    pub async fn remove_raw(&self, key: &str) -> Option<V> {
-        self.inner.lock().await.remove(key)
+    pub async fn remove_by<F>(&self, mut predicate: F) -> Option<V>
+    where
+        F: FnMut(&V) -> bool,
+    {
+        let mut map = self.inner.lock().await;
+        let key = map
+            .iter()
+            .find_map(|(k, v)| predicate(v).then(|| k.clone()))?;
+
+        map.remove(&key)
     }
 
     /// Drain every subscription, returning them as `(key, value)` pairs.
     pub async fn drain(&self) -> Vec<(String, V)> {
         self.inner.lock().await.drain().collect()
-    }
-
-    pub async fn len(&self) -> usize {
-        self.inner.lock().await.len()
     }
 
     /// Collect every event suffix (the part after the `channel:` prefix) for

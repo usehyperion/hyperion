@@ -332,9 +332,15 @@ impl EventSubClient {
                     payload.subscription.id
                 );
 
-                self.subscriptions
-                    .remove_raw(&payload.subscription.kind.to_string())
-                    .await;
+                let id = &payload.subscription.id;
+                if self
+                    .subscriptions
+                    .remove_by(|sub| sub.id == *id)
+                    .await
+                    .is_none()
+                {
+                    tracing::warn!("Revoked subscription {id} not found in store");
+                }
             }
             Ws::Keepalive => (),
         }
