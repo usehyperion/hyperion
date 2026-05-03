@@ -35,7 +35,7 @@ impl ConnectionLoopWorker {
     }
 }
 
-fn close_with_error(
+async fn close_with_error(
     err: Error,
     pending: VecDeque<PendingMessage>,
     mut connection_loop_rx: mpsc::UnboundedReceiver<ConnectionLoopCommand>,
@@ -47,18 +47,18 @@ fn close_with_error(
         }
     }
 
-    // Drain anything that's already been queued by senders so they don't hang
-    // waiting on a reply
-    connection_loop_rx.close();
-    while let Ok(ConnectionLoopCommand::SendMessage(_, reply)) = connection_loop_rx.try_recv() {
+    connection_incoming_tx
+        .send(ConnectionIncomingMessage::StateClosed)
+        .ok();
+
+    // Keep accepting commands until all senders are dropped so callers that
+    // race a transport error with `send(...).unwrap()` don't panic. Reply with
+    // the close error when a reply channel was provided; otherwise drop.
+    while let Some(ConnectionLoopCommand::SendMessage(_, reply)) = connection_loop_rx.recv().await {
         if let Some(reply) = reply {
             reply.send(Err(err.clone())).ok();
         }
     }
-
-    connection_incoming_tx
-        .send(ConnectionIncomingMessage::StateClosed)
-        .ok();
 }
 
 async fn establish_transport(
@@ -125,7 +125,7 @@ async fn run(
     let (transport, login, token) = match init_result {
         Ok(t) => t,
         Err(err) => {
-            close_with_error(err, pending, connection_loop_rx, &connection_incoming_tx);
+            close_with_error(err, pending, connection_loop_rx, &connection_incoming_tx).await;
             return;
         }
     };
@@ -168,14 +168,14 @@ async fn run(
 
     for msg in handshake {
         if let Err(err) = send_or_close!(msg, None) {
-            close_with_error(err, pending, connection_loop_rx, &connection_incoming_tx);
+            close_with_error(err, pending, connection_loop_rx, &connection_incoming_tx).await;
             return;
         }
     }
 
     while let Some((msg, reply)) = pending.pop_front() {
         if let Err(err) = send_or_close!(msg, reply) {
-            close_with_error(err, pending, connection_loop_rx, &connection_incoming_tx);
+            close_with_error(err, pending, connection_loop_rx, &connection_incoming_tx).await;
             return;
         }
     }
@@ -189,9 +189,24 @@ async fn run(
         interval_at(Instant::now() + ping_every + check_pong_after, ping_every);
 
     let mut pong_received = false;
+    let mut awaiting_pong = false;
 
     let close_reason: Error = loop {
         tokio::select! {
+            biased;
+            _ = send_ping_interval.tick() => {
+                pong_received = false;
+                awaiting_pong = true;
+
+                if let Err(err) = send_or_close!(irc!["PING", "tmi.twitch.tv"], None) {
+                    break err;
+                }
+            }
+            _ = check_pong_interval.tick() => {
+                if awaiting_pong && !pong_received {
+                    break Error::PingTimeout;
+                }
+            }
             cmd = connection_loop_rx.recv() => {
                 match cmd {
                     Some(ConnectionLoopCommand::SendMessage(msg, reply)) => {
@@ -265,18 +280,6 @@ async fn run(
                     }
                 }
             }
-            _ = send_ping_interval.tick() => {
-                pong_received = false;
-
-                if let Err(err) = send_or_close!(irc!["PING", "tmi.twitch.tv"], None) {
-                    break err;
-                }
-            }
-            _ = check_pong_interval.tick() => {
-                if !pong_received {
-                    break Error::PingTimeout;
-                }
-            }
         }
     };
 
@@ -285,5 +288,6 @@ async fn run(
         VecDeque::new(),
         connection_loop_rx,
         &connection_incoming_tx,
-    );
+    )
+    .await;
 }
