@@ -1,9 +1,8 @@
-use anyhow::anyhow;
 use futures::future::join_all;
 use futures::{SinkExt, StreamExt};
 use serde::Deserialize;
 use serde_json::json;
-use tokio::sync::{Mutex, mpsc};
+use tokio::sync::mpsc;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
 
@@ -23,34 +22,33 @@ pub struct SeventTvClient {
     subscriptions: SubscriptionStore<serde_json::Value>,
     sender: mpsc::UnboundedSender<serde_json::Value>,
     message_tx: mpsc::UnboundedSender<Message>,
-    message_rx: Mutex<Option<mpsc::UnboundedReceiver<Message>>>,
+}
+
+pub struct SeventTvHandles {
+    pub events: mpsc::UnboundedReceiver<serde_json::Value>,
+    pub outgoing: mpsc::UnboundedReceiver<Message>,
 }
 
 impl SeventTvClient {
-    pub fn new() -> (mpsc::UnboundedReceiver<serde_json::Value>, Self) {
-        let (sender, receiver) = mpsc::unbounded_channel::<serde_json::Value>();
-        let (message_tx, message_rx) = mpsc::unbounded_channel();
+    pub fn new() -> (SeventTvHandles, Self) {
+        let (sender, events) = mpsc::unbounded_channel::<serde_json::Value>();
+        let (message_tx, outgoing) = mpsc::unbounded_channel();
 
         let client = Self {
             subscriptions: SubscriptionStore::new(),
             state: ConnectionState::new(),
             sender,
             message_tx,
-            message_rx: Mutex::new(Some(message_rx)),
         };
 
-        (receiver, client)
+        (SeventTvHandles { events, outgoing }, client)
     }
 
     #[tracing::instrument(name = "7tv_connect", skip_all)]
-    pub async fn connect(&self) -> Result<(), Error> {
-        let mut message_rx = self
-            .message_rx
-            .lock()
-            .await
-            .take()
-            .ok_or_else(|| Error::Generic(anyhow!("Message receiver already taken")))?;
-
+    pub async fn connect(
+        &self,
+        mut message_rx: mpsc::UnboundedReceiver<Message>,
+    ) -> Result<(), Error> {
         loop {
             tracing::info!("Connecting to 7TV Event API");
 

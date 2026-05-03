@@ -10,6 +10,7 @@ use tokio::sync::Mutex;
 
 use crate::AppState;
 use crate::error::Error;
+use crate::seventv::client::SeventTvHandles;
 
 #[tauri::command]
 pub async fn connect_seventv(
@@ -25,14 +26,21 @@ pub async fn connect_seventv(
         return Ok(());
     }
 
-    let (mut incoming, client) = SeventTvClient::new();
+    let (
+        SeventTvHandles {
+            events: mut incoming,
+            outgoing,
+        },
+        client,
+    ) = SeventTvClient::new();
+
     let client = Arc::new(client);
 
     state.seventv = Some(Arc::clone(&client));
     drop(state);
 
     async_runtime::spawn(async move {
-        if let Err(err) = client.connect().await {
+        if let Err(err) = client.connect(outgoing).await {
             tracing::error!(%err, "7TV connection failed");
 
             let state = app_handle.state::<Mutex<AppState>>();
