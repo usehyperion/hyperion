@@ -1,6 +1,3 @@
-use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, Ordering};
-
 use anyhow::anyhow;
 use futures::future::join_all;
 use futures::{SinkExt, StreamExt};
@@ -11,6 +8,7 @@ use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
 
 use crate::error::Error;
+use crate::ws::{ConnectionState, SubscriptionStore};
 
 const SEVENTV_WS_URI: &str = "wss://events.7tv.io/v3";
 
@@ -21,10 +19,9 @@ struct WebSocketMessage {
 }
 
 pub struct SeventTvClient {
-    session_id: Mutex<Option<String>>,
-    subscriptions: Mutex<HashMap<String, serde_json::Value>>,
+    state: ConnectionState,
+    subscriptions: SubscriptionStore<serde_json::Value>,
     sender: mpsc::UnboundedSender<serde_json::Value>,
-    connected: AtomicBool,
     message_tx: mpsc::UnboundedSender<Message>,
     message_rx: Mutex<Option<mpsc::UnboundedReceiver<Message>>>,
 }
@@ -35,10 +32,9 @@ impl SeventTvClient {
         let (message_tx, message_rx) = mpsc::unbounded_channel();
 
         let client = Self {
-            subscriptions: Mutex::new(HashMap::new()),
-            session_id: Mutex::new(None),
+            subscriptions: SubscriptionStore::new(),
+            state: ConnectionState::new(),
             sender,
-            connected: AtomicBool::default(),
             message_tx,
             message_rx: Mutex::new(Some(message_rx)),
         };
@@ -68,26 +64,22 @@ impl SeventTvClient {
 
             tracing::info!("Connected to 7TV Event API");
 
-            {
-                let session_id = self.session_id.lock().await;
+            if let Some(id) = self.state.session_id().await {
+                tracing::info!(%id, "Resuming 7TV session");
 
-                if let Some(id) = &*session_id {
-                    tracing::info!(%id, "Resuming 7TV session");
-
-                    let payload = json!({
-                        "op": 34,
-                        "d": {
-                            "session_id": id
-                        }
-                    });
-
-                    if let Err(err) = stream.send(Message::Text(payload.to_string().into())).await {
-                        tracing::error!(%err, "Error sending resume message");
+                let payload = json!({
+                    "op": 34,
+                    "d": {
+                        "session_id": id
                     }
+                });
+
+                if let Err(err) = stream.send(Message::Text(payload.to_string().into())).await {
+                    tracing::error!(%err, "Error sending resume message");
                 }
             }
 
-            self.connected.store(true, Ordering::Relaxed);
+            self.state.set_connected(true);
 
             loop {
                 tokio::select! {
@@ -128,7 +120,7 @@ impl SeventTvClient {
                 }
             }
 
-            self.connected.store(false, Ordering::Relaxed);
+            self.state.set_connected(false);
         }
     }
 
@@ -141,7 +133,7 @@ impl SeventTvClient {
             }
             1 => {
                 if let Some(id) = msg.d["session_id"].as_str() {
-                    *self.session_id.lock().await = Some(id.to_string());
+                    self.state.set_session_id(Some(id.to_string())).await;
                     tracing::info!(%id, "Hello received, session established");
                 }
             }
@@ -149,16 +141,12 @@ impl SeventTvClient {
                 tracing::debug!(payload = ?msg.d.to_string(), "Opcode acknowledged");
 
                 if let Some(false) = msg.d["data"]["success"].as_bool() {
-                    let to_restore: Vec<_> = {
-                        let mut subscriptions = self.subscriptions.lock().await;
+                    tracing::warn!(
+                        "Resume unsuccessful, restoring {} events",
+                        self.subscriptions.len().await
+                    );
 
-                        tracing::warn!(
-                            "Resume unsuccessful, restoring {} events",
-                            subscriptions.len()
-                        );
-
-                        subscriptions.drain().collect()
-                    };
+                    let to_restore = self.subscriptions.drain().await;
 
                     for (key, condition) in to_restore {
                         let Some((channel, event)) = key.split_once(':') else {
@@ -178,7 +166,7 @@ impl SeventTvClient {
     }
 
     pub fn connected(&self) -> bool {
-        self.connected.load(Ordering::Relaxed)
+        self.state.connected()
     }
 
     #[tracing::instrument(name = "7tv_subscribe", skip(self, condition), fields(%condition))]
@@ -197,9 +185,8 @@ impl SeventTvClient {
         {
             Ok(_) => {
                 self.subscriptions
-                    .lock()
-                    .await
-                    .insert(format!("{channel}:{event}"), condition.clone());
+                    .insert(channel, event, condition.clone())
+                    .await;
 
                 tracing::trace!("Subscription created");
             }
@@ -210,9 +197,7 @@ impl SeventTvClient {
     }
 
     pub async fn unsubscribe(&self, channel: &str, event: &str) {
-        let mut subscriptions = self.subscriptions.lock().await;
-
-        if let Some(condition) = subscriptions.remove(&format!("{channel}:{event}")) {
+        if let Some(condition) = self.subscriptions.remove(channel, event).await {
             let payload = json!({
                 "op": 36,
                 "d": {
@@ -228,17 +213,7 @@ impl SeventTvClient {
     }
 
     pub async fn unsubscribe_all(&self, channel: &str) {
-        let prefix = format!("{channel}:");
-
-        let events: Vec<String> = {
-            let subscriptions = self.subscriptions.lock().await;
-
-            subscriptions
-                .keys()
-                .filter_map(|k| k.strip_prefix(&prefix).map(String::from))
-                .collect()
-        };
-
+        let events = self.subscriptions.events_for_channel(channel).await;
         let futures = events.iter().map(|event| self.unsubscribe(channel, event));
 
         join_all(futures).await;
