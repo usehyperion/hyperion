@@ -11,8 +11,9 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"tauri": "tauri",
-		"lint": "eslint \"src/**/*.{ts,svelte}\" && prettier --check src/**/*",
-		"lint:fix": "eslint \"src/**/*.{ts,svelte}\" --fix && prettier --write src/**/*"
+		"lint": "oxlint && prettier --check src/**/*",
+		"lint:ci": "oxlint --format=github && prettier --check src/**/*",
+		"lint:fix": "oxlint --fix && prettier --write src/**/*"
 	},
 	"prettier": {
 		"printWidth": 100,
@@ -57,7 +58,6 @@
 		"virtua": "^0.48.6"
 	},
 	"devDependencies": {
-		"@antfu/eslint-config": "^7.4.3",
 		"@gql.tada/svelte-support": "^1.0.1",
 		"@iconify-json/ph": "^1.2.2",
 		"@internationalized/date": "^3.11.0",
@@ -66,14 +66,13 @@
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@tauri-apps/cli": "^2.10.0",
 		"@types/chroma-js": "^3.1.2",
-		"eslint": "^10.0.0",
-		"eslint-plugin-svelte": "^3.15.0",
+		"oxlint": "^1.56.0",
+		"oxlint-tsgolint": "^0.17.0",
 		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.5.0",
 		"prettier-plugin-tailwindcss": "^0.7.2",
 		"svelte": "^5.53.0",
 		"svelte-check": "^4.4.1",
-		"svelte-eslint-parser": "^1.4.1",
 		"tailwind-variants": "^3.2.2",
 		"tw-animate-css": "^1.4.0",
 		"typescript": "~5.9.3",

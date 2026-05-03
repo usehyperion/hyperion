@@ -171,12 +171,10 @@
 		{...rest}
 	>
 		{#if type === "minimize"}
-			<!-- eslint-disable-next-line svelte/no-useless-mustaches -->
 			{"\uE921"}
 		{:else if type === "maximize"}
 			{maximized ? "\uE923" : "\uE922"}
 		{:else}
-			<!-- eslint-disable-next-line svelte/no-useless-mustaches -->
 			{"\uE8BB"}
 		{/if}
 	</button>

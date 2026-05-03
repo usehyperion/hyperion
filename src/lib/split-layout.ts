@@ -199,7 +199,7 @@ export class SplitLayout {
 		if (!candidates.length) return null;
 
 		// Score candidates to find the best visual neighbor
-		const [best] = candidates.sort((a, b) => {
+		const [best] = candidates.toSorted((a, b) => {
 			const distA = this.#getDistance(current, a, direction);
 			const distB = this.#getDistance(current, b, direction);
 
