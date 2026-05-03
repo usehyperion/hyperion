@@ -102,7 +102,7 @@ pub async fn join(
 
                 use EventType as Ev;
 
-                let mut events = vec![
+                let base_events = [
                     (Ev::ChannelChatUserMessageHold, &ch_with_user_cond),
                     (Ev::ChannelChatUserMessageUpdate, &ch_with_user_cond),
                     (Ev::ChannelSubscriptionEnd, &ch_cond),
@@ -111,20 +111,22 @@ pub async fn join(
                     (Ev::StreamOnline, &ch_cond),
                 ];
 
-                if is_mod {
-                    let mod_events = vec![
-                        (Ev::AutomodMessageHold, &ch_with_mod_cond),
-                        (Ev::AutomodMessageUpdate, &ch_with_mod_cond),
-                        (Ev::ChannelModerate, &ch_with_mod_cond),
-                        (Ev::ChannelSuspiciousUserMessage, &ch_with_mod_cond),
-                        (Ev::ChannelSuspiciousUserUpdate, &ch_with_mod_cond),
-                        (Ev::ChannelUnbanRequestCreate, &ch_with_mod_cond),
-                        (Ev::ChannelUnbanRequestResolve, &ch_with_mod_cond),
-                        (Ev::ChannelWarningAcknowledge, &ch_with_mod_cond),
-                    ];
+                let mod_events = [
+                    (Ev::AutomodMessageHold, &ch_with_mod_cond),
+                    (Ev::AutomodMessageUpdate, &ch_with_mod_cond),
+                    (Ev::ChannelModerate, &ch_with_mod_cond),
+                    (Ev::ChannelSuspiciousUserMessage, &ch_with_mod_cond),
+                    (Ev::ChannelSuspiciousUserUpdate, &ch_with_mod_cond),
+                    (Ev::ChannelUnbanRequestCreate, &ch_with_mod_cond),
+                    (Ev::ChannelUnbanRequestResolve, &ch_with_mod_cond),
+                    (Ev::ChannelWarningAcknowledge, &ch_with_mod_cond),
+                ];
 
-                    events.extend(mod_events)
-                }
+                let events: Vec<_> = base_events
+                    .iter()
+                    .chain(mod_events.iter().filter(|_| is_mod))
+                    .copied()
+                    .collect();
 
                 if let Err(err) = eventsub.subscribe_all(login_clone.as_str(), &events).await {
                     tracing::error!(%err, "Failed to batch subscribe to EventSub events");
