@@ -50,6 +50,7 @@ sysinfo = "0.37.2"
 thiserror = "2.0.12"
 time = { version = "0.3", features = ["formatting", "local-offset"] }
 tokio = { version = "1.44.2", features = ["macros"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
 tokio-tungstenite = { version = "0.26.2", features = ["rustls-tls-native-roots"] }
 tracing = "0.1"
 tracing-appender = "0.2"

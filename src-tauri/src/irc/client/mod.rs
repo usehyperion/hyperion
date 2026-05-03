@@ -22,12 +22,7 @@ impl IrcClient {
         let client_loop_tx = Arc::new(client_loop_tx);
         let (client_incoming_messages_tx, client_incoming_messages_rx) = mpsc::unbounded_channel();
 
-        ClientLoopWorker::spawn(
-            config,
-            Arc::downgrade(&client_loop_tx),
-            client_loop_rx,
-            client_incoming_messages_tx,
-        );
+        ClientLoopWorker::spawn(config, client_loop_rx, client_incoming_messages_tx);
 
         (client_incoming_messages_rx, Self { client_loop_tx })
     }
