@@ -1,7 +1,10 @@
 use std::collections::VecDeque;
-use std::sync::{Arc, Weak};
+use std::sync::Arc;
 
 use tokio::sync::{mpsc, oneshot};
+use tokio_stream::StreamExt;
+use tokio_stream::StreamMap;
+use tokio_stream::wrappers::UnboundedReceiverStream;
 
 use super::pool_connection::PoolConnection;
 use crate::irc;
@@ -20,10 +23,6 @@ pub(crate) enum ClientLoopCommand {
     Part {
         channel_login: String,
     },
-    IncomingMessage {
-        source_connection_id: usize,
-        message: Box<ConnectionIncomingMessage>,
-    },
 }
 
 pub(crate) struct ClientLoopWorker {
@@ -32,14 +31,14 @@ pub(crate) struct ClientLoopWorker {
     current_whisper_connection_id: Option<usize>,
     client_loop_rx: mpsc::UnboundedReceiver<ClientLoopCommand>,
     connections: VecDeque<PoolConnection>,
-    client_loop_tx: Weak<mpsc::UnboundedSender<ClientLoopCommand>>,
+    connection_incoming:
+        StreamMap<usize, UnboundedReceiverStream<ConnectionIncomingMessage>>,
     client_incoming_messages_tx: mpsc::UnboundedSender<ServerMessage>,
 }
 
 impl ClientLoopWorker {
     pub fn spawn(
         config: Arc<ClientConfig>,
-        client_loop_tx: Weak<mpsc::UnboundedSender<ClientLoopCommand>>,
         client_loop_rx: mpsc::UnboundedReceiver<ClientLoopCommand>,
         client_incoming_messages_tx: mpsc::UnboundedSender<ServerMessage>,
     ) {
@@ -49,7 +48,7 @@ impl ClientLoopWorker {
             current_whisper_connection_id: None,
             client_loop_rx,
             connections: VecDeque::new(),
-            client_loop_tx,
+            connection_incoming: StreamMap::new(),
             client_incoming_messages_tx,
         };
 
@@ -57,8 +56,16 @@ impl ClientLoopWorker {
     }
 
     async fn run(mut self) {
-        while let Some(command) = self.client_loop_rx.recv().await {
-            self.process_command(command);
+        loop {
+            tokio::select! {
+                command = self.client_loop_rx.recv() => {
+                    let Some(command) = command else { break };
+                    self.process_command(command);
+                }
+                Some((source_connection_id, message)) = self.connection_incoming.next() => {
+                    self.on_incoming_message(source_connection_id, message);
+                }
+            }
         }
     }
 
@@ -74,10 +81,6 @@ impl ClientLoopWorker {
             }
             ClientLoopCommand::Join { channel_login } => self.join(channel_login),
             ClientLoopCommand::Part { channel_login } => self.part(channel_login),
-            ClientLoopCommand::IncomingMessage {
-                source_connection_id,
-                message,
-            } => self.on_incoming_message(source_connection_id, *message),
         }
     }
 
@@ -88,54 +91,13 @@ impl ClientLoopWorker {
 
         let (connection_incoming_messages_rx, connection) =
             Connection::new(Arc::clone(&self.config));
-        let (tx_kill_incoming, rx_kill_incoming) = oneshot::channel();
 
-        let pool_conn = PoolConnection::new(
-            Arc::clone(&self.config),
+        self.connection_incoming.insert(
             connection_id,
-            connection,
-            tx_kill_incoming,
+            UnboundedReceiverStream::new(connection_incoming_messages_rx),
         );
 
-        tokio::spawn(ClientLoopWorker::run_incoming_forward_task(
-            connection_incoming_messages_rx,
-            connection_id,
-            self.client_loop_tx.clone(),
-            rx_kill_incoming,
-        ));
-
-        pool_conn
-    }
-
-    async fn run_incoming_forward_task(
-        mut connection_incoming_messages_rx: mpsc::UnboundedReceiver<ConnectionIncomingMessage>,
-        connection_id: usize,
-        client_loop_tx: Weak<mpsc::UnboundedSender<ClientLoopCommand>>,
-        mut rx_kill_incoming: oneshot::Receiver<()>,
-    ) {
-        loop {
-            tokio::select! {
-                _ = &mut rx_kill_incoming => {
-                    break;
-                }
-                incoming_message = connection_incoming_messages_rx.recv() => {
-                    let Some(incoming_message) = incoming_message else {
-                        break;
-                    };
-
-                    let Some(client_loop_tx) = client_loop_tx.upgrade() else {
-                        break;
-                    };
-
-                    if client_loop_tx.send(ClientLoopCommand::IncomingMessage {
-                        source_connection_id: connection_id,
-                        message: Box::new(incoming_message)
-                    }).is_err() {
-                        break;
-                    }
-                }
-            }
-        }
+        PoolConnection::new(Arc::clone(&self.config), connection_id, connection)
     }
 
     fn join(&mut self, channel_login: String) {
@@ -250,6 +212,8 @@ impl ClientLoopWorker {
                     .position(|c| c.id == source_connection_id)
                     .and_then(|pos| self.connections.remove(pos))
                     .unwrap();
+
+                self.connection_incoming.remove(&source_connection_id);
 
                 for channel in pool_connection.wanted_channels.drain() {
                     self.join(channel);
