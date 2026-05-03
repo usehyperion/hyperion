@@ -60,7 +60,8 @@ pub fn init_tracing(app: &App) {
     app.manage(guard);
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Clone, Copy)]
+#[serde(rename_all = "lowercase")]
 pub enum LogLevel {
     Trace,
     Debug,
@@ -69,23 +70,14 @@ pub enum LogLevel {
     Error,
 }
 
-impl<'de> Deserialize<'de> for LogLevel {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-
-        match s.to_lowercase().as_str() {
-            "trace" => Ok(LogLevel::Trace),
-            "debug" => Ok(LogLevel::Debug),
-            "info" => Ok(LogLevel::Info),
-            "warn" => Ok(LogLevel::Warn),
-            "error" => Ok(LogLevel::Error),
-            other => Err(serde::de::Error::unknown_variant(
-                other,
-                &["trace", "debug", "info", "warn", "error"],
-            )),
+impl LogLevel {
+    fn as_str(self) -> &'static str {
+        match self {
+            LogLevel::Trace => "trace",
+            LogLevel::Debug => "debug",
+            LogLevel::Info => "info",
+            LogLevel::Warn => "warn",
+            LogLevel::Error => "error",
         }
     }
 }
@@ -93,13 +85,8 @@ impl<'de> Deserialize<'de> for LogLevel {
 #[tauri::command]
 #[tracing::instrument(skip(handle))]
 pub fn update_log_level(level: LogLevel, handle: State<LogHandle>) {
-    let filter = match level {
-        LogLevel::Trace => "hyperion_lib=trace,webview=trace",
-        LogLevel::Debug => "hyperion_lib=debug,webview=debug",
-        LogLevel::Info => "hyperion_lib=info,webview=info",
-        LogLevel::Warn => "hyperion_lib=warn,webview=warn",
-        LogLevel::Error => "hyperion_lib=error,webview=error",
-    };
+    let lvl = level.as_str();
+    let filter = format!("hyperion_lib={lvl},webview={lvl}");
 
     if let Err(err) = handle.reload(EnvFilter::new(filter)) {
         tracing::error!(%err, "Failed to update log level");
@@ -109,10 +96,10 @@ pub fn update_log_level(level: LogLevel, handle: State<LogHandle>) {
 #[tauri::command]
 pub fn log(level: LogLevel, message: String) {
     macro_rules! emit {
-		($level:expr) => {
-			tracing::event!(target: "webview", $level, %message)
-		};
-	}
+        ($level:expr) => {
+            tracing::event!(target: "webview", $level, %message)
+        };
+    }
 
     match level {
         LogLevel::Trace => emit!(tracing::Level::TRACE),
