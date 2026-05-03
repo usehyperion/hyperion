@@ -24,6 +24,7 @@ mod json;
 mod log;
 mod server;
 mod seventv;
+mod ws;
 
 const CLIENT_ID: &str = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 

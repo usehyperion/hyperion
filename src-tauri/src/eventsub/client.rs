@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -9,7 +8,7 @@ use serde::de::{DeserializeOwned, Error as DeError};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::json;
 use tokio::net::TcpStream;
-use tokio::sync::{Mutex, mpsc};
+use tokio::sync::mpsc;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
@@ -21,6 +20,7 @@ use twitch_api::twitch_oauth2::{TwitchToken, UserToken};
 use crate::HTTP;
 use crate::api::Response;
 use crate::error::Error;
+use crate::ws::{ConnectionState, SubscriptionStore};
 
 #[cfg(local)]
 const TWITCH_EVENTSUB_WS_URI: &str = "ws://127.0.0.1:8080/ws";
@@ -132,10 +132,9 @@ impl<'de> Deserialize<'de> for WebSocketMessage {
 pub struct EventSubClient {
     helix: Arc<HelixClient<'static, reqwest::Client>>,
     pub token: Arc<UserToken>,
-    session_id: Mutex<Option<String>>,
-    pub subscriptions: Mutex<HashMap<String, Subscription>>,
+    state: ConnectionState,
+    pub subscriptions: SubscriptionStore<Subscription>,
     sender: mpsc::UnboundedSender<NotificationPayload>,
-    connected: AtomicBool,
     reconnecting: AtomicBool,
 }
 
@@ -151,10 +150,9 @@ impl EventSubClient {
         let client = Self {
             helix,
             token,
-            session_id: Mutex::new(None),
-            subscriptions: Mutex::new(HashMap::new()),
+            state: ConnectionState::new(),
+            subscriptions: SubscriptionStore::new(),
             sender,
-            connected: AtomicBool::default(),
             reconnecting: AtomicBool::default(),
         };
 
@@ -171,12 +169,12 @@ impl EventSubClient {
         })?;
 
         tracing::info!("Connected to EventSub");
-        self.set_connected(true);
+        self.state.set_connected(true);
 
         let result = self.process_stream(stream).await;
 
-        self.set_connected(false);
-        *self.session_id.lock().await = None;
+        self.state.set_connected(false);
+        self.state.set_session_id(None).await;
 
         result
     }
@@ -262,7 +260,7 @@ impl EventSubClient {
         match msg {
             Ws::Welcome(payload) => {
                 tracing::debug!("Set EventSub session id to {}", payload.session.id);
-                *self.session_id.lock().await = Some(payload.session.id);
+                self.state.set_session_id(Some(payload.session.id)).await;
 
                 let was_reconnecting = self.reconnecting.swap(false, Ordering::Relaxed);
 
@@ -271,20 +269,19 @@ impl EventSubClient {
                 } else {
                     tracing::info!("Initial connection to EventSub established");
 
-                    let to_restore: Vec<_> = {
-                        let mut map = self.subscriptions.lock().await;
+                    let drained = self.subscriptions.drain().await;
 
-                        if !map.is_empty() {
-                            tracing::info!("Restoring {} subscriptions", map.len());
-                        }
+                    if !drained.is_empty() {
+                        tracing::info!("Restoring {} subscriptions", drained.len());
+                    }
 
-                        map.drain()
-                            .filter_map(|(key, sub)| {
-                                let (username, _) = key.split_once(':')?;
-                                Some((username.to_string(), sub.kind, sub.condition))
-                            })
-                            .collect()
-                    };
+                    let to_restore: Vec<_> = drained
+                        .into_iter()
+                        .filter_map(|(key, sub)| {
+                            let (username, _) = key.split_once(':')?;
+                            Some((username.to_string(), sub.kind, sub.condition))
+                        })
+                        .collect();
 
                     self.subscribe(
                         self.token.login.as_str(),
@@ -335,10 +332,15 @@ impl EventSubClient {
                     payload.subscription.id
                 );
 
-                self.subscriptions
-                    .lock()
+                let id = &payload.subscription.id;
+                if self
+                    .subscriptions
+                    .remove_by(|sub| sub.id == *id)
                     .await
-                    .remove(&payload.subscription.kind.to_string());
+                    .is_none()
+                {
+                    tracing::warn!("Revoked subscription {id} not found in store");
+                }
             }
             Ws::Keepalive => (),
         }
@@ -372,11 +374,7 @@ impl EventSubClient {
     }
 
     pub fn connected(&self) -> bool {
-        self.connected.load(Ordering::Relaxed)
-    }
-
-    fn set_connected(&self, value: bool) {
-        self.connected.store(value, Ordering::Relaxed);
+        self.state.connected()
     }
 
     #[tracing::instrument(name = "eventsub_subscribe", skip(self, condition), fields(%condition))]
@@ -386,9 +384,7 @@ impl EventSubClient {
         event: EventType,
         condition: serde_json::Value,
     ) -> Result<(), Error> {
-        let session_id = self.session_id.lock().await.clone();
-
-        let Some(session_id) = session_id else {
+        let Some(session_id) = self.state.session_id().await else {
             return Err(Error::Generic(anyhow!("No EventSub connection")));
         };
 
@@ -414,14 +410,17 @@ impl EventSubClient {
             .json()
             .await?;
 
-        self.subscriptions.lock().await.insert(
-            format!("{username}:{event}"),
-            Subscription {
-                id: response.data.0.id.take(),
-                kind: event,
-                condition,
-            },
-        );
+        self.subscriptions
+            .insert(
+                username,
+                &event.to_string(),
+                Subscription {
+                    id: response.data.0.id.take(),
+                    kind: event,
+                    condition,
+                },
+            )
+            .await;
 
         tracing::trace!("Subscription created");
 
@@ -452,8 +451,7 @@ impl EventSubClient {
         channel: &str,
         event: &str,
     ) -> Result<Option<Subscription>, Error> {
-        let key = format!("{channel}:{event}");
-        let subscription = self.subscriptions.lock().await.remove(&key);
+        let subscription = self.subscriptions.remove(channel, event).await;
 
         if let Some(ref sub) = subscription {
             self.helix
@@ -468,16 +466,7 @@ impl EventSubClient {
         &self,
         channel: &str,
     ) -> Result<Vec<(EventType, serde_json::Value)>, Error> {
-        let prefix = format!("{channel}:");
-
-        let events: Vec<String> = {
-            let subscriptions = self.subscriptions.lock().await;
-
-            subscriptions
-                .keys()
-                .filter_map(|k| k.strip_prefix(&prefix).map(String::from))
-                .collect()
-        };
+        let events = self.subscriptions.events_for_channel(channel).await;
 
         let futures = events.iter().map(|event| self.unsubscribe(channel, event));
 
