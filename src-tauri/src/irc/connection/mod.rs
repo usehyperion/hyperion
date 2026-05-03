@@ -5,7 +5,7 @@ use std::sync::Arc;
 use tokio::sync::mpsc;
 
 use super::config::ClientConfig;
-use super::connection::event_loop::{ConnectionLoopCommand, ConnectionLoopWorker};
+use super::connection::event_loop::{ConnectionLoopWorker, PendingMessage};
 use super::message::commands::ServerMessage;
 
 #[derive(Debug)]
@@ -15,7 +15,7 @@ pub enum ConnectionIncomingMessage {
 }
 
 pub(crate) struct Connection {
-    pub connection_loop_tx: Arc<mpsc::UnboundedSender<ConnectionLoopCommand>>,
+    pub connection_loop_tx: Arc<mpsc::UnboundedSender<PendingMessage>>,
 }
 
 impl Connection {

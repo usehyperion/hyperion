@@ -12,16 +12,8 @@ use crate::irc::message::{IrcMessage, ServerMessage};
 use crate::irc::websocket::WsTransport;
 use crate::irc::{ClientConfig, Error};
 
-/// Public command type accepted by the connection loop. Only `SendMessage` is
-/// exposed to callers; the loop is otherwise driven by its own internal
-/// timers and the underlying transport.
-type ReplySender = oneshot::Sender<Result<(), Error>>;
-type PendingMessage = (IrcMessage, Option<ReplySender>);
-
-#[derive(Debug)]
-pub(crate) enum ConnectionLoopCommand {
-    SendMessage(IrcMessage, Option<ReplySender>),
-}
+pub(crate) type ReplySender = oneshot::Sender<Result<(), Error>>;
+pub(crate) type PendingMessage = (IrcMessage, Option<ReplySender>);
 
 pub(crate) struct ConnectionLoopWorker;
 
@@ -29,7 +21,7 @@ impl ConnectionLoopWorker {
     pub fn spawn(
         config: Arc<ClientConfig>,
         connection_incoming_tx: mpsc::UnboundedSender<ConnectionIncomingMessage>,
-        connection_loop_rx: mpsc::UnboundedReceiver<ConnectionLoopCommand>,
+        connection_loop_rx: mpsc::UnboundedReceiver<PendingMessage>,
     ) {
         tokio::spawn(run(config, connection_incoming_tx, connection_loop_rx));
     }
@@ -38,7 +30,7 @@ impl ConnectionLoopWorker {
 async fn close_with_error(
     err: Error,
     pending: VecDeque<PendingMessage>,
-    mut connection_loop_rx: mpsc::UnboundedReceiver<ConnectionLoopCommand>,
+    mut connection_loop_rx: mpsc::UnboundedReceiver<PendingMessage>,
     connection_incoming_tx: &mpsc::UnboundedSender<ConnectionIncomingMessage>,
 ) {
     for (_msg, reply) in pending {
@@ -54,7 +46,7 @@ async fn close_with_error(
     // Keep accepting commands until all senders are dropped so callers that
     // race a transport error with `send(...).unwrap()` don't panic. Reply with
     // the close error when a reply channel was provided; otherwise drop.
-    while let Some(ConnectionLoopCommand::SendMessage(_, reply)) = connection_loop_rx.recv().await {
+    while let Some((_, reply)) = connection_loop_rx.recv().await {
         if let Some(reply) = reply {
             reply.send(Err(err.clone())).ok();
         }
@@ -96,7 +88,7 @@ async fn establish_transport(
 async fn run(
     config: Arc<ClientConfig>,
     connection_incoming_tx: mpsc::UnboundedSender<ConnectionIncomingMessage>,
-    mut connection_loop_rx: mpsc::UnboundedReceiver<ConnectionLoopCommand>,
+    mut connection_loop_rx: mpsc::UnboundedReceiver<PendingMessage>,
 ) {
     // Connect while buffering any commands from callers
     let mut pending: VecDeque<PendingMessage> = VecDeque::new();
@@ -109,7 +101,7 @@ async fn run(
             res = &mut init_fut => break res,
             cmd = connection_loop_rx.recv() => {
                 match cmd {
-                    Some(ConnectionLoopCommand::SendMessage(msg, reply)) => {
+                    Some((msg, reply)) => {
                         pending.push_back((msg, reply));
                     }
                     None => {
@@ -209,7 +201,7 @@ async fn run(
             }
             cmd = connection_loop_rx.recv() => {
                 match cmd {
-                    Some(ConnectionLoopCommand::SendMessage(msg, reply)) => {
+                    Some((msg, reply)) => {
                         if let Err(err) = send_or_close!(msg, reply) {
                             break err;
                         }

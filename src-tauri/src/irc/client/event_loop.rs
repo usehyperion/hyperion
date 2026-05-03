@@ -6,7 +6,6 @@ use tokio::sync::{mpsc, oneshot};
 use super::pool_connection::PoolConnection;
 use crate::irc;
 use crate::irc::ClientConfig;
-use crate::irc::connection::event_loop::ConnectionLoopCommand;
 use crate::irc::connection::{Connection, ConnectionIncomingMessage};
 use crate::irc::message::{JoinMessage, PartMessage, ServerMessage};
 
@@ -163,10 +162,7 @@ impl ClientLoopWorker {
         pool_connection
             .connection
             .connection_loop_tx
-            .send(ConnectionLoopCommand::SendMessage(
-                irc!["JOIN", format!("#{}", channel_login)],
-                None,
-            ))
+            .send((irc!["JOIN", format!("#{}", channel_login)], None))
             .unwrap();
 
         pool_connection.register_sent_message();
@@ -194,10 +190,7 @@ impl ClientLoopWorker {
         pool_connection
             .connection
             .connection_loop_tx
-            .send(ConnectionLoopCommand::SendMessage(
-                irc!["PART", format!("#{}", channel_login)],
-                None,
-            ))
+            .send((irc!["PART", format!("#{}", channel_login)], None))
             .unwrap();
 
         pool_connection.register_sent_message();
