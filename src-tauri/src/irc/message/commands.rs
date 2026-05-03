@@ -909,28 +909,28 @@ impl From<WhisperMessage> for IrcMessage {
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum ServerMessageParseError {
-    #[error("Could not parse IRC message {} as ServerMessage: That command's data is not parsed by this implementation", .0.as_raw_irc())]
+    #[error("Could not parse IRC message {} as ServerMessage: That command's data is not parsed by this implementation", .0.to_string())]
     MismatchedCommand(IrcMessage),
 
-    #[error("Could not parse IRC message {raw} as ServerMessage: No tag present under key `{1}`", raw = .0.as_raw_irc())]
+    #[error("Could not parse IRC message {raw} as ServerMessage: No tag present under key `{1}`", raw = .0.to_string())]
     MissingTag(IrcMessage, &'static str),
 
-    #[error("Could not parse IRC message {raw} as ServerMessage: No tag value present under key `{1}`", raw = .0.as_raw_irc())]
+    #[error("Could not parse IRC message {raw} as ServerMessage: No tag value present under key `{1}`", raw = .0.to_string())]
     MissingTagValue(IrcMessage, &'static str),
 
-    #[error("Could not parse IRC message {raw} as ServerMessage: Malformed tag value for tag `{1}`, value was `{2}`", raw = .0.as_raw_irc())]
+    #[error("Could not parse IRC message {raw} as ServerMessage: Malformed tag value for tag `{1}`, value was `{2}`", raw = .0.to_string())]
     MalformedTagValue(IrcMessage, &'static str, String),
 
-    #[error("Could not parse IRC message {raw} as ServerMessage: No parameter found at index {1}", raw = .0.as_raw_irc())]
+    #[error("Could not parse IRC message {raw} as ServerMessage: No parameter found at index {1}", raw = .0.to_string())]
     MissingParameter(IrcMessage, usize),
 
-    #[error("Could not parse IRC message {raw} as ServerMessage: Malformed channel parameter (# must be present + something after it)", raw = .0.as_raw_irc())]
+    #[error("Could not parse IRC message {raw} as ServerMessage: Malformed channel parameter (# must be present + something after it)", raw = .0.to_string())]
     MalformedChannel(IrcMessage),
 
-    #[error("Could not parse IRC message {} as ServerMessage: Missing prefix altogether", .0.as_raw_irc())]
+    #[error("Could not parse IRC message {} as ServerMessage: Missing prefix altogether", .0.to_string())]
     MissingPrefix(IrcMessage),
 
-    #[error("Could not parse IRC message {} as ServerMessage: No nickname found in prefix", .0.as_raw_irc())]
+    #[error("Could not parse IRC message {} as ServerMessage: No nickname found in prefix", .0.to_string())]
     MissingNickname(IrcMessage),
 }
 

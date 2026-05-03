@@ -6,7 +6,7 @@ use futures::{Sink, SinkExt, StreamExt, TryStreamExt};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::{Error, Message};
 
-use crate::irc::message::{AsRawIrc, IrcMessage, IrcParseError};
+use crate::irc::message::{IrcMessage, IrcParseError};
 
 const TWITCH_IRC_WS_URI: &str = "wss://irc-ws.chat.twitch.tv";
 
@@ -65,7 +65,7 @@ impl WsTransport {
             .fuse();
 
         let message_sink = write_half
-            .with(move |msg: IrcMessage| future::ready(Ok(Message::Text(msg.as_raw_irc().into()))));
+            .with(move |msg: IrcMessage| future::ready(Ok(Message::Text(msg.to_string().into()))));
 
         Ok(WsTransport {
             incoming_messages: Box::new(message_stream),

@@ -31,22 +31,8 @@ pub enum IrcParseError {
     NewlinesInMessage,
 }
 
-struct RawIrcDisplay<'a, T: AsRawIrc>(&'a T);
-
-impl<'a, T: AsRawIrc> fmt::Display for RawIrcDisplay<'a, T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.format_as_raw_irc(f)
-    }
-}
-
 pub trait AsRawIrc {
     fn format_as_raw_irc(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result;
-    fn as_raw_irc(&self) -> String
-    where
-        Self: Sized,
-    {
-        format!("{}", RawIrcDisplay(self))
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -164,6 +150,12 @@ impl IrcMessage {
             command,
             params,
         })
+    }
+}
+
+impl fmt::Display for IrcMessage {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.format_as_raw_irc(f)
     }
 }
 
