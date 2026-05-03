@@ -154,8 +154,8 @@ export class SplitLayout {
 	 * +-------+-------+       (H)
 	 * |       |   B   |      /   \
 	 * |   A   |-------|     A    (V)
-	 * |       |   C   |    /       \
-	 * +-------+-------+   B         C
+	 * |       |   C   |         /   \
+	 * +-------+-------+        B     C
 	 * ```
 	 *
 	 * Going "right" from `A`, `getLayoutRects` determines that `B` and `C` are
