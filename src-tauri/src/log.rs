@@ -30,7 +30,7 @@ pub fn init_tracing(app: &App) {
         .rotation(Rotation::DAILY)
         .filename_prefix("hyperion")
         .filename_suffix("log")
-        .max_log_files(10)
+        .max_log_files(5)
         .build(path)
         .expect("failed to create rolling file appender");
 
