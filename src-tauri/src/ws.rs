@@ -9,10 +9,37 @@
 //! building blocks the two clients compose.
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Duration;
 
 use tauri::async_runtime;
 use tauri::ipc::Channel;
 use tokio::sync::{Mutex, mpsc};
+
+pub struct Backoff(Duration);
+
+impl Backoff {
+    const FLOOR: Duration = Duration::from_secs(1);
+    const CEILING: Duration = Duration::from_secs(30);
+
+    pub fn new() -> Self {
+        Self(Self::FLOOR)
+    }
+
+    pub fn reset(&mut self) {
+        self.0 = Self::FLOOR;
+    }
+
+    pub async fn sleep(&mut self) {
+        tokio::time::sleep(self.0).await;
+        self.0 = (self.0 * 2).min(Self::CEILING);
+    }
+}
+
+impl Default for Backoff {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 pub fn forward_to_channel<T: serde::Serialize + Send + 'static>(
     mut incoming: mpsc::UnboundedReceiver<T>,

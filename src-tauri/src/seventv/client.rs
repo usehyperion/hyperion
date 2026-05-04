@@ -7,7 +7,7 @@ use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
 
 use crate::error::Error;
-use crate::ws::{ConnectionState, SubscriptionStore};
+use crate::ws::{Backoff, ConnectionState, SubscriptionStore};
 
 const SEVENTV_WS_URI: &str = "wss://events.7tv.io/v3";
 
@@ -49,14 +49,20 @@ impl SeventTvClient {
         &self,
         mut message_rx: mpsc::UnboundedReceiver<Message>,
     ) -> Result<(), Error> {
+        let mut backoff = Backoff::new();
+
         loop {
             tracing::info!("Connecting to 7TV Event API");
 
             let mut stream = match connect_async(SEVENTV_WS_URI).await {
-                Ok((stream, _)) => stream,
+                Ok((stream, _)) => {
+                    backoff.reset();
+                    stream
+                }
                 Err(err) => {
-                    tracing::error!(%err, "Failed to connect to 7TV Event API");
-                    return Err(Error::WebSocket(err));
+                    tracing::error!(%err, "Failed to connect to 7TV Event API; retrying");
+                    backoff.sleep().await;
+                    continue;
                 }
             };
 
@@ -119,6 +125,7 @@ impl SeventTvClient {
             }
 
             self.state.set_connected(false);
+            backoff.sleep().await;
         }
     }
 
