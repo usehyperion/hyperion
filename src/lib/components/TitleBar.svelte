@@ -4,15 +4,15 @@
 	import { platform as getPlatform } from "@tauri-apps/plugin-os";
 	import { onDestroy, onMount } from "svelte";
 	import type { HTMLButtonAttributes } from "svelte/elements";
+	import { afterNavigate, goto } from "$app/navigation";
+	import { resolve } from "$app/paths";
+	import { page } from "$app/state";
+	import { app } from "$lib/app.svelte";
 	import Logo from "~icons/local/logo";
 	import ArrowLeft from "~icons/ph/arrow-left";
 	import ArrowRight from "~icons/ph/arrow-right";
 	import Gear from "~icons/ph/gear";
 	import User from "~icons/ph/user";
-	import { afterNavigate, goto } from "$app/navigation";
-	import { resolve } from "$app/paths";
-	import { page } from "$app/state";
-	import { app } from "$lib/app.svelte";
 	import GuestList from "./GuestList.svelte";
 	import { Button } from "./ui/button";
 
@@ -66,19 +66,19 @@
 </script>
 
 <div
-	class="min-h-title-bar relative flex w-full shrink-0 items-center justify-between border-b"
+	class="relative flex min-h-title-bar w-full shrink-0 items-center justify-between border-b"
 	data-tauri-drag-region
 >
 	<div
 		class={[
-			"text-muted-foreground flex items-center gap-0.5",
+			"flex items-center gap-0.5 text-muted-foreground",
 			platform === "macos" && (fullscreen ? "pl-3" : "pl-18"),
 			["windows", "linux"].includes(platform) && "pl-3",
 		]}
 		data-tauri-drag-region
 	>
 		<Button
-			class="hover:text-foreground size-min p-1"
+			class="size-min p-1 hover:text-foreground"
 			size="icon"
 			variant="ghost"
 			disabled={!app.history.canGoBack}
@@ -88,7 +88,7 @@
 		</Button>
 
 		<Button
-			class="hover:text-foreground size-min p-1"
+			class="size-min p-1 hover:text-foreground"
 			size="icon"
 			variant="ghost"
 			disabled={!app.history.canGoForward}
@@ -119,10 +119,10 @@
 	</div>
 
 	<div class="flex items-center justify-end" data-tauri-drag-region>
-		<div class="text-muted-foreground flex items-center gap-0.5 pr-3">
+		<div class="flex items-center gap-0.5 pr-3 text-muted-foreground">
 			{#if app.user}
 				<Button
-					class="hover:text-foreground size-min p-1"
+					class="size-min p-1 hover:text-foreground"
 					href={resolve("/(main)/channels/[username]", {
 						username: app.user.username,
 					})}
@@ -136,7 +136,7 @@
 			{/if}
 
 			<Button
-				class="hover:text-foreground size-min p-1"
+				class="size-min p-1 hover:text-foreground"
 				size="icon"
 				variant="ghost"
 				aria-label="Go to settings"
@@ -166,7 +166,7 @@
 
 {#snippet control(type: ControlType, rest: HTMLButtonAttributes)}
 	<button
-		class="h-title-bar flex w-12 items-center justify-center bg-transparent text-[10px] font-light transition-colors hover:bg-white/10 hover:data-[control=close]:bg-[#ff0000]/70"
+		class="flex h-title-bar w-12 items-center justify-center bg-transparent text-[10px] font-light transition-colors hover:bg-white/10 hover:data-[control=close]:bg-[#ff0000]/70"
 		data-control={type}
 		{...rest}
 	>

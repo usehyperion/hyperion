@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Users from "~icons/ph/users-bold";
 	import { resolve } from "$app/paths";
 	import { getSidebarContext } from "$lib/context";
 	import { createChannelMenu } from "$lib/menus/channel-menu";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import { openMenu } from "$lib/util";
+	import Users from "~icons/ph/users-bold";
 	import GuestList from "./GuestList.svelte";
 	import StreamInfo from "./StreamInfo.svelte";
 	import * as Tooltip from "./ui/tooltip";
@@ -23,7 +23,7 @@
 		{#snippet child({ props })}
 			<div
 				{...props}
-				class="hover:bg-accent relative flex items-center gap-2 rounded-lg p-1.5 transition-colors"
+				class="relative flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-accent"
 				oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}
 			>
 				<a
@@ -51,7 +51,7 @@
 			<div class="space-y-0.5">
 				{#if sidebar.collapsed}
 					<div
-						class="dark:text-twitch text-twitch-link overflow-hidden overflow-ellipsis whitespace-nowrap"
+						class="overflow-hidden overflow-ellipsis whitespace-nowrap text-twitch-link dark:text-twitch"
 					>
 						{channel.user.displayName} &bullet; {channel.stream.game}
 					</div>

@@ -27,7 +27,7 @@
 						: value > 0
 					: value;
 
-			return { active, ...mode };
+			return Object.assign({ active }, mode);
 		}),
 	);
 

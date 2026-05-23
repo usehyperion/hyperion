@@ -2,15 +2,15 @@
 	import { Avatar, Popover } from "bits-ui";
 	import dayjs from "dayjs";
 	import localizedFormat from "dayjs/plugin/localizedFormat";
+	import type { MentionNode } from "$lib/models/message/parse";
+	import { UserMessage } from "$lib/models/message/user-message";
+	import { User } from "$lib/models/user.svelte";
+	import { settings } from "$lib/settings";
 	import Cake from "~icons/ph/cake-fill";
 	import Heart from "~icons/ph/heart-fill";
 	import StarOutline from "~icons/ph/star";
 	import Star from "~icons/ph/star-fill";
 	import UserIcon from "~icons/ph/user-bold";
-	import type { MentionNode } from "$lib/models/message/parse";
-	import { UserMessage } from "$lib/models/message/user-message";
-	import { User } from "$lib/models/user.svelte";
-	import { settings } from "$lib/settings";
 	import Message from "./message/Message.svelte";
 
 	dayjs.extend(localizedFormat);
@@ -82,7 +82,7 @@
 
 	<Popover.Portal>
 		<Popover.Content
-			class="bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 slide-in-from-left-2 z-50 w-sm origin-(--bits-popover-content-transform-origin) overflow-hidden rounded-md border shadow-md outline-hidden"
+			class="z-50 w-sm origin-(--bits-popover-content-transform-origin) overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md outline-hidden slide-in-from-left-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
 			sideOffset={8}
 		>
 			{@render card(user)}
@@ -95,7 +95,7 @@
 		(m): m is UserMessage => m.isUser() && m.author.id === user.id,
 	)}
 
-	<div class="bg-twitch h-18" style:background-color={user.color}>
+	<div class="h-18 bg-twitch" style:background-color={user.color}>
 		{#if user.bannerUrl}
 			<img
 				class="size-full object-cover"
@@ -110,17 +110,17 @@
 	<div class="relative border-t p-4">
 		<Avatar.Root class="-mt-14">
 			<div
-				class="border-popover bg-primary flex size-20 items-center justify-center overflow-hidden rounded-full border-4"
+				class="flex size-20 items-center justify-center overflow-hidden rounded-full border-4 border-popover bg-primary"
 			>
 				<Avatar.Image src={user.avatarUrl} alt={user.displayName} />
 
 				<Avatar.Fallback>
-					<UserIcon class="text-primary-foreground size-10" />
+					<UserIcon class="size-10 text-primary-foreground" />
 				</Avatar.Fallback>
 			</div>
 		</Avatar.Root>
 
-		<div class="text-muted-foreground absolute top-2 right-2 space-y-1 text-xs">
+		<div class="absolute top-2 right-2 space-y-1 text-xs text-muted-foreground">
 			<div class="flex items-center gap-1">
 				<Cake class="mr-1 size-3" />
 
@@ -192,7 +192,7 @@
 
 					{#if !showAllBadges && relationship.badges.length > 10}
 						<button
-							class="text-twitch hover:text-twitch-link ml-1 text-xs transition-colors"
+							class="ml-1 text-xs text-twitch transition-colors hover:text-twitch-link"
 							type="button"
 							onclick={() => (showAllBadges = true)}
 							aria-label="Show {relationship.badges.length - 10} more badges"
@@ -204,7 +204,7 @@
 			{/if}
 
 			{#if user.bio}
-				<p class="text-muted-foreground text-xs">{user.bio}</p>
+				<p class="text-xs text-muted-foreground">{user.bio}</p>
 			{/if}
 		</div>
 	</div>

@@ -20,5 +20,3 @@ declare global {
 		escape(string: string): string;
 	}
 }
-
-export {};

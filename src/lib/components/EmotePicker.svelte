@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { Accordion, Popover } from "bits-ui";
 	import { onDestroy, tick } from "svelte";
-	import CaretRight from "~icons/ph/caret-right";
-	import Smiley from "~icons/ph/smiley";
-	import SmileySad from "~icons/ph/smiley-sad";
 	import { app } from "$lib/app.svelte";
 	import type { Emote, EmoteProvider, EmoteSet } from "$lib/emotes";
 	import type { Channel } from "$lib/models/channel.svelte";
+	import CaretRight from "~icons/ph/caret-right";
+	import Smiley from "~icons/ph/smiley";
+	import SmileySad from "~icons/ph/smiley-sad";
 	import { Input } from "./ui/input";
 	import * as InputGroup from "./ui/input-group";
 
@@ -143,7 +143,7 @@
 
 	<Popover.Portal>
 		<Popover.Content
-			class="bg-sidebar flex max-h-100 overflow-hidden rounded-md border"
+			class="flex max-h-100 overflow-hidden rounded-md border bg-sidebar"
 			side="top"
 			sideOffset={12}
 			collisionPadding={8}
@@ -154,7 +154,7 @@
 						<img
 							class={[
 								"size-7 rounded-full object-contain",
-								activeSet === set.id && "outline-primary outline-1",
+								activeSet === set.id && "outline-1 outline-primary",
 							]}
 							src={set.owner.avatarUrl}
 							alt={set.owner.displayName}
@@ -180,7 +180,7 @@
 						</div>
 					{:else}
 						<div
-							class="text-muted-foreground flex h-full flex-col items-center justify-center p-4 text-center text-sm"
+							class="flex h-full flex-col items-center justify-center p-4 text-center text-sm text-muted-foreground"
 						>
 							<SmileySad class="mb-2 size-6" />
 							No emotes found.
@@ -199,7 +199,7 @@
 								value={set.id}
 								{@attach observe}
 							>
-								<Accordion.Header class="bg-sidebar sticky top-0 z-10 p-2">
+								<Accordion.Header class="sticky top-0 z-10 bg-sidebar p-2">
 									<Accordion.Trigger
 										class="group flex w-full items-center justify-between"
 									>

@@ -14,7 +14,7 @@
 	<Separator class="my-4 bg-current" />
 
 	<div
-		class="bg-background absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 text-xs font-semibold uppercase"
+		class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs font-semibold uppercase"
 	>
 		{@render children()}
 	</div>

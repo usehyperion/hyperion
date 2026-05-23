@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Users from "~icons/ph/users-bold";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import type { Guest } from "$lib/models/stream.svelte";
+	import Users from "~icons/ph/users-bold";
 	import { buttonVariants } from "./ui/button";
 	import * as Popover from "./ui/popover";
 
@@ -40,7 +40,7 @@
 
 	<span
 		class={[
-			"text-muted-foreground mb-1 inline-block text-xs font-medium uppercase",
+			"mb-1 inline-block text-xs font-medium text-muted-foreground uppercase",
 			tooltip ? "mt-2" : "mt-4",
 		]}
 	>

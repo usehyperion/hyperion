@@ -21,7 +21,7 @@
 
 		<PaneResizer
 			class={[
-				"bg-muted relative flex items-center justify-center transition-colors hover:bg-blue-400",
+				"relative flex items-center justify-center bg-muted transition-colors hover:bg-blue-400",
 				node.axis === "horizontal" ? "w-1 cursor-col-resize" : "h-1 cursor-row-resize",
 			]}
 		/>

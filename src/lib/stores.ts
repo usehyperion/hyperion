@@ -1,6 +1,6 @@
 import { RuneStore } from "@tauri-store/svelte";
-import { settings } from "./settings";
 import type { User } from "./graphql/twitch";
+import { settings } from "./settings";
 import type { SplitNode } from "./split-layout";
 
 interface AccountUser {

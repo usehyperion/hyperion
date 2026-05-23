@@ -7,13 +7,13 @@
 	import { openPath } from "@tauri-apps/plugin-opener";
 	import { platform as getPlatform } from "@tauri-apps/plugin-os";
 	import { scale } from "svelte/transition";
+	import { page } from "$app/state";
+	import { app } from "$lib/app.svelte";
+	import { Button } from "$lib/components/ui/button";
 	import ArrowSquareOut from "~icons/ph/arrow-square-out";
 	import Check from "~icons/ph/check";
 	import Clipboard from "~icons/ph/clipboard";
 	import FolderOpen from "~icons/ph/folder-open";
-	import { page } from "$app/state";
-	import { app } from "$lib/app.svelte";
-	import { Button } from "$lib/components/ui/button";
 
 	let copied = $state(false);
 
@@ -65,7 +65,7 @@
 	<span class="text-sm">Open logs</span>
 </Button>
 
-<Button class="text-muted-foreground px-3" variant="ghost" onclick={copyDebugInfo}>
+<Button class="px-3 text-muted-foreground" variant="ghost" onclick={copyDebugInfo}>
 	{#if copied}
 		<span in:scale={{ duration: 300, start: 0.85 }}>
 			<Check />

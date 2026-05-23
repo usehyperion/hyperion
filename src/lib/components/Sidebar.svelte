@@ -2,10 +2,6 @@
 	import { ScrollArea } from "bits-ui";
 	import { MediaQuery } from "svelte/reactivity";
 	import { crossfade } from "svelte/transition";
-	import Chats from "~icons/ph/chats";
-	import Layout from "~icons/ph/layout";
-	import Plus from "~icons/ph/plus";
-	import Sidebar from "~icons/ph/sidebar";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
@@ -13,6 +9,10 @@
 	import { setSidebarContext } from "$lib/context";
 	import type { SidebarContext } from "$lib/context";
 	import { settings } from "$lib/settings";
+	import Chats from "~icons/ph/chats";
+	import Layout from "~icons/ph/layout";
+	import Plus from "~icons/ph/plus";
+	import Sidebar from "~icons/ph/sidebar";
 	import ChannelList from "./ChannelList.svelte";
 	import JoinDialog from "./JoinDialog.svelte";
 	import { Button, buttonVariants } from "./ui/button";
@@ -42,7 +42,7 @@
 
 <ScrollArea.Root
 	class={[
-		"group ease-out-quint shrink-0 transition-[width] duration-300",
+		"group shrink-0 transition-[width] duration-300 ease-out-quint",
 		context.collapsed ? "w-14" : "w-56 md:w-64 lg:w-72",
 	]}
 	data-state={context.collapsed ? "collapsed" : "expanded"}
@@ -64,7 +64,7 @@
 					<div
 						in:receive={{ key: id }}
 						out:send={{ key: id }}
-						class="text-foreground ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[0.625rem] font-medium"
+						class="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[0.625rem] font-medium text-foreground"
 					>
 						{unread}
 					</div>
@@ -110,12 +110,12 @@
 	<ScrollArea.Scrollbar
 		class={[
 			"w-2 p-0.5 opacity-50",
-			"data-[state=hidden]:fade-out-0 data-[state=visible]:fade-in-0 data-[state=visible]:animate-in data-[state=hidden]:animate-out",
+			"data-[state=hidden]:animate-out data-[state=hidden]:fade-out-0 data-[state=visible]:animate-in data-[state=visible]:fade-in-0",
 			"group-data-[state=collapsed]:hidden",
 		]}
 		orientation="vertical"
 	>
-		<ScrollArea.Thumb class="bg-muted-foreground/80 rounded-full" />
+		<ScrollArea.Thumb class="rounded-full bg-muted-foreground/80" />
 	</ScrollArea.Scrollbar>
 </ScrollArea.Root>
 

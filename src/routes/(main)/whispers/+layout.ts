@@ -1,6 +1,6 @@
 import { error } from "@sveltejs/kit";
-import Chats from "~icons/ph/chats";
 import { app } from "$lib/app.svelte";
+import Chats from "~icons/ph/chats";
 
 export function load() {
 	if (!app.user) error(401);

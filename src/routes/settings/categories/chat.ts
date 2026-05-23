@@ -1,5 +1,5 @@
-import Chat from "~icons/ph/chat";
 import { settings } from "$lib/settings";
+import Chat from "~icons/ph/chat";
 import type { SettingsCategory } from "../types";
 
 export default {

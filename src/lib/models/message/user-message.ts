@@ -11,12 +11,12 @@ import type {
 } from "$lib/twitch/irc";
 import { extractEmotes } from "$lib/util";
 import { Badge } from "../badge";
+import type { Channel } from "../channel.svelte";
 import { User } from "../user.svelte";
 import { Viewer } from "../viewer.svelte";
-import type { Channel } from "../channel.svelte";
 import { parse } from "./parse";
-import { TextualMessage } from "./textual-message.svelte";
 import type { Node } from "./parse";
+import { TextualMessage } from "./textual-message.svelte";
 
 function createPartialUser(channel: Channel, sender: BasicUser, color: string) {
 	const user = new User(channel.client, {

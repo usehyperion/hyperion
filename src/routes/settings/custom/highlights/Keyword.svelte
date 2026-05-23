@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Plus from "~icons/ph/plus";
-	import Trash from "~icons/ph/trash";
 	import Highlight from "$lib/components/message/Highlight.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import { settings } from "$lib/settings";
 	import type { KeywordHighlightConfig } from "$lib/settings";
+	import Plus from "~icons/ph/plus";
+	import Trash from "~icons/ph/trash";
 	import Color from "./Color.svelte";
 	import Edit from "./Edit.svelte";
 	import StyleSelect from "./Style.svelte";

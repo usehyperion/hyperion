@@ -1,8 +1,8 @@
 <script lang="ts">
-	import DotsThreeCircle from "~icons/ph/dots-three-circle";
-	import Users from "~icons/ph/users-bold";
 	import { getSidebarContext } from "$lib/context";
 	import type { Channel } from "$lib/models/channel.svelte";
+	import DotsThreeCircle from "~icons/ph/dots-three-circle";
+	import Users from "~icons/ph/users-bold";
 
 	interface Props {
 		channel: Channel;
@@ -32,7 +32,7 @@
 
 {#if sidebar.collapsed && channel.stream?.guests.size}
 	<div
-		class="bg-muted/70 absolute right-1 bottom-1 flex items-center justify-center rounded-full"
+		class="absolute right-1 bottom-1 flex items-center justify-center rounded-full bg-muted/70"
 	>
 		<DotsThreeCircle class="size-5" />
 	</div>
@@ -43,7 +43,7 @@
 		<div class="min-w-0 flex-1">
 			<div class="flex items-center justify-between">
 				<div
-					class="text-sidebar-foreground flex items-center gap-x-1 truncate text-sm font-medium"
+					class="flex items-center gap-x-1 truncate text-sm font-medium text-sidebar-foreground"
 				>
 					{channel.user.displayName}
 
@@ -58,12 +58,12 @@
 				</div>
 			</div>
 
-			<p class="text-muted-foreground truncate text-xs">
+			<p class="truncate text-xs text-muted-foreground">
 				{channel.stream.game}
 			</p>
 		</div>
 	{:else}
-		<span class="text-muted-foreground truncate text-sm font-medium">
+		<span class="truncate text-sm font-medium text-muted-foreground">
 			{channel.user.displayName}
 		</span>
 	{/if}

@@ -82,7 +82,7 @@
 				<Sidebar />
 			{/if}
 
-			<main class={["bg-accent/15 grow overflow-hidden", storage.state.user && "border-l"]}>
+			<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
 				{@render children()}
 			</main>
 		</div>
@@ -93,7 +93,7 @@
 			{@const [id] = source.id.toString().split(":")}
 			{@const channel = app.channels.get(id)}
 
-			<div class="bg-muted/90 flex w-44 items-center justify-center gap-x-1 rounded-md py-2">
+			<div class="flex w-44 items-center justify-center gap-x-1 rounded-md bg-muted/90 py-2">
 				{#if channel}
 					<img
 						src={channel.user.avatarUrl}

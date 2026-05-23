@@ -2,8 +2,8 @@
 	import { invoke } from "@tauri-apps/api/core";
 	import { onMount } from "svelte";
 	import { clear } from "tauri-plugin-cache-api";
-	import Broom from "~icons/ph/broom";
 	import { Button } from "$lib/components/ui/button";
+	import Broom from "~icons/ph/broom";
 
 	let bytes = $state(0);
 

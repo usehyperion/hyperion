@@ -53,7 +53,7 @@
 >
 	<Combobox.Portal>
 		<Combobox.Content
-			class="bg-popover text-popover-foreground flex max-h-72 w-(--bits-combobox-anchor-width) flex-col overflow-y-auto rounded-md border p-1"
+			class="flex max-h-72 w-(--bits-combobox-anchor-width) flex-col overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground"
 			customAnchor={anchor}
 			side="top"
 			sideOffset={8}
@@ -78,14 +78,14 @@
 
 									{#each suggestion.args as arg}
 										<span
-											class="bg-background border-primary/20 rounded border px-1 py-0.5 text-xs"
+											class="rounded border border-primary/20 bg-background px-1 py-0.5 text-xs"
 										>
 											{arg}
 										</span>
 									{/each}
 								</div>
 
-								<p class="text-muted-foreground mt-px text-xs">
+								<p class="mt-px text-xs text-muted-foreground">
 									{suggestion.description}
 								</p>
 							</div>

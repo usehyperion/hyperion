@@ -2,13 +2,13 @@
 	import { Combobox } from "bits-ui";
 	import { tick } from "svelte";
 	import type { Snippet } from "svelte";
-	import Spinner from "~icons/ph/spinner";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
 	import { searchSuggestionsQuery } from "$lib/graphql/twitch";
 	import type { ChannelSuggestion } from "$lib/graphql/twitch";
 	import { debounce } from "$lib/util";
+	import Spinner from "~icons/ph/spinner";
 	import { Button } from "./ui/button";
 	import * as Dialog from "./ui/dialog";
 	import * as Field from "./ui/field";
@@ -143,13 +143,13 @@
 					</Combobox.Input>
 
 					{#if error}
-						<Field.Error class="text-destructive text-xs">{error}</Field.Error>
+						<Field.Error class="text-xs text-destructive">{error}</Field.Error>
 					{/if}
 				</Field.Field>
 
 				{#if suggestions.length}
 					<Combobox.Content
-						class="bg-popover text-popover-foreground flex max-h-72 w-(--bits-combobox-anchor-width) flex-col overflow-y-auto rounded-md border p-1"
+						class="flex max-h-72 w-(--bits-combobox-anchor-width) flex-col overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground"
 						side="bottom"
 						sideOffset={8}
 					>
@@ -157,7 +157,7 @@
 							{@const { displayName } = channel.user!}
 
 							<Combobox.Item
-								class="data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none"
+								class="relative flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
 								value={displayName}
 							>
 								<img

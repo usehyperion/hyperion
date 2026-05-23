@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { useDraggable, useDroppable } from "@dnd-kit-svelte/svelte";
-	import Layout from "~icons/ph/layout";
 	import { app } from "$lib/app.svelte";
 	import Channel from "$lib/components/Channel.svelte";
 	import * as Empty from "$lib/components/ui/empty";
+	import Layout from "~icons/ph/layout";
 	import SplitHeader from "./SplitHeader.svelte";
 
 	interface Props {
@@ -67,7 +67,7 @@
 
 		<div
 			class={[
-				"bg-primary/50 pointer-events-none absolute z-20 size-full brightness-50 transition-all duration-75 ease-out",
+				"pointer-events-none absolute z-20 size-full bg-primary/50 brightness-50 transition-all duration-75 ease-out",
 				activeClass ? "opacity-100" : "opacity-0",
 				activeClass,
 			]}

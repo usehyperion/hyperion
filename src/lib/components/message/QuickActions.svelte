@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { Component, ComponentProps } from "svelte";
+	import type { UserMessage } from "$lib/models/message/user-message";
 	import ArrowBendUpLeft from "~icons/ph/arrow-bend-up-left";
 	import Clipboard from "~icons/ph/clipboard";
 	import Clock from "~icons/ph/clock";
 	import Gavel from "~icons/ph/gavel";
 	import Trash from "~icons/ph/trash";
-	import type { UserMessage } from "$lib/models/message/user-message";
 	import { Button } from "../ui/button";
 	import * as ButtonGroup from "../ui/button-group";
 	import * as Tooltip from "../ui/tooltip";

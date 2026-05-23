@@ -2,9 +2,9 @@
 	import dayjs from "dayjs";
 	import relativeTime from "dayjs/plugin/relativeTime";
 	import type { Attachment } from "svelte/attachments";
-	import ChatDots from "~icons/ph/chat-dots";
 	import { resolve } from "$app/paths";
 	import * as Empty from "$lib/components/ui/empty";
+	import ChatDots from "~icons/ph/chat-dots";
 
 	dayjs.extend(relativeTime);
 
@@ -38,7 +38,7 @@
 
 	{#if message}
 		<div
-			class="hover:bg-muted/80 relative flex items-center border-b py-4 pr-6 pl-5 transition-colors"
+			class="relative flex items-center border-b py-4 pr-6 pl-5 transition-colors hover:bg-muted/80"
 		>
 			<a
 				class="absolute inset-0 z-1"
@@ -62,7 +62,7 @@
 					</span>
 
 					<time
-						class="text-muted-foreground text-sm"
+						class="text-sm text-muted-foreground"
 						datetime={message.createdAt.toISOString()}
 						{@attach relative(message.createdAt)}
 					>
@@ -77,7 +77,7 @@
 
 					{#if whisper.unread}
 						<div
-							class="text-foreground mt-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-medium"
+							class="mt-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-medium text-foreground"
 						>
 							{whisper.unread > 9 ? "9+" : whisper.unread}
 						</div>

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { Select as SelectPrimitive } from "bits-ui";
-	import ChevronDownIcon from "~icons/ph/caret-down";
 	import { cn } from "$lib/util.js";
 	import type { WithoutChildrenOrChild } from "$lib/util.js";
+	import ChevronDownIcon from "~icons/ph/caret-down";
 
 	let {
 		ref = $bindable(null),

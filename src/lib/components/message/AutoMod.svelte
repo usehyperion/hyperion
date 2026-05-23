@@ -12,7 +12,7 @@
 	const { message, metadata }: Props = $props();
 </script>
 
-<div class={["bg-muted/50 my-0.5 border-l-4 border-red-500 p-2", message.deleted && "opacity-50"]}>
+<div class={["my-0.5 border-l-4 border-red-500 bg-muted/50 p-2", message.deleted && "opacity-50"]}>
 	<div class="mb-2 flex w-full items-start justify-between gap-x-4">
 		<div>
 			<img
@@ -23,7 +23,7 @@
 				height="18"
 			/>
 
-			<span class="text-twitch font-semibold">AutoMod</span>:
+			<span class="font-semibold text-twitch">AutoMod</span>:
 
 			{#if metadata.category === "msg_hold"}
 				Your message is being held for review by the moderators and has not been sent.
@@ -45,7 +45,7 @@
 				</Button>
 
 				<Button
-					class="text-destructive h-min p-0"
+					class="h-min p-0 text-destructive"
 					variant="link"
 					disabled={message.deleted}
 					onclick={() => message.deny()}

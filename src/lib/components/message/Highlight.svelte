@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
+	import type { HighlightConfig, HighlightType, KeywordHighlightConfig } from "$lib/settings";
+	import { cn } from "$lib/util";
 	import CaseSensitive from "~icons/local/case-sensitive";
 	import Regex from "~icons/local/regex";
 	import WholeWord from "~icons/local/whole-word";
@@ -12,8 +14,6 @@
 	import Star from "~icons/ph/star-fill";
 	import Sword from "~icons/ph/sword";
 	import VideoCamera from "~icons/ph/video-camera";
-	import type { HighlightConfig, HighlightType, KeywordHighlightConfig } from "$lib/settings";
-	import { cn } from "$lib/util";
 
 	type Props = {
 		children: Snippet;
@@ -58,7 +58,7 @@
 		style:border-color={config.color}
 	>
 		{#if config.style === "default"}
-			<div class="bg-muted flex items-center px-2.5 py-1.5 text-xs font-medium">
+			<div class="flex items-center bg-muted px-2.5 py-1.5 text-xs font-medium">
 				<div class="flex items-center">
 					<decoration.icon class="mr-2 size-4" />
 

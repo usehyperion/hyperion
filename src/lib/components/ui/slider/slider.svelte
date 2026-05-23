@@ -40,28 +40,28 @@ get along, so we shut typescript up by casting `value` to `never`.
 	{#snippet children({ tickItems })}
 		<span
 			class={cn(
-				"bg-muted relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5",
+				"relative grow overflow-hidden rounded-full bg-muted data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5",
 			)}
 			data-orientation={orientation}
 			data-slot="slider-track"
 		>
 			<SliderPrimitive.Range
 				class={cn(
-					"bg-primary absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full",
+					"absolute bg-primary data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full",
 				)}
 				data-slot="slider-range"
 			/>
 		</span>
 
 		<SliderPrimitive.Thumb
-			class="border-input bg-primary ring-ring/50 z-3 block size-4 shrink-0 rounded-full border shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+			class="z-3 block size-4 shrink-0 rounded-full border border-input bg-primary shadow-sm ring-ring/50 transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
 			index={0}
 			data-slot="slider-thumb"
 		/>
 
 		{#if typeof step === "number"}
 			<SliderPrimitive.ThumbLabel
-				class="bg-popover mt-3 text-xs font-medium"
+				class="mt-3 bg-popover text-xs font-medium"
 				index={0}
 				position="bottom"
 			>
@@ -72,12 +72,12 @@ get along, so we shut typescript up by casting `value` to `never`.
 		{#if typeof step !== "number"}
 			{#each tickItems as tick (tick.index)}
 				<SliderPrimitive.Tick
-					class="bg-background z-1 h-2 w-px rounded"
+					class="z-1 h-2 w-px rounded bg-background"
 					index={tick.index}
 				/>
 
 				<SliderPrimitive.TickLabel
-					class="text-muted-foreground data-selected:text-foreground mt-4 text-xs font-medium transition-colors"
+					class="mt-4 text-xs font-medium text-muted-foreground transition-colors data-selected:text-foreground"
 					index={tick.index}
 					position="bottom"
 				>

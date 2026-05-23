@@ -52,7 +52,7 @@
 </script>
 
 <div
-	class="text-muted-foreground px-3 py-2 aria-disabled:opacity-50"
+	class="px-3 py-2 text-muted-foreground aria-disabled:opacity-50"
 	aria-disabled={message.deleted}
 >
 	<Timestamp date={message.timestamp} />
@@ -139,7 +139,7 @@
 
 	{#if ctx.name}
 		changed the active emote set to
-		<span class="text-foreground font-medium">{ctx.name}</span>.
+		<span class="font-medium text-foreground">{ctx.name}</span>.
 	{:else}
 		disabled the channel's emote set.
 	{/if}
@@ -149,11 +149,11 @@
 	{@html colorizeName(ctx.actor)}
 
 	{#if ctx.action === "renamed"}
-		renamed <span class="text-foreground font-medium">{ctx.oldName}</span> to
-		<span class="text-foreground font-medium">{ctx.emote.name}</span>
+		renamed <span class="font-medium text-foreground">{ctx.oldName}</span> to
+		<span class="font-medium text-foreground">{ctx.emote.name}</span>
 	{:else}
 		{ctx.action} an emote:
-		<span class="text-foreground font-medium">{ctx.emote.name}</span>
+		<span class="font-medium text-foreground">{ctx.emote.name}</span>
 	{/if}
 
 	<Emote emote={ctx.emote} />

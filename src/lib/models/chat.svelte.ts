@@ -6,14 +6,14 @@ import { settings } from "$lib/settings";
 import { sendPresence } from "$lib/seventv";
 import type { SentMessage } from "$lib/twitch/api";
 import { commands } from "../commands";
-import { ComponentMessage } from "./message/component-message";
-import { SystemMessage } from "./message/system-message";
-import { TextualMessage } from "./message/textual-message.svelte";
-import { Viewer } from "./viewer.svelte";
 import type { Channel } from "./channel.svelte";
+import { ComponentMessage } from "./message/component-message";
 import type { MessageContext } from "./message/context";
 import type { Message } from "./message/message";
+import { SystemMessage } from "./message/system-message";
+import { TextualMessage } from "./message/textual-message.svelte";
 import type { UserMessage } from "./message/user-message";
+import { Viewer } from "./viewer.svelte";
 
 const RATE_LIMIT_WINDOW = 30 * 1000;
 const RATE_LIMIT_GRACE = 1000;

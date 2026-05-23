@@ -1,8 +1,7 @@
 {
 	"name": "hyperion",
-	"type": "module",
 	"private": true,
-	"packageManager": "pnpm@10.24.0",
+	"type": "module",
 	"scripts": {
 		"dev": "vite dev -d transform",
 		"build": "vite build",
@@ -11,18 +10,9 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"tauri": "tauri",
-		"lint": "oxlint && prettier --check src/**/*",
-		"lint:ci": "oxlint --format=github && prettier --check src/**/*",
-		"lint:fix": "oxlint --fix && prettier --write src/**/*"
-	},
-	"prettier": {
-		"printWidth": 100,
-		"tabWidth": 4,
-		"useTabs": true,
-		"plugins": [
-			"prettier-plugin-svelte",
-			"prettier-plugin-tailwindcss"
-		]
+		"lint": "oxlint && oxfmt --check",
+		"lint:ci": "oxlint --format=github && oxfmt --check",
+		"lint:fix": "oxlint --fix && oxfmt"
 	},
 	"dependencies": {
 		"@better-fetch/fetch": "^1.1.21",
@@ -66,11 +56,9 @@
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
 		"@tauri-apps/cli": "^2.11.0",
 		"@types/chroma-js": "^3.1.2",
-		"oxlint": "^1.56.0",
+		"oxfmt": "^0.51.0",
+		"oxlint": "^1.66.0",
 		"oxlint-tsgolint": "^0.17.0",
-		"prettier": "^3.8.3",
-		"prettier-plugin-svelte": "^3.5.1",
-		"prettier-plugin-tailwindcss": "^0.8.0",
 		"svelte": "^5.55.5",
 		"svelte-check": "^4.4.7",
 		"tailwind-variants": "^3.2.2",
@@ -79,5 +67,6 @@
 		"unplugin-icons": "^23.0.1",
 		"vite": "8.0.10",
 		"vite-plugin-devtools-json": "^1.0.0"
-	}
+	},
+	"packageManager": "pnpm@10.24.0"
 }

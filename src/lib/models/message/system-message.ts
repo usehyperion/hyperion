@@ -1,6 +1,6 @@
 import type { Channel } from "../channel.svelte";
-import { TextualMessage } from "./textual-message.svelte";
 import type { MessageContext } from "./context";
+import { TextualMessage } from "./textual-message.svelte";
 
 export interface SystemMessageData {
 	deleted: boolean;

@@ -1,7 +1,4 @@
 <script lang="ts">
-	import PrimeCrown from "~icons/local/prime-crown";
-	import Gift from "~icons/ph/gift";
-	import Star from "~icons/ph/star-fill";
 	import type { UserMessage } from "$lib/models/message/user-message";
 	import type {
 		GiftPaidUpgradeEvent,
@@ -11,6 +8,9 @@
 		SubOrResubEvent,
 	} from "$lib/twitch/irc";
 	import { colorizeName } from "$lib/util";
+	import PrimeCrown from "~icons/local/prime-crown";
+	import Gift from "~icons/ph/gift";
+	import Star from "~icons/ph/star-fill";
 	import Message from "./Message.svelte";
 
 	interface Props {
@@ -26,7 +26,7 @@
 	const { message, sub }: Props = $props();
 </script>
 
-<div class="bg-muted/50 my-0.5 border-l-4 p-2" style:border-color={message.source.user.color}>
+<div class="my-0.5 border-l-4 bg-muted/50 p-2" style:border-color={message.source.user.color}>
 	<div class="flex gap-1">
 		{#if sub.type === "sub_or_resub" || sub.type === "prime_paid_upgrade" || sub.type === "gift_paid_upgrade"}
 			{#if sub.type === "sub_or_resub" && sub.sub_plan === "Prime"}

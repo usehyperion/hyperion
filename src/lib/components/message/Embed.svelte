@@ -1,12 +1,12 @@
 <script lang="ts">
 	import dayjs from "dayjs";
-	import Eye from "~icons/ph/eye";
-	import EyeSlash from "~icons/ph/eye-slash";
 	import { app } from "$lib/app.svelte";
 	import { transform7tvEmote } from "$lib/emotes";
 	import { send7tv as send } from "$lib/graphql";
 	import { emoteQuery } from "$lib/graphql/7tv";
 	import { clipQuery } from "$lib/graphql/twitch";
+	import Eye from "~icons/ph/eye";
+	import EyeSlash from "~icons/ph/eye-slash";
 
 	interface Props {
 		url: URL;
@@ -50,11 +50,11 @@
 	}
 </script>
 
-<div class="group w-full max-w-[400px]">
+<div class="group w-full max-w-100">
 	{#if tld.domain === "7tv.app"}
 		{#await fetchEmote() then emote}
 			{#if emote}
-				<div class="bg-card relative flex h-18 gap-2 overflow-hidden rounded-md border">
+				<div class="relative flex h-18 gap-2 overflow-hidden rounded-md border bg-card">
 					<a
 						class="absolute inset-0 z-10"
 						href={url.href}
@@ -92,7 +92,7 @@
 							{/if}
 						</div>
 
-						<span class="text-muted-foreground text-xs">
+						<span class="text-xs text-muted-foreground">
 							by {emote.owner?.mainConnection?.platformDisplayName ?? "Unknown"}
 						</span>
 					</div>
@@ -114,7 +114,7 @@
 		{#await fetchClip() then clip}
 			{#if clip}
 				<div
-					class="bg-card relative flex h-20 gap-2 overflow-hidden rounded-md border transition-colors"
+					class="relative flex h-20 gap-2 overflow-hidden rounded-md border bg-card transition-colors"
 				>
 					<a
 						class="absolute inset-0 z-10"
@@ -141,11 +141,11 @@
 					<div class="flex flex-col gap-0.5 overflow-hidden py-1 pr-1">
 						{clip.title}
 
-						<span class="text-muted-foreground text-xs">
+						<span class="text-xs text-muted-foreground">
 							{dayjs(clip.createdAt).format("MMMM D, YYYY")}
 						</span>
 
-						<div class="text-muted-foreground flex items-center gap-1 text-xs">
+						<div class="flex items-center gap-1 text-xs text-muted-foreground">
 							by {clip.curator?.displayName}
 
 							<span class="text-foreground">&bullet;</span>

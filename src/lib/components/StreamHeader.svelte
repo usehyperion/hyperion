@@ -2,9 +2,9 @@
 	import dayjs from "dayjs";
 	import duration from "dayjs/plugin/duration";
 	import { onDestroy } from "svelte";
+	import type { Stream } from "$lib/models/stream.svelte";
 	import Clock from "~icons/ph/clock";
 	import Users from "~icons/ph/users";
-	import type { Stream } from "$lib/models/stream.svelte";
 
 	dayjs.extend(duration);
 
@@ -38,7 +38,7 @@
 </script>
 
 <div
-	class="text-muted-foreground flex items-center justify-between overflow-hidden border-b p-2 text-xs shadow"
+	class="flex items-center justify-between overflow-hidden border-b p-2 text-xs text-muted-foreground shadow"
 >
 	<p class="truncate" title={stream.title}>{stream.title}</p>
 

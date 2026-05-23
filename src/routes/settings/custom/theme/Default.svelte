@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { RadioGroup } from "bits-ui";
 	import { setMode, userPrefersMode } from "mode-watcher";
-	import ArrowsClockwise from "~icons/ph/arrows-clockwise";
 	import { Label } from "$lib/components/ui/label";
+	import ArrowsClockwise from "~icons/ph/arrows-clockwise";
 
 	const themes = [
 		{ value: "light", class: "bg-white" },
@@ -21,12 +21,12 @@
 				class={[
 					"flex size-16 items-center justify-center rounded-lg border",
 					theme.class,
-					userPrefersMode.current === theme.value && "border-primary border-2",
+					userPrefersMode.current === theme.value && "border-2 border-primary",
 				]}
 				value={theme.value}
 			>
 				{#if theme.value === "system"}
-					<ArrowsClockwise class="text-muted-foreground size-6" />
+					<ArrowsClockwise class="size-6 text-muted-foreground" />
 				{/if}
 			</RadioGroup.Item>
 

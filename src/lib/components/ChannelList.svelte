@@ -80,7 +80,7 @@
 	{#if sidebar.collapsed}
 		<Separator />
 	{:else}
-		<span class="text-muted-foreground mt-2 inline-block px-2 text-xs font-semibold uppercase">
+		<span class="mt-2 inline-block px-2 text-xs font-semibold text-muted-foreground uppercase">
 			{group.type}
 		</span>
 	{/if}

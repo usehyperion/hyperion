@@ -4,7 +4,6 @@
 	import type { UnlistenFn } from "@tauri-apps/api/event";
 	import { openUrl } from "@tauri-apps/plugin-opener";
 	import { onDestroy, onMount } from "svelte";
-	import Twitch from "~icons/local/twitch";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
@@ -14,6 +13,7 @@
 	import { storage } from "$lib/stores";
 	import { SCOPES } from "$lib/twitch";
 	import { TwitchClient } from "$lib/twitch/client";
+	import Twitch from "~icons/local/twitch";
 
 	interface TokenInfo {
 		user_id: string;
@@ -65,11 +65,11 @@
 <div class="space-y-2">
 	<h1 class="text-4xl font-semibold">Hyperion</h1>
 
-	<p class="text-muted-foreground max-w-sm">Connect your Twitch account to start chatting.</p>
+	<p class="max-w-sm text-muted-foreground">Connect your Twitch account to start chatting.</p>
 </div>
 
 <Button
-	class="bg-twitch text-primary hover:bg-twitch-600 h-12 text-base"
+	class="h-12 bg-twitch text-base text-primary hover:bg-twitch-600"
 	size="lg"
 	onclickwait={() => openUrl(authUrl.toString())}
 >

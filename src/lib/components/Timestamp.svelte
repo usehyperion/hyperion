@@ -33,7 +33,7 @@
 </script>
 
 {#if settings.state["chat.messages.timestamps.show"]}
-	<time class="text-muted-foreground text-xs tabular-nums" datetime={date.toISOString()}>
+	<time class="text-xs text-muted-foreground tabular-nums" datetime={date.toISOString()}>
 		{formatted}
 	</time>
 {/if}

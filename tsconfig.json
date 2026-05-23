@@ -20,13 +20,13 @@
 						"name": "twitch",
 						"schema": "https://twitch-gql-schema.up.railway.app/graphql",
 						"tadaOutputLocation": "./src/lib/graphql/twitch-env.d.ts",
-						"tadaTurboLocation": "./src/lib/graphql/twitch-cache.d.ts",
+						"tadaTurboLocation": "./src/lib/graphql/twitch-cache.d.ts"
 					},
 					{
 						"name": "seventv",
 						"schema": "https://7tv.io/v4/gql",
 						"tadaOutputLocation": "./src/lib/graphql/7tv-env.d.ts",
-						"tadaTurboLocation": "./src/lib/graphql/7tv-cache.d.ts",
+						"tadaTurboLocation": "./src/lib/graphql/7tv-cache.d.ts"
 					}
 				]
 			}

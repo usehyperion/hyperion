@@ -13,8 +13,8 @@ import type { TwitchClient } from "../twitch/client";
 import { Badge } from "./badge";
 import { Chat } from "./chat.svelte";
 import { Stream } from "./stream.svelte";
-import { Viewer } from "./viewer.svelte";
 import type { User } from "./user.svelte";
+import { Viewer } from "./viewer.svelte";
 
 export class Channel {
 	public readonly id: string;

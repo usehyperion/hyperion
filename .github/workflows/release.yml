@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   publish-tauri:
@@ -14,21 +14,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: 'macos-latest'
-            args: '--target aarch64-apple-darwin --bundles app,dmg'
-            target: 'aarch64-apple-darwin'
-          - os: 'macos-latest'
-            args: '--target x86_64-apple-darwin --bundles app,dmg'
-            target: 'x86_64-apple-darwin'
-          - os: 'ubuntu-22.04'
-            args: '--bundles appimage,deb'
-            target: ''
-          - os: 'windows-latest'
-            args: '--target aarch64-pc-windows-msvc --bundles nsis'
-            target: 'aarch64-pc-windows-msvc'
-          - os: 'windows-latest'
-            args: '--target x86_64-pc-windows-msvc --bundles nsis'
-            target: 'x86_64-pc-windows-msvc'
+          - os: "macos-latest"
+            args: "--target aarch64-apple-darwin --bundles app,dmg"
+            target: "aarch64-apple-darwin"
+          - os: "macos-latest"
+            args: "--target x86_64-apple-darwin --bundles app,dmg"
+            target: "x86_64-apple-darwin"
+          - os: "ubuntu-22.04"
+            args: "--bundles appimage,deb"
+            target: ""
+          - os: "windows-latest"
+            args: "--target aarch64-pc-windows-msvc --bundles nsis"
+            target: "aarch64-pc-windows-msvc"
+          - os: "windows-latest"
+            args: "--target x86_64-pc-windows-msvc --bundles nsis"
+            target: "x86_64-pc-windows-msvc"
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -47,7 +47,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: lts/*
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
@@ -58,7 +58,7 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: './src-tauri -> target'
+          workspaces: "./src-tauri -> target"
 
       - name: Install frontend dependencies
         run: pnpm install
@@ -71,9 +71,9 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: v__VERSION__
-          releaseBody: 'See the assets to download this version and install.'
+          releaseBody: "See the assets to download this version and install."
           releaseDraft: true
-          assetNamePattern: '[name]-v[version]-[arch][ext]'
+          assetNamePattern: "[name]-v[version]-[arch][ext]"
           prerelease: false
           includeUpdaterJson: true
           args: ${{ matrix.args }}

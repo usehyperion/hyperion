@@ -1,5 +1,5 @@
-import Toolbox from "~icons/ph/toolbox";
 import { app } from "$lib/app.svelte";
+import Toolbox from "~icons/ph/toolbox";
 import ClearCache from "../custom/ClearCache.svelte";
 import type { SettingsCategory } from "../types";
 

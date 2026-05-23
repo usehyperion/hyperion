@@ -81,7 +81,7 @@
 >
 	{#if scrollingPaused}
 		<button
-			class="bg-twitch/40 absolute bottom-0 z-10 flex w-full items-center justify-center rounded-t-md border px-2 py-1 text-xs font-medium backdrop-blur-lg"
+			class="absolute bottom-0 z-10 flex w-full items-center justify-center rounded-t-md border bg-twitch/40 px-2 py-1 text-xs font-medium backdrop-blur-lg"
 			type="button"
 			onclick={scrollToEnd}
 		>

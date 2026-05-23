@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import ChatDots from "~icons/ph/chat-dots";
-	import Spinner from "~icons/ph/spinner";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
@@ -11,6 +9,8 @@
 	import { log } from "$lib/log";
 	import { settings } from "$lib/settings";
 	import { layout, storage } from "$lib/stores";
+	import ChatDots from "~icons/ph/chat-dots";
+	import Spinner from "~icons/ph/spinner";
 
 	let loading = $state(true);
 

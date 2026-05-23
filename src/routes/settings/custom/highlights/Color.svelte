@@ -10,7 +10,7 @@
 
 	<Popover.Portal>
 		<Popover.Content class="w-60" sideOffset={10}>
-			<ColorPicker class="bg-popover rounded-md border p-3" bind:value />
+			<ColorPicker class="rounded-md border bg-popover p-3" bind:value />
 		</Popover.Content>
 	</Popover.Portal>
 </Popover.Root>

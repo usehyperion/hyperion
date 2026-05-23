@@ -1,9 +1,9 @@
 <script lang="ts">
-	import WarningCircle from "~icons/ph/warning-circle";
 	import { page } from "$app/state";
 	import { Button } from "$lib/components/ui/button";
 	import * as Empty from "$lib/components/ui/empty";
 	import { log } from "$lib/log";
+	import WarningCircle from "~icons/ph/warning-circle";
 
 	if (page.error) {
 		log.error(`[${page.status}]: ${page.error.message}`);

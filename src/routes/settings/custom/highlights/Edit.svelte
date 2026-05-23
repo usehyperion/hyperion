@@ -1,11 +1,11 @@
 <script lang="ts">
-	import Pencil from "~icons/ph/pencil";
 	import { buttonVariants } from "$lib/components/ui/button";
 	import { Checkbox } from "$lib/components/ui/checkbox";
 	import * as Dialog from "$lib/components/ui/dialog";
 	import * as Field from "$lib/components/ui/field";
 	import Input from "$lib/components/ui/input/input.svelte";
 	import type { KeywordHighlightConfig } from "$lib/settings";
+	import Pencil from "~icons/ph/pencil";
 
 	const id = $props.id();
 

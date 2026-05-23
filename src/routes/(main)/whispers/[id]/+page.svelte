@@ -36,9 +36,9 @@
 </script>
 
 <div class="flex h-full flex-col">
-	<div class="divide-border grow divide-y overflow-y-auto text-sm" bind:this={chat}>
+	<div class="grow divide-y divide-border overflow-y-auto text-sm" bind:this={chat}>
 		{#each data.whisper.messages as message (message.id)}
-			<div class="hover:bg-muted/50 flex items-start gap-2.5 px-5 py-3 transition-colors">
+			<div class="flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-muted/50">
 				<img
 					class="rounded-full"
 					src={message.user.avatarUrl}

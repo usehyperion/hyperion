@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { HTMLInputAttributes, KeyboardEventHandler } from "svelte/elements";
-	import Warning from "~icons/ph/warning";
-	import XCircle from "~icons/ph/x-circle";
 	import { app } from "$lib/app.svelte";
 	import { Completer } from "$lib/completer.svelte";
 	import { CommandError } from "$lib/errors/command-error";
 	import type { Chat } from "$lib/models/chat.svelte";
+	import Warning from "~icons/ph/warning";
+	import XCircle from "~icons/ph/x-circle";
 	import EmotePicker from "../EmotePicker.svelte";
 	import Message from "../message/Message.svelte";
 	import Suggestions from "../Suggestions.svelte";
@@ -129,7 +129,7 @@
 
 {#if chat.replyTarget}
 	<div
-		class="bg-muted/50 border-muted has-[+div>input:focus-visible]:border-input rounded-t-md border border-b-0 px-3 pt-1.5 pb-2.5 text-sm transition-colors duration-200"
+		class="rounded-t-md border border-b-0 border-muted bg-muted/50 px-3 pt-1.5 pb-2.5 text-sm transition-colors duration-200 has-[+div>input:focus-visible]:border-input"
 	>
 		<div class="flex items-center justify-between">
 			<span class="text-muted-foreground">Replying to:</span>
@@ -140,7 +140,7 @@
 				onclick={() => (chat.replyTarget = null)}
 			>
 				<XCircle
-					class="text-muted-foreground hover:text-foreground block transition-colors duration-150"
+					class="block text-muted-foreground transition-colors duration-150 hover:text-foreground"
 				/>
 			</button>
 		</div>
@@ -151,7 +151,7 @@
 	</div>
 {:else if error}
 	<div
-		class="bg-muted/50 border-muted has-[+div>input:focus-visible]:border-input rounded-t-md border border-b-0 px-3 py-2.5 text-sm transition-colors duration-200"
+		class="rounded-t-md border border-b-0 border-muted bg-muted/50 px-3 py-2.5 text-sm transition-colors duration-200 has-[+div>input:focus-visible]:border-input"
 	>
 		<div class="flex gap-1">
 			<Warning class="mt-px shrink-0 text-yellow-400" />
@@ -185,7 +185,7 @@
 	</InputGroup.Root>
 
 	<div class="flex items-center justify-between px-1">
-		<div class="text-muted-foreground text-xs tabular-nums">
+		<div class="text-xs text-muted-foreground tabular-nums">
 			<span class:text-foreground={chat.value.length === 500}>{chat.value.length}</span>
 			/ 500
 		</div>

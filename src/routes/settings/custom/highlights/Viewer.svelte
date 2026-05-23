@@ -1,9 +1,9 @@
 <script lang="ts">
-	import ArrowClockwise from "~icons/ph/arrow-clockwise";
 	import Highlight from "$lib/components/message/Highlight.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import { defaultHighlightTypes, settings } from "$lib/settings";
 	import type { HighlightType } from "$lib/settings";
+	import ArrowClockwise from "~icons/ph/arrow-clockwise";
 	import Color from "./Color.svelte";
 	import StyleSelect from "./Style.svelte";
 
