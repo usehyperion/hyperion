@@ -11,9 +11,20 @@ import type { Prefix } from "$lib/util";
 
 export const ssr = false;
 
-export async function load({ url }) {
+export async function load({ url, fetch }) {
 	if (url.searchParams.has("detached")) {
 		return { detached: true };
+	}
+
+	if (storage.state.user) {
+		const response = await fetch("https://id.twitch.tv/oauth2/validate", {
+			headers: { Authorization: `OAuth ${storage.state.user.token}` },
+		});
+
+		if (response.status === 401) {
+			log.info("Stored token expired, clearing user");
+			storage.state.user = null;
+		}
 	}
 
 	if (!storage.state.user) {
