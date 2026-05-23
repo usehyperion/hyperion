@@ -66,6 +66,7 @@
 		id="color-picker-well"
 		class="relative aspect-4/3 w-full cursor-crosshair rounded-md border border-muted"
 		style:--color-picker-well-hue={h}
+		role="group"
 		onpointerdown={(event) => {
 			event.preventDefault();
 
@@ -104,8 +105,7 @@
 
 <style>
 	#color-picker-well {
-		background:
-			linear-gradient(0deg, #000, transparent),
+		background: linear-gradient(0deg, #000, transparent),
 			linear-gradient(90deg, #fff, hsl(var(--color-picker-well-hue), 100%, 50%));
 	}
 
