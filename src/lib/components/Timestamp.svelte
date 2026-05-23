@@ -21,8 +21,8 @@
 
 		if (format === "auto") {
 			const locale = new Intl.Locale(navigator.language);
-			// @ts-expect-error - limited support
-			const cycles: string[] = locale.getHourCycles?.() ?? [];
+			const cycles = locale.getHourCycles();
+
 			format = cycles.includes("h12") ? "12" : "24";
 		}
 
