@@ -106,8 +106,7 @@
 		color: var(--color-muted-foreground);
 		height: --spacing(11);
 		justify-content: flex-start;
-		padding-left: --spacing(3.5);
-		padding-right: --spacing(3.5);
+		padding-inline: --spacing(3.5);
 
 		@variant hover {
 			color: var(--color-foreground);

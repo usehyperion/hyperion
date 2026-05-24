@@ -14,7 +14,6 @@
 	const { id }: Props = $props();
 
 	const channel = $derived(app.channels.get(id));
-	const isEmpty = $derived(!channel);
 
 	const draggable = createDraggable({
 		get id() {
@@ -31,7 +30,7 @@
 		},
 	});
 
-	function makeZone(position: SplitDropPosition, edgeOnly: boolean) {
+	function makeZone(position: SplitDropPosition, edge: boolean) {
 		return createDroppable({
 			get id() {
 				return `zone:${id}:${position}`;
@@ -43,7 +42,7 @@
 				return { paneId: id, position };
 			},
 			get disabled() {
-				return edgeOnly && isEmpty;
+				return edge && !channel;
 			},
 		});
 	}
@@ -104,9 +103,7 @@
 		></div>
 
 		<div class="pointer-events-none absolute inset-0 z-10" {@attach dropCenter.attach}></div>
-		<div
-			class="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/4"
-			{@attach dropUp.attach}
+		<div class="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/4" {@attach dropUp.attach}
 		></div>
 		<div
 			class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1/4"

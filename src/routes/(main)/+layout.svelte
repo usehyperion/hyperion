@@ -91,31 +91,14 @@
 
 	<DragOverlay>
 		{#snippet children(source)}
-			{@const data = source.data as { kind: "channel" | "pane"; id: string } | undefined}
-			{@const channel = data ? app.channels.get(data.id) : undefined}
+			{@const channel = app.channels.get(source.data.id)}
 
-			{#if source.type === "pinned"}
-				{#if channel}
-					<img
-						src={channel.user.avatarUrl}
-						alt={channel.user.username}
-						class="size-7 rounded-full object-cover shadow-lg ring-2 ring-background"
-					/>
-				{/if}
-			{:else}
-				<div
-					class="flex w-44 items-center justify-center gap-x-1 rounded-md bg-muted/90 py-2"
-				>
-					{#if channel}
-						<img
-							src={channel.user.avatarUrl}
-							alt={channel.user.username}
-							class="size-5 rounded-full object-cover"
-						/>
-					{/if}
-
-					<span class="text-sm font-medium">{channel?.user.displayName ?? "Empty"}</span>
-				</div>
+			{#if channel}
+				<img
+					src={channel.user.avatarUrl}
+					alt={channel.user.username}
+					class="size-7 rounded-full object-cover shadow-lg ring-2 ring-background"
+				/>
 			{/if}
 		{/snippet}
 	</DragOverlay>

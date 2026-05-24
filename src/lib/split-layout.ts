@@ -26,33 +26,26 @@ interface SplitRect {
 	height: number;
 }
 
-interface DragSourceData {
+type DragSourceData = {
 	kind: "channel" | "pane";
 	id: string;
-}
+};
 
-interface DragTargetData {
+type DragTargetData = {
 	paneId: string;
 	position: SplitDropPosition;
+};
+
+function isSourceData(data: Record<string, unknown>): data is DragSourceData {
+	if (!data || typeof data !== "object") return false;
+
+	return (data.kind === "channel" || data.kind === "pane") && typeof data.id === "string";
 }
 
-function isSourceData(data: unknown): data is DragSourceData {
+function isTargetData(data: Record<string, unknown>): data is DragTargetData {
 	if (!data || typeof data !== "object") return false;
-	const d = data as Record<string, unknown>;
-	return (d.kind === "channel" || d.kind === "pane") && typeof d.id === "string";
-}
 
-function isTargetData(data: unknown): data is DragTargetData {
-	if (!data || typeof data !== "object") return false;
-	const d = data as Record<string, unknown>;
-	return (
-		typeof d.paneId === "string" &&
-		(d.position === "center" ||
-			d.position === "up" ||
-			d.position === "down" ||
-			d.position === "left" ||
-			d.position === "right")
-	);
+	return typeof data.paneId === "string" && typeof data.position === "string";
 }
 
 export function emptyPaneId() {
@@ -91,9 +84,8 @@ export class SplitLayout {
 	}
 
 	/**
-	 * Ensures the given channel is present in the layout, following rule (c):
-	 * focus it if already in the tree; otherwise replace the focused pane;
-	 * otherwise set the root.
+	 * Ensures the given channel is present in the layout. Focus it if already in the tree;
+	 * otherwise replace the focused pane; otherwise set the root.
 	 */
 	public ensure(channelId: string) {
 		if (!this.root) {
@@ -112,7 +104,6 @@ export class SplitLayout {
 			return;
 		}
 
-		// No valid focused pane — replace root entirely.
 		this.root = channelId;
 	}
 
@@ -230,10 +221,6 @@ export class SplitLayout {
 		return this.contains(node.before, id) || this.contains(node.after, id);
 	}
 
-	/**
-	 * Handles a drop on a split drop zone. Returns true if the event was
-	 * consumed (i.e. it was a valid split-target drop).
-	 */
 	public handleDragEnd(event: DragEndEvent): boolean {
 		const source = event.operation.source;
 		const target = event.operation.target;
@@ -248,20 +235,17 @@ export class SplitLayout {
 
 		if (sourceId === paneId) return true;
 
-		const isPaneReorder = sourceData.kind === "pane";
-
-		if (isPaneReorder) {
-			// Remove the source from its current location before re-inserting.
+		if (sourceData.kind === "pane") {
+			// Remove the source from its current location before re-inserting
 			this.remove(sourceId);
 
-			// If removing it collapsed the tree to nothing, just set as root.
+			// If removing it collapsed the tree to nothing, just set as root
 			if (!this.root) {
 				this.root = sourceId;
 				return true;
 			}
 
-			// If the target pane was removed as a side-effect (shouldn't happen
-			// since they differ, but guard anyway), bail.
+			// If the target pane was removed as a side-effect, bail
 			if (!this.contains(this.root, paneId)) {
 				this.root = sourceId;
 				return true;
