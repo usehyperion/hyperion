@@ -2,7 +2,6 @@
 	import { createSortable } from "@dnd-kit/svelte/sortable";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import ChannelListItem from "./ChannelListItem.svelte";
-	import { onMount } from "svelte";
 
 	interface Props {
 		channel: Channel;
@@ -10,10 +9,6 @@
 	}
 
 	const { channel, index }: Props = $props();
-
-	onMount(() => {
-		console.log("Creating sortable for channel", channel.user.username);
-	});
 
 	const sortable = createSortable({
 		get id() {
