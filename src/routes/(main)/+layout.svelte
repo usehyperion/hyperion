@@ -1,12 +1,5 @@
 <script lang="ts">
-	import {
-		Accessibility,
-		Cursor,
-		Feedback,
-		PreventSelection,
-		Scroller,
-		ScrollListener,
-	} from "@dnd-kit/dom";
+	import { AutoScroller } from "@dnd-kit/dom";
 	import { move } from "@dnd-kit/helpers";
 	import { DragDropProvider, DragOverlay } from "@dnd-kit/svelte";
 	import { ask } from "@tauri-apps/plugin-dialog";
@@ -56,24 +49,32 @@
 />
 
 <DragDropProvider
-	plugins={[
-		// It doesn't seem like there's currently a way to disable the
-		// AutoScroller plugin other than not including it.
-		// https://github.com/clauderic/dnd-kit/issues/1790
-		Accessibility,
-		Cursor,
-		Feedback,
-		PreventSelection,
-		Scroller,
-		ScrollListener,
+	plugins={(defaults) => [
+		...defaults,
+		AutoScroller.configure({
+			threshold: { x: 0, y: 0 },
+		}),
 	]}
 	onDragOver={(event) => {
-		if (event.operation.target?.id === "pinned-channels") {
-			storage.state.pinned = move(storage.state.pinned, event);
+		const source = event.operation.source;
+		const target = event.operation.target;
+		if (!source || !target) return;
+
+		if (source.type === "pinned" && target.type === "pinned") {
+			const items = storage.state.pinned.map((id) => ({
+				id: `pinned:${id}`,
+				channelId: id,
+			}));
+
+			const reordered = move(items, event);
+			storage.state.pinned = reordered.map((it) => it.channelId);
 		}
 	}}
 	onDragEnd={(event) => {
-		app.splits.handleDragEnd(event);
+		const target = event.operation.target;
+		if (target?.type === "split-zone") {
+			app.splits.handleDragEnd(event);
+		}
 	}}
 >
 	<Tooltip.Provider delayDuration={100}>
@@ -90,20 +91,32 @@
 
 	<DragOverlay>
 		{#snippet children(source)}
-			{@const [id] = source.id.toString().split(":")}
-			{@const channel = app.channels.get(id)}
+			{@const data = source.data as { kind: "channel" | "pane"; id: string } | undefined}
+			{@const channel = data ? app.channels.get(data.id) : undefined}
 
-			<div class="flex w-44 items-center justify-center gap-x-1 rounded-md bg-muted/90 py-2">
+			{#if source.type === "pinned"}
 				{#if channel}
 					<img
 						src={channel.user.avatarUrl}
 						alt={channel.user.username}
-						class="size-5 rounded-full object-cover"
+						class="size-7 rounded-full object-cover shadow-lg ring-2 ring-background"
 					/>
 				{/if}
+			{:else}
+				<div
+					class="flex w-44 items-center justify-center gap-x-1 rounded-md bg-muted/90 py-2"
+				>
+					{#if channel}
+						<img
+							src={channel.user.avatarUrl}
+							alt={channel.user.username}
+							class="size-5 rounded-full object-cover"
+						/>
+					{/if}
 
-				<span class="text-sm font-medium">{channel?.user.displayName ?? "Empty"}</span>
-			</div>
+					<span class="text-sm font-medium">{channel?.user.displayName ?? "Empty"}</span>
+				</div>
+			{/if}
 		{/snippet}
 	</DragOverlay>
 </DragDropProvider>

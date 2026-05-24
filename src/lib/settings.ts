@@ -27,7 +27,6 @@ export interface Settings {
 	"appearance.theme": string;
 
 	"splits.defaultOrientation": "horizontal" | "vertical";
-	"splits.singleRestoreBehavior": "preserve" | "redirect" | "remove";
 	"splits.closeBehavior": "preserve" | "remove";
 	"splits.leaveOnClose": boolean;
 	"splits.goToChannelAfterClose": boolean;
@@ -77,7 +76,6 @@ export const defaultHighlightTypes: Record<HighlightType, HighlightConfig> = {
 export const defaults: Settings = {
 	"appearance.theme": "",
 	"splits.defaultOrientation": "horizontal",
-	"splits.singleRestoreBehavior": "redirect",
 	"splits.closeBehavior": "remove",
 	"splits.leaveOnClose": true,
 	"splits.goToChannelAfterClose": true,

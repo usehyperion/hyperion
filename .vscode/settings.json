@@ -1,6 +1,10 @@
 {
+	"editor.defaultFormatter": "oxc.oxc-vscode",
+	"editor.codeActionsOnSave": {
+		"source.format.oxc": "explicit"
+	},
+	"js/ts.tsdk.path": "node_modules/typescript/lib",
 	"rust-analyzer.check.command": "clippy",
-	"typescript.tsdk": "node_modules/typescript/lib",
 	"[graphql]": {
 		"editor.tabSize": 2,
 		"editor.insertSpaces": true

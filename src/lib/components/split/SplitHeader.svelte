@@ -5,7 +5,7 @@
 	import { app } from "$lib/app.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import { settings } from "$lib/settings";
-	import { SplitLayout } from "$lib/split-layout";
+	import { emptyPaneId, isEmptyPaneId } from "$lib/split-layout";
 	import SquareHalfBottom from "~icons/ph/square-half-bottom-fill";
 	import SquareHalf from "~icons/ph/square-half-fill";
 	import X from "~icons/ph/x";
@@ -22,12 +22,12 @@
 	async function closeSplit(event: MouseEvent) {
 		const preserve =
 			settings.state["splits.closeBehavior"] === "preserve" &&
-			!id.startsWith("split-") &&
+			!isEmptyPaneId(id) &&
 			!event.shiftKey;
 
-		if (app.splits.root === id || id === SplitLayout.EMPTY_ROOT_ID) {
+		if (app.splits.root === id) {
 			if (preserve) {
-				app.splits.remove(id);
+				app.splits.replace(id, emptyPaneId());
 
 				if (settings.state["splits.leaveOnClose"]) {
 					await channel?.leave();
@@ -51,7 +51,7 @@
 		}
 
 		if (preserve) {
-			app.splits.replace(id, `split-${crypto.randomUUID()}`);
+			app.splits.replace(id, emptyPaneId());
 		} else {
 			app.splits.remove(id);
 		}

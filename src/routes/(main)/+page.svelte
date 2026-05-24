@@ -4,15 +4,18 @@
 	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
 	import JoinDialog from "$lib/components/JoinDialog.svelte";
-	import { Button, buttonVariants } from "$lib/components/ui/button";
+	import { buttonVariants } from "$lib/components/ui/button";
 	import * as Empty from "$lib/components/ui/empty";
-	import { log } from "$lib/log";
-	import { settings } from "$lib/settings";
 	import { layout, storage } from "$lib/stores";
 	import ChatDots from "~icons/ph/chat-dots";
 	import Spinner from "~icons/ph/spinner";
 
 	let loading = $state(true);
+
+	function findFirstLeaf(node: NonNullable<typeof layout.state.root>): string {
+		if (typeof node === "string") return node;
+		return findFirstLeaf(node.before);
+	}
 
 	onMount(async () => {
 		await app.connect();
@@ -21,37 +24,25 @@
 			await app.user.fetchEmoteSets();
 		}
 
+		// Find a channel to navigate to: prefer a leaf in the persisted layout,
+		// otherwise fall back to the last joined channel.
+		let username: string | null = null;
+
 		if (layout.state.root) {
-			const restoreBehavior = settings.state["splits.singleRestoreBehavior"];
-			const isBranch = typeof layout.state.root !== "string";
-
-			if (isBranch || restoreBehavior === "preserve") {
-				app.splits.root = layout.state.root;
-				await goto(resolve("/channels/split"));
-
-				return;
-			}
-
-			if (restoreBehavior === "redirect") {
-				const channel = app.channels.get(layout.state.root as string);
-
-				if (!channel) {
-					log.warn(
-						`Could not restore single split: channel with id ${layout.state.root} not found`,
-					);
-				}
-
-				layout.state.root = null;
-				storage.state.lastJoined = channel?.user.username ?? null;
-			}
+			const leafId = findFirstLeaf(layout.state.root);
+			const channel = app.channels.get(leafId);
+			if (channel) username = channel.user.username;
 		}
 
-		if (storage.state.lastJoined) {
+		if (!username && storage.state.lastJoined) {
+			username = storage.state.lastJoined;
+		}
+
+		if (username) {
 			await goto(
-				resolve("/(main)/channels/[username]", {
-					username: storage.state.lastJoined,
-				}),
+				resolve("/(main)/channels/[username]", { username }),
 			);
+			return;
 		}
 
 		loading = false;
@@ -78,17 +69,7 @@
 		</Empty.Header>
 
 		<Empty.Content>
-			<div class="flex items-center gap-2">
-				<JoinDialog class={buttonVariants()}>Search channels</JoinDialog>
-
-				<Button
-					href={resolve("/channels/split")}
-					disabled={settings.state["advanced.singleConnection"]}
-					variant="secondary"
-				>
-					Open split view
-				</Button>
-			</div>
+			<JoinDialog class={buttonVariants()}>Search channels</JoinDialog>
 		</Empty.Content>
 	</Empty.Root>
 {/if}

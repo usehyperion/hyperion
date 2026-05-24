@@ -3,6 +3,7 @@ import type { User } from "./graphql/twitch";
 import { settings } from "./settings";
 import type { SplitNode } from "./split-layout";
 
+
 interface AccountUser {
 	id: string;
 	token: string;
@@ -40,11 +41,7 @@ export const layout = new RuneStore<Layout>(
 		autoStart: true,
 		hooks: {
 			beforeBackendSync(state) {
-				if (
-					settings.state["advanced.singleConnection"] ||
-					(typeof state.root === "string" &&
-						settings.state["splits.singleRestoreBehavior"] === "remove")
-				) {
+				if (settings.state["advanced.singleConnection"]) {
 					state.root = null;
 				}
 

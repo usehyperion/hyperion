@@ -9,12 +9,22 @@
 
 	const { channel }: Props = $props();
 
-	const draggable = $derived(
-		createDraggable({
-			id: `${channel.id}:channel-list`,
-			type: "channel-list-item",
-		}),
-	);
+	const draggable = createDraggable({
+		get id() {
+			return `channel:${channel.id}`;
+		},
+		get type() {
+			return "channel";
+		},
+		get data() {
+			return { kind: "channel", id: channel.id };
+		},
+	});
 </script>
 
-<ChannelListItem {channel} dragging={draggable.isDragging} attach={draggable.attach} />
+<ChannelListItem
+	{channel}
+	dragging={draggable.isDragging}
+	placeholder="row"
+	attach={draggable.attach}
+/>

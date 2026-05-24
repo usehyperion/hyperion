@@ -11,22 +11,18 @@
 
 		switch (event.key) {
 			case "t": {
-				if (settings.state["advanced.singleConnection"]) return;
+				if (settings.state["advanced.singleConnection"] || !app.splits.focused) return;
 
-				await app.splits.activate();
-
-				if (app.splits.focused) {
-					app.splits.insertEmpty(
-						app.splits.focused,
-						settings.state["splits.defaultOrientation"],
-					);
-				}
+				app.splits.insertEmpty(
+					app.splits.focused,
+					settings.state["splits.defaultOrientation"],
+				);
 
 				break;
 			}
 
 			case "w": {
-				if (app.splits.active && app.splits.focused) {
+				if (app.splits.focused && app.splits.root && app.splits.root !== app.splits.focused) {
 					event.preventDefault();
 					app.splits.remove(app.splits.focused);
 				} else if (app.focused) {

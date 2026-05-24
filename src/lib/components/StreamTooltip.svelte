@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { getSidebarContext } from "$lib/context";
 	import { createChannelMenu } from "$lib/menus/channel-menu";
@@ -23,20 +24,16 @@
 		{#snippet child({ props })}
 			<div
 				{...props}
-				class="hover:bg-accent relative flex cursor-pointer items-center gap-2 rounded-lg p-1.5 transition-colors"
+				class="relative flex cursor-pointer items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-accent"
+				onclick={async () => {
+					await goto(
+						resolve("/(main)/channels/[username]", {
+							username: channel.user.username,
+						}),
+					);
+				}}
 				oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}
 			>
-				<a
-					class="pointer-events-none absolute inset-0 z-10"
-					href={resolve("/(main)/channels/[username]", {
-						username: channel.user.username,
-					})}
-					draggable="false"
-					aria-label="Join {channel.user.displayName}"
-					data-sveltekit-preload-data="off"
-				>
-				</a>
-
 				<StreamInfo {channel} />
 			</div>
 		{/snippet}
@@ -51,7 +48,7 @@
 			<div class="space-y-0.5">
 				{#if sidebar.collapsed}
 					<div
-						class="overflow-hidden overflow-ellipsis whitespace-nowrap text-twitch-link dark:text-twitch"
+						class="overflow-hidden text-ellipsis whitespace-nowrap text-twitch-link dark:text-twitch"
 					>
 						{channel.user.displayName} &bullet; {channel.stream.game}
 					</div>

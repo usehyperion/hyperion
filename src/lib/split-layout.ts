@@ -1,12 +1,9 @@
 import type { DragEndEvent } from "@dnd-kit/abstract";
 import type { PaneGroupProps } from "paneforge";
-import { goto } from "$app/navigation";
-import { resolve } from "$app/paths";
-import { page } from "$app/state";
-import { app } from "./app.svelte";
 import { layout } from "./stores";
 
 export type SplitDirection = "up" | "down" | "left" | "right";
+export type SplitDropPosition = SplitDirection | "center";
 
 type SplitAxis = PaneGroupProps["direction"];
 
@@ -29,29 +26,50 @@ interface SplitRect {
 	height: number;
 }
 
+interface DragSourceData {
+	kind: "channel" | "pane";
+	id: string;
+}
+
+interface DragTargetData {
+	paneId: string;
+	position: SplitDropPosition;
+}
+
+function isSourceData(data: unknown): data is DragSourceData {
+	if (!data || typeof data !== "object") return false;
+	const d = data as Record<string, unknown>;
+	return (d.kind === "channel" || d.kind === "pane") && typeof d.id === "string";
+}
+
+function isTargetData(data: unknown): data is DragTargetData {
+	if (!data || typeof data !== "object") return false;
+	const d = data as Record<string, unknown>;
+	return (
+		typeof d.paneId === "string" &&
+		(d.position === "center" ||
+			d.position === "up" ||
+			d.position === "down" ||
+			d.position === "left" ||
+			d.position === "right")
+	);
+}
+
+export function emptyPaneId() {
+	return `split-${crypto.randomUUID()}`;
+}
+
+export function isEmptyPaneId(id: string) {
+	return id.startsWith("split-");
+}
+
 /**
- * Split layout is implemented as a binary tree where each node is either a
+ * Split layout implemented as a binary tree where each node is either a
  * {@linkcode SplitBranch} or a leaf representing a pane ID.
- *
- * See also:
- * - https://www.warp.dev/blog/using-tree-data-structures-to-implement-terminal-split-panes-more-fun-than-it-sounds
- * - https://github.com/ghostty-org/ghostty/blob/main/macos/Sources/Features/Splits/SplitTree.swift
  */
 export class SplitLayout {
-	public static readonly EMPTY_ROOT_ID = "split-root-empty";
-
 	#focused: string | null = null;
 
-	/**
-	 * Whether the split layout is currently active.
-	 */
-	public get active() {
-		return page.route.id === "/(main)/channels/split";
-	}
-
-	/**
-	 * The root of the layout tree.
-	 */
 	public get root() {
 		return layout.state.root;
 	}
@@ -73,9 +91,31 @@ export class SplitLayout {
 	}
 
 	/**
-	 * Splits an existing leaf node into a branch containing the original node
-	 * and a new node.
+	 * Ensures the given channel is present in the layout, following rule (c):
+	 * focus it if already in the tree; otherwise replace the focused pane;
+	 * otherwise set the root.
 	 */
+	public ensure(channelId: string) {
+		if (!this.root) {
+			this.root = channelId;
+			return;
+		}
+
+		if (this.contains(this.root, channelId)) {
+			this.focused = channelId;
+			return;
+		}
+
+		if (this.#focused && this.contains(this.root, this.#focused)) {
+			this.replace(this.#focused, channelId);
+			this.focused = channelId;
+			return;
+		}
+
+		// No valid focused pane — replace root entirely.
+		this.root = channelId;
+	}
+
 	public insert(target: string, newNode: string, branch: SplitBranch) {
 		if (!this.root) {
 			this.root = target;
@@ -97,7 +137,7 @@ export class SplitLayout {
 	}
 
 	public insertEmpty(target: string, axis: SplitAxis) {
-		const id = `split-${crypto.randomUUID()}`;
+		const id = emptyPaneId();
 
 		this.insert(target, id, {
 			axis,
@@ -108,20 +148,14 @@ export class SplitLayout {
 		this.focused = id;
 	}
 
-	/**
-	 * Removes the target pane and collapses the tree.
-	 */
 	public remove(target: string) {
 		if (!this.root) return;
 
-		// target is the entire tree
 		if (this.root === target) {
 			this.root = null;
 			return;
 		}
 
-		// target is an immediate child of the root, so the root gets replaced
-		// entirely by its surviving child.
 		if (typeof this.root !== "string") {
 			if (this.root.before === target) {
 				this.root = this.root.after;
@@ -143,24 +177,6 @@ export class SplitLayout {
 		this.#update(target, () => replacement);
 	}
 
-	/**
-	 * Spatially navigates the layout using geometrical projection by
-	 * calculating synthetic bounding boxes for every pane and performing a
-	 * directional 2D search.
-	 *
-	 * Given the following layout and tree representation:
-	 *
-	 * ```txt
-	 * +-------+-------+       (H)
-	 * |       |   B   |      /   \
-	 * |   A   |-------|     A    (V)
-	 * |       |   C   |         /   \
-	 * +-------+-------+        B     C
-	 * ```
-	 *
-	 * Going "right" from `A`, `getLayoutRects` determines that `B` and `C` are
-	 * candidates, but `B` is closer, so it gets picked.
-	 */
 	public navigate(startId: string, direction: SplitDirection) {
 		if (!this.root || this.root === startId) return null;
 
@@ -174,42 +190,29 @@ export class SplitLayout {
 			if (rect.id === startId) return false;
 
 			switch (direction) {
-				case "up": {
+				case "up":
 					return rect.y + rect.height <= current.y + threshold;
-				}
-
-				case "down": {
+				case "down":
 					return rect.y >= current.y + current.height - threshold;
-				}
-
-				case "left": {
+				case "left":
 					return rect.x + rect.width <= current.x + threshold;
-				}
-
-				case "right": {
+				case "right":
 					return rect.x >= current.x + current.width - threshold;
-				}
-
-				default: {
+				default:
 					return false;
-				}
 			}
 		});
 
 		if (!candidates.length) return null;
 
-		// Score candidates to find the best visual neighbor
 		const [best] = candidates.toSorted((a, b) => {
 			const distA = this.#getDistance(current, a, direction);
 			const distB = this.#getDistance(current, b, direction);
 
-			// Closest distance
 			if (Math.abs(distA - distB) > threshold) {
 				return distA - distB;
 			}
 
-			// If distances are equal, pick the pane with the most overlapping
-			// edge
 			return (
 				this.#getAlignmentScore(current, b, direction) -
 				this.#getAlignmentScore(current, a, direction)
@@ -227,42 +230,61 @@ export class SplitLayout {
 		return this.contains(node.before, id) || this.contains(node.after, id);
 	}
 
-	public async activate() {
-		if (!this.active && app.focused) {
-			app.splits.root = app.focused.id;
-			await goto(resolve("/channels/split"));
-		}
-	}
+	/**
+	 * Handles a drop on a split drop zone. Returns true if the event was
+	 * consumed (i.e. it was a valid split-target drop).
+	 */
+	public handleDragEnd(event: DragEndEvent): boolean {
+		const source = event.operation.source;
+		const target = event.operation.target;
+		if (!source || !target) return false;
 
-	public handleDragEnd(event: Parameters<DragEndEvent>[0]) {
-		const { source, target } = event.operation;
-		if (!source || !target || source.id === target.id) return;
+		const sourceData = isSourceData(source.data) ? source.data : null;
+		const targetData = isTargetData(target.data) ? target.data : null;
+		if (!sourceData || !targetData) return false;
 
-		const [sourceId] = source.id.toString().split(":");
-		const [targetId, position] = target.id.toString().split(":");
+		const { paneId, position } = targetData;
+		const sourceId = sourceData.id;
 
-		if (sourceId === targetId) return;
+		if (sourceId === paneId) return true;
 
-		this.remove(sourceId);
+		const isPaneReorder = sourceData.kind === "pane";
 
-		if (targetId === SplitLayout.EMPTY_ROOT_ID) {
-			this.root = sourceId;
-			return;
+		if (isPaneReorder) {
+			// Remove the source from its current location before re-inserting.
+			this.remove(sourceId);
+
+			// If removing it collapsed the tree to nothing, just set as root.
+			if (!this.root) {
+				this.root = sourceId;
+				return true;
+			}
+
+			// If the target pane was removed as a side-effect (shouldn't happen
+			// since they differ, but guard anyway), bail.
+			if (!this.contains(this.root, paneId)) {
+				this.root = sourceId;
+				return true;
+			}
 		}
 
 		if (position === "center") {
-			this.replace(targetId, sourceId);
-			return;
+			this.replace(paneId, sourceId);
+			this.focused = sourceId;
+			return true;
 		}
 
 		const isVertical = position === "up" || position === "down";
 		const isFirst = position === "up" || position === "left";
 
-		this.insert(targetId, sourceId, {
+		this.insert(paneId, sourceId, {
 			axis: isVertical ? "vertical" : "horizontal",
-			before: isFirst ? sourceId : targetId,
-			after: isFirst ? targetId : sourceId,
+			before: isFirst ? sourceId : paneId,
+			after: isFirst ? paneId : sourceId,
 		});
+
+		this.focused = sourceId;
+		return true;
 	}
 
 	#find(node: SplitNode, target: string): SplitPath | null {
@@ -319,11 +341,6 @@ export class SplitLayout {
 		};
 	}
 
-	/**
-	 * Recursively maps the tree's percentage-based ratios into a synthetic 2D
-	 * layout. This normalizes all pane coordinates into an absolute space,
-	 * relative to a 1x1 area, to perform geometrical calculations.
-	 */
 	#getLayoutRects(
 		node: SplitNode,
 		{ x, y, width, height }: Omit<SplitRect, "id"> = { x: 0, y: 0, width: 1, height: 1 },
@@ -354,29 +371,20 @@ export class SplitLayout {
 		];
 	}
 
+	// oxlint-disable-next-line typescript/consistent-return
 	#getDistance(from: SplitRect, to: SplitRect, direction: SplitDirection) {
 		switch (direction) {
-			case "up": {
+			case "up":
 				return from.y - (to.y + to.height);
-			}
-
-			case "down": {
+			case "down":
 				return to.y - (from.y + from.height);
-			}
-
-			case "left": {
+			case "left":
 				return from.x - (to.x + to.width);
-			}
-
-			case "right": {
+			case "right":
 				return to.x - (from.x + from.width);
-			}
 		}
 	}
 
-	/**
-	 * Calculates how well-aligned two panes are on the orthogonal axis.
-	 */
 	#getAlignmentScore(from: SplitRect, to: SplitRect, direction: SplitDirection) {
 		const isVerticalMove = direction === "up" || direction === "down";
 

@@ -26,30 +26,6 @@ export default {
 			],
 		},
 		{
-			id: "splits.singleRestoreBehavior",
-			type: "radio",
-			label: "Restore behavior for a single split",
-			description: "Choose what happens when restoring a layout with a single split.",
-			items: [
-				{
-					label: "Preserve",
-					value: "preserve",
-					description: "Preserve the single split and restore it by itself.",
-				},
-				{
-					label: "Redirect",
-					value: "redirect",
-					description:
-						"Redirect to the channel contained in the split if it's not ephemeral and exit the layout.",
-				},
-				{
-					label: "Remove",
-					value: "remove",
-					description: "Remove the split without redirecting and exit the layout.",
-				},
-			],
-		},
-		{
 			id: "splits.closeBehavior",
 			type: "radio",
 			label: "Close behavior",

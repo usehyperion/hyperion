@@ -1,10 +1,16 @@
-import { CheckMenuItem, Menu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/menu";
+import {
+	CheckMenuItem,
+	Menu,
+	MenuItem,
+	PredefinedMenuItem,
+	type MenuOptions,
+} from "@tauri-apps/api/menu";
 import { goto } from "$app/navigation";
 import { resolve } from "$app/paths";
 import { app } from "$lib/app.svelte";
 import type { Channel } from "$lib/models/channel.svelte";
 import { settings } from "$lib/settings";
-import type { SplitBranch, SplitDirection } from "$lib/split-layout";
+import { emptyPaneId, type SplitBranch, type SplitDirection } from "$lib/split-layout";
 import { storage } from "$lib/stores";
 
 async function splitItem(channel: Channel, direction: SplitDirection) {
@@ -37,10 +43,6 @@ async function splitItem(channel: Channel, direction: SplitDirection) {
 			}
 
 			app.splits.insert(app.splits.focused, channel.id, node);
-
-			if (!app.splits.active) {
-				await goto(resolve("/channels/split"));
-			}
 		},
 	});
 }
@@ -72,12 +74,8 @@ export async function createChannelMenu(channel: Channel) {
 		async action() {
 			await channel.leave();
 
-			if (
-				app.splits.active &&
-				app.splits.root &&
-				app.splits.contains(app.splits.root, channel.id)
-			) {
-				app.splits.replace(channel.id, `split-${crypto.randomUUID()}`);
+			if (app.splits.root && app.splits.contains(app.splits.root, channel.id)) {
+				app.splits.replace(channel.id, emptyPaneId());
 			} else if (app.focused === channel) {
 				await goto(resolve("/"));
 			}
@@ -99,18 +97,9 @@ export async function createChannelMenu(channel: Channel) {
 		},
 	});
 
-	const isEmpty = typeof app.splits.root === "string" && app.splits.root.startsWith("split-");
+	const items: MenuOptions["items"] = [join, leave, pin];
 
-	const openInSplit = await MenuItem.new({
-		id: "open-in-split",
-		text: "Open in Split View",
-		enabled: !singleConnection && (!app.splits.active || isEmpty),
-		action: () => app.splits.activate(),
-	});
-
-	const items = [join, leave, pin, separator, openInSplit];
-
-	if (app.splits.active && !singleConnection) {
+	if (!singleConnection) {
 		const splitItems = await Promise.all([
 			splitItem(channel, "up"),
 			splitItem(channel, "down"),

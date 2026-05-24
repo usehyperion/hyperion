@@ -21,10 +21,11 @@ export async function load({ params, parent }) {
 				await app.focused?.leave();
 			}
 
-			// If it's not the same channel and it's not already joined, join it
 			await channel.join();
 		}
 	}
+
+	app.splits.ensure(channel.id);
 
 	return {
 		channel,
