@@ -16,7 +16,6 @@
 	},
 	"dependencies": {
 		"@better-fetch/fetch": "^1.1.21",
-		"@dnd-kit-svelte/svelte": "^0.1.6",
 		"@dnd-kit/abstract": "^0.4.0",
 		"@dnd-kit/collision": "^0.4.0",
 		"@dnd-kit/dom": "^0.4.0",
