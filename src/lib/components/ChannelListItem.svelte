@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Attachment } from "svelte/attachments";
-	import type { Channel } from "$lib/models/channel.svelte";
 	import { getSidebarContext } from "$lib/context";
+	import type { Channel } from "$lib/models/channel.svelte";
 	import StreamTooltip from "./StreamTooltip.svelte";
 
 	interface Props {
@@ -31,7 +31,9 @@
 					></div>
 				</div>
 			{:else}
-				<div class="h-9 w-full rounded-md border-2 border-dashed border-muted-foreground/40"></div>
+				<div
+					class="h-9 w-full rounded-md border-2 border-dashed border-muted-foreground/40"
+				></div>
 			{/if}
 		</div>
 	{/if}

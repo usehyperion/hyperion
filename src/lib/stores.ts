@@ -3,7 +3,6 @@ import type { User } from "./graphql/twitch";
 import { settings } from "./settings";
 import type { SplitNode } from "./split-layout";
 
-
 interface AccountUser {
 	id: string;
 	token: string;

@@ -22,7 +22,11 @@
 			}
 
 			case "w": {
-				if (app.splits.focused && app.splits.root && app.splits.root !== app.splits.focused) {
+				if (
+					app.splits.focused &&
+					app.splits.root &&
+					app.splits.root !== app.splits.focused
+				) {
 					event.preventDefault();
 					app.splits.remove(app.splits.focused);
 				} else if (app.focused) {

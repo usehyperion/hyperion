@@ -156,7 +156,7 @@ export function dedupe<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
 	return promise;
 }
 
-export async function openMenu(event: PointerEvent, menufn: () => Promise<Menu>) {
+export async function openMenu(event: MouseEvent, menufn: () => Promise<Menu>) {
 	event.preventDefault();
 
 	const menu = await menufn();

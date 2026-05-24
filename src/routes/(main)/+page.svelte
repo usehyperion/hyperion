@@ -39,9 +39,7 @@
 		}
 
 		if (username) {
-			await goto(
-				resolve("/(main)/channels/[username]", { username }),
-			);
+			await goto(resolve("/(main)/channels/[username]", { username }));
 			return;
 		}
 

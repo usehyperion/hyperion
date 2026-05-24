@@ -105,7 +105,8 @@
 
 <style>
 	#color-picker-well {
-		background: linear-gradient(0deg, #000, transparent),
+		background:
+			linear-gradient(0deg, #000, transparent),
 			linear-gradient(90deg, #fff, hsl(var(--color-picker-well-hue), 100%, 50%));
 	}
 
