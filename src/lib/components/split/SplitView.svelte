@@ -66,12 +66,12 @@
 	}
 </script>
 
-<div class="relative flex size-full flex-col" onfocusin={setFocus}>
+<div class="relative flex size-full flex-col" onfocusin={setFocus} {@attach draggable.attach}>
 	<SplitHeader {id} attachHandle={draggable.attachHandle} />
 
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="relative h-full" onclick={setFocus} {@attach draggable.attach}>
+	<div class="relative h-full" onclick={setFocus}>
 		<div class={["h-full", draggable.isDragging && "opacity-50"]}>
 			{#if channel}
 				{#key channel.id}

@@ -72,6 +72,7 @@
 	}}
 	onDragEnd={(event) => {
 		const target = event.operation.target;
+
 		if (target?.type === "split-zone") {
 			app.splits.handleDragEnd(event);
 		}
@@ -92,13 +93,25 @@
 	<DragOverlay>
 		{#snippet children(source)}
 			{@const channel = app.channels.get(source.data.id)}
+			{@const isPane = source.data.kind === "pane"}
 
 			{#if channel}
-				<img
-					src={channel.user.avatarUrl}
-					alt={channel.user.username}
-					class="size-7 rounded-full object-cover shadow-lg ring-2 ring-background"
-				/>
+				<div
+					class={[
+						"flex items-center px-2 py-1 gap-2",
+						isPane && "bg-background rounded max-w-max",
+					]}
+				>
+					<img
+						src={channel.user.avatarUrl}
+						alt={channel.user.username}
+						class="size-7 rounded-full object-cover shadow-lg ring-2 ring-background"
+					/>
+
+					{#if isPane}
+						<span class="text-sm font-medium">{channel.user.displayName}</span>
+					{/if}
+				</div>
 			{/if}
 		{/snippet}
 	</DragOverlay>
