@@ -6,10 +6,10 @@
 	import { Button } from "$lib/components/ui/button";
 	import { settings } from "$lib/settings";
 	import { emptyPaneId, isEmptyPaneId } from "$lib/split-layout";
+	import DotsSix from "~icons/ph/dots-six";
 	import SquareHalfBottom from "~icons/ph/square-half-bottom-fill";
 	import SquareHalf from "~icons/ph/square-half-fill";
 	import X from "~icons/ph/x";
-	import DotsSix from "~icons/ph/dots-six";
 	import GuestList from "../GuestList.svelte";
 
 	interface Props {
@@ -64,7 +64,7 @@
 	}
 </script>
 
-<div class="flex items-center border-b justify-between bg-sidebar p-1" data-slot="split-header">
+<div class="flex items-center justify-between border-b bg-sidebar p-1" data-slot="split-header">
 	<div class="flex h-full shrink-0 items-center gap-x-2 overflow-hidden px-1">
 		{#if channel}
 			<img

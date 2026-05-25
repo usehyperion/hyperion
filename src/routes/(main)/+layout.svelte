@@ -93,7 +93,7 @@
 			{#if channel}
 				{#if isPane}
 					<div
-						class="mx-auto flex items-center gap-2 bg-background rounded max-w-max px-2 py-1"
+						class="mx-auto flex max-w-max items-center gap-2 rounded bg-background px-2 py-1"
 					>
 						<img
 							class={[
