@@ -27,12 +27,5 @@ export async function load({ params, parent }) {
 
 	app.splits.ensure(channel.id);
 
-	return {
-		channel,
-		titleBar: {
-			icon: channel.user.avatarUrl,
-			title: channel.user.displayName,
-			guests: channel.stream?.guests.size ?? 0,
-		},
-	};
+	return { channel };
 }

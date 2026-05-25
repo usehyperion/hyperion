@@ -13,7 +13,6 @@
 	import ArrowRight from "~icons/ph/arrow-right";
 	import Gear from "~icons/ph/gear";
 	import User from "~icons/ph/user";
-	import GuestList from "./GuestList.svelte";
 	import { Button } from "./ui/button";
 
 	type ControlType = "minimize" | "maximize" | "close";
@@ -26,9 +25,7 @@
 	let maximized = $state(false);
 	let fullscreen = $state(false);
 
-	const { icon, title, guests } = $derived(
-		page.data.titleBar ?? { icon: Logo, title: "Hyperion" },
-	);
+	const { icon: Icon, title } = $derived(page.data.titleBar ?? { icon: Logo, title: "Hyperion" });
 
 	onMount(async () => {
 		if (!currentWindow) return;
@@ -102,20 +99,11 @@
 		class="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-1.5"
 		data-tauri-drag-region
 	>
-		{#if typeof icon === "string"}
-			<img class="size-5 rounded-full" src={icon} alt={title} data-tauri-drag-region />
-		{:else}
-			{@const Icon = icon}
-			<Icon class="size-4" data-tauri-drag-region />
-		{/if}
+		<Icon class="size-4" data-tauri-drag-region />
 
 		<span class="pointer-events-none text-sm font-medium">
 			{title}
 		</span>
-
-		{#if app.focused?.stream && guests}
-			<GuestList channel={app.focused} />
-		{/if}
 	</div>
 
 	<div class="flex items-center justify-end" data-tauri-drag-region>

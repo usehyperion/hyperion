@@ -88,21 +88,29 @@
 	<DragOverlay>
 		{#snippet children(source)}
 			{@const channel = app.channels.get(source.data.id)}
-			{@const isPane = source.data.kind === "pane"}
+			{@const isPane = source.type === "pane"}
 
 			{#if channel}
-				<div
-					class={[
-						"flex items-center gap-2 px-2 py-1",
-						isPane && "max-w-max rounded bg-background",
-					]}
-				>
-					<StreamInfo {channel} />
+				{#if isPane}
+					<div
+						class="mx-auto flex items-center gap-2 bg-background rounded max-w-max px-2 py-1"
+					>
+						<img
+							class={[
+								"size-6 rounded-full object-cover",
+								!channel.stream && "grayscale",
+							]}
+							src={channel.user.avatarUrl}
+							alt={channel.user.displayName}
+							width="150"
+							height="150"
+						/>
 
-					{#if isPane}
 						<span class="text-sm font-medium">{channel.user.displayName}</span>
-					{/if}
-				</div>
+					</div>
+				{:else}
+					<StreamInfo {channel} />
+				{/if}
 			{/if}
 		{/snippet}
 	</DragOverlay>

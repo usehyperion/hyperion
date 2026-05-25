@@ -9,6 +9,8 @@
 	import SquareHalfBottom from "~icons/ph/square-half-bottom-fill";
 	import SquareHalf from "~icons/ph/square-half-fill";
 	import X from "~icons/ph/x";
+	import DotsSix from "~icons/ph/dots-six";
+	import GuestList from "../GuestList.svelte";
 
 	interface Props {
 		id: string;
@@ -62,11 +64,8 @@
 	}
 </script>
 
-<div class="flex items-center justify-between border-b bg-sidebar p-1" data-slot="split-header">
-	<div
-		class="flex h-full flex-1 cursor-grab items-center gap-x-2 overflow-hidden px-1 active:cursor-grabbing"
-		{@attach attachHandle}
-	>
+<div class="flex items-center border-b justify-between bg-sidebar p-1" data-slot="split-header">
+	<div class="flex h-full shrink-0 items-center gap-x-2 overflow-hidden px-1">
 		{#if channel}
 			<img
 				class="size-5 rounded-full"
@@ -78,7 +77,15 @@
 			/>
 
 			<span class="truncate text-sm font-medium select-none">{channel.user.displayName}</span>
+
+			{#if channel.stream?.guests.size}
+				<GuestList {channel} />
+			{/if}
 		{/if}
+	</div>
+
+	<div class="cursor-grab active:cursor-grabbing" {@attach attachHandle}>
+		<DotsSix />
 	</div>
 
 	<div class="flex shrink-0 items-center gap-x-1 text-muted-foreground">
