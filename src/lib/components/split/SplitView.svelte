@@ -91,7 +91,7 @@
 						<Empty.Title>Empty split</Empty.Title>
 
 						<Empty.Description>
-							Drag a channel from the channel list to add it as a split.
+							Drag a channel here or click to add it as a split.
 						</Empty.Description>
 					</Empty.Header>
 				</Empty.Root>
@@ -107,9 +107,7 @@
 		></div>
 
 		<div class="pointer-events-none absolute inset-0 z-10" {@attach dropCenter.attach}></div>
-		<div
-			class="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/4"
-			{@attach dropUp.attach}
+		<div class="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/4" {@attach dropUp.attach}
 		></div>
 		<div
 			class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1/4"

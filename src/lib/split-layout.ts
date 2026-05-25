@@ -235,6 +235,13 @@ export class SplitLayout {
 
 		if (sourceId === paneId) return true;
 
+		// Empty tree
+		if (!this.root) {
+			this.root = sourceId;
+			this.focused = sourceId;
+			return true;
+		}
+
 		if (sourceData.kind === "pane") {
 			// Remove the source from its current location before re-inserting
 			this.remove(sourceId);

@@ -7,7 +7,6 @@
 	interface Props {
 		channel: Channel;
 		dragging: boolean;
-		placeholder: "circle" | "row";
 		attach: Attachment<HTMLElement>;
 	}
 

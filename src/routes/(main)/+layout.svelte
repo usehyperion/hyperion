@@ -109,7 +109,9 @@
 						<span class="text-sm font-medium">{channel.user.displayName}</span>
 					</div>
 				{:else}
-					<StreamInfo {channel} />
+					<div class="flex items-center gap-2">
+						<StreamInfo {channel} />
+					</div>
 				{/if}
 			{/if}
 		{/snippet}

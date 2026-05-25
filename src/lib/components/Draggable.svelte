@@ -22,9 +22,4 @@
 	});
 </script>
 
-<ChannelListItem
-	{channel}
-	dragging={draggable.isDragging}
-	placeholder="row"
-	attach={draggable.attach}
-/>
+<ChannelListItem {channel} dragging={draggable.isDragging} attach={draggable.attach} />

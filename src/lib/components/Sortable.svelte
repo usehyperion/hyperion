@@ -29,9 +29,4 @@
 	});
 </script>
 
-<ChannelListItem
-	{channel}
-	dragging={sortable.isDragging}
-	placeholder="circle"
-	attach={sortable.attach}
-/>
+<ChannelListItem {channel} dragging={sortable.isDragging} attach={sortable.attach} />
