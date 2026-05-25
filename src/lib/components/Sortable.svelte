@@ -12,7 +12,7 @@
 
 	const sortable = createSortable({
 		get id() {
-			return `pinned:${channel.id}`;
+			return channel.id;
 		},
 		get type() {
 			return "pinned";

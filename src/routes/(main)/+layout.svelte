@@ -10,6 +10,7 @@
 	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
+	import StreamInfo from "$lib/components/StreamInfo.svelte";
 	import * as Tooltip from "$lib/components/ui/tooltip";
 	import { storage } from "$lib/stores";
 
@@ -61,13 +62,7 @@
 		if (!source || !target) return;
 
 		if (source.type === "pinned" && target.type === "pinned") {
-			const items = storage.state.pinned.map((id) => ({
-				id: `pinned:${id}`,
-				channelId: id,
-			}));
-
-			const reordered = move(items, event);
-			storage.state.pinned = reordered.map((it) => it.channelId);
+			storage.state.pinned = move(storage.state.pinned, event);
 		}
 	}}
 	onDragEnd={(event) => {
@@ -98,15 +93,11 @@
 			{#if channel}
 				<div
 					class={[
-						"flex items-center px-2 py-1 gap-2",
-						isPane && "bg-background rounded max-w-max",
+						"flex items-center gap-2 px-2 py-1",
+						isPane && "max-w-max rounded bg-background",
 					]}
 				>
-					<img
-						src={channel.user.avatarUrl}
-						alt={channel.user.username}
-						class="size-7 rounded-full object-cover shadow-lg ring-2 ring-background"
-					/>
+					<StreamInfo {channel} />
 
 					{#if isPane}
 						<span class="text-sm font-medium">{channel.user.displayName}</span>

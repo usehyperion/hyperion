@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getSidebarContext } from "$lib/context";
+	import { app } from "$lib/app.svelte";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import DotsThreeCircle from "~icons/ph/dots-three-circle";
 	import Users from "~icons/ph/users-bold";
@@ -9,8 +9,6 @@
 	}
 
 	const { channel }: Props = $props();
-
-	const sidebar = getSidebarContext();
 
 	function formatViewers(viewers: number) {
 		if (viewers >= 1000) {
@@ -30,7 +28,7 @@
 	draggable="false"
 />
 
-{#if sidebar.collapsed && channel.stream?.guests.size}
+{#if app.sidebarCollapsed && channel.stream?.guests.size}
 	<div
 		class="absolute right-1 bottom-1 flex items-center justify-center rounded-full bg-muted/70"
 	>
@@ -38,7 +36,7 @@
 	</div>
 {/if}
 
-{#if !sidebar.collapsed}
+{#if !app.sidebarCollapsed}
 	{#if channel.stream}
 		<div class="min-w-0 flex-1">
 			<div class="flex items-center justify-between">

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Attachment } from "svelte/attachments";
 	import type { Channel } from "$lib/models/channel.svelte";
-	import StreamTooltip from "./StreamTooltip.svelte";
 	import StreamInfo from "./StreamInfo.svelte";
+	import StreamTooltip from "./StreamTooltip.svelte";
 
 	interface Props {
 		channel: Channel;

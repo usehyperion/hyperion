@@ -2,14 +2,11 @@
 	import { onDestroy } from "svelte";
 	import { flip } from "svelte/animate";
 	import { app } from "$lib/app.svelte";
-	import { getSidebarContext } from "$lib/context";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import { storage } from "$lib/stores";
 	import Draggable from "./Draggable.svelte";
 	import Sortable from "./Sortable.svelte";
 	import { Separator } from "./ui/separator";
-
-	const sidebar = getSidebarContext();
 
 	const sorted = $derived(
 		app.channels
@@ -76,7 +73,7 @@
 </script>
 
 {#each groups as group}
-	{#if sidebar.collapsed}
+	{#if app.sidebarCollapsed}
 		<Separator />
 	{:else}
 		<span class="mt-2 inline-block px-2 text-xs font-semibold text-muted-foreground uppercase">
