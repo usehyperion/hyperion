@@ -4,6 +4,9 @@ catalog:
   vite: npm:@voidzero-dev/vite-plus-core@latest
   vitest: npm:@voidzero-dev/vite-plus-test@latest
   vite-plus: latest
+minimumReleaseAgeExclude:
+  - "@voidzero-dev/*"
+  - vite-plus
 overrides:
   vite: "catalog:"
   vitest: "catalog:"
