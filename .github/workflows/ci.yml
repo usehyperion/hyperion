@@ -19,13 +19,12 @@ jobs:
           node-version: 24
           cache: true
           run-install: true
-      - name: Check
-        run: vp check
       - name: GQL checks
-        if: ${{ !cancelled() }}
         run: |
           vpx gql-tada generate output
           vpx gql-tada check
       - name: Type check
-        if: ${{ !cancelled() }}
         run: vpr check
+      - name: Check
+        if: ${{ !cancelled() }}
+        run: vp check
