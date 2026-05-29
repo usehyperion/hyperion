@@ -7,10 +7,10 @@
 	import CaretRight from "~icons/ph/caret-right";
 	import Smiley from "~icons/ph/smiley";
 	import SmileySad from "~icons/ph/smiley-sad";
-	import EmoteGrid from "./EmoteGrid.svelte";
-	import ProviderRail from "./ProviderRail.svelte";
 	import { Input } from "../ui/input";
 	import * as InputGroup from "../ui/input-group";
+	import EmoteGrid from "./EmoteGrid.svelte";
+	import ProviderRail from "./ProviderRail.svelte";
 
 	interface Props {
 		channel: Channel;
