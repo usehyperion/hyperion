@@ -1,8 +1,12 @@
 {
 	"editor.defaultFormatter": "oxc.oxc-vscode",
 	"editor.codeActionsOnSave": {
-		"source.format.oxc": "explicit"
+		"source.format.oxc": "explicit",
+		"source.fixAll.oxc": "explicit"
 	},
+	"editor.formatOnSave": true,
+	"editor.formatOnSaveMode": "file",
+	"oxc.fmt.configPath": "./vite.config.ts",
 	"js/ts.tsdk.path": "node_modules/typescript/lib",
 	"rust-analyzer.check.command": "clippy",
 	"[graphql]": {
