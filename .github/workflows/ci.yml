@@ -13,21 +13,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v5
-      - name: Set up node
-        uses: actions/setup-node@v6
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
         with:
-          node-version: lts/*
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          node-version: 24
+          cache: true
+          run-install: true
+      - name: Check
+        run: vp check
       - name: GQL checks
-        run: |
-          pnpm gql-tada generate output
-          pnpm gql-tada check
-      - name: Type check
-        run: pnpm check
-      - name: Lint
         if: ${{ !cancelled() }}
-        run: pnpm lint
+        run: |
+          vpx gql-tada generate output
+          vpx gql-tada check
+      - name: Type check
+        if: ${{ !cancelled() }}
+        run: vpr check
