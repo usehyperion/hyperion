@@ -171,7 +171,9 @@ export class Channel {
 	 * Retrieves the list of badges in the channel and caches them for later use.
 	 */
 	public async fetchBadges(force = false) {
-		if (!force && this.badges.size) return;
+		if (!force && this.badges.size) {
+			return this.badges;
+		}
 
 		let badges = await cache.get<Badge[]>(`badges:${this.id}`);
 

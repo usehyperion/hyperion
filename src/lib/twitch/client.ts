@@ -1,3 +1,5 @@
+// oxlint-disable typescript/no-unnecessary-type-parameters
+
 import { ApiError } from "$lib/errors/api-error";
 import { sendTwitch as send } from "$lib/graphql";
 import { UserManager } from "$lib/managers/user-manager";

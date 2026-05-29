@@ -87,6 +87,8 @@ export default defineConfig({
 		},
 		rules: {
 			"no-control-regex": "allow",
+			"no-shadow": "off",
+			"no-underscore-dangle": ["error", { allow: ["__typename"] }],
 			"typescript/adjacent-overload-signatures": "error",
 			"typescript/no-floating-promises": "allow",
 			"unicorn/filename-case": ["error", { ignore: ".*\\.svelte$" }],

@@ -33,7 +33,7 @@ export async function load({ url, fetch }) {
 			redirect(302, "/auth/login");
 		}
 
-		return;
+		return { detached: false };
 	}
 
 	app.twitch.token ??= storage.state.user.token;
@@ -92,4 +92,6 @@ export async function load({ url, fetch }) {
 	if (!app.badges.size) {
 		await app.badges.fetch();
 	}
+
+	return { detached: false };
 }

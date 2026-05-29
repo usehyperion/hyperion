@@ -10,7 +10,7 @@ interface TitleBar {
 declare global {
 	namespace App {
 		interface PageData {
-			detached?: boolean;
+			detached: boolean;
 			titleBar?: TitleBar;
 		}
 	}

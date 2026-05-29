@@ -20,6 +20,7 @@
 	const platform = getPlatform();
 
 	async function detach() {
+		// oxlint-disable-next-line no-new
 		new WebviewWindow("settings", {
 			url: "/settings?detached",
 			title: "Settings",
