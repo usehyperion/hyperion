@@ -61,7 +61,7 @@ export default defineConfig({
 			internalPattern: ["~", "$"],
 			newlinesBetween: false,
 		},
-		ignorePatterns: [".agents/**", "src/assets/**"],
+		ignorePatterns: [".agents/**", "skills-lock.json", "src/assets/**"],
 		overrides: [
 			{
 				files: ["*.yml", "*.yaml"],
