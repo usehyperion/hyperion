@@ -10,6 +10,6 @@ export default defineHandler({
 		const tier = data.tier === "Prime" ? "Prime" : `Tier ${data.tier[0]}`;
 		const text = `Your ${data.is_gift ? "gifted" : ""} ${tier} subscription has ended.`;
 
-		channel.chat.addSystemMessage(text);
+		channel.chat.notice(text);
 	},
 });

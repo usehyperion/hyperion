@@ -10,6 +10,6 @@ export default defineCommand({
 		await loadThemes(settings.state["appearance.theme"]);
 		await injectTheme(settings.state["appearance.theme"]);
 
-		channel.chat.addSystemMessage("Reloaded theme.");
+		channel.chat.notice("Reloaded theme.");
 	},
 });

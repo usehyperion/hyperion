@@ -1,5 +1,4 @@
 import { foundersQuery } from "$lib/graphql/twitch";
-import { SystemMessage } from "$lib/models/message/system-message";
 import { defineCommand } from "../util";
 
 export default defineCommand({
@@ -7,8 +6,6 @@ export default defineCommand({
 	name: "founders",
 	description: "Display a list of founders for this channel",
 	async exec(_, channel) {
-		const message = new SystemMessage(channel);
-
 		const { user } = await channel.client.send(foundersQuery, { id: channel.id });
 
 		const founders =
@@ -16,12 +13,10 @@ export default defineCommand({
 				?.flatMap((founder) => (founder?.user ? [founder.user.displayName] : []))
 				.toSorted() ?? [];
 
-		if (!founders.length) {
-			message.text = "This channel has no founders.";
-		} else {
-			message.text = `Channel founders (${founders.length}): ${founders.join(", ")}`;
-		}
+		const text = founders.length
+			? `Channel founders (${founders.length}): ${founders.join(", ")}`
+			: "This channel has no founders.";
 
-		channel.chat.addMessage(message);
+		channel.chat.notice(text);
 	},
 });

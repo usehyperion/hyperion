@@ -30,6 +30,6 @@ export default defineCommand({
 			await Promise.all(promises);
 		}
 
-		channel.chat.addSystemMessage("Reloaded badges.");
+		channel.chat.notice("Reloaded badges.");
 	},
 });

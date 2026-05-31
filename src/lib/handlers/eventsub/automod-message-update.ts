@@ -1,4 +1,5 @@
 import { app } from "$lib/app.svelte";
+import AutoMod from "$lib/components/message/events/AutoMod.svelte";
 import type { UserMessage } from "$lib/models/message/user-message";
 import { defineHandler } from "../helper";
 
@@ -17,11 +18,6 @@ export default defineHandler({
 
 		if (message) message.deleted = true;
 
-		channel.chat.addSystemMessage({
-			type: "autoMod",
-			status: data.status,
-			viewer,
-			moderator,
-		});
+		channel.chat.event(AutoMod, { status: data.status, viewer, moderator });
 	},
 });

@@ -48,6 +48,6 @@ export default defineHandler({
 			boundaries,
 		};
 
-		channel.chat.addMessage(message);
+		channel.chat.add(message);
 	},
 });

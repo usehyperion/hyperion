@@ -1,4 +1,5 @@
 import { app } from "$lib/app.svelte";
+import BlockStatus from "$lib/components/message/events/BlockStatus.svelte";
 import { defineCommand, getTarget } from "../util";
 
 export default defineCommand({
@@ -12,10 +13,6 @@ export default defineCommand({
 
 		await app.twitch.users.block(target.id);
 
-		channel.chat.addSystemMessage({
-			type: "blockStatus",
-			blocked: true,
-			user: target.user,
-		});
+		channel.chat.event(BlockStatus, { blocked: true, user: target.user });
 	},
 });

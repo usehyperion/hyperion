@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { app } from "$lib/app.svelte";
-import { SystemMessage } from "$lib/models/message/system-message";
+import EmoteSetChange from "$lib/components/message/events/EmoteSetChange.svelte";
 import { defineHandler } from "../helper";
 
 export default defineHandler({
@@ -8,8 +8,6 @@ export default defineHandler({
 	async handle(data) {
 		const channel = app.channels.values().find((c) => c.seventvId === data.id);
 		if (!channel) return;
-
-		const message = new SystemMessage(channel);
 
 		const root = data.updated?.find((c) => c.key === "connections");
 		if (!root) return;
@@ -28,16 +26,9 @@ export default defineHandler({
 		channel.emotes.clear("7TV");
 
 		if (child.value == null) {
-			message.context = {
-				type: "emoteSetChange",
-				actor,
-			};
+			channel.chat.event(EmoteSetChange, { actor });
 		} else {
-			message.context = {
-				type: "emoteSetChange",
-				name: child.value.name,
-				actor,
-			};
+			channel.chat.event(EmoteSetChange, { name: child.value.name, actor });
 
 			await channel.emotes.fetch7tv();
 			await invoke("resub_emote_set", {
@@ -45,7 +36,5 @@ export default defineHandler({
 				setId: channel.emoteSetId,
 			});
 		}
-
-		channel.chat.addMessage(message);
 	},
 });

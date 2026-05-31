@@ -27,6 +27,6 @@ export default defineCommand({
 
 		const echo = description ? `: ${description}` : "";
 
-		channel.chat.addSystemMessage(`Stream marker created at ${duration.format(format) + echo}`);
+		channel.chat.notice(`Stream marker created at ${duration.format(format) + echo}`);
 	},
 });

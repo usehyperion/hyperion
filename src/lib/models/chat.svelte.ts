@@ -6,11 +6,11 @@ import { settings } from "$lib/settings";
 import { sendPresence } from "$lib/seventv";
 import type { SentMessage } from "$lib/twitch/api";
 import { commands } from "../commands";
+import Notice from "../components/message/events/Notice.svelte";
 import type { Channel } from "./channel.svelte";
 import { ComponentMessage } from "./message/component-message";
-import type { MessageContext } from "./message/context";
+import { EventMessage, type EventMessageData } from "./message/event-message";
 import type { Message } from "./message/message";
-import { SystemMessage } from "./message/system-message";
 import { TextualMessage } from "./message/textual-message.svelte";
 import type { UserMessage } from "./message/user-message";
 import { Viewer } from "./viewer.svelte";
@@ -89,20 +89,16 @@ export class Chat {
 		this.addCommands(commands);
 	}
 
-	public addComponent<C extends Component<any>>(
-		component: C,
-		props: ComponentProps<C> = {} as never,
-	) {
-		this.messages.push(new ComponentMessage(component, props));
-		return this;
-	}
-
-	public addMessage(message: TextualMessage) {
+	/**
+	 * Pushes a message into the chat, deduplicating by id and inserting recent
+	 * (history) messages above live ones.
+	 */
+	public add(message: Message) {
 		if (this.messages.some((m) => m.id === message.id)) {
 			return this;
 		}
 
-		if (message.recent) {
+		if (message instanceof TextualMessage && message.recent) {
 			if (this.#lastRecentAt === null) {
 				this.messages.unshift(message);
 				this.#lastRecentAt = 0;
@@ -117,17 +113,32 @@ export class Chat {
 		return this;
 	}
 
-	public addSystemMessage(content: string | MessageContext) {
-		let message: SystemMessage;
+	/**
+	 * Adds a channel event rendered by the given component.
+	 */
+	public event<C extends Component<any>>(
+		component: C,
+		props: ComponentProps<C> = {} as never,
+		data?: Partial<EventMessageData>,
+	) {
+		return this.add(new EventMessage(this.channel, component, props, data));
+	}
 
-		if (typeof content === "string") {
-			message = new SystemMessage(this.channel, content);
-		} else {
-			message = new SystemMessage(this.channel);
-			message.context = content;
-		}
+	/**
+	 * Adds a plain-text system notice.
+	 */
+	public notice(text: string, data?: Partial<EventMessageData>) {
+		return this.event(Notice, { text }, data);
+	}
 
-		return this.addMessage(message);
+	/**
+	 * Adds an arbitrary, chrome-less component to the chat.
+	 */
+	public component<C extends Component<any>>(
+		component: C,
+		props: ComponentProps<C> = {} as never,
+	) {
+		return this.add(new ComponentMessage(component, props));
 	}
 
 	public addCommands(commands: Command[]) {
@@ -297,7 +308,7 @@ export class Chat {
 			const reason = data.drop_reason.message;
 
 			log.warn(`Message dropped: ${reason}`);
-			this.addSystemMessage(reason);
+			this.notice(reason);
 		}
 	}
 

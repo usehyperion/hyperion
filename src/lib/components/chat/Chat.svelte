@@ -4,8 +4,8 @@
 	import type { Message } from "$lib/models/message/message";
 	import { settings } from "$lib/settings";
 	import AutoMod from "../message/AutoMod.svelte";
+	import Event from "../message/Event.svelte";
 	import Notification from "../message/Notification.svelte";
-	import SystemMessage from "../message/SystemMessage.svelte";
 	import UserMessage from "../message/UserMessage.svelte";
 	import Separator from "./Separator.svelte";
 
@@ -101,7 +101,7 @@
 		bind:this={list}
 	>
 		{#snippet children(message, i)}
-			{#if message.isSystem() || message.isUser()}
+			{#if message.isEvent() || message.isUser()}
 				{@const prev = chat.messages[i - 1]}
 				{@const isNewDay = prev && prev.timestamp.getDate() !== message.timestamp.getDate()}
 
@@ -118,8 +118,8 @@
 					</Separator>
 				{/if}
 
-				{#if message.isSystem()}
-					<SystemMessage {message} context={message.context} />
+				{#if message.isEvent()}
+					<Event {message} />
 				{:else if message.isUser()}
 					{#if message.event}
 						<Notification {message} />
@@ -131,7 +131,7 @@
 				{/if}
 
 				{@const next = chat.messages.at(i + 1)}
-				{@const nextRecent = next && (next.isSystem() || next.isUser()) && next.recent}
+				{@const nextRecent = next && (next.isEvent() || next.isUser()) && next.recent}
 
 				{#if message === lastRead && next && settings.state["chat.newSeparator"]}
 					<Separator class="text-red-400">New messages</Separator>

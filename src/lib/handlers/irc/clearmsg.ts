@@ -1,5 +1,5 @@
 import { app } from "$lib/app.svelte";
-import { SystemMessage } from "$lib/models/message/system-message";
+import Delete from "$lib/components/message/events/Delete.svelte";
 import type { UserMessage } from "$lib/models/message/user-message";
 import { defineHandler } from "../helper";
 
@@ -18,15 +18,7 @@ export default defineHandler({
 		message.deleted = true;
 
 		if (data.is_recent || (!data.is_recent && app.user?.moderating.has(channel.id))) {
-			const sysmsg = new SystemMessage(channel, data);
-
-			sysmsg.context = {
-				type: "delete",
-				text: data.message_text,
-				user: message.author,
-			};
-
-			channel.chat.addMessage(sysmsg);
+			channel.chat.event(Delete, { text: data.message_text, user: message.author }, data);
 		}
 	},
 });

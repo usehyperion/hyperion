@@ -18,6 +18,6 @@ export default defineCommand({
 		await app.emotes.fetch(includeGlobal);
 		await channel.emotes.fetch(true);
 
-		channel.chat.addSystemMessage("Reloaded emotes.");
+		channel.chat.notice("Reloaded emotes.");
 	},
 });

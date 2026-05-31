@@ -1,4 +1,5 @@
 import { app } from "$lib/app.svelte";
+import SuspicionStatus from "$lib/components/message/events/SuspicionStatus.svelte";
 import { defineHandler } from "../helper";
 
 export default defineHandler({
@@ -23,8 +24,7 @@ export default defineHandler({
 			viewer.restricted = status === "restricted";
 		}
 
-		channel.chat.addSystemMessage({
-			type: "suspicionStatus",
+		channel.chat.event(SuspicionStatus, {
 			active: status !== "no_treatment",
 			previous: viewer.monitored ? "monitoring" : viewer.restricted ? "restricting" : null,
 			viewer,

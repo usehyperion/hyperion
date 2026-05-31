@@ -1,4 +1,5 @@
 import { app } from "$lib/app.svelte";
+import UnbanRequest from "$lib/components/message/events/UnbanRequest.svelte";
 import type { Viewer } from "$lib/models/viewer.svelte";
 import { defineHandler } from "../helper";
 
@@ -16,11 +17,6 @@ export default defineHandler({
 			moderator = await channel.viewers.fetch(data.moderator_user_id);
 		}
 
-		channel.chat.addSystemMessage({
-			type: "unbanRequest",
-			request: data,
-			viewer,
-			moderator,
-		});
+		channel.chat.event(UnbanRequest, { request: data, viewer, moderator });
 	},
 });

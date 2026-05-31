@@ -1,5 +1,15 @@
 import { app } from "$lib/app.svelte";
-import { SystemMessage } from "$lib/models/message/system-message";
+import BanStatus from "$lib/components/message/events/BanStatus.svelte";
+import Clear from "$lib/components/message/events/Clear.svelte";
+import Delete from "$lib/components/message/events/Delete.svelte";
+import Mode from "$lib/components/message/events/Mode.svelte";
+import Raid from "$lib/components/message/events/Raid.svelte";
+import RoleStatus from "$lib/components/message/events/RoleStatus.svelte";
+import Term from "$lib/components/message/events/Term.svelte";
+import Timeout from "$lib/components/message/events/Timeout.svelte";
+import Unraid from "$lib/components/message/events/Unraid.svelte";
+import Untimeout from "$lib/components/message/events/Untimeout.svelte";
+import Warn from "$lib/components/message/events/Warn.svelte";
 import { defineHandler } from "../helper";
 
 export default defineHandler({
@@ -8,7 +18,7 @@ export default defineHandler({
 		const channel = app.channels.get(data.broadcaster_user_id);
 		if (!channel) return;
 
-		const message = new SystemMessage(channel);
+		const { chat } = channel;
 		const moderator = await channel.viewers.fetch(data.moderator_user_id);
 
 		switch (data.action) {
@@ -24,48 +34,45 @@ export default defineHandler({
 						? "unique-mode"
 						: "subscriber-only";
 
-				message.context = {
-					type: "mode",
+				chat.event(Mode, {
 					mode,
 					enabled: !data.action.includes("off"),
 					seconds: Number.NaN,
 					moderator,
-				};
+				});
 
 				break;
 			}
 
 			case "followers":
 			case "followersoff": {
-				message.context = {
-					type: "mode",
+				chat.event(Mode, {
 					mode: "follower-only",
 					enabled: !data.action.includes("off"),
 					seconds: data.followers
 						? data.followers.follow_duration_minutes * 60
 						: Number.NaN,
 					moderator,
-				};
+				});
 
 				break;
 			}
 
 			case "slow":
 			case "slowoff": {
-				message.context = {
-					type: "mode",
+				chat.event(Mode, {
 					mode: "slow",
 					enabled: data.slow !== null,
 					seconds: data.slow?.wait_time_seconds ?? Number.NaN,
 					moderator,
-				};
+				});
 
 				break;
 			}
 
 			case "clear": {
-				channel.chat.deleteMessages();
-				message.context = { type: "clear", moderator };
+				chat.deleteMessages();
+				chat.event(Clear, { moderator });
 
 				break;
 			}
@@ -75,12 +82,11 @@ export default defineHandler({
 				const metadata = data.action === "delete" ? data.delete : data.shared_chat_delete;
 				const viewer = await channel.viewers.fetch(metadata.user_id);
 
-				message.context = {
-					type: "delete",
+				chat.event(Delete, {
 					text: metadata.message_body,
 					user: viewer.user,
 					moderator,
-				};
+				});
 
 				break;
 			}
@@ -89,19 +95,14 @@ export default defineHandler({
 			case "add_permitted_term":
 			case "remove_blocked_term":
 			case "remove_permitted_term": {
-				message.context = { type: "term", data: data.automod_terms, moderator };
+				chat.event(Term, { data: data.automod_terms, moderator });
 				break;
 			}
 
 			case "warn": {
 				const viewer = await channel.viewers.fetch(data.warn.user_id);
 
-				message.context = {
-					type: "warn",
-					warning: data.warn,
-					viewer,
-					moderator,
-				};
+				chat.event(Warn, { warning: data.warn, viewer, moderator });
 
 				break;
 			}
@@ -112,18 +113,17 @@ export default defineHandler({
 					data.action === "timeout" ? data.timeout : data.shared_chat_timeout;
 				const viewer = await channel.viewers.fetch(metadata.user_id);
 
-				channel.chat.deleteMessages(metadata.user_id);
+				chat.deleteMessages(metadata.user_id);
 
 				const expiration = new Date(metadata.expires_at);
-				const duration = expiration.getTime() - message.timestamp.getTime();
+				const duration = expiration.getTime() - Date.now();
 
-				message.context = {
-					type: "timeout",
+				chat.event(Timeout, {
 					seconds: Math.ceil(duration / 1000),
 					reason: metadata.reason,
 					viewer,
 					moderator,
-				};
+				});
 
 				break;
 			}
@@ -134,11 +134,7 @@ export default defineHandler({
 					data.action === "untimeout" ? data.untimeout : data.shared_chat_untimeout;
 				const viewer = await channel.viewers.fetch(metadata.user_id);
 
-				message.context = {
-					type: "untimeout",
-					viewer,
-					moderator,
-				};
+				chat.event(Untimeout, { viewer, moderator });
 
 				break;
 			}
@@ -149,16 +145,15 @@ export default defineHandler({
 				const viewer = await channel.viewers.fetch((isBan ? data.ban : data.unban).user_id);
 
 				if (isBan) {
-					channel.chat.deleteMessages(data.ban.user_id);
+					chat.deleteMessages(data.ban.user_id);
 				}
 
-				message.context = {
-					type: "banStatus",
+				chat.event(BanStatus, {
 					banned: isBan,
 					reason: isBan ? data.ban.reason : null,
 					viewer,
 					moderator,
-				};
+				});
 
 				break;
 			}
@@ -171,16 +166,15 @@ export default defineHandler({
 				);
 
 				if (isBan) {
-					channel.chat.deleteMessages(data.shared_chat_ban.user_id);
+					chat.deleteMessages(data.shared_chat_ban.user_id);
 				}
 
-				message.context = {
-					type: "banStatus",
+				chat.event(BanStatus, {
 					banned: isBan,
 					reason: isBan ? data.shared_chat_ban.reason : null,
 					viewer,
 					moderator,
-				};
+				});
 
 				break;
 			}
@@ -190,13 +184,7 @@ export default defineHandler({
 				const added = data.action === "mod";
 				const viewer = await channel.viewers.fetch((added ? data.mod : data.unmod).user_id);
 
-				message.context = {
-					type: "roleStatus",
-					role: "moderator",
-					added,
-					viewer,
-					moderator,
-				};
+				chat.event(RoleStatus, { role: "moderator", added, viewer, moderator });
 
 				break;
 			}
@@ -206,13 +194,7 @@ export default defineHandler({
 				const added = data.action === "vip";
 				const viewer = await channel.viewers.fetch((added ? data.vip : data.unvip).user_id);
 
-				message.context = {
-					type: "roleStatus",
-					role: "VIP",
-					added,
-					viewer,
-					moderator,
-				};
+				chat.event(RoleStatus, { role: "VIP", added, viewer, moderator });
 
 				break;
 			}
@@ -220,12 +202,11 @@ export default defineHandler({
 			case "raid": {
 				const viewer = await channel.viewers.fetch(data.raid.user_id);
 
-				message.context = {
-					type: "raid",
+				chat.event(Raid, {
 					viewers: data.raid.viewer_count,
 					user: viewer.user,
 					moderator,
-				};
+				});
 
 				break;
 			}
@@ -233,11 +214,7 @@ export default defineHandler({
 			case "unraid": {
 				const viewer = await channel.viewers.fetch(data.unraid.user_id);
 
-				message.context = {
-					type: "unraid",
-					user: viewer.user,
-					moderator,
-				};
+				chat.event(Unraid, { user: viewer.user, moderator });
 
 				break;
 			}
@@ -246,7 +223,5 @@ export default defineHandler({
 				return;
 			}
 		}
-
-		channel.chat.addMessage(message);
 	},
 });

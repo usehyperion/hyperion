@@ -1,4 +1,5 @@
 import { app } from "$lib/app.svelte";
+import StreamStatus from "$lib/components/message/events/StreamStatus.svelte";
 import { defineHandler } from "../helper";
 
 export default defineHandler({
@@ -9,9 +10,6 @@ export default defineHandler({
 
 		channel.stream = await channel.fetchStream();
 
-		channel.chat.addSystemMessage({
-			type: "streamStatus",
-			online: true,
-		});
+		channel.chat.event(StreamStatus, { channel, online: true });
 	},
 });

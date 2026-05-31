@@ -14,6 +14,6 @@ export default defineHandler({
 
 		if (message) message.deleted = true;
 
-		channel.chat.addSystemMessage(`A moderator ${data.status} your message.`);
+		channel.chat.notice(`A moderator ${data.status} your message.`);
 	},
 });

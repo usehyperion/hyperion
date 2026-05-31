@@ -1,5 +1,5 @@
 import { app } from "$lib/app.svelte";
-import { SystemMessage } from "$lib/models/message/system-message";
+import Banned from "$lib/components/message/events/Banned.svelte";
 import { defineHandler } from "../helper";
 
 export default defineHandler({
@@ -12,11 +12,11 @@ export default defineHandler({
 			return;
 		}
 
-		const message = new SystemMessage(channel, {
+		const meta = {
 			deleted: data.deleted,
 			is_recent: data.is_recent,
 			server_timestamp: data.recent_timestamp ?? Date.now(),
-		});
+		};
 
 		switch (data.message_id) {
 			case "emote_only_on":
@@ -34,7 +34,7 @@ export default defineHandler({
 					.replace("This room", "The chat")
 					.replace("s-only", "-only");
 
-				message.text = text;
+				channel.chat.notice(text, meta);
 				break;
 			}
 
@@ -43,11 +43,9 @@ export default defineHandler({
 					app.user.banned.add(channel.id);
 				}
 
-				message.context = { type: "banned" };
+				channel.chat.event(Banned, { channel }, meta);
 				break;
 			}
 		}
-
-		channel.chat.addMessage(message);
 	},
 });

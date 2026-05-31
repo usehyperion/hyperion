@@ -1,9 +1,9 @@
 import type { BaseUserMessage } from "$lib/twitch/irc";
 import type { Channel } from "../channel.svelte";
+import type { EventMessageData } from "./event-message";
 import { Message } from "./message";
-import type { SystemMessageData } from "./system-message";
 
-export type MessageData = BaseUserMessage | SystemMessageData;
+export type MessageData = BaseUserMessage | EventMessageData;
 
 export abstract class TextualMessage extends Message {
 	public abstract readonly id: string;

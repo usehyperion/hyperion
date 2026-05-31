@@ -1,5 +1,8 @@
 import { app } from "$lib/app.svelte";
-import { SystemMessage } from "$lib/models/message/system-message";
+import Banned from "$lib/components/message/events/Banned.svelte";
+import BanStatus from "$lib/components/message/events/BanStatus.svelte";
+import Clear from "$lib/components/message/events/Clear.svelte";
+import Timeout from "$lib/components/message/events/Timeout.svelte";
 import { defineHandler } from "../helper";
 
 export default defineHandler({
@@ -14,13 +17,9 @@ export default defineHandler({
 			return;
 		}
 
-		const message = new SystemMessage(channel, data);
-
 		if (data.action.type === "clear") {
 			channel.chat.deleteMessages();
-
-			message.context = { type: "clear" };
-			channel.chat.addMessage(message);
+			channel.chat.event(Clear, {}, data);
 
 			return;
 		}
@@ -29,26 +28,18 @@ export default defineHandler({
 		channel.chat.deleteMessages(target.id);
 
 		if (data.action.type === "ban") {
-			message.context = {
-				type: "banStatus",
-				banned: true,
-				reason: null,
-				viewer: target,
-			};
-
 			if (!data.is_recent && target.id === app.user?.id) {
 				app.user.banned.add(channel.id);
-				message.context = { type: "banned" };
+				channel.chat.event(Banned, { channel }, data);
+			} else {
+				channel.chat.event(BanStatus, { banned: true, reason: null, viewer: target }, data);
 			}
 		} else {
-			message.context = {
-				type: "timeout",
-				seconds: data.action.duration.secs,
-				reason: null,
-				viewer: target,
-			};
+			channel.chat.event(
+				Timeout,
+				{ seconds: data.action.duration.secs, reason: null, viewer: target },
+				data,
+			);
 		}
-
-		channel.chat.addMessage(message);
 	},
 });

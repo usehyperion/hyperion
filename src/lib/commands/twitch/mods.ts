@@ -1,5 +1,4 @@
 import { modsQuery } from "$lib/graphql/twitch";
-import { SystemMessage } from "$lib/models/message/system-message";
 import { defineCommand } from "../util";
 
 export default defineCommand({
@@ -7,8 +6,6 @@ export default defineCommand({
 	name: "mods",
 	description: "Display a list of moderators for this channel",
 	async exec(_, channel) {
-		const message = new SystemMessage(channel);
-
 		const { user } = await channel.client.send(modsQuery, { id: channel.id });
 
 		const mods =
@@ -16,12 +13,10 @@ export default defineCommand({
 				.flatMap((edge) => (edge.node ? [edge.node.displayName] : []))
 				.toSorted() ?? [];
 
-		if (!mods.length) {
-			message.text = "This channel has no moderators.";
-		} else {
-			message.text = `Channel moderators (${mods.length}): ${mods.join(", ")}`;
-		}
+		const text = mods.length
+			? `Channel moderators (${mods.length}): ${mods.join(", ")}`
+			: "This channel has no moderators.";
 
-		channel.chat.addMessage(message);
+		channel.chat.notice(text);
 	},
 });

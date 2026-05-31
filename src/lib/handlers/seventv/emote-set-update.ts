@@ -1,9 +1,11 @@
 import * as cache from "tauri-plugin-cache-api";
 import { app } from "$lib/app.svelte";
+import EmoteSetUpdate from "$lib/components/message/events/EmoteSetUpdate.svelte";
 import type { Emote } from "$lib/emotes";
-import { SystemMessage } from "$lib/models/message/system-message";
 import type { EmoteChange } from "$lib/seventv";
 import { defineHandler } from "../helper";
+
+type EmoteSetUpdateProps = import("svelte").ComponentProps<typeof EmoteSetUpdate>;
 
 function transform(emote: EmoteChange): Emote {
 	let width = 28;
@@ -51,17 +53,12 @@ export default defineHandler({
 			if (!twitch) return;
 
 			const actor = await channel.viewers.fetch(twitch.id);
-			const message = new SystemMessage(channel);
+			let last: EmoteSetUpdateProps | null = null;
 
 			for (const change of data.pushed ?? []) {
 				const emote = transform(change.value);
 
-				message.context = {
-					type: "emoteSetUpdate",
-					action: "added",
-					emote,
-					actor,
-				};
+				last = { action: "added", emote, actor };
 
 				channel.emotes.set(emote.name, emote);
 			}
@@ -70,12 +67,7 @@ export default defineHandler({
 				const emote = channel.emotes.get(change.old_value.name);
 				if (!emote) continue;
 
-				message.context = {
-					type: "emoteSetUpdate",
-					action: "removed",
-					emote,
-					actor,
-				};
+				last = { action: "removed", emote, actor };
 
 				channel.emotes.delete(change.old_value.name);
 			}
@@ -84,13 +76,7 @@ export default defineHandler({
 				const emote = channel.emotes.get(change.old_value.name);
 				if (!emote) continue;
 
-				message.context = {
-					type: "emoteSetUpdate",
-					action: "renamed",
-					oldName: emote.name,
-					emote,
-					actor,
-				};
+				last = { action: "renamed", oldName: emote.name, emote, actor };
 
 				emote.name = change.value.name;
 
@@ -98,7 +84,7 @@ export default defineHandler({
 				channel.emotes.set(change.value.name, emote);
 			}
 
-			channel.chat.addMessage(message);
+			if (last) channel.chat.event(EmoteSetUpdate, last);
 
 			await cache.remove(`emotes:${channel.id}`);
 			await cache.set(`emotes:${channel.id}`, channel.emotes.values().toArray());

@@ -1,5 +1,5 @@
 import type { ComponentMessage } from "./component-message";
-import type { SystemMessage } from "./system-message";
+import type { EventMessage } from "./event-message";
 import type { UserMessage } from "./user-message";
 
 export abstract class Message {
@@ -19,8 +19,8 @@ export abstract class Message {
 		return this[Symbol.toStringTag] === "ComponentMessage";
 	}
 
-	public isSystem(): this is SystemMessage {
-		return this[Symbol.toStringTag] === "SystemMessage";
+	public isEvent(): this is EventMessage {
+		return this[Symbol.toStringTag] === "EventMessage";
 	}
 
 	public isUser(): this is UserMessage {

@@ -22,6 +22,6 @@ export default defineHandler({
 			await message.setSource(data.source);
 		}
 
-		channel.chat.addMessage(message);
+		channel.chat.add(message);
 	},
 });

@@ -1,4 +1,5 @@
 import { app } from "$lib/app.svelte";
+import Join from "$lib/components/message/events/Join.svelte";
 import { log } from "$lib/log";
 import { sendPresence } from "$lib/seventv";
 import { defineHandler } from "../helper";
@@ -21,7 +22,7 @@ export default defineHandler({
 		viewer.broadcaster = true;
 		viewer.moderator = true;
 
-		channel.chat.addSystemMessage({ type: "join" });
+		channel.chat.event(Join, { channel });
 
 		log.info(`Joined ${channel.user.displayName}`);
 	},

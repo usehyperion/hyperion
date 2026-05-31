@@ -1,4 +1,5 @@
 import { app } from "$lib/app.svelte";
+import WarnAck from "$lib/components/message/events/WarnAck.svelte";
 import { defineHandler } from "../helper";
 
 export default defineHandler({
@@ -9,9 +10,6 @@ export default defineHandler({
 
 		const viewer = await channel.viewers.fetch(data.user_id);
 
-		channel.chat.addSystemMessage({
-			type: "warnAck",
-			viewer,
-		});
+		channel.chat.event(WarnAck, { viewer });
 	},
 });
