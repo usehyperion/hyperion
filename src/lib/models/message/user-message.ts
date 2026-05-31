@@ -44,10 +44,9 @@ function createPartialUser(channel: Channel, sender: BasicUser, color: string) {
 export class UserMessage extends TextualMessage {
 	#nodes: Node[] = [];
 
+	public override readonly [Symbol.toStringTag] = "UserMessage";
 	public override readonly id: string;
 	public override readonly text: string;
-
-	public readonly [Symbol.toStringTag] = "UserMessage";
 
 	/**
 	 * The user who sent the message.

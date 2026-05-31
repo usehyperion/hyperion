@@ -12,10 +12,10 @@ export interface EventMessageData {
  * Event messages are constructed internally to relay channel events.
  */
 export class EventMessage<C extends Component = Component> extends TextualMessage {
+	public override readonly [Symbol.toStringTag] = "EventMessage";
+
 	public override readonly id = crypto.randomUUID();
 	public override text = "";
-
-	public readonly [Symbol.toStringTag] = "EventMessage";
 
 	public constructor(
 		channel: Channel,
