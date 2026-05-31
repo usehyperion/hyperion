@@ -89,10 +89,6 @@ export class Chat {
 		this.addCommands(commands);
 	}
 
-	/**
-	 * Pushes a message into the chat, deduplicating by id and inserting recent
-	 * (history) messages above live ones.
-	 */
 	public add(message: Message) {
 		if (this.messages.some((m) => m.id === message.id)) {
 			return this;
@@ -118,14 +114,14 @@ export class Chat {
 	 */
 	public event<C extends Component<any>>(
 		component: C,
-		props: ComponentProps<C> = {} as never,
+		props: ComponentProps<C>,
 		data?: Partial<EventMessageData>,
 	) {
 		return this.add(new EventMessage(this.channel, component, props, data));
 	}
 
 	/**
-	 * Adds a plain-text system notice.
+	 * Adds a plain text system notice.
 	 */
 	public notice(text: string, data?: Partial<EventMessageData>) {
 		return this.event(Notice, { text }, data);
@@ -134,10 +130,7 @@ export class Chat {
 	/**
 	 * Adds an arbitrary, chrome-less component to the chat.
 	 */
-	public component<C extends Component<any>>(
-		component: C,
-		props: ComponentProps<C> = {} as never,
-	) {
+	public component<C extends Component<any>>(component: C, props: ComponentProps<C>) {
 		return this.add(new ComponentMessage(component, props));
 	}
 

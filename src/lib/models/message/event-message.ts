@@ -9,11 +9,9 @@ export interface EventMessageData {
 }
 
 /**
- * Event messages are constructed internally to relay channel events (mod
- * actions, stream status, emote changes, notices, etc.) to the user. Each
- * event is rendered by its own component with strongly-typed props.
+ * Event messages are constructed internally to relay channel events.
  */
-export class EventMessage<C extends Component<any> = Component<any>> extends TextualMessage {
+export class EventMessage<C extends Component = Component> extends TextualMessage {
 	public override readonly id = crypto.randomUUID();
 	public override text = "";
 
@@ -21,14 +19,16 @@ export class EventMessage<C extends Component<any> = Component<any>> extends Tex
 
 	public constructor(
 		channel: Channel,
+
 		/**
 		 * The component that renders the event.
 		 */
 		public readonly component: C,
+
 		/**
-		 * The props passed to the rendering component.
+		 * The props passed to the component.
 		 */
-		public readonly props: ComponentProps<C> = {} as never,
+		public readonly props: ComponentProps<C>,
 		data?: Partial<EventMessageData>,
 	) {
 		super(channel, {

@@ -2,14 +2,21 @@ import type { Component, ComponentProps } from "svelte";
 import { Message } from "./message";
 
 export class ComponentMessage<C extends Component> extends Message {
-	public readonly [Symbol.toStringTag] = "ComponentMessage";
+	public override readonly [Symbol.toStringTag] = "ComponentMessage";
 
-	public readonly id = crypto.randomUUID();
-	public readonly timestamp = new Date();
+	public override readonly id = crypto.randomUUID();
+	public override readonly timestamp = new Date();
 
 	public constructor(
+		/**
+		 * The component that renders the message.
+		 */
 		public readonly component: C,
-		public readonly props: ComponentProps<C> = {} as never,
+
+		/**
+		 * The props passed to the component.
+		 */
+		public readonly props: ComponentProps<C>,
 	) {
 		super();
 	}
