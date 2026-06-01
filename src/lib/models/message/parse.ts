@@ -53,168 +53,169 @@ export interface EmoteNode extends BaseNode {
 export type Node = TextNode | LinkNode | MentionNode | CheerNode | EmoteNode;
 
 export function parse(message: UserMessage): Node[] {
-	const nodes: Node[] = [];
-
 	const ircEmotes = [...message.data.emotes];
 	const boundaries = translateBoundaries(message);
 
+	const nodes: Node[] = [];
+
 	for (const match of message.text.matchAll(/\S+|\s+/g)) {
-		let marked = false;
+		const base: BaseNode = {
+			start: match.index,
+			end: match.index + match[0].length,
+			value: match[0],
+			marked: isMarked(match.index, match.index + match[0].length, boundaries),
+		};
 
-		const part = match[0];
-		const start = match.index;
-		const end = start + part.length;
+		const node = classify(base, message, ircEmotes, boundaries);
+		if (node) nodes.push(node);
+	}
 
-		for (const boundary of boundaries) {
-			if (end > boundary.start && start <= boundary.end) {
-				marked = true;
+	return fold(nodes);
+}
+
+function classify(
+	base: BaseNode,
+	message: UserMessage,
+	ircEmotes: UserMessage["data"]["emotes"],
+	boundaries: Range[],
+): Node | null {
+	const part = base.value;
+
+	const url = URL.parse(`https://${part.replace(/^https?:\/\/|\.$/i, "")}`);
+	const tld = url ? parseTld(url.hostname) : null;
+
+	if (url && tld?.domain && tld.isIcann) {
+		return {
+			...base,
+			type: "link",
+			data: { url, tld },
+		};
+	}
+
+	if (/^@\w{4,24}$/.test(part)) {
+		const name = part.slice(1).toLowerCase();
+		const viewer = message.channel.viewers.values().find((u) => u.username === name);
+
+		return {
+			...base,
+			type: "mention",
+			data: { user: viewer?.user },
+		};
+	}
+
+	const cheermote = message.channel.cheermotes.find(
+		(c) => part.toLowerCase().startsWith(c.prefix.toLowerCase()) && /\d+$/.test(part),
+	);
+
+	if (cheermote) {
+		const amount = Number(part.slice(cheermote.prefix.length));
+		if (amount <= 0) return null;
+
+		let tier: CheermoteTier | undefined;
+
+		for (const candidate of cheermote.tiers.toSorted((a, b) => b.bits - a.bits)) {
+			if (amount >= candidate.bits) {
+				tier = candidate;
 				break;
 			}
 		}
 
-		const base: BaseNode = {
-			start,
-			end,
-			value: part,
-			marked,
+		if (!tier) return null;
+
+		return {
+			...base,
+			type: "cheer",
+			data: {
+				prefix: cheermote.prefix,
+				bits: amount,
+				tier,
+			},
 		};
-
-		const url = URL.parse(`https://${part.replace(/^https?:\/\/|\.$/i, "")}`);
-		const tld = url ? parseTld(url.hostname) : null;
-
-		const cheermote = message.channel.cheermotes.find((c) => {
-			const hasPrefix = part.toLowerCase().startsWith(c.prefix.toLowerCase());
-			const hasBits = /\d+$/.test(part);
-
-			return hasPrefix && hasBits;
-		});
-
-		const ircEmote = ircEmotes.find((e) => e.code === part);
-		const emote =
-			message.author.emotes.get(part) ??
-			app.emotes.get(part) ??
-			message.channel.emotes.get(part);
-
-		if (url && tld?.domain && tld.isIcann) {
-			nodes.push({
-				...base,
-				type: "link",
-				data: { url, tld },
-			});
-		} else if (/^@\w{4,24}$/.test(part)) {
-			const name = part.slice(1).toLowerCase();
-			const viewer = message.channel.viewers.values().find((u) => u.username === name);
-
-			nodes.push({
-				...base,
-				type: "mention",
-				data: { user: viewer?.user },
-			});
-		} else if (cheermote) {
-			const amount = Number(part.slice(cheermote.prefix.length));
-
-			if (amount > 0) {
-				let selectedTier: CheermoteTier | undefined;
-
-				for (const tier of cheermote.tiers.toSorted((a, b) => b.bits - a.bits)) {
-					if (amount >= tier.bits) {
-						selectedTier = tier;
-						break;
-					}
-				}
-
-				if (selectedTier) {
-					nodes.push({
-						...base,
-						type: "cheer",
-						data: {
-							prefix: cheermote.prefix,
-							bits: amount,
-							tier: selectedTier,
-						},
-					});
-				}
-			}
-		} else if (ircEmote) {
-			for (const boundary of boundaries) {
-				if (ircEmote.range.end > boundary.start && ircEmote.range.start <= boundary.end) {
-					marked = true;
-					break;
-				}
-			}
-
-			const baseUrl = "https://static-cdn.jtvnw.net/emoticons/v2";
-
-			nodes.push({
-				start: ircEmote.range.start,
-				end: ircEmote.range.end,
-				value: ircEmote.code,
-				marked,
-				type: "emote",
-				data: {
-					emote: {
-						provider: "Twitch",
-						id: ircEmote.id,
-						name: ircEmote.code,
-						width: 56,
-						height: 56,
-						srcset: [1, 2, 3].map((density) => {
-							return `${baseUrl}/${ircEmote.id}/default/dark/${density}.0 ${density}x`;
-						}),
-					},
-					layers: [],
-				},
-			});
-
-			const foundIdx = ircEmotes.indexOf(ircEmote);
-			ircEmotes.splice(foundIdx, 1);
-		} else if (emote) {
-			if (emote.zeroWidth) {
-				let prevNode = nodes.at(-1);
-				let index = -1;
-
-				while (prevNode?.type === "text" && !prevNode.data.trim()) {
-					index--;
-					prevNode = nodes.at(index);
-				}
-
-				if (prevNode?.type === "emote") {
-					prevNode.data.layers.push(emote);
-				}
-			} else {
-				nodes.push({
-					...base,
-					type: "emote",
-					data: {
-						emote,
-						layers: [],
-					},
-				});
-			}
-		} else {
-			nodes.push({
-				...base,
-				type: "text",
-				data: part,
-			});
-		}
 	}
 
+	const ircEmote = ircEmotes.find((e) => e.code === part);
+
+	if (ircEmote) {
+		ircEmotes.splice(ircEmotes.indexOf(ircEmote), 1);
+
+		const baseUrl = "https://static-cdn.jtvnw.net/emoticons/v2";
+
+		return {
+			start: ircEmote.range.start,
+			end: ircEmote.range.end,
+			value: ircEmote.code,
+			marked: base.marked || isMarked(ircEmote.range.start, ircEmote.range.end, boundaries),
+			type: "emote",
+			data: {
+				emote: {
+					provider: "Twitch",
+					id: ircEmote.id,
+					name: ircEmote.code,
+					width: 56,
+					height: 56,
+					srcset: [1, 2, 3].map(
+						(density) =>
+							`${baseUrl}/${ircEmote.id}/default/dark/${density}.0 ${density}x`,
+					),
+				},
+				layers: [],
+			},
+		};
+	}
+
+	const emote =
+		message.author.emotes.get(part) ?? app.emotes.get(part) ?? message.channel.emotes.get(part);
+
+	if (emote) {
+		return {
+			...base,
+			type: "emote",
+			data: {
+				emote,
+				layers: [],
+			},
+		};
+	}
+
+	return { ...base, type: "text", data: part };
+}
+
+function fold(nodes: Node[]): Node[] {
 	const merged: Node[] = [];
 
 	for (const node of nodes) {
-		const prevNode = merged.at(-1);
+		if (node.type === "emote" && node.data.emote.zeroWidth) {
+			precedingEmote(merged)?.data.layers.push(node.data.emote);
+			continue;
+		}
 
-		if (node.type === "text" && prevNode?.type === "text" && node.marked === prevNode.marked) {
-			prevNode.end = node.end;
-			prevNode.value += node.value;
-			prevNode.data += node.data;
+		const prev = merged.at(-1);
+
+		if (node.type === "text" && prev?.type === "text" && node.marked === prev.marked) {
+			prev.end = node.end;
+			prev.value += node.value;
+			prev.data += node.data;
 		} else {
 			merged.push(node);
 		}
 	}
 
 	return merged;
+}
+
+function precedingEmote(nodes: Node[]): EmoteNode | null {
+	for (let i = nodes.length - 1; i >= 0; i--) {
+		const node = nodes[i];
+		if (node.type === "text" && !node.data.trim()) continue;
+
+		return node.type === "emote" ? node : null;
+	}
+
+	return null;
+}
+
+function isMarked(start: number, end: number, boundaries: Range[]): boolean {
+	return boundaries.some((b) => end > b.start && start <= b.end);
 }
 
 function translateBoundaries(message: UserMessage): Range[] {
