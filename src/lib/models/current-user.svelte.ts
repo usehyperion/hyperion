@@ -64,6 +64,7 @@ export class CurrentUser extends User {
 
 				this.emoteSets.set(id, {
 					id,
+					provider: "Twitch",
 					name: owner.displayName,
 					owner,
 					global: id === "twitch",
@@ -92,6 +93,7 @@ export class CurrentUser extends User {
 
 			this.emoteSets.set(set.id, {
 				id: set.id,
+				provider: "7TV",
 				name: `${this.displayName}: 7TV Personal Emotes`,
 				owner: this,
 				global: true,
@@ -103,6 +105,7 @@ export class CurrentUser extends User {
 			for (const set of users.userByConnection.specialEmoteSets) {
 				this.emoteSets.set(set.id, {
 					id: set.id,
+					provider: "7TV",
 					name: set.name,
 					owner: this,
 					global: true,

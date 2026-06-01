@@ -11,6 +11,7 @@ export default defineHandler({
 
 		app.emoteSets.set(data.id, {
 			id: data.id,
+			provider: "7TV",
 			name: data.name,
 			owner,
 			global: false,

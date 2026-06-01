@@ -63,7 +63,8 @@ class App {
 	public readonly emotes = new EmoteManager();
 
 	/**
-	 * Provider-specific emote sets.
+	 * Provider-specific emote sets. Only used transitively between the timing
+	 * of emote set events to associate emotes to users.
 	 */
 	public readonly emoteSets = new SvelteMap<string, EmoteSet>();
 

@@ -1,3 +1,6 @@
+import stv from "../assets/logos/7tv.svg";
+import bttv from "../assets/logos/bttv.svg";
+import ffz from "../assets/logos/ffz.svg";
 import type { Emote as SevenTvEmote } from "./graphql/7tv";
 import type { User } from "./models/user.svelte";
 
@@ -49,6 +52,11 @@ export interface EmoteSet {
 	readonly id: string;
 
 	/**
+	 * The provider the set's emotes belong to.
+	 */
+	readonly provider: EmoteProvider;
+
+	/**
 	 * The name of the emote set.
 	 */
 	readonly name: string;
@@ -67,6 +75,84 @@ export interface EmoteSet {
 	 * Whether the emote set can be used in any channel.
 	 */
 	readonly global?: boolean;
+}
+
+export const GLOBAL_PROVIDERS = {
+	FrankerFaceZ: {
+		name: "Global: FrankerFaceZ",
+		owner: {
+			id: "ffz_global",
+			displayName: "FrankerFaceZ Global",
+			avatarUrl: ffz,
+		},
+	},
+	BetterTTV: {
+		name: "Global: BetterTTV",
+		owner: {
+			id: "bttv_global",
+			displayName: "BetterTTV Global",
+			avatarUrl: bttv,
+		},
+	},
+	"7TV": {
+		name: "Global: 7TV",
+		owner: {
+			id: "7tv_global",
+			displayName: "7TV Global",
+			avatarUrl: stv,
+		},
+	},
+};
+
+export const PROVIDER_DISPLAY_ORDER: readonly EmoteProvider[] = [
+	"7TV",
+	"BetterTTV",
+	"FrankerFaceZ",
+];
+
+export function groupByProvider(emotes: Iterable<Emote>): Map<EmoteProvider, Emote[]> {
+	const groups = new Map<EmoteProvider, Emote[]>();
+
+	for (const emote of emotes) {
+		const group = groups.get(emote.provider);
+
+		if (group) {
+			group.push(emote);
+		} else {
+			groups.set(emote.provider, [emote]);
+		}
+	}
+
+	return groups;
+}
+
+/**
+ * Splits a flat collection of emotes into one {@linkcode EmoteSet} per provider
+ * (in {@linkcode PROVIDER_DISPLAY_ORDER}), using `meta` to supply the set
+ * metadata for a given provider. Providers with no emotes, or for which `meta`
+ * returns `null`, are skipped.
+ */
+export function toProviderSets(
+	emotes: Iterable<Emote>,
+	meta: (
+		provider: EmoteProvider,
+		emotes: Emote[],
+	) => Omit<EmoteSet, "provider" | "emotes"> | null,
+): EmoteSet[] {
+	const groups = groupByProvider(emotes);
+	const sets: EmoteSet[] = [];
+
+	for (const provider of PROVIDER_DISPLAY_ORDER) {
+		const group = groups.get(provider);
+		if (!group?.length) continue;
+
+		const info = meta(provider, group);
+		if (!info) continue;
+
+		sets.push({ ...info, provider, emotes: group });
+	}
+
+	return sets;
 }
 
 export interface FfzEmote {
