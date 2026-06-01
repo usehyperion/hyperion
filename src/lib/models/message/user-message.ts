@@ -117,7 +117,7 @@ export class UserMessage extends TextualMessage {
 
 		// message_text should only be possibly null if it's a USERNOTICE, in
 		// which case we can assume system_message is present
-		this.text = data.message_text ?? (data as UserNoticeMessage).system_message;
+		this.text = data.message_text ?? ("system_message" in data ? data.system_message : "");
 
 		this.author = viewer?.user ?? createPartialUser(channel, data.sender, data.name_color);
 		this.viewer = viewer ?? null;
