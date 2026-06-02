@@ -4,11 +4,11 @@
 	import { GLOBAL_PROVIDERS, toProviderSets } from "$lib/emotes";
 	import type { Emote, EmoteProvider, EmoteSet } from "$lib/emotes";
 	import type { Channel } from "$lib/models/channel.svelte";
+	import SevenTV from "~icons/logos/7tv";
+	import BetterTTV from "~icons/logos/bttv";
+	import FrankerFaceZ from "~icons/logos/ffz";
+	import Twitch from "~icons/logos/twitch";
 	import Smiley from "~icons/ph/smiley";
-	import stv from "../../../assets/logos/7tv.svg?raw";
-	import bttv from "../../../assets/logos/bttv.svg?raw";
-	import ffz from "../../../assets/logos/ffz.svg?raw";
-	import twitch from "../../../assets/logos/twitch.svg?raw";
 	import { Input } from "../ui/input";
 	import * as InputGroup from "../ui/input-group";
 	import Browser from "./Browser.svelte";
@@ -21,10 +21,10 @@
 	const { channel }: Props = $props();
 
 	const TABS = [
-		{ provider: "Twitch", icon: twitch },
-		{ provider: "7TV", icon: stv },
-		{ provider: "BetterTTV", icon: bttv },
-		{ provider: "FrankerFaceZ", icon: ffz },
+		{ provider: "Twitch", icon: Twitch },
+		{ provider: "7TV", icon: SevenTV },
+		{ provider: "BetterTTV", icon: BetterTTV },
+		{ provider: "FrankerFaceZ", icon: FrankerFaceZ },
 	] as const;
 
 	let query = $state("");
@@ -113,11 +113,13 @@
 				<Tabs.List class="flex shrink-0 border-b">
 					{#each TABS as tab (tab.provider)}
 						<Tabs.Trigger
-							class="flex flex-1 justify-center py-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40 data-[state=active]:bg-accent data-[state=active]:text-foreground"
+							class="group flex flex-1 justify-center py-2 transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-40 data-[state=active]:bg-accent"
 							value={tab.provider}
 							disabled={!providerSets[tab.provider]?.length}
 						>
-							{@html tab.icon}
+							<tab.icon
+								class="size-4 fill-muted-foreground group-hover:fill-foreground group-data-[state=active]:fill-foreground"
+							/>
 						</Tabs.Trigger>
 					{/each}
 				</Tabs.List>

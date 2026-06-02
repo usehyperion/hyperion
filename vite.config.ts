@@ -20,6 +20,7 @@ export default defineConfig({
 			compiler: "svelte",
 			customCollections: {
 				local: FileSystemIconLoader("./src/assets/icons"),
+				logos: FileSystemIconLoader("./src/assets/logos"),
 			},
 			iconCustomizer(collection, _icon, props) {
 				if (collection === "ph") {
