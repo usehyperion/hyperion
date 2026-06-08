@@ -110,7 +110,7 @@ export const PROVIDER_DISPLAY_ORDER: readonly EmoteProvider[] = [
 	"FrankerFaceZ",
 ];
 
-export function groupByProvider(emotes: Iterable<Emote>): Map<EmoteProvider, Emote[]> {
+function groupByProvider(emotes: Iterable<Emote>): Map<EmoteProvider, Emote[]> {
 	const groups = new Map<EmoteProvider, Emote[]>();
 
 	for (const emote of emotes) {
@@ -126,12 +126,6 @@ export function groupByProvider(emotes: Iterable<Emote>): Map<EmoteProvider, Emo
 	return groups;
 }
 
-/**
- * Splits a flat collection of emotes into one {@linkcode EmoteSet} per provider
- * (in {@linkcode PROVIDER_DISPLAY_ORDER}), using `meta` to supply the set
- * metadata for a given provider. Providers with no emotes, or for which `meta`
- * returns `null`, are skipped.
- */
 export function toProviderSets(
 	emotes: Iterable<Emote>,
 	meta: (
@@ -201,36 +195,23 @@ export function transformBttvEmote(emote: BttvEmote): Emote {
 }
 
 export function transform7tvEmote(emote: SevenTvEmote, alias?: string): Emote {
-	let width = 28;
-	let height = 28;
-	const srcset: string[] = [];
+	const animated = emote.images.filter((img) => !img.url.includes("static"));
 
-	for (const format of ["webp", "gif", "png"]) {
-		const images = emote.images.filter(
-			(img) => !img.url.includes("static") && img.mime.endsWith(format),
-		);
+	const format = ["webp", "gif", "png"].find((f) => animated.some((img) => img.mime.endsWith(f)));
 
-		if (images.length) {
-			images.sort((a, b) => b.width - a.width);
+	const images = animated
+		.filter((img) => img.mime.endsWith(format ?? ""))
+		.toSorted((a, b) => b.width - a.width);
 
-			for (const img of images) {
-				width = img.width;
-				height = img.height;
-
-				srcset.push(`${img.url} ${img.scale}x`);
-			}
-
-			break;
-		}
-	}
+	const largest = images.at(0);
 
 	return {
 		provider: "7TV",
 		id: emote.id,
 		name: alias ?? emote.defaultName,
-		width,
-		height,
-		srcset,
+		width: largest?.width ?? 28,
+		height: largest?.height ?? 28,
+		srcset: images.map((img) => `${img.url} ${img.scale}x`),
 		zeroWidth: emote.flags.defaultZeroWidth,
 	};
 }

@@ -31,41 +31,30 @@
 	let activeProvider = $state<EmoteProvider>("Twitch");
 
 	const providerSets = $derived.by(() => {
+		const sets = [
+			...toProviderSets(channel.emotes.values(), (provider) => ({
+				id: `${provider}:${channel.id}`,
+				name: `${channel.user.displayName}: ${provider}`,
+				owner: channel.user,
+				global: false,
+			})),
+			...(app.user?.emoteSets.values() ?? []),
+			...toProviderSets(app.emotes.values(), (provider) => {
+				const meta = provider === "Twitch" ? null : GLOBAL_PROVIDERS[provider];
+
+				return meta
+					? { id: meta.owner.id, name: meta.name, owner: meta.owner, global: true }
+					: null;
+			}),
+		];
+
 		const grouped: Partial<Record<EmoteProvider, EmoteSet[]>> = {};
 
-		function add(set: EmoteSet) {
-			const existing = grouped[set.provider];
-
-			if (existing) {
-				existing.push(set);
-			} else {
-				grouped[set.provider] = [set];
-			}
+		for (const set of sets) {
+			(grouped[set.provider] ??= []).push(set);
 		}
 
-		const channelSets = toProviderSets(channel.emotes.values(), (provider) => ({
-			id: `${provider}:${channel.id}`,
-			name: `${channel.user.displayName}: ${provider}`,
-			owner: channel.user,
-			global: false,
-		}));
-
-		const globalSets = toProviderSets(app.emotes.values(), (provider) => {
-			const meta = provider === "Twitch" ? null : GLOBAL_PROVIDERS[provider];
-
-			return meta
-				? {
-						id: meta.owner.id,
-						name: meta.name,
-						owner: meta.owner,
-						global: true,
-					}
-				: null;
-		});
-
-		channelSets.forEach(add);
-		app.user?.emoteSets.forEach(add);
-		globalSets.forEach(add);
+		grouped.Twitch?.sort((a, b) => a.name.localeCompare(b.name));
 
 		return grouped;
 	});

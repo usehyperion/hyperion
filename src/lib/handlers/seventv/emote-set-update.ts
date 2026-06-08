@@ -8,34 +8,25 @@ import { defineHandler } from "../helper";
 type EmoteSetUpdateProps = import("svelte").ComponentProps<typeof EmoteSetUpdate>;
 
 function transform(emote: EmoteChange): Emote {
-	let width = 28;
-	let height = 28;
-	const srcset: string[] = [];
+	const { host } = emote.data;
 
-	for (const format of ["webp", "png", "gif"]) {
-		const files = emote.data.host.files.filter((file) => file.format.toLowerCase() === format);
+	const format = ["webp", "png", "gif"].find((f) =>
+		host.files.some((file) => file.format.toLowerCase() === f),
+	);
 
-		if (files.length) {
-			files.sort((a, b) => a.width - b.width);
+	const files = host.files
+		.filter((file) => file.format.toLowerCase() === format)
+		.toSorted((a, b) => b.width - a.width);
 
-			for (const file of files) {
-				width = file.width;
-				height = file.height;
-
-				srcset.push(`https:${emote.data.host.url}/${file.name} ${file.name[0]}x`);
-			}
-
-			break;
-		}
-	}
+	const largest = files.at(0);
 
 	return {
 		provider: "7TV",
 		id: emote.id,
 		name: emote.name,
-		width: width / 2,
-		height: height / 2,
-		srcset,
+		width: (largest?.width ?? 28) / 2,
+		height: (largest?.height ?? 28) / 2,
+		srcset: files.map((file) => `https:${host.url}/${file.name} ${file.name[0]}x`),
 		zeroWidth: (emote.data.flags & 256) === 256,
 	};
 }
