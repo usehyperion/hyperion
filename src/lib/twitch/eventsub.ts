@@ -1,4 +1,5 @@
 import type { Nullable, Prefix } from "$lib/util";
+import type { StructuredMessage } from "./api";
 import type { BasicUser } from "./irc";
 
 export type WithBasicUser = Prefix<BasicUser, "user">;
@@ -246,38 +247,6 @@ export type SuspiciousUserStatus = "no_treatment" | "active_monitoring" | "restr
 export type SuspiciousUserType = "manually_added" | "ban_evader" | "banned_in_shared_channel";
 
 export type BanEvasionEvaluation = "unknown" | "possible" | "likely";
-
-export interface TextFragment {
-	type: "text";
-	text: string;
-}
-
-export interface CheermoteFragment {
-	type: "cheermote";
-	text: string;
-	cheermote: {
-		prefix: string;
-		bits: number;
-		tier: number;
-	};
-}
-
-export interface EmoteFragment {
-	type: "emote";
-	text: string;
-	emote: {
-		id: string;
-		emote_set_id: string;
-	};
-}
-
-export type Fragment = TextFragment | CheermoteFragment | EmoteFragment;
-
-export interface StructuredMessage {
-	message_id: string;
-	text: string;
-	fragments: Fragment[];
-}
 
 export interface ChannelSuspiciousUserMessage extends WithBroadcaster, WithBasicUser {
 	low_trust_status: SuspiciousUserStatus;

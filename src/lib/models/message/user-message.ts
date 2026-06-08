@@ -1,6 +1,7 @@
 import { app } from "$lib/app.svelte";
 import { settings } from "$lib/settings";
-import type { AutoModMetadata, StructuredMessage } from "$lib/twitch/eventsub";
+import type { StructuredMessage } from "$lib/twitch/api";
+import type { AutoModMetadata } from "$lib/twitch/eventsub";
 import type {
 	BasicUser,
 	PrivmsgMessage,
@@ -240,6 +241,10 @@ export class UserMessage extends TextualMessage {
 	 */
 	public async deny() {
 		await this.#updateHeldMessage(false);
+	}
+
+	public async pin() {
+		await this.channel.chat.pin(this.id);
 	}
 
 	#populateBadges() {

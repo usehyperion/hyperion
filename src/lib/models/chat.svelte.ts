@@ -4,7 +4,7 @@ import type { Command } from "$lib/commands";
 import { log } from "$lib/log";
 import { settings } from "$lib/settings";
 import { sendPresence } from "$lib/seventv";
-import type { SentMessage } from "$lib/twitch/api";
+import type { PinnedMessage, SentMessage } from "$lib/twitch/api";
 import { commands } from "../commands";
 import Notice from "../components/message/events/Notice.svelte";
 import type { Channel } from "./channel.svelte";
@@ -12,7 +12,7 @@ import { ComponentMessage } from "./message/component-message";
 import { EventMessage, type EventMessageData } from "./message/event-message";
 import type { Message } from "./message/message";
 import { TextualMessage } from "./message/textual-message.svelte";
-import type { UserMessage } from "./message/user-message";
+import { UserMessage } from "./message/user-message";
 import { Viewer } from "./viewer.svelte";
 
 const RATE_LIMIT_WINDOW = 30 * 1000;
@@ -33,6 +33,10 @@ export interface ChatSettings {
 	followerOnly?: boolean;
 	followerOnlyDuration?: number;
 	slow?: number;
+}
+
+interface MessageOptions {
+	pin?: boolean;
 }
 
 export class Chat {
@@ -66,6 +70,8 @@ export class Chat {
 
 	public input = $state<HTMLInputElement | null>(null);
 	public value = $state("");
+
+	public pinnedMessage = $state<UserMessage | null>(null);
 
 	/**
 	 * The message the current user is replying to if any.
@@ -185,6 +191,65 @@ export class Chat {
 		});
 	}
 
+	public async pin(id: string) {
+		if (!app.user?.moderating.has(this.channel.id)) {
+			return;
+		}
+
+		await this.channel.client.put("/chat/pins", {
+			params: {
+				broadcaster_id: this.channel.id,
+				moderator_id: app.user.id,
+				message_id: id,
+			},
+		});
+	}
+
+	public async unpin() {
+		if (!app.user?.moderating.has(this.channel.id)) {
+			return;
+		}
+
+		const pinned = await this.fetchPinned();
+		if (!pinned) return;
+
+		await this.channel.client.delete("/chat/pins", {
+			broadcaster_id: this.channel.id,
+			moderator_id: app.user.id,
+			message_id: pinned?.message_id,
+		});
+	}
+
+	public async fetchPinned() {
+		if (!app.user?.moderating.has(this.channel.id)) {
+			return;
+		}
+
+		const {
+			data: [pinned],
+		} = await this.channel.client.get<[PinnedMessage?]>("/chat/pins", {
+			broadcaster_id: this.channel.id,
+			moderator_id: app.user?.id,
+		});
+
+		if (!pinned) return;
+
+		const existing = this.messages.find((m) => m.id === pinned.message_id);
+
+		if (existing?.isUser()) {
+			// existing.pinned = true;
+			this.pinnedMessage = existing;
+		} else {
+			this.pinnedMessage = UserMessage.from(this.channel, pinned.message, {
+				id: pinned.sender_user_id,
+				login: pinned.sender_user_login,
+				name: pinned.sender_user_name,
+			});
+		}
+
+		return pinned;
+	}
+
 	public async setShieldMode(active = true) {
 		if (!app.user || !this.channel.isMod) return;
 
@@ -225,7 +290,7 @@ export class Chat {
 		});
 	}
 
-	public async send(message: string) {
+	public async send(message: string, options?: MessageOptions) {
 		if (!app.user) return;
 
 		const viewer = this.channel.viewers.get(app.user.id) ?? new Viewer(this.channel, app.user);
@@ -283,6 +348,7 @@ export class Chat {
 				sender_id: viewer.id,
 				reply_parent_message_id: replyId,
 				message,
+				pin: options?.pin ?? false,
 			},
 		});
 
