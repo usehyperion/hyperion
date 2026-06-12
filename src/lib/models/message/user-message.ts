@@ -205,6 +205,13 @@ export class UserMessage extends TextualMessage {
 		return this.#nodes;
 	}
 
+	/**
+	 * Whether the message is currently pinned in chat.
+	 */
+	public get pinned() {
+		return this.channel.chat.pinned?.message.id === this.id;
+	}
+
 	public async setSource(source: Source) {
 		if (source.channel_id === this.channel.id) {
 			return;

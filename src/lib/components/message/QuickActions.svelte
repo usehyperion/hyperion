@@ -39,12 +39,6 @@
 		<ButtonGroup.Separator orientation="vertical" />
 
 		{@render button({
-			tooltip: "Pin",
-			icon: PushPin,
-			onclick: () => message.channel.chat.pin(message.id),
-		})}
-
-		{@render button({
 			class: "text-red-400",
 			tooltip: "Delete",
 			icon: Trash,

@@ -29,6 +29,15 @@ export async function createMessageMenu(message: UserMessage) {
 	items.push(copy, separator, reply);
 
 	if (message.channel.isMod) {
+		const pin = await MenuItem.new({
+			id: "pin",
+			text: "Pin",
+			enabled: !message.deleted && message.actionable && !message.pinned,
+			action: () => message.pin(),
+		});
+
+		items.push(pin);
+
 		const deleteMsg = await MenuItem.new({
 			id: "delete",
 			text: "Delete",

@@ -140,6 +140,8 @@ export class Channel {
 				channel: this.user.username,
 				limit: settings.state["chat.messages.history.limit"],
 			});
+		} else {
+			await this.chat.fetchPinned();
 		}
 	}
 
