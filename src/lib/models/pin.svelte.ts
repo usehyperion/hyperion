@@ -23,8 +23,6 @@ const pollIds = new WeakMap<Chat, ReturnType<typeof setInterval>>();
 export class Pin {
 	static readonly #POLL_INTERVAL = 30 * 1000;
 
-	readonly #expiresAt: number | null;
-
 	#chat: Chat;
 	#expiryId: ReturnType<typeof setTimeout> | null = null;
 
@@ -45,6 +43,12 @@ export class Pin {
 	public readonly duration: number | null;
 
 	/**
+	 * The timestamp at which the pin expires; `null` if the pin has no
+	 * expiration.
+	 */
+	public readonly expirationTimestamp: number | null;
+
+	/**
 	 * Whether the pinned message is hidden for the current user.
 	 */
 	public hidden = $state(false);
@@ -54,7 +58,7 @@ export class Pin {
 		this.pinner = data.pinner;
 		this.message = data.message;
 		this.duration = data.duration;
-		this.#expiresAt = data.expiresAt;
+		this.expirationTimestamp = data.expiresAt;
 
 		this.#scheduleExpiry();
 	}
@@ -69,14 +73,14 @@ export class Pin {
 
 		if (!node || !sender) return null;
 
-		const existing = chat.messages.find((m) => m.id === node.id);
+		const existing = chat.messages.find((m) => m.id === node.pinnedMessage.id);
 		let message: UserMessage;
 
 		if (existing?.isUser()) {
 			message = existing;
 		} else {
 			message = UserMessage.from(chat.channel, {
-				message: toStructuredMessage(node.id, node.pinnedMessage.content),
+				message: toStructuredMessage(node.pinnedMessage.id, node.pinnedMessage.content),
 				sender,
 				data: {
 					name_color: sender.chatColor ?? "",
@@ -157,9 +161,9 @@ export class Pin {
 	}
 
 	#scheduleExpiry() {
-		if (this.#expiresAt === null) return;
+		if (this.expirationTimestamp === null) return;
 
-		const remaining = Math.max(0, this.#expiresAt - Date.now());
+		const remaining = Math.max(0, this.expirationTimestamp - Date.now());
 
 		this.#expiryId = setTimeout(() => {
 			this.#expiryId = null;

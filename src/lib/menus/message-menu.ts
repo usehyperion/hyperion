@@ -33,7 +33,10 @@ export async function createMessageMenu(message: UserMessage) {
 			id: "pin",
 			text: "Pin",
 			enabled: !message.deleted && message.actionable && !message.pinned,
-			action: () => message.pin(),
+			async action() {
+				await message.pin();
+				await message.channel.chat.fetchPinned();
+			},
 		});
 
 		items.push(pin);

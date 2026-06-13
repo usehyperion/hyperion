@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Component } from "svelte";
 	import type { Pin } from "$lib/models/pin.svelte";
-	import { colorizeName } from "$lib/util";
+	import { clamp, colorizeName, formatDuration } from "$lib/util";
 	import CaretDown from "~icons/ph/caret-down";
 	import CaretUp from "~icons/ph/caret-up";
 	import Clock from "~icons/ph/clock";
@@ -21,6 +21,20 @@
 
 	let durationOpen = $state(false);
 	let expanded = $state(true);
+
+	let now = $state(Date.now());
+
+	$effect(() => {
+		if (pin.expirationTimestamp === null) return;
+
+		const id = setInterval(() => (now = Date.now()), 1000);
+		return () => clearInterval(id);
+	});
+
+	const remaining = $derived(
+		pin.expirationTimestamp ? Math.max(0, pin.expirationTimestamp - now) : 0,
+	);
+	const fraction = $derived(pin.duration ? clamp(0, remaining / (pin.duration * 1000), 1) : 0);
 </script>
 
 <div
@@ -59,14 +73,22 @@
 		</div>
 	</div>
 
-	<div
-		class={[
-			!expanded &&
-				"inline-flex items-center gap-1 **:not-data-[slot=message-content]:shrink-0 **:data-[slot=message-content]:line-clamp-1",
-		]}
-	>
+	{#if expanded}
 		<Message message={pin.message} nested />
-	</div>
+	{/if}
+
+	{#if pin.duration !== null}
+		<div
+			class="absolute inset-x-0 bottom-0 h-0.5 bg-muted"
+			role="timer"
+			aria-label="{formatDuration(Math.ceil(remaining / 1000))} remaining"
+		>
+			<div
+				class="h-full bg-primary transition-[width] duration-1000 ease-linear"
+				style:width="{fraction * 100}%"
+			></div>
+		</div>
+	{/if}
 </div>
 
 <PinDurationDialog {pin} bind:open={durationOpen} />

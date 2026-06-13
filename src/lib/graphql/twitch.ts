@@ -183,7 +183,6 @@ export const pinnedMessageQuery = gql(
 			pinnedChatMessages {
 				edges {
 					node {
-						id
 						startsAt
 						endsAt
 						updatedAt
