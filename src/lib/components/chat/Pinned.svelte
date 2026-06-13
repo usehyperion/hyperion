@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Component } from "svelte";
-	import type { Pin } from "$lib/models/chat.svelte";
+	import type { Pin } from "$lib/models/pin.svelte";
 	import { colorizeName } from "$lib/util";
 	import Clock from "~icons/ph/clock";
 	import PushPin from "~icons/ph/push-pin";
@@ -17,8 +17,6 @@
 
 	const { pin }: Props = $props();
 
-	const chat = $derived(pin.message.channel.chat);
-
 	let durationOpen = $state(false);
 </script>
 
@@ -28,7 +26,7 @@
 		<p>Pinned by {@html colorizeName(pin.pinner)}</p>
 
 		<div class="ml-auto flex items-center gap-0.5">
-			{#if chat.channel.isMod}
+			{#if pin.message.channel.isMod}
 				{@render button({
 					tooltip: "Change duration",
 					icon: Clock,
@@ -38,7 +36,7 @@
 				{@render button({
 					tooltip: "Unpin",
 					icon: PushPinSlash,
-					onclick: () => chat.unpin(),
+					onclick: () => pin.unpin(),
 				})}
 			{/if}
 

@@ -7,6 +7,7 @@
 	import StreamHeader from "$lib/components/StreamHeader.svelte";
 	import { handlers } from "$lib/handlers";
 	import type { Channel } from "$lib/models/channel.svelte";
+	import { Pin } from "$lib/models/pin.svelte";
 	import type { IrcMessage } from "$lib/twitch/irc";
 	import Pinned from "./chat/Pinned.svelte";
 
@@ -31,9 +32,14 @@
 
 			await channel.chat.fetchPinned();
 		});
+
+		Pin.startPolling(channel.chat);
 	});
 
-	onDestroy(() => unlisten?.());
+	onDestroy(() => {
+		unlisten?.();
+		Pin.stopPolling(channel.chat);
+	});
 </script>
 
 <div class="flex h-full flex-col">

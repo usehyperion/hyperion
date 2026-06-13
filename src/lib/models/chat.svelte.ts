@@ -4,7 +4,7 @@ import type { Command } from "$lib/commands";
 import { log } from "$lib/log";
 import { settings } from "$lib/settings";
 import { sendPresence } from "$lib/seventv";
-import type { PinnedMessage, SentMessage } from "$lib/twitch/api";
+import type { SentMessage } from "$lib/twitch/api";
 import { commands } from "../commands";
 import Notice from "../components/message/events/Notice.svelte";
 import type { Channel } from "./channel.svelte";
@@ -12,8 +12,8 @@ import { ComponentMessage } from "./message/component-message";
 import { EventMessage, type EventMessageData } from "./message/event-message";
 import type { Message } from "./message/message";
 import { TextualMessage } from "./message/textual-message.svelte";
-import { UserMessage } from "./message/user-message";
-import type { User } from "./user.svelte";
+import type { UserMessage } from "./message/user-message";
+import { Pin } from "./pin.svelte";
 import { Viewer } from "./viewer.svelte";
 
 const RATE_LIMIT_WINDOW = 30 * 1000;
@@ -38,29 +38,6 @@ export interface ChatSettings {
 
 interface MessageOptions {
 	pin?: boolean;
-}
-
-export interface Pin {
-	/**
-	 * The user who pinned the message.
-	 */
-	readonly pinner: User;
-
-	/**
-	 * The message that was pinned.
-	 */
-	readonly message: UserMessage;
-
-	/**
-	 * The duration in seconds for which the message is pinned for; `null` if
-	 * the pin has no expiration.
-	 */
-	readonly duration: number | null;
-
-	/**
-	 * Whether the pinned message is hidden for the current user.
-	 */
-	hidden: boolean;
 }
 
 export class Chat {
@@ -194,12 +171,13 @@ export class Chat {
 	}
 
 	public reset() {
+		Pin.stopPolling(this);
+		this.#setPinned(null);
 		this.#bypassNext = false;
 		this.#lastRecentAt = null;
 		this.replyTarget = null;
 		this.messages = [];
 		this.history = [];
-		this.pinned = null;
 	}
 
 	public async announce(message: string) {
@@ -228,79 +206,20 @@ export class Chat {
 		});
 	}
 
-	/**
-	 * Re-pins the currently pinned message with a new duration in seconds;
-	 * `null` pins it until the stream ends.
-	 */
-	public async updatePin(duration: number | null) {
-		if (!app.user || !this.channel.isMod || !this.pinned) return;
-
-		await this.channel.client.patch("/chat/pins", {
-			params: {
-				broadcaster_id: this.channel.id,
-				moderator_id: app.user.id,
-				message_id: this.pinned.message.id,
-				...(duration !== null && { duration_seconds: duration }),
-			},
-		});
-
-		await this.fetchPinned();
-	}
-
-	public async unpin() {
-		if (!app.user || !this.channel.isMod) return;
-
-		await this.fetchPinned();
-		if (!this.pinned) return;
-
-		await this.channel.client.delete("/chat/pins", {
-			broadcaster_id: this.channel.id,
-			moderator_id: app.user.id,
-			message_id: this.pinned.message.id,
-		});
-
-		this.pinned = null;
-	}
-
 	public async fetchPinned() {
 		if (!app.user || !this.channel.isMod) return;
 
-		const {
-			data: [pinned],
-		} = await this.channel.client.get<[PinnedMessage?]>("/chat/pins", {
-			broadcaster_id: this.channel.id,
-			moderator_id: app.user?.id,
-		});
+		const pin = await Pin.fetch(this);
 
-		if (!pinned) return;
-
-		const existing = this.messages.find((m) => m.id === pinned.message_id);
-		let message: UserMessage;
-
-		if (existing?.isUser()) {
-			message = existing;
-		} else {
-			// The api doesn't include the message id on the actual message
-			pinned.message.message_id = pinned.message_id;
-
-			message = UserMessage.from(this.channel, pinned.message, {
-				id: pinned.sender_user_id,
-				login: pinned.sender_user_login,
-				name: pinned.sender_user_name,
-			});
+		if (pin && this.pinned?.message.id === pin.message.id) {
+			pin.hidden = this.pinned.hidden;
 		}
 
-		const pinner = await this.channel.client.users.fetch(pinned.pinned_by_user_id);
+		this.#setPinned(pin);
+	}
 
-		const start = new Date(pinned.starts_at).getTime();
-		const end = pinned.expires_at ? new Date(pinned.expires_at).getTime() : null;
-
-		this.pinned = {
-			pinner,
-			message,
-			duration: end ? (end - start) / 1000 : null,
-			hidden: false,
-		};
+	public clearPin(pin: Pin) {
+		if (this.pinned === pin) this.#setPinned(null);
 	}
 
 	public async setShieldMode(active = true) {
@@ -447,5 +366,13 @@ export class Chat {
 
 		queue.push(now);
 		return false;
+	}
+
+	#setPinned(pin: Pin | null) {
+		if (this.pinned && this.pinned !== pin) {
+			this.pinned.dispose();
+		}
+
+		this.pinned = pin;
 	}
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Pin } from "$lib/models/chat.svelte";
+	import type { Pin } from "$lib/models/pin.svelte";
 	import { clamp, formatDuration } from "$lib/util";
 	import { Button } from "../ui/button";
 	import * as Dialog from "../ui/dialog";
@@ -23,7 +23,7 @@
 	let duration = $derived(clamp(MIN_DURATION, pin.duration ?? 1200, MAX_DURATION));
 
 	async function save() {
-		await pin.message.channel.chat.updatePin(mode === "stream" ? null : duration);
+		await pin.update(mode === "stream" ? null : duration);
 		open = false;
 	}
 </script>

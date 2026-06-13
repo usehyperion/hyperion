@@ -6,6 +6,7 @@ export default defineCommand({
 	description: "Unpin the currently pinned message in the channel",
 	modOnly: true,
 	async exec(_, channel) {
-		await channel.chat.unpin();
+		await channel.chat.fetchPinned();
+		await channel.chat.pinned?.unpin();
 	},
 });
