@@ -1,5 +1,6 @@
 import { initGraphQLTada } from "gql.tada";
 import type { FragmentOf, ResultOf } from "gql.tada";
+import type { Fragment, StructuredMessage } from "$lib/twitch/api";
 import type { NonNullableDeep } from ".";
 
 const gql = initGraphQLTada<{
@@ -175,6 +176,64 @@ export const modsQuery = gql(`
 	}
 `);
 
+export const pinnedMessageQuery = gql(
+	`
+	query GetPinnedMessage($id: ID!) {
+		channel(id: $id) {
+			pinnedChatMessages {
+				edges {
+					node {
+						id
+						startsAt
+						endsAt
+						updatedAt
+						pinnedBy {
+							id
+						}
+						pinnedMessage {
+							id
+							sentAt
+							content {
+								text
+								fragments {
+									text
+									content {
+										__typename
+										... on CheermoteToken {
+											bitsAmount
+											prefix
+											tier
+										}
+										... on Emote {
+											emoteID: id
+											setID
+										}
+										... on User {
+											userID: id
+											login
+											displayName
+										}
+									}
+								}
+							}
+							sender {
+								user_id: id
+								user_login: login
+								user_name: displayName
+								chatColor
+								displayBadges(channelID: $id) {
+									...BadgeDetails
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}`,
+	[badgeDetailsFragment],
+);
+
 export const searchSuggestionsQuery = gql(`
 	query GetSearchSuggestions($query: String!) {
 		searchSuggestions(queryFragment: $query, withOfflineChannelContent: true) {
@@ -279,3 +338,57 @@ export type ChannelSuggestion = Extract<
 	>,
 	{ __typename: "SearchSuggestionChannel" }
 >;
+
+type PinnedMessage = NonNullableDeep<
+	ResultOf<typeof pinnedMessageQuery>,
+	"channel.pinnedChatMessages.edges.0.node"
+>;
+
+type MessageContent = NonNullableDeep<PinnedMessage, "pinnedMessage.content">;
+
+// Transformers
+
+export function toStructuredMessage(id: string, content: MessageContent): StructuredMessage {
+	const fragments: Fragment[] = content.fragments.map((fragment) => {
+		const text = fragment.text ?? "";
+		const inner = fragment.content;
+
+		switch (inner?.__typename) {
+			case "Emote":
+				return {
+					type: "emote",
+					text,
+					emote: {
+						id: inner.emoteID ?? "",
+						emote_set_id: inner.setID ?? "",
+					},
+				};
+			case "User":
+				return {
+					type: "mention",
+					text,
+					user_id: inner.userID,
+					user_login: inner.login,
+					user_name: inner.displayName,
+				};
+			case "CheermoteToken":
+				return {
+					type: "cheermote",
+					text,
+					cheermote: {
+						prefix: inner.prefix,
+						bits: inner.bitsAmount,
+						tier: inner.tier,
+					},
+				};
+			default:
+				return { type: "text", text };
+		}
+	});
+
+	return {
+		message_id: id,
+		text: content.text,
+		fragments,
+	};
+}

@@ -1,5 +1,5 @@
 import { app } from "$lib/app.svelte";
-import type { PinnedMessage } from "$lib/twitch/api";
+import { pinnedMessageQuery, toStructuredMessage } from "$lib/graphql/twitch";
 import type { Chat } from "./chat.svelte";
 import { UserMessage } from "./message/user-message";
 import type { User } from "./user.svelte";
@@ -60,37 +60,38 @@ export class Pin {
 	}
 
 	public static async fetch(chat: Chat): Promise<Pin | null> {
-		if (!app.user || !chat.channel.isMod) return null;
-
-		const {
-			data: [pinned],
-		} = await chat.channel.client.get<[PinnedMessage?]>("/chat/pins", {
-			broadcaster_id: chat.channel.id,
-			moderator_id: app.user.id,
+		const { channel } = await chat.channel.client.send(pinnedMessageQuery, {
+			id: chat.channel.id,
 		});
 
-		if (!pinned) return null;
+		const node = channel?.pinnedChatMessages?.edges?.[0]?.node;
+		const sender = node?.pinnedMessage.sender;
 
-		const existing = chat.messages.find((m) => m.id === pinned.message_id);
+		if (!node || !sender) return null;
+
+		const existing = chat.messages.find((m) => m.id === node.id);
 		let message: UserMessage;
 
 		if (existing?.isUser()) {
 			message = existing;
 		} else {
-			// The api doesn't include the message id on the actual message
-			pinned.message.message_id = pinned.message_id;
-
-			message = UserMessage.from(chat.channel, pinned.message, {
-				id: pinned.sender_user_id,
-				login: pinned.sender_user_login,
-				name: pinned.sender_user_name,
+			message = UserMessage.from(chat.channel, {
+				message: toStructuredMessage(node.id, node.pinnedMessage.content),
+				sender,
+				data: {
+					name_color: sender.chatColor ?? "",
+					badges: sender.displayBadges
+						.filter((badge) => badge !== null)
+						.map((badge) => ({ name: badge.setID, version: badge.version })),
+					server_timestamp: new Date(node.pinnedMessage.sentAt).getTime(),
+				},
 			});
 		}
 
-		const pinner = await chat.channel.client.users.fetch(pinned.pinned_by_user_id);
+		const pinner = await chat.channel.client.users.fetch(node.pinnedBy.id);
 
-		const start = new Date(pinned.starts_at).getTime();
-		const end = pinned.expires_at ? new Date(pinned.expires_at).getTime() : null;
+		const start = new Date(node.startsAt).getTime();
+		const end = node.endsAt ? new Date(node.endsAt).getTime() : null;
 
 		return new Pin(chat, {
 			pinner,

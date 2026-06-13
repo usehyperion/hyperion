@@ -29,8 +29,6 @@
 				// oxlint-disable-next-line no-await-in-loop
 				await handlers.get(message.type)?.handle(message);
 			}
-
-			await channel.chat.fetchPinned();
 		});
 
 		Pin.startPolling(channel.chat);

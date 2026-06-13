@@ -121,6 +121,7 @@ export class Channel {
 			this.emotes.fetch(),
 			this.fetchBadges(),
 			this.fetchCheermotes(),
+			this.chat.fetchPinned(),
 		]);
 
 		this.seventvId = seventvId;

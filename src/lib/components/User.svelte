@@ -72,12 +72,15 @@
 		</Popover.Trigger>
 	{:else}
 		<Popover.Trigger
-			class="font-semibold wrap-break-word disabled:cursor-default"
+			class={[
+				"font-semibold wrap-break-word disabled:cursor-default",
+				!message.action && "after:text-foreground after:content-[':']",
+			]}
 			disabled={nested}
 			style={message.author.style}
 		>
 			{message.author.displayName}
-		</Popover.Trigger>{#if !message.action}:{/if}
+		</Popover.Trigger>
 	{/if}
 
 	<Popover.Portal>

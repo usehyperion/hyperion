@@ -2,6 +2,8 @@
 	import type { Component } from "svelte";
 	import type { Pin } from "$lib/models/pin.svelte";
 	import { colorizeName } from "$lib/util";
+	import CaretDown from "~icons/ph/caret-down";
+	import CaretUp from "~icons/ph/caret-up";
 	import Clock from "~icons/ph/clock";
 	import PushPin from "~icons/ph/push-pin";
 	import PushPinSlash from "~icons/ph/push-pin-slash";
@@ -18,9 +20,12 @@
 	const { pin }: Props = $props();
 
 	let durationOpen = $state(false);
+	let expanded = $state(true);
 </script>
 
-<div class="absolute inset-x-2 top-2 z-10 rounded-md border bg-background p-2 text-sm">
+<div
+	class="absolute inset-x-2 top-2 z-10 overflow-hidden rounded-md border bg-background p-2 text-sm"
+>
 	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
 		<PushPin class="size-3" />
 		<p>Pinned by {@html colorizeName(pin.pinner)}</p>
@@ -41,6 +46,12 @@
 			{/if}
 
 			{@render button({
+				tooltip: expanded ? "Collapse" : "Expand",
+				icon: expanded ? CaretUp : CaretDown,
+				onclick: () => (expanded = !expanded),
+			})}
+
+			{@render button({
 				tooltip: "Hide",
 				icon: X,
 				onclick: () => (pin.hidden = true),
@@ -48,7 +59,14 @@
 		</div>
 	</div>
 
-	<Message message={pin.message} />
+	<div
+		class={[
+			!expanded &&
+				"inline-flex items-center gap-1 **:not-data-[slot=message-content]:shrink-0 **:data-[slot=message-content]:line-clamp-1",
+		]}
+	>
+		<Message message={pin.message} nested />
+	</div>
 </div>
 
 <PinDurationDialog {pin} bind:open={durationOpen} />

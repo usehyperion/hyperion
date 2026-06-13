@@ -207,8 +207,6 @@ export class Chat {
 	}
 
 	public async fetchPinned() {
-		if (!app.user || !this.channel.isMod) return;
-
 		const pin = await Pin.fetch(this);
 
 		if (pin && this.pinned?.message.id === pin.message.id) {

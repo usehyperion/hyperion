@@ -8,10 +8,9 @@ export default defineHandler({
 		const channel = app.channels.get(data.broadcaster_user_id);
 		if (!channel) return;
 
-		const message = UserMessage.from(channel, data.message, {
-			id: data.user_id,
-			login: data.user_login,
-			name: data.user_name,
+		const message = UserMessage.from(channel, {
+			message: data.message,
+			sender: data,
 		});
 
 		if (message.viewer) {
