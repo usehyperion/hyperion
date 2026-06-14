@@ -95,12 +95,13 @@ export class Pin {
 		const pinner = await chat.channel.client.users.fetch(node.pinnedBy.id);
 
 		const start = new Date(node.startsAt).getTime();
+		const updated = node.updatedAt ? new Date(node.updatedAt).getTime() : null;
 		const end = node.endsAt ? new Date(node.endsAt).getTime() : null;
 
 		return new Pin(chat, {
 			pinner,
 			message,
-			duration: end ? (end - start) / 1000 : null,
+			duration: end ? (end - (updated ?? start)) / 1000 : null,
 			expiresAt: end,
 		});
 	}

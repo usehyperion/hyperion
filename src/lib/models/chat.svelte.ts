@@ -216,7 +216,7 @@ export class Chat {
 		this.#setPinned(pin);
 	}
 
-	public clearPin(pin: Pin) {
+	public clearPin(pin = this.pinned) {
 		if (this.pinned === pin) this.#setPinned(null);
 	}
 

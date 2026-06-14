@@ -31,9 +31,7 @@
 		return () => clearInterval(id);
 	});
 
-	const remaining = $derived(
-		pin.expirationTimestamp ? Math.max(0, pin.expirationTimestamp - now) : 0,
-	);
+	const remaining = $derived(Math.max(0, (pin.expirationTimestamp ?? 0) - now));
 	const fraction = $derived(pin.duration ? clamp(0, remaining / (pin.duration * 1000), 1) : 0);
 </script>
 
