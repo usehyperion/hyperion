@@ -14,11 +14,7 @@ export default defineHandler({
 
 		const message = UserMessage.from(channel, {
 			message: data.message,
-			sender: {
-				id: data.user_id,
-				login: data.user_login,
-				name: data.user_name,
-			},
+			sender: data,
 		});
 
 		const boundaries: Boundary[] = [];
