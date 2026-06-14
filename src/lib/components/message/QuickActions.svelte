@@ -5,7 +5,6 @@
 	import Clipboard from "~icons/ph/clipboard";
 	import Clock from "~icons/ph/clock";
 	import Gavel from "~icons/ph/gavel";
-	import PushPin from "~icons/ph/push-pin";
 	import Trash from "~icons/ph/trash";
 	import { Button } from "../ui/button";
 	import * as ButtonGroup from "../ui/button-group";
