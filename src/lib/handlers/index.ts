@@ -4,7 +4,7 @@ import type { Handler } from "./helper";
 export const handlers = new Map<string, Handler<any>>();
 
 const imports = import.meta.glob<Handler<any>>(
-	["./eventsub/*.ts", "./irc/*.ts", "./seventv/*.ts"],
+	["./eventsub/*.ts", "./irc/*.ts", "./pubsub/*.ts", "./seventv/*.ts"],
 	{ eager: true, import: "default" },
 );
 

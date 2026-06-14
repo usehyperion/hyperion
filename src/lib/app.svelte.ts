@@ -16,6 +16,7 @@ import type { Theme } from "./themes";
 import { TwitchClient } from "./twitch/client";
 import type { NotificationPayload } from "./twitch/eventsub";
 import type { IrcMessage } from "./twitch/irc";
+import type { PubSubTopic } from "./twitch/pubsub";
 
 class App {
 	public readonly twitch = new TwitchClient();
@@ -93,6 +94,12 @@ class App {
 			await this.#handle(message.subscription.type, message.event);
 		});
 
+		const pubsubChannel = new IpcChannel<PubSubTopic>(async (message) => {
+			const [topic, id] = message.topic.split(".");
+
+			await this.#handle(topic, { ...message.message, target_id: id });
+		});
+
 		const seventvChannel = new IpcChannel<DispatchPayload>(async (message) => {
 			await this.#handle(
 				message.type,
@@ -103,6 +110,7 @@ class App {
 		await Promise.all([
 			invoke("connect_irc", { channel: ircChannel }),
 			invoke("connect_eventsub", { channel: eventsubChannel }),
+			invoke("connect_pubsub", { channel: pubsubChannel }),
 			invoke("connect_seventv", { channel: seventvChannel }),
 		]);
 

@@ -1,12 +1,3 @@
-//! Shared building blocks for websocket subscription clients.
-//!
-//! Both `eventsub::client` and `seventv::client` maintain the same shape of
-//! state: a session id, an `AtomicBool` for the connected flag, and a
-//! `HashMap` of subscriptions keyed by `"channel:event"`. The subscription
-//! semantics differ enough (Twitch EventSub subscribes over HTTP, 7TV over
-//! websocket frames) that a full `Protocol` trait would require a tangle of
-//! associated types and `Box<dyn>`s. Instead this module exposes small
-//! building blocks the two clients compose.
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -29,7 +20,6 @@ pub fn forward_to_channel<T: serde::Serialize + Send + 'static>(
     });
 }
 
-/// Build the canonical `"channel:event"` key used by both clients.
 pub fn sub_key(channel: &str, event: &str) -> String {
     format!("{channel}:{event}")
 }
@@ -63,10 +53,6 @@ impl ConnectionState {
     }
 }
 
-/// HashMap of subscriptions keyed by `"channel:event"`.
-///
-/// `V` is whatever per-subscription state the protocol needs (e.g. an opaque
-/// remote id plus condition for EventSub, just the condition for 7TV).
 #[derive(Debug)]
 pub struct SubscriptionStore<V> {
     inner: Mutex<HashMap<String, V>>,
@@ -108,13 +94,10 @@ impl<V> SubscriptionStore<V> {
         map.remove(&key)
     }
 
-    /// Drain every subscription, returning them as `(key, value)` pairs.
     pub async fn drain(&self) -> Vec<(String, V)> {
         self.inner.lock().await.drain().collect()
     }
 
-    /// Collect every event suffix (the part after the `channel:` prefix) for
-    /// a given channel. Used by `unsubscribe_all` in both clients.
     pub async fn events_for_channel(&self, channel: &str) -> Vec<String> {
         let prefix = format!("{channel}:");
 

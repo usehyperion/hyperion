@@ -141,10 +141,7 @@ impl SeventTvClient {
                 if let Some(false) = msg.d["data"]["success"].as_bool() {
                     let to_restore = self.subscriptions.drain().await;
 
-                    tracing::warn!(
-                        "Resume unsuccessful, restoring {} events",
-                        to_restore.len()
-                    );
+                    tracing::warn!("Resume unsuccessful, restoring {} events", to_restore.len());
 
                     for (key, condition) in to_restore {
                         let Some((channel, event)) = key.split_once(':') else {

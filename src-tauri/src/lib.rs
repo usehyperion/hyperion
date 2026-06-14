@@ -5,6 +5,7 @@ use std::sync::{Arc, LazyLock};
 
 use eventsub::EventSubClient;
 use irc::IrcClient;
+use pubsub::PubSubClient;
 use reqwest::header::HeaderMap;
 use seventv::SeventTvClient;
 use tauri::async_runtime::{self, Mutex};
@@ -22,6 +23,7 @@ mod eventsub;
 mod irc;
 mod json;
 mod log;
+mod pubsub;
 mod server;
 mod seventv;
 mod ws;
@@ -45,6 +47,7 @@ pub struct AppState {
     irc: Option<IrcClient>,
     eventsub: Option<Arc<EventSubClient>>,
     seventv: Option<Arc<SeventTvClient>>,
+    pubsub: Option<Arc<PubSubClient>>,
 }
 
 impl Default for AppState {
@@ -55,6 +58,7 @@ impl Default for AppState {
             irc: None,
             eventsub: None,
             seventv: None,
+            pubsub: None,
         }
     }
 }
@@ -174,6 +178,7 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         irc::connect_irc,
         log::log,
         log::update_log_level,
+        pubsub::connect_pubsub,
         server::start_server,
         seventv::connect_seventv,
         seventv::resub_emote_set,

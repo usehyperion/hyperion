@@ -64,7 +64,7 @@ pub async fn join(
 ) -> Result<(), Error> {
     tracing::info!("Joining {login}");
 
-    let (token, irc, eventsub, seventv) = {
+    let (token, irc, eventsub, seventv, pubsub) = {
         let state = state.lock().await;
         let token = get_access_token(&state)?;
 
@@ -78,6 +78,7 @@ pub async fn join(
             irc,
             state.eventsub.clone(),
             state.seventv.clone(),
+            state.pubsub.clone(),
         )
     };
 
@@ -160,6 +161,18 @@ pub async fn join(
                         .await;
                 }
             }
+
+            if let Some(pubsub) = pubsub {
+                let topics = vec![
+                    format!("channel-points-channel-v1.{id}"),
+                    format!("pinned-chat-updates-v1.{id}"),
+                    format!("predictions-channel-v1.{id}"),
+                    format!("polls.{id}"),
+                    format!("predictions-user-v1.{}", token.user_id.as_str()),
+                ];
+
+                pubsub.subscribe_all(&login_clone, &topics).await;
+            }
         }
         .in_current_span(),
     );
@@ -183,6 +196,10 @@ pub async fn leave(state: State<'_, Mutex<AppState>>, channel: String) -> Result
         seventv.unsubscribe_all(&channel).await;
     }
 
+    if let Some(ref pubsub) = state.pubsub {
+        pubsub.unsubscribe_all(&channel).await;
+    }
+
     if let Some(ref irc) = state.irc {
         irc.part(channel);
     }
@@ -194,10 +211,14 @@ pub async fn leave(state: State<'_, Mutex<AppState>>, channel: String) -> Result
 pub async fn rejoin(state: State<'_, Mutex<AppState>>, channel: String) -> Result<(), Error> {
     tracing::info!("Rejoining {channel}");
 
-    let (eventsub, irc) = {
+    let (eventsub, pubsub, irc) = {
         let state = state.lock().await;
 
-        (state.eventsub.clone(), state.irc.clone())
+        (
+            state.eventsub.clone(),
+            state.pubsub.clone(),
+            state.irc.clone(),
+        )
     };
 
     if let Some(eventsub) = eventsub {
@@ -205,6 +226,10 @@ pub async fn rejoin(state: State<'_, Mutex<AppState>>, channel: String) -> Resul
         let subs_ref: Vec<_> = subscriptions.iter().map(|(e, c)| (*e, c)).collect();
 
         eventsub.subscribe_all(&channel, &subs_ref).await?;
+    }
+
+    if let Some(pubsub) = pubsub {
+        pubsub.resubscribe_all(&channel).await;
     }
 
     if let Some(irc) = irc {
