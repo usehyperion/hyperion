@@ -108,7 +108,6 @@ export class Pin {
 
 	public static startPolling(chat: Chat) {
 		Pin.stopPolling(chat);
-		if (!app.user || !chat.channel.isMod) return;
 
 		pollIds.set(
 			chat,
