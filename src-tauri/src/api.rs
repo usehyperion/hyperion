@@ -168,7 +168,6 @@ pub async fn join(
                     format!("pinned-chat-updates-v1.{id}"),
                     format!("predictions-channel-v1.{id}"),
                     format!("polls.{id}"),
-                    format!("predictions-user-v1.{}", token.user_id.as_str()),
                 ];
 
                 pubsub.subscribe_all(&login_clone, &topics).await;

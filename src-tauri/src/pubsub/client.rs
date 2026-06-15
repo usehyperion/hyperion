@@ -17,24 +17,14 @@ use crate::ws::{ConnectionState, SubscriptionStore};
 
 const TWITCH_PUBSUB_WS_URI: &str = "wss://pubsub-edge.twitch.tv";
 
-/// Clients must PING at least once every 5 minutes. We ping comfortably under
-/// that, plus a small per-connection jitter to avoid a thundering herd.
 const PING_INTERVAL: Duration = Duration::from_secs(240);
-
-/// If a PONG is not received within 10 seconds of a PING, the connection is
-/// considered dead and we reconnect.
 const PONG_TIMEOUT: Duration = Duration::from_secs(10);
 
-/// Initial reconnect backoff, doubled on each consecutive failure.
 const INITIAL_BACKOFF: Duration = Duration::from_secs(1);
-
-/// Maximum reconnect backoff threshold.
 const MAX_BACKOFF: Duration = Duration::from_secs(120);
 
-/// Twitch allows up to 50 topics per LISTEN connection.
 const MAX_TOPICS_PER_LISTEN: usize = 50;
 
-/// A decoded PubSub `MESSAGE`, forwarded to the frontend.
 #[derive(Debug, Clone, Serialize)]
 pub struct PubSubMessage {
     pub topic: String,
@@ -44,7 +34,6 @@ pub struct PubSubMessage {
 #[derive(Debug, Deserialize)]
 struct MessageData {
     topic: String,
-    /// The inner message is an escaped JSON string.
     message: String,
 }
 
@@ -73,7 +62,6 @@ enum Incoming {
     AuthRevoked { data: AuthRevokedData },
 }
 
-/// Outcome of handling an incoming frame, signalled back to the connection loop.
 enum Action {
     None,
     Pong,
@@ -83,7 +71,6 @@ enum Action {
 pub struct PubSubClient {
     token: Arc<UserToken>,
     state: ConnectionState,
-    /// Subscriptions keyed by `"channel:topic"`; the value is the full topic.
     subscriptions: SubscriptionStore<String>,
     sender: mpsc::UnboundedSender<PubSubMessage>,
     message_tx: mpsc::UnboundedSender<Message>,
@@ -137,6 +124,7 @@ impl PubSubClient {
 
             self.state.set_connected(true);
             self.relisten_all().await;
+            self.listen_user_topics();
 
             let mut ping_interval = tokio::time::interval(PING_INTERVAL);
             ping_interval.set_missed_tick_behavior(MissedTickBehavior::Skip);
@@ -297,6 +285,12 @@ impl PubSubClient {
         }
     }
 
+    fn listen_user_topics(&self) {
+        let topic = format!("predictions-user-v1.{}", self.token.user_id);
+
+        self.send_listen("LISTEN", &[topic]);
+    }
+
     async fn relisten_all(&self) {
         let drained = self.subscriptions.drain().await;
 
@@ -330,7 +324,7 @@ impl PubSubClient {
 
     #[tracing::instrument(name = "pubsub_listen", skip(self))]
     pub async fn subscribe(&self, channel: &str, topic: &str) {
-        self.send_listen("LISTEN", std::slice::from_ref(&topic.to_string()));
+        self.send_listen("LISTEN", &[topic.to_string()]);
         self.subscriptions
             .insert(channel, topic, topic.to_string())
             .await;
@@ -345,7 +339,7 @@ impl PubSubClient {
 
     pub async fn unsubscribe(&self, channel: &str, topic: &str) {
         if self.subscriptions.remove(channel, topic).await.is_some() {
-            self.send_listen("UNLISTEN", std::slice::from_ref(&topic.to_string()));
+            self.send_listen("UNLISTEN", &[topic.to_string()]);
         }
     }
 
@@ -360,8 +354,8 @@ impl PubSubClient {
         let topics = self.subscriptions.events_for_channel(channel).await;
 
         for topic in &topics {
-            self.send_listen("UNLISTEN", std::slice::from_ref(topic));
-            self.send_listen("LISTEN", std::slice::from_ref(topic));
+            self.send_listen("UNLISTEN", &[topic.to_string()]);
+            self.send_listen("LISTEN", &[topic.to_string()]);
         }
     }
 }

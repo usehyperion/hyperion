@@ -6,9 +6,13 @@ export interface PubSubTopicMap {
 	"predictions-user-v1": {};
 }
 
+export type PubSubMessage<K extends keyof PubSubTopicMap> = PubSubTopicMap[K] & {
+	target_id: string;
+};
+
 export type PubSubTopic = {
 	[K in keyof PubSubTopicMap]: {
 		topic: K;
-		message: PubSubTopicMap[K] & { target_id: string };
+		message: PubSubMessage<K>;
 	};
 }[keyof PubSubTopicMap];
