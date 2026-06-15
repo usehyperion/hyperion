@@ -1,12 +1,6 @@
-// This is mainly used as a signal; most fields can be ignored
-export interface PinnedChatUpdates {
-	type: "pin-message" | "unpin-message" | "update-message";
-	updated_at?: number;
-}
-
 export interface PubSubTopicMap {
 	"channel-points-channel-v1": {};
-	"pinned-chat-updates-v1": PinnedChatUpdates;
+	"pinned-chat-updates-v1": {};
 	"predictions-channel-v1": {};
 	polls: {};
 	"predictions-user-v1": {};

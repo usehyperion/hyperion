@@ -1,7 +1,6 @@
 import { app } from "$lib/app.svelte";
 import { settings } from "$lib/settings";
-import type { StructuredMessage } from "$lib/twitch/api";
-import type { AutoModMetadata } from "$lib/twitch/eventsub";
+import type { AutoModMetadata, StructuredMessage } from "$lib/twitch/eventsub";
 import type {
 	BasicUser,
 	PrivmsgMessage,
@@ -10,7 +9,7 @@ import type {
 	UserNoticeEvent,
 	UserNoticeMessage,
 } from "$lib/twitch/irc";
-import { extractEmotes, type Prefix } from "$lib/util";
+import { extractEmotes } from "$lib/util";
 import { Badge } from "../badge";
 import type { Channel } from "../channel.svelte";
 import { User } from "../user.svelte";
@@ -36,12 +35,6 @@ function createPartialUser(channel: Channel, sender: BasicUser, color: string) {
 	channel.viewers.set(user.id, viewer);
 
 	return user;
-}
-
-interface FromInit {
-	message: StructuredMessage;
-	sender: Prefix<BasicUser, "user">;
-	data?: Partial<PrivmsgMessage>;
 }
 
 /**
@@ -144,22 +137,22 @@ export class UserMessage extends TextualMessage {
 	/**
 	 * Creates a user message from a message received over EventSub.
 	 */
-	public static from(channel: Channel, init: FromInit) {
-		const isAction = /^\x01ACTION.*$/.test(init.message.text);
-		const text = isAction ? init.message.text.slice(8, -1) : init.message.text;
+	public static from(channel: Channel, message: StructuredMessage, sender: BasicUser) {
+		const isAction = /^\x01ACTION.*$/.test(message.text);
+		const text = isAction ? message.text.slice(8, -1) : message.text;
 
 		return new this(channel, {
 			type: "privmsg",
 			badge_info: [],
 			badges: [],
-			bits: init.message.fragments.reduce((a, b) => {
+			bits: message.fragments.reduce((a, b) => {
 				return a + (b.type === "cheermote" ? b.cheermote.bits : 0);
 			}, 0),
 			channel_id: "",
 			channel_login: "",
 			deleted: false,
-			emotes: extractEmotes(init.message.fragments),
-			message_id: init.message.message_id,
+			emotes: extractEmotes(message.fragments),
+			message_id: message.message_id,
 			message_text: text,
 			name_color: "",
 			is_action: isAction,
@@ -170,15 +163,10 @@ export class UserMessage extends TextualMessage {
 			is_recent: false,
 			is_returning_chatter: false,
 			reply: null,
+			sender,
 			source_only: false,
 			source: null,
 			server_timestamp: Date.now(),
-			...init.data,
-			sender: {
-				id: init.sender.user_id,
-				login: init.sender.user_login,
-				name: init.sender.user_name,
-			},
 		});
 	}
 
@@ -214,13 +202,6 @@ export class UserMessage extends TextualMessage {
 		}
 
 		return this.#nodes;
-	}
-
-	/**
-	 * Whether the message is currently pinned in chat.
-	 */
-	public get pinned() {
-		return this.channel.chat.pinned?.message.id === this.id;
 	}
 
 	public async setSource(source: Source) {
@@ -259,10 +240,6 @@ export class UserMessage extends TextualMessage {
 	 */
 	public async deny() {
 		await this.#updateHeldMessage(false);
-	}
-
-	public async pin() {
-		await this.channel.chat.pin(this.id);
 	}
 
 	#populateBadges() {

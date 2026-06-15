@@ -121,7 +121,6 @@ export class Channel {
 			this.emotes.fetch(),
 			this.fetchBadges(),
 			this.fetchCheermotes(),
-			this.chat.fetchPinned(),
 		]);
 
 		this.seventvId = seventvId;
@@ -141,8 +140,6 @@ export class Channel {
 				channel: this.user.username,
 				limit: settings.state["chat.messages.history.limit"],
 			});
-		} else {
-			await this.chat.fetchPinned();
 		}
 	}
 

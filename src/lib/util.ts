@@ -5,7 +5,7 @@ import type { ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import type { User } from "./models/user.svelte";
 import { Viewer } from "./models/viewer.svelte";
-import type { Fragment } from "./twitch/api";
+import type { Fragment } from "./twitch/eventsub";
 import type { Emote } from "./twitch/irc";
 
 export type {

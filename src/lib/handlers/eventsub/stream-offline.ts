@@ -9,7 +9,6 @@ export default defineHandler({
 		if (!channel) return;
 
 		channel.stream = null;
-		channel.chat.clearPin();
 
 		channel.chat.event(StreamStatus, { channel, online: false });
 	},

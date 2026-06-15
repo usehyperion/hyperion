@@ -12,9 +12,10 @@ export default defineHandler({
 		const isAutoMod = data.reason === "automod";
 		data.message.message_id = data.message_id;
 
-		const message = UserMessage.from(channel, {
-			message: data.message,
-			sender: data,
+		const message = UserMessage.from(channel, data.message, {
+			id: data.user_id,
+			login: data.user_login,
+			name: data.user_name,
 		});
 
 		const boundaries: Boundary[] = [];
