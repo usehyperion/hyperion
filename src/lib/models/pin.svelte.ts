@@ -7,8 +7,7 @@ import type { User } from "./user.svelte";
 interface PinData {
 	pinner: User;
 	message: UserMessage;
-	pinnedAt: number;
-	updatedAt: number;
+	duration: number | null;
 	expiresAt: number | null;
 }
 
@@ -30,15 +29,16 @@ export class Pin {
 	public readonly message: UserMessage;
 
 	/**
+	 * The duration in seconds for which the message is pinned for; `null` if
+	 * the pin has no expiration.
+	 */
+	public readonly duration: number | null;
+
+	/**
 	 * The timestamp at which the pin expires; `null` if the pin has no
 	 * expiration.
 	 */
 	public readonly expirationTimestamp: number | null;
-
-	/**
-	 * The timestamp at which the pin's duration was last updated.
-	 */
-	public updatedAt: number;
 
 	/**
 	 * Whether the pinned message is hidden for the current user.
@@ -47,11 +47,10 @@ export class Pin {
 
 	private constructor(chat: Chat, data: PinData) {
 		this.#chat = chat;
-
 		this.pinner = data.pinner;
 		this.message = data.message;
+		this.duration = data.duration;
 		this.expirationTimestamp = data.expiresAt;
-		this.updatedAt = data.updatedAt;
 
 		this.#scheduleExpiry();
 	}
@@ -94,20 +93,9 @@ export class Pin {
 		return new Pin(chat, {
 			pinner,
 			message,
-			pinnedAt: start,
-			updatedAt: updated ?? start,
+			duration: end ? (end - (updated ?? start)) / 1000 : null,
 			expiresAt: end,
 		});
-	}
-
-	/**
-	 * The duration in seconds for which the message is pinned for; `null` if
-	 * the pin has no expiration.
-	 */
-	public get duration() {
-		if (this.expirationTimestamp === null) return null;
-
-		return (this.expirationTimestamp - this.updatedAt) / 1000;
 	}
 
 	public async update(duration: number | null) {

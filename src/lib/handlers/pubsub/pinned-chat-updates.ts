@@ -7,12 +7,10 @@ export default defineHandler({
 		const channel = app.channels.get(data.target_id);
 		if (!channel) return;
 
-		if (data.type === "pin-message") {
+		if (data.type === "pin-message" || data.type === "update-message") {
 			await channel.chat.fetchPinned();
 		} else if (data.type === "unpin-message") {
-			channel.chat.clearPin(null);
-		} else if (channel.chat.pinned) {
-			channel.chat.pinned.updatedAt = data.updated_at!;
+			channel.chat.clearPin();
 		}
 	},
 });
