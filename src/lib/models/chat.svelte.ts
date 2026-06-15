@@ -171,7 +171,6 @@ export class Chat {
 	}
 
 	public reset() {
-		Pin.stopPolling(this);
 		this.#setPinned(null);
 		this.#bypassNext = false;
 		this.#lastRecentAt = null;
@@ -367,10 +366,7 @@ export class Chat {
 	}
 
 	#setPinned(pin: Pin | null) {
-		if (this.pinned && this.pinned !== pin) {
-			this.pinned.dispose();
-		}
-
+		this.pinned?.dispose();
 		this.pinned = pin;
 	}
 }

@@ -7,22 +7,15 @@ import type { User } from "./user.svelte";
 interface PinData {
 	pinner: User;
 	message: UserMessage;
-	duration: number | null;
+	pinnedAt: number;
+	updatedAt: number;
 	expiresAt: number | null;
 }
 
 /**
- * Active poll intervals keyed by chat, so each chat polls at most once.
- */
-const pollIds = new WeakMap<Chat, ReturnType<typeof setInterval>>();
-
-/**
- * A single pinned message in a chat, along with the actions that can be
- * performed on it.
+ * A single pinned message in a chat.
  */
 export class Pin {
-	static readonly #POLL_INTERVAL = 30 * 1000;
-
 	#chat: Chat;
 	#expiryId: ReturnType<typeof setTimeout> | null = null;
 
@@ -37,16 +30,15 @@ export class Pin {
 	public readonly message: UserMessage;
 
 	/**
-	 * The duration in seconds for which the message is pinned for; `null` if
-	 * the pin has no expiration.
-	 */
-	public readonly duration: number | null;
-
-	/**
 	 * The timestamp at which the pin expires; `null` if the pin has no
 	 * expiration.
 	 */
 	public readonly expirationTimestamp: number | null;
+
+	/**
+	 * The timestamp at which the pin's duration was last updated.
+	 */
+	public updatedAt: number;
 
 	/**
 	 * Whether the pinned message is hidden for the current user.
@@ -55,10 +47,11 @@ export class Pin {
 
 	private constructor(chat: Chat, data: PinData) {
 		this.#chat = chat;
+
 		this.pinner = data.pinner;
 		this.message = data.message;
-		this.duration = data.duration;
 		this.expirationTimestamp = data.expiresAt;
+		this.updatedAt = data.updatedAt;
 
 		this.#scheduleExpiry();
 	}
@@ -101,26 +94,20 @@ export class Pin {
 		return new Pin(chat, {
 			pinner,
 			message,
-			duration: end ? (end - (updated ?? start)) / 1000 : null,
+			pinnedAt: start,
+			updatedAt: updated ?? start,
 			expiresAt: end,
 		});
 	}
 
-	public static startPolling(chat: Chat) {
-		Pin.stopPolling(chat);
+	/**
+	 * The duration in seconds for which the message is pinned for; `null` if
+	 * the pin has no expiration.
+	 */
+	public get duration() {
+		if (this.expirationTimestamp === null) return null;
 
-		pollIds.set(
-			chat,
-			setInterval(() => void chat.fetchPinned(), this.#POLL_INTERVAL),
-		);
-	}
-
-	public static stopPolling(chat: Chat) {
-		const id = pollIds.get(chat);
-		if (id === undefined) return;
-
-		clearInterval(id);
-		pollIds.delete(chat);
+		return (this.expirationTimestamp - this.updatedAt) / 1000;
 	}
 
 	public async update(duration: number | null) {
