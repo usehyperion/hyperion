@@ -43,7 +43,7 @@
 
 		if (!query) return;
 
-		const { searchSuggestions } = await app.twitch.send(searchSuggestionsQuery, { query });
+		const { searchSuggestions } = await app.twitch.gql(searchSuggestionsQuery, { query });
 
 		for (const edge of searchSuggestions?.edges ?? []) {
 			if (edge.node.content?.__typename !== "SearchSuggestionChannel") {

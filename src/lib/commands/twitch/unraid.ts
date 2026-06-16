@@ -1,7 +1,5 @@
-import { ApiError } from "$lib/errors/api-error";
-import { CommandError } from "$lib/errors/command-error";
 import { ErrorMessage } from "$lib/errors/messages";
-import { defineCommand } from "../util";
+import { defineCommand, mapErrors } from "../util";
 
 export default defineCommand({
 	provider: "Twitch",
@@ -9,14 +7,9 @@ export default defineCommand({
 	description: "Stop an ongoing raid",
 	modOnly: true,
 	async exec(_, channel) {
-		try {
-			await channel.unraid();
-		} catch (error) {
-			if (error instanceof ApiError && error.status === 404) {
-				throw new CommandError(ErrorMessage.NO_PENDING_RAID);
-			} else {
-				throw error;
-			}
-		}
+		await mapErrors(
+			() => channel.unraid(),
+			[{ status: 404, message: ErrorMessage.NO_PENDING_RAID }],
+		);
 	},
 });

@@ -269,7 +269,7 @@ export class Chat {
 			const [name, ...args] = message.slice(1).split(" ");
 
 			const command = this.commands.get(name);
-			if (!command || (command.modOnly && !viewer.moderator)) return;
+			if (!command || (command.modOnly && this.channel.isMod)) return;
 
 			try {
 				await command.exec(args, this.channel, viewer.user);

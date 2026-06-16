@@ -10,6 +10,32 @@ export function defineCommand<const T extends Command>(command: T) {
 	return command;
 }
 
+export interface ApiErrorMatch {
+	status?: number;
+	includes?: string;
+	message: string;
+}
+
+export async function mapErrors<T>(action: () => Promise<T>, matches: ApiErrorMatch[]): Promise<T> {
+	try {
+		return await action();
+	} catch (error) {
+		if (error instanceof ApiError) {
+			for (const match of matches) {
+				const statusMatches = match.status === undefined || error.status === match.status;
+				const textMatches =
+					match.includes === undefined || error.message.includes(match.includes);
+
+				if (statusMatches && textMatches) {
+					throw new CommandError(match.message);
+				}
+			}
+		}
+
+		throw error;
+	}
+}
+
 export async function getTarget(username: string, channel: Channel) {
 	if (!username) {
 		throw new CommandError(ErrorMessage.MISSING_ARG("username"));
@@ -20,18 +46,13 @@ export async function getTarget(username: string, channel: Channel) {
 	let target = channel.viewers.values().find((v) => v.username === username);
 
 	if (!target) {
-		try {
-			const user = await app.twitch.users.fetch(username, { by: "login" });
+		const user = await mapErrors(
+			() => app.twitch.users.fetch(username, { by: "login" }),
+			[{ status: 404, message: ErrorMessage.USER_NOT_FOUND(username) }],
+		);
 
-			target = new Viewer(channel, user);
-			channel.viewers.set(target.id, target);
-		} catch (error) {
-			if (error instanceof ApiError && error.status === 404) {
-				throw new CommandError(ErrorMessage.USER_NOT_FOUND(username));
-			} else {
-				throw error;
-			}
-		}
+		target = new Viewer(channel, user);
+		channel.viewers.set(target.id, target);
 	}
 
 	return target;

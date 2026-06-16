@@ -1,10 +1,9 @@
 import { goto } from "$app/navigation";
 import { resolve } from "$app/paths";
 import { app } from "$lib/app.svelte";
-import { ApiError } from "$lib/errors/api-error";
 import { CommandError } from "$lib/errors/command-error";
 import { ErrorMessage } from "$lib/errors/messages";
-import { defineCommand } from "../util";
+import { defineCommand, mapErrors } from "../util";
 
 export default defineCommand({
 	provider: "Built-in",
@@ -19,18 +18,13 @@ export default defineCommand({
 		let channel = app.channels.getByLogin(args[0]);
 
 		if (!channel) {
-			try {
-				channel = await app.channels.fetch(args[0], { by: "login" });
-				channel.ephemeral = true;
+			channel = await mapErrors(
+				() => app.channels.fetch(args[0], { by: "login" }),
+				[{ status: 404, message: ErrorMessage.USER_NOT_FOUND(args[0]) }],
+			);
+			channel.ephemeral = true;
 
-				app.channels.set(channel.id, channel);
-			} catch (error) {
-				if (error instanceof ApiError && error.status === 404) {
-					throw new CommandError(ErrorMessage.USER_NOT_FOUND(args[0]));
-				} else {
-					throw error;
-				}
-			}
+			app.channels.set(channel.id, channel);
 		}
 
 		await goto(

@@ -1,4 +1,4 @@
-import { betterFetch as fetch } from "@better-fetch/fetch";
+import { ofetch } from "ofetch";
 import { SvelteMap } from "svelte/reactivity";
 import * as cache from "tauri-plugin-cache-api";
 import { ApiError } from "$lib/errors/api-error";
@@ -54,15 +54,12 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		let response = await cache.get<BttvUser[]>("bttv_badges");
 
 		if (!response || force) {
-			const { data, error } = await fetch<BttvUser[]>(
-				"https://api.betterttv.net/3/cached/badges",
-			);
-
-			if (error) {
-				throw new ApiError(error.status, error.message ?? error.statusText);
+			try {
+				response = await ofetch<BttvUser[]>("https://api.betterttv.net/3/cached/badges");
+			} catch (error) {
+				throw ApiError.from(error);
 			}
 
-			response = data;
 			await cache.set("bttv_badges", response);
 		}
 
@@ -87,15 +84,12 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		let response = await cache.get<FfzResponse>("ffz_badges");
 
 		if (!response || force) {
-			const { data, error } = await fetch<FfzResponse>(
-				"https://api.frankerfacez.com/v1/badges/ids",
-			);
-
-			if (error) {
-				throw new ApiError(error.status, error.message ?? error.statusText);
+			try {
+				response = await ofetch<FfzResponse>("https://api.frankerfacez.com/v1/badges/ids");
+			} catch (error) {
+				throw ApiError.from(error);
 			}
 
-			response = data;
 			await cache.set("ffz_badges", response);
 		}
 

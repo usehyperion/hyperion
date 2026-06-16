@@ -190,7 +190,7 @@ export class Channel {
 		if (force || !badges) {
 			if (force) this.badges.clear();
 
-			const { user } = await this.client.send(channelBadgesQuery, { id: this.id });
+			const { user } = await this.client.gql(channelBadgesQuery, { id: this.id });
 			badges = user?.broadcastBadges?.flatMap((b) => (b ? [Badge.fromGql(b)] : [])) ?? [];
 
 			await cache.set(`badges:${this.id}`, badges);
@@ -213,7 +213,7 @@ export class Channel {
 		if (force || !cheermotes) {
 			if (force) this.cheermotes.length = 0;
 
-			const { user } = await this.client.send(cheermoteQuery, { id: this.id });
+			const { user } = await this.client.gql(cheermoteQuery, { id: this.id });
 
 			cheermotes = user?.cheer?.emotes.filter((e) => e != null) ?? [];
 			await cache.set(`cheermotes:${this.id}`, cheermotes);
@@ -227,7 +227,7 @@ export class Channel {
 	 * Retrieves the stream of the channel if it's live.
 	 */
 	public async fetchStream() {
-		const { user } = await this.client.send(streamQuery, { id: this.id });
+		const { user } = await this.client.gql(streamQuery, { id: this.id });
 
 		if (user?.stream) {
 			this.stream = new Stream(this.client, this.id, user.stream);
@@ -243,6 +243,8 @@ export class Channel {
 				description,
 			},
 		});
+
+		console.log(data);
 
 		return data;
 	}

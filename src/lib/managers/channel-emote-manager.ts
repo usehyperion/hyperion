@@ -1,4 +1,4 @@
-import { betterFetch as fetch } from "@better-fetch/fetch";
+import { ofetch } from "ofetch";
 import * as cache from "tauri-plugin-cache-api";
 import { transform7tvEmote, transformBttvEmote, transformFfzEmote } from "$lib/emotes";
 import type { BttvEmote, Emote, FfzEmoteSet } from "$lib/emotes";
@@ -46,16 +46,14 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 	 * Retrieves the list of FrankerFaceZ emotes in the channel.
 	 */
 	public override async fetchFfz() {
-		const { data, error } = await fetch<Room>(
-			`https://api.frankerfacez.com/v1/room/id/${this.channel.id}`,
-		);
+		let data: Room;
 
-		if (error) {
-			if (error.status === 404) {
-				return [];
-			}
-
-			throw new ApiError(error.status, error.statusText);
+		try {
+			data = await ofetch<Room>(`https://api.frankerfacez.com/v1/room/id/${this.channel.id}`);
+		} catch (error) {
+			const apiError = ApiError.from(error);
+			if (apiError.status === 404) return [];
+			throw apiError;
 		}
 
 		const emotes = data.sets[data.room.set].emoticons.map(transformFfzEmote);
@@ -68,16 +66,16 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 	 * Retrieves the list of BetterTTV emotes in the channel.
 	 */
 	public override async fetchBttv() {
-		const { data, error } = await fetch<BttvUser>(
-			`https://api.betterttv.net/3/cached/users/twitch/${this.channel.id}`,
-		);
+		let data: BttvUser;
 
-		if (error) {
-			if (error.status === 404) {
-				return [];
-			}
-
-			throw new ApiError(error.status, error.statusText);
+		try {
+			data = await ofetch<BttvUser>(
+				`https://api.betterttv.net/3/cached/users/twitch/${this.channel.id}`,
+			);
+		} catch (error) {
+			const apiError = ApiError.from(error);
+			if (apiError.status === 404) return [];
+			throw apiError;
 		}
 
 		const emotes = data.channelEmotes.concat(data.sharedEmotes).map(transformBttvEmote);

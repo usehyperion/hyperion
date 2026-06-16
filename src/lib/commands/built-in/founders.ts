@@ -6,7 +6,7 @@ export default defineCommand({
 	name: "founders",
 	description: "Display a list of founders for this channel",
 	async exec(_, channel) {
-		const { user } = await channel.client.send(foundersQuery, { id: channel.id });
+		const { user } = await channel.client.gql(foundersQuery, { id: channel.id });
 
 		const founders =
 			user?.channel?.founders

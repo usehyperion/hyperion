@@ -56,7 +56,7 @@ export class Pin {
 	}
 
 	public static async fetch(chat: Chat): Promise<Pin | null> {
-		const { channel } = await chat.channel.client.send(pinnedMessageQuery, {
+		const { channel } = await chat.channel.client.gql(pinnedMessageQuery, {
 			id: chat.channel.id,
 		});
 

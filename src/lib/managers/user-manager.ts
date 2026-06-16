@@ -32,7 +32,7 @@ export class UserManager extends SvelteMap<string, User> {
 			variables.login = idOrLogin;
 		}
 
-		const { user: data } = await this.client.send(userQuery, variables);
+		const { user: data } = await this.client.gql(userQuery, variables);
 
 		if (!data) {
 			throw new ApiError(404, ErrorMessage.USER_NOT_FOUND(idOrLogin));

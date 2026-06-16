@@ -1,7 +1,5 @@
-import { ApiError } from "$lib/errors/api-error";
-import { CommandError } from "$lib/errors/command-error";
 import { ErrorMessage } from "$lib/errors/messages";
-import { defineCommand, getTarget } from "../util";
+import { defineCommand, getTarget, mapErrors } from "../util";
 
 export default defineCommand({
 	provider: "Twitch",
@@ -12,14 +10,9 @@ export default defineCommand({
 	async exec(this: void, args, channel) {
 		const target = await getTarget(args[0], channel);
 
-		try {
-			await channel.viewers.unban(target.id);
-		} catch (error) {
-			if (error instanceof ApiError && error.status === 400) {
-				throw new CommandError(ErrorMessage.USER_NOT_BANNED(target.displayName));
-			} else {
-				throw error;
-			}
-		}
+		await mapErrors(
+			() => channel.viewers.unban(target.id),
+			[{ status: 400, message: ErrorMessage.USER_NOT_BANNED(target.displayName) }],
+		);
 	},
 });

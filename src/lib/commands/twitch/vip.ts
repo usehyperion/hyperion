@@ -1,7 +1,5 @@
-import { ApiError } from "$lib/errors/api-error";
-import { CommandError } from "$lib/errors/command-error";
 import { ErrorMessage } from "$lib/errors/messages";
-import { defineCommand, getTarget } from "../util";
+import { defineCommand, getTarget, mapErrors } from "../util";
 
 export default defineCommand({
 	provider: "Twitch",
@@ -12,24 +10,24 @@ export default defineCommand({
 	async exec(args, channel) {
 		const target = await getTarget(args[0], channel);
 
-		try {
-			await channel.viewers.vip(target.id);
-		} catch (error) {
-			if (error instanceof ApiError) {
-				if (error.status === 409) {
-					throw new CommandError(ErrorMessage.NO_VIP_SLOTS);
-				} else if (error.status === 422) {
-					if (error.message.includes("already")) {
-						throw new CommandError(ErrorMessage.USER_ALREADY_VIP(target.displayName));
-					} else if (error.message.includes("moderator")) {
-						throw new CommandError(ErrorMessage.MOD_CANNOT_BE_VIP(target.displayName));
-					}
-				} else {
-					throw error;
-				}
-			} else {
-				throw error;
-			}
-		}
+		await mapErrors(
+			() => channel.viewers.vip(target.id),
+			[
+				{
+					status: 409,
+					message: ErrorMessage.NO_VIP_SLOTS,
+				},
+				{
+					status: 422,
+					includes: "already",
+					message: ErrorMessage.USER_ALREADY_VIP(target.displayName),
+				},
+				{
+					status: 422,
+					includes: "moderator",
+					message: ErrorMessage.MOD_CANNOT_BE_VIP(target.displayName),
+				},
+			],
+		);
 	},
 });

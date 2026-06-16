@@ -1,6 +1,6 @@
-import { betterFetch as fetch } from "@better-fetch/fetch";
 import type { TadaDocumentNode } from "gql.tada";
 import { print } from "graphql-web-lite";
+import { ofetch } from "ofetch";
 import { ApiError } from "$lib/errors/api-error";
 import { dedupe } from "$lib/util";
 
@@ -40,22 +40,22 @@ async function send<T, U>(url: string, query: TadaDocumentNode<T, U>, variables?
 	const varStr = JSON.stringify(variables ?? {});
 
 	return dedupe(`${url}:${queryStr}:${varStr}`, async () => {
-		const { data: response, error } = await fetch<GqlResponse<T>>(url, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				...(url.includes("twitch")
-					? { "Client-Id": "kimne78kx3ncx6brgo4mv6wki5h1ko" }
-					: {}),
-			},
-			body: JSON.stringify({
-				query: queryStr,
-				variables,
-			}),
-		});
+		let response: GqlResponse<T>;
 
-		if (error) {
-			throw new ApiError(error.status, error.message ?? error.statusText);
+		try {
+			response = await ofetch<GqlResponse<T>>(url, {
+				method: "POST",
+				headers: url.includes("twitch")
+					? { "Client-Id": "kimne78kx3ncx6brgo4mv6wki5h1ko" }
+					: {},
+				body: {
+					query: queryStr,
+					variables,
+				},
+				signal: AbortSignal.timeout(15_000),
+			});
+		} catch (error) {
+			throw ApiError.from(error);
 		}
 
 		if (response.errors) {

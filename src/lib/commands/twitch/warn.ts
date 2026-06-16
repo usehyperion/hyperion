@@ -1,7 +1,6 @@
-import { ApiError } from "$lib/errors/api-error";
 import { CommandError } from "$lib/errors/command-error";
 import { ErrorMessage } from "$lib/errors/messages";
-import { defineCommand, getTarget } from "../util";
+import { defineCommand, getTarget, mapErrors } from "../util";
 
 export default defineCommand({
 	provider: "Twitch",
@@ -18,14 +17,14 @@ export default defineCommand({
 			throw new CommandError(ErrorMessage.MISSING_ARG(this.args[1]));
 		}
 
-		try {
-			await target.warn(reason);
-		} catch (error) {
-			if (error instanceof ApiError && error.message.includes("may not be warned")) {
-				throw new CommandError(ErrorMessage.USER_CANNOT_BE_WARNED(target.displayName));
-			} else {
-				throw error;
-			}
-		}
+		await mapErrors(
+			() => target.warn(reason),
+			[
+				{
+					includes: "may not be warned",
+					message: ErrorMessage.USER_CANNOT_BE_WARNED(target.displayName),
+				},
+			],
+		);
 	},
 });

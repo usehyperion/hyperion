@@ -65,7 +65,7 @@ export class Stream {
 	 * one active.
 	 */
 	public async fetchGuests() {
-		const { channel } = await this.client.send(guestsQuery, { id: this.channelId });
+		const { channel } = await this.client.gql(guestsQuery, { id: this.channelId });
 
 		for (const { user } of channel?.guestStarSessionCall?.guests ?? []) {
 			this.addGuest({

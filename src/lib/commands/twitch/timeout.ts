@@ -1,7 +1,6 @@
-import { ApiError } from "$lib/errors/api-error";
 import { CommandError } from "$lib/errors/command-error";
 import { ErrorMessage } from "$lib/errors/messages";
-import { defineCommand, getTarget, parseDuration } from "../util";
+import { defineCommand, getTarget, mapErrors, parseDuration } from "../util";
 
 export default defineCommand({
 	provider: "Twitch",
@@ -17,14 +16,14 @@ export default defineCommand({
 			throw new CommandError(ErrorMessage.INVALID_TIMEOUT_DURATION);
 		}
 
-		try {
-			await target.timeout({ duration, reason: args.slice(2).join(" ") });
-		} catch (error) {
-			if (error instanceof ApiError && error.message.includes("may not be banned")) {
-				throw new CommandError(ErrorMessage.USER_CANNOT_BE_TIMED_OUT(target.displayName));
-			} else {
-				throw error;
-			}
-		}
+		await mapErrors(
+			() => target.timeout({ duration, reason: args.slice(2).join(" ") }),
+			[
+				{
+					includes: "may not be banned",
+					message: ErrorMessage.USER_CANNOT_BE_TIMED_OUT(target.displayName),
+				},
+			],
+		);
 	},
 });

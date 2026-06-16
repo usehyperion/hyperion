@@ -1,4 +1,4 @@
-import { betterFetch as fetch } from "@better-fetch/fetch";
+import { ofetch } from "ofetch";
 import * as cache from "tauri-plugin-cache-api";
 import { transform7tvEmote, transformBttvEmote, transformFfzEmote } from "$lib/emotes";
 import type { BttvEmote, Emote, GlobalSet } from "$lib/emotes";
@@ -27,12 +27,12 @@ export class EmoteManager extends BaseEmoteManager {
 	 * Retrieves the list of global FrankerFaceZ emotes.
 	 */
 	public override async fetchFfz() {
-		const { data, error } = await fetch<GlobalSet>(
-			"https://api.frankerfacez.com/v1/set/global",
-		);
+		let data: GlobalSet;
 
-		if (error) {
-			throw new ApiError(error.status, error.statusText);
+		try {
+			data = await ofetch<GlobalSet>("https://api.frankerfacez.com/v1/set/global");
+		} catch (error) {
+			throw ApiError.from(error);
 		}
 
 		// 3 is the global set id
@@ -46,12 +46,12 @@ export class EmoteManager extends BaseEmoteManager {
 	 * Retrieves the list of global BetterTTV emotes.
 	 */
 	public override async fetchBttv() {
-		const { data, error } = await fetch<BttvEmote[]>(
-			"https://api.betterttv.net/3/cached/emotes/global",
-		);
+		let data: BttvEmote[];
 
-		if (error) {
-			throw new ApiError(error.status, error.statusText);
+		try {
+			data = await ofetch<BttvEmote[]>("https://api.betterttv.net/3/cached/emotes/global");
+		} catch (error) {
+			throw ApiError.from(error);
 		}
 
 		const emotes = data.map(transformBttvEmote);

@@ -16,7 +16,6 @@
 		"prepare": "vp config"
 	},
 	"dependencies": {
-		"@better-fetch/fetch": "^1.1.21",
 		"@dnd-kit/abstract": "^0.4.0",
 		"@dnd-kit/dom": "^0.4.0",
 		"@dnd-kit/helpers": "^0.4.0",
@@ -40,6 +39,7 @@
 		"gql.tada": "^1.9.2",
 		"graphql-web-lite": "16.6.0-4",
 		"mode-watcher": "^1.1.0",
+		"ofetch": "^1.5.1",
 		"paneforge": "^1.0.2",
 		"tailwind-merge": "^3.6.0",
 		"tailwindcss": "^4.3.0",

@@ -6,7 +6,7 @@ export default defineCommand({
 	name: "vips",
 	description: "Display a list of VIPs for this channel",
 	async exec(_, channel) {
-		const { user } = await channel.client.send(vipsQuery, { id: channel.id });
+		const { user } = await channel.client.gql(vipsQuery, { id: channel.id });
 
 		const vips =
 			user?.vips?.edges

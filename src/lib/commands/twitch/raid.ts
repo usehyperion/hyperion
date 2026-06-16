@@ -1,7 +1,6 @@
-import { ApiError } from "$lib/errors/api-error";
 import { CommandError } from "$lib/errors/command-error";
 import { ErrorMessage } from "$lib/errors/messages";
-import { defineCommand, getTarget } from "../util";
+import { defineCommand, getTarget, mapErrors } from "../util";
 
 export default defineCommand({
 	provider: "Twitch",
@@ -16,22 +15,20 @@ export default defineCommand({
 			throw new CommandError(ErrorMessage.CANNOT_TARGET_SELF);
 		}
 
-		try {
-			await channel.raid(target.id);
-		} catch (error) {
-			if (error instanceof ApiError && error.status === 400) {
-				if (error.message.includes("settings do not")) {
-					throw new CommandError(
-						ErrorMessage.SETTINGS_DO_NOT_ALLOW_RAIDS(target.displayName),
-					);
-				} else if (error.message.includes("cannot be")) {
-					throw new CommandError(ErrorMessage.USER_CANNOT_BE_RAIDED(target.displayName));
-				} else {
-					throw error;
-				}
-			} else {
-				throw error;
-			}
-		}
+		await mapErrors(
+			() => channel.raid(target.id),
+			[
+				{
+					status: 400,
+					includes: "settings do not",
+					message: ErrorMessage.SETTINGS_DO_NOT_ALLOW_RAIDS(target.displayName),
+				},
+				{
+					status: 400,
+					includes: "cannot be",
+					message: ErrorMessage.USER_CANNOT_BE_RAIDED(target.displayName),
+				},
+			],
+		);
 	},
 });

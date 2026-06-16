@@ -85,7 +85,7 @@ export class CurrentUser extends User {
 	 * Retrieves the list of channels the current user is following.
 	 */
 	public async fetchFollowing() {
-		const { user } = await this.client.send(userFollowingQuery, { id: this.id });
+		const { user } = await this.client.gql(userFollowingQuery, { id: this.id });
 
 		return user?.follows?.edges?.flatMap((edge) => (edge?.node ? [edge.node] : [])) ?? [];
 	}

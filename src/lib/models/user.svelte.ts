@@ -1,4 +1,4 @@
-import { betterFetch as fetch } from "@better-fetch/fetch";
+import { ofetch } from "ofetch";
 import { SvelteMap } from "svelte/reactivity";
 import { app } from "$lib/app.svelte";
 import type { Emote } from "$lib/emotes";
@@ -219,18 +219,20 @@ export class User {
 		const rel = this.relationships.get(channel);
 		if (rel) return rel;
 
-		const gqlRequest = this.client.send(userBadgesQuery, { user: this.username, channel });
+		const gqlRequest = this.client.gql(userBadgesQuery, { user: this.username, channel });
 
 		const params = `${this.username}/${channel}`;
-		const ivrRequest = dedupe(`ivr:${params}`, () =>
-			fetch<SubscriptionAge>(`https://api.ivr.fi/v2/twitch/subage/${params}`),
-		);
+		const ivrRequest = dedupe(`ivr:${params}`, async () => {
+			try {
+				return await ofetch<SubscriptionAge>(
+					`https://api.ivr.fi/v2/twitch/subage/${params}`,
+				);
+			} catch (error) {
+				throw ApiError.from(error);
+			}
+		});
 
-		const [{ channelViewer }, { data, error }] = await Promise.all([gqlRequest, ivrRequest]);
-
-		if (error) {
-			throw new ApiError(error.status, error.statusText);
-		}
+		const [{ channelViewer }, data] = await Promise.all([gqlRequest, ivrRequest]);
 
 		const relationship = {
 			badges: channelViewer?.earnedBadges?.map(Badge.fromGql) ?? [],

@@ -1,22 +1,60 @@
-// oxlint-disable typescript/no-unnecessary-type-parameters
+// oxlint-disable typescript/no-unsafe-type-assertion
+// oxlint-disable no-await-in-loop
 
+import { FetchError, ofetch } from "ofetch";
 import { ApiError } from "$lib/errors/api-error";
-import { sendTwitch as send } from "$lib/graphql";
+import { sendTwitch } from "$lib/graphql";
+import { log } from "$lib/log";
 import { UserManager } from "$lib/managers/user-manager";
 import { Stream } from "$lib/models/stream.svelte";
 import { dedupe } from "$lib/util";
 import type { Stream as HelixStream } from "./api";
 
-type QueryParams = Record<string, string | number | (string | number)[]>;
+type QueryValue = string | number | boolean | null | undefined;
+type QueryParams = Record<string, QueryValue | QueryValue[]>;
 
 interface FetchOptions {
 	params?: QueryParams;
-	body?: Record<string, any>;
+	body?: Record<string, unknown>;
+	timeout?: number;
+}
+
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+export interface HelixResponse<T> {
+	data: T;
+}
+
+const BASE_URL = "https://api.twitch.tv/helix";
+
+const MAX_RETRIES = 2;
+const MAX_RATE_LIMIT_WAIT = 10_000;
+
+const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+function cleanQuery(params: QueryParams): QueryParams {
+	const cleaned: QueryParams = {};
+
+	for (const [key, value] of Object.entries(params)) {
+		if (value === undefined || value === null) continue;
+
+		if (Array.isArray(value)) {
+			const items = value.filter((v) => v !== undefined && v !== null);
+			if (items.length) cleaned[key] = items;
+		} else {
+			cleaned[key] = value;
+		}
+	}
+
+	return cleaned;
 }
 
 export class TwitchClient {
 	public static readonly CLIENT_ID = "2z7vk7rabefjdhey6m5cxfxsbspw7c";
 	public static readonly REDIRECT_URL = "http://localhost:55331/auth/callback";
+	public static readonly DEFAULT_TIMEOUT = 15_000;
 
 	// This should only be null between the time of app start up and settings
 	// synchronization because of browser restrictions; however, any subsequent
@@ -25,15 +63,17 @@ export class TwitchClient {
 
 	public readonly users = new UserManager(this);
 
+	public gql = sendTwitch;
+
 	/**
 	 * Retrieves the streams of the specified channels if they're live.
 	 */
 	public async fetchStreams(ids: string[]) {
-		const response = await this.get<HelixStream[]>("/streams", { user_id: ids });
-		const streams: Stream[] = [];
+		if (!ids.length) return [];
 
-		for (const stream of response.data) {
-			streams.push(
+		const { data } = await this.get<HelixStream[]>("/streams", { user_id: ids });
+		const streams = data.map(
+			(stream) =>
 				new Stream(this, stream.user_id, {
 					title: stream.title,
 					game: {
@@ -42,87 +82,120 @@ export class TwitchClient {
 					viewersCount: stream.viewer_count,
 					createdAt: stream.started_at,
 				}),
-			);
-		}
+		);
 
 		await Promise.all(streams.map((s) => s.fetchGuests()));
 
 		return streams;
 	}
 
-	// General HTTP helpers
-
-	// GraphQL only
-	public send = send;
-
 	public get<T>(path: `/${string}`, params?: QueryParams) {
-		return this.fetch<T>("GET", path, { params });
+		return this.#request<T>("GET", path, { params });
 	}
 
 	public post<T>(path: `/${string}`, options?: FetchOptions) {
-		return this.fetch<T>("POST", path, options);
+		return this.#request<T>("POST", path, options);
 	}
 
 	public put<T>(path: `/${string}`, options?: FetchOptions) {
-		return this.fetch<T>("PUT", path, options);
+		return this.#request<T>("PUT", path, options);
 	}
 
 	public patch<T>(path: `/${string}`, options?: FetchOptions) {
-		return this.fetch<T>("PATCH", path, options);
+		return this.#request<T>("PATCH", path, options);
 	}
 
-	public delete(path: `/${string}`, params?: QueryParams) {
-		return this.fetch<never>("DELETE", path, { params });
+	public delete<T = null>(path: `/${string}`, params?: QueryParams) {
+		return this.#request<T>("DELETE", path, { params });
 	}
 
-	public async fetch<T>(
-		method: string,
-		path: string,
+	async #request<T>(
+		method: HttpMethod,
+		path: `/${string}`,
 		options: FetchOptions = {},
-	): Promise<{ data: T }> {
-		const url = new URL(`https://api.twitch.tv/helix${path}`);
-
-		if (options.params) {
-			for (const [key, value] of Object.entries(options.params)) {
-				if (Array.isArray(value)) {
-					for (const v of value) {
-						url.searchParams.append(key, v.toString());
-					}
-				} else {
-					url.searchParams.append(key, value.toString());
-				}
-			}
-		}
-
+	): Promise<HelixResponse<T>> {
 		if (!this.token) {
 			throw new ApiError(401, "OAuth token is not set");
 		}
 
-		const body = options.body ? JSON.stringify(options.body) : undefined;
-		const key = `${method}:${url.toString()}:${body ?? "{}"}`;
+		const query = options.params ? cleanQuery(options.params) : undefined;
+		const timeout = options.timeout ?? TwitchClient.DEFAULT_TIMEOUT;
+		const send = () => this.#send<T>(method, path, query, options.body, timeout);
 
-		return dedupe(key, async () => {
-			const response = await fetch(url, {
-				method,
-				headers: {
-					Authorization: `Bearer ${this.token}`,
-					"Client-Id": TwitchClient.CLIENT_ID,
-					"Content-Type": "application/json",
-				},
-				body,
-			});
+		if (method === "GET") {
+			return dedupe(`GET:${path}:${JSON.stringify(query ?? {})}`, send);
+		}
 
-			if (response.status === 204 || response.headers.get("Content-Length") === "0") {
-				return { data: null! };
+		return send();
+	}
+
+	async #send<T>(
+		method: HttpMethod,
+		path: `/${string}`,
+		query: QueryParams | undefined,
+		body: Record<string, unknown> | undefined,
+		timeout: number,
+	): Promise<HelixResponse<T>> {
+		for (let attempt = 0; ; attempt++) {
+			try {
+				const response = await ofetch.raw<HelixResponse<T>>(path, {
+					baseURL: BASE_URL,
+					method,
+					query,
+					headers: {
+						Authorization: `Bearer ${this.token}`,
+						"Client-Id": TwitchClient.CLIENT_ID,
+					},
+					body,
+					signal: AbortSignal.timeout(timeout),
+					retry: false,
+				});
+
+				// oxlint-disable-next-line no-underscore-dangle
+				return response._data ?? { data: null as T };
+			} catch (error) {
+				const status = error instanceof FetchError ? error.status : undefined;
+				const wait =
+					status !== undefined && RETRYABLE_STATUSES.has(status) && attempt < MAX_RETRIES
+						? this.#retryDelay(status, (error as FetchError).response, attempt)
+						: null;
+
+				if (wait !== null) {
+					void log
+						.warn(
+							`Twitch ${method} ${path} → ${status}, retrying in ${wait}ms (attempt ${attempt + 1}/${MAX_RETRIES})`,
+						)
+						.catch(() => {});
+
+					await sleep(wait);
+					continue;
+				}
+
+				const apiError = ApiError.from(error);
+				void log
+					.error(
+						`Twitch ${method} ${path} failed: ${apiError.status} ${apiError.message}`,
+					)
+					.catch(() => {});
+
+				throw apiError;
 			}
+		}
+	}
 
-			const data = await response.json();
+	#retryDelay(status: number, response: Response | undefined, attempt: number): number | null {
+		if (status === 429) {
+			const reset = Number(response?.headers.get("Ratelimit-Reset"));
+			if (!reset) return 0;
 
-			if (response.status >= 400 && response.status < 500) {
-				throw new ApiError(response.status, data.message);
-			}
+			const wait = reset * 1000 - Date.now();
+			// Far-future reset -> clock skew; fail fast rather than block
+			if (wait > MAX_RATE_LIMIT_WAIT) return null;
 
-			return data;
-		});
+			return Math.max(0, wait);
+		}
+
+		// Short exponential backoff for transient 5xx
+		return 300 * 2 ** attempt;
 	}
 }

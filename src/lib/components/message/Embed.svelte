@@ -38,7 +38,7 @@
 			slug = url.pathname.slice(1);
 		}
 
-		const { clip } = await app.twitch.send(clipQuery, { slug });
+		const { clip } = await app.twitch.gql(clipQuery, { slug });
 		return clip;
 	}
 

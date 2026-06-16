@@ -1,7 +1,5 @@
-import { ApiError } from "$lib/errors/api-error";
-import { CommandError } from "$lib/errors/command-error";
 import { ErrorMessage } from "$lib/errors/messages";
-import { defineCommand, getTarget } from "../util";
+import { defineCommand, getTarget, mapErrors } from "../util";
 
 export default defineCommand({
 	provider: "Twitch",
@@ -12,20 +10,20 @@ export default defineCommand({
 	async exec(args, channel) {
 		const target = await getTarget(args[0], channel);
 
-		try {
-			await target.ban(args.slice(1).join(" "));
-		} catch (error) {
-			if (error instanceof ApiError && error.status === 400) {
-				if (error.message.includes("already banned")) {
-					throw new CommandError(ErrorMessage.USER_ALREADY_BANNED(target.displayName));
-				} else if (error.message.includes("may not be banned")) {
-					throw new CommandError(ErrorMessage.USER_CANNOT_BE_BANNED(target.displayName));
-				} else {
-					throw error;
-				}
-			} else {
-				throw error;
-			}
-		}
+		await mapErrors(
+			() => target.ban(args.slice(1).join(" ")),
+			[
+				{
+					status: 400,
+					includes: "already banned",
+					message: ErrorMessage.USER_ALREADY_BANNED(target.displayName),
+				},
+				{
+					status: 400,
+					includes: "may not be banned",
+					message: ErrorMessage.USER_CANNOT_BE_BANNED(target.displayName),
+				},
+			],
+		);
 	},
 });

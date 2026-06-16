@@ -6,7 +6,7 @@ export default defineCommand({
 	name: "mods",
 	description: "Display a list of moderators for this channel",
 	async exec(_, channel) {
-		const { user } = await channel.client.send(modsQuery, { id: channel.id });
+		const { user } = await channel.client.gql(modsQuery, { id: channel.id });
 
 		const mods =
 			user?.mods?.edges
