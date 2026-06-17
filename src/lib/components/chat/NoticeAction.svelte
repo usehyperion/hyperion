@@ -4,6 +4,7 @@
 
 <script lang="ts">
 	import type { Component } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 	import CaretDown from "~icons/ph/caret-down";
 	import CaretUp from "~icons/ph/caret-up";
 	import X from "~icons/ph/x";
@@ -11,20 +12,19 @@
 	import * as Tooltip from "../ui/tooltip";
 	import NoticeAction from "./NoticeAction.svelte";
 
-	interface Props {
+	interface Props extends HTMLButtonAttributes {
 		icon: Component;
 		tooltip: string;
-		onclick: () => void;
 	}
 
-	const { icon: Icon, tooltip, onclick }: Props = $props();
+	const { icon: Icon, tooltip, ...rest }: Props = $props();
 </script>
 
 <Tooltip.Root>
 	<Tooltip.Trigger
 		class={buttonVariants({ class: "size-5", size: "icon-sm", variant: "ghost" })}
-		{onclick}
 		aria-label={tooltip}
+		{...rest}
 	>
 		<Icon class="size-3.5" />
 	</Tooltip.Trigger>
