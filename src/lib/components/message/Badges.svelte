@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Badge } from "$lib/models/badge";
-	import * as Tooltip from "../ui/tooltip";
+	import Tooltip from "../ui/Tooltip.svelte";
 
 	interface Props {
 		badges: Badge[];
@@ -10,23 +10,17 @@
 </script>
 
 {#each badges as badge (badge.id)}
-	<Tooltip.Root>
-		<Tooltip.Trigger>
-			{#snippet child({ props })}
-				<img
-					{...props}
-					class={["inline-block align-middle", badge.color && "rounded-xs"]}
-					src={badge.imageUrl}
-					alt={badge.description}
-					width="18"
-					height="18"
-					style:background-color={badge.color}
-				/>
-			{/snippet}
-		</Tooltip.Trigger>
+	<img
+		class={["inline-block align-middle", badge.color && "rounded-xs"]}
+		src={badge.imageUrl}
+		alt={badge.description}
+		width="18"
+		height="18"
+		data-slot="tooltip-trigger"
+		style:background-color={badge.color}
+	/>
 
-		<Tooltip.Content class="p-1 text-xs" side="top" sideOffset={4}>
-			{badge.title}
-		</Tooltip.Content>
-	</Tooltip.Root>
+	<Tooltip class="p-1 text-xs" side="top">
+		{badge.title}
+	</Tooltip>
 {/each}

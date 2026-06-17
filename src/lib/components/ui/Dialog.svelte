@@ -5,14 +5,31 @@
 	interface Props extends HTMLDialogAttributes {
 		id: string;
 		alert?: boolean;
+		ref?: HTMLDialogElement;
 		header?: Snippet;
 		footer?: Snippet;
 	}
 
-	const { id, class: className, alert, header, children, footer, ...rest }: Props = $props();
+	let {
+		id,
+		class: className,
+		alert,
+		ref = $bindable(),
+		header,
+		children,
+		footer,
+		...rest
+	}: Props = $props();
 </script>
 
-<dialog {id} class={className} role={alert ? "alertdialog" : null} {...rest}>
+<dialog
+	{id}
+	class={className}
+	role={alert ? "alertdialog" : null}
+	data-component="dialog"
+	bind:this={ref}
+	{...rest}
+>
 	<header data-slot="dialog-header">
 		{@render header?.()}
 	</header>
