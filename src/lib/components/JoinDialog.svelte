@@ -8,16 +8,17 @@
 	import { debounce } from "$lib/util";
 	import Spinner from "~icons/ph/spinner";
 	import { Button } from "./ui/button";
-	import * as Dialog from "./ui/dialog";
+	import Dialog from "./ui/Dialog.svelte";
+	// import * as Dialog from "./ui/dialog";
 	import * as Field from "./ui/field";
 	import { Input } from "./ui/input";
 
-	interface Props {
-		children: Snippet;
-		class?: string;
-	}
+	// interface Props {
+	// 	children: Snippet;
+	// 	class?: string;
+	// }
 
-	const { children, class: className = "" }: Props = $props();
+	// const { children, class: className = "" }: Props = $props();
 
 	let open = $state(false);
 	let loading = $state(false);
@@ -84,111 +85,93 @@
 	}
 </script>
 
-<Dialog.Root
-	bind:open={
-		() => open,
-		(value) => {
-			open = value;
-			if (!open) reset();
-		}
-	}
->
-	<Dialog.Trigger class={className}>
-		{@render children()}
-	</Dialog.Trigger>
+<Dialog id="join-dialog">
+	{#snippet header()}
+		<h2>Join a channel</h2>
 
-	<Dialog.Portal>
-		<Dialog.Overlay />
+		<p>
+			This channel will only last during the current session. Qutting the application will
+			automatically leave the channel and remove it from the channel list.
+		</p>
+	{/snippet}
 
-		<Dialog.Content class="group" data-loading={loading}>
-			<Dialog.Header>
-				<Dialog.Title>Join a channel</Dialog.Title>
+	<Combobox.Root
+		type="single"
+		loop
+		onValueChange={async (v) => {
+			if (loading) return;
+			value = v;
+			await tick();
+			await join();
+		}}
+	>
+		<Field.Field data-invalid={error != null}>
+			<Field.Label for="name">Channel name</Field.Label>
 
-				<Dialog.Description>
-					This channel will only last during the current session. Qutting the application
-					will automatically leave the channel and remove it from the channel list.
-				</Dialog.Description>
-			</Dialog.Header>
+			<Combobox.Input id="name">
+				{#snippet child({ props })}
+					<Input
+						type="text"
+						autocapitalize="off"
+						autocorrect="off"
+						placeholder="Search for a channel"
+						aria-invalid={error != null}
+						bind:value
+						{...props}
+					/>
+				{/snippet}
+			</Combobox.Input>
 
-			<Combobox.Root
-				type="single"
-				loop
-				onValueChange={async (v) => {
-					if (loading) return;
-					value = v;
-					await tick();
-					await join();
-				}}
+			{#if error}
+				<Field.Error class="text-xs text-destructive">{error}</Field.Error>
+			{/if}
+		</Field.Field>
+
+		{#if suggestions.length}
+			<Combobox.Content
+				class="flex max-h-72 w-(--bits-combobox-anchor-width) flex-col overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground"
+				side="bottom"
+				sideOffset={8}
 			>
-				<Field.Field data-invalid={error != null}>
-					<Field.Label for="name">Channel name</Field.Label>
+				{#each suggestions as channel (channel.id)}
+					{@const { displayName } = channel.user!}
 
-					<Combobox.Input id="name">
-						{#snippet child({ props })}
-							<Input
-								type="text"
-								autocapitalize="off"
-								autocorrect="off"
-								placeholder="Search for a channel"
-								aria-invalid={error != null}
-								bind:value
-								{...props}
-							/>
-						{/snippet}
-					</Combobox.Input>
-
-					{#if error}
-						<Field.Error class="text-xs text-destructive">{error}</Field.Error>
-					{/if}
-				</Field.Field>
-
-				{#if suggestions.length}
-					<Combobox.Content
-						class="flex max-h-72 w-(--bits-combobox-anchor-width) flex-col overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground"
-						side="bottom"
-						sideOffset={8}
+					<Combobox.Item
+						class="relative flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+						value={displayName}
 					>
-						{#each suggestions as channel (channel.id)}
-							{@const { displayName } = channel.user!}
+						<img
+							class="size-6 rounded-full"
+							src={channel.profileImageURL}
+							alt={displayName}
+						/>
 
-							<Combobox.Item
-								class="relative flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
-								value={displayName}
-							>
-								<img
-									class="size-6 rounded-full"
-									src={channel.profileImageURL}
-									alt={displayName}
-								/>
+						<div class="flex w-full items-center justify-between">
+							<span class="text-sm">{displayName}</span>
 
-								<div class="flex w-full items-center justify-between">
-									<span class="text-sm">{displayName}</span>
+							{#if channel.isLive}
+								<div class="flex items-center text-red-500">
+									<div
+										class="mr-1.5 size-2 animate-pulse rounded-full bg-current"
+									></div>
 
-									{#if channel.isLive}
-										<div class="flex items-center text-red-500">
-											<div
-												class="mr-1.5 size-2 animate-pulse rounded-full bg-current"
-											></div>
-
-											<span class="text-sm font-medium">Live</span>
-										</div>
-									{/if}
+									<span class="text-sm font-medium">Live</span>
 								</div>
-							</Combobox.Item>
-						{/each}
-					</Combobox.Content>
-				{/if}
-			</Combobox.Root>
+							{/if}
+						</div>
+					</Combobox.Item>
+				{/each}
+			</Combobox.Content>
+		{/if}
+	</Combobox.Root>
 
-			<Dialog.Footer>
-				<Button disabled={loading} onclickwait={join}>
-					<Spinner class="hidden animate-spin group-data-[loading=true]:inline" />
+	{#snippet footer()}
+		<Button disabled={loading} onclickwait={join}>
+			<Spinner class="hidden animate-spin group-data-[loading=true]:inline" />
 
-					<span>
-						Join<span class="hidden group-data-[loading=true]:inline">ing</span>
-					</span>
-				</Button>
-			</Dialog.Footer>
-		</Dialog.Content>
-	</Dialog.Portal>
-</Dialog.Root>
+			<span>
+				Join<span class="hidden group-data-[loading=true]:inline">ing</span>
+			</span>
+		</Button>
+	{/snippet}
+</Dialog>

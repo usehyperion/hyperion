@@ -60,7 +60,7 @@ export default defineConfig({
 		useTabs: true,
 		svelte: true,
 		sortTailwindcss: {
-			stylesheet: "./src/app.css",
+			stylesheet: "./src/styles/app.css",
 		},
 		sortImports: {
 			internalPattern: ["~", "$"],
