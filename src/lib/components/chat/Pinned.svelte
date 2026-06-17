@@ -14,7 +14,6 @@
 
 	const { pin }: Props = $props();
 
-	let durationOpen = $state(false);
 	let expanded = $state(true);
 
 	let now = $state(Date.now());
@@ -41,7 +40,8 @@
 				<NoticeAction
 					icon={Clock}
 					tooltip="Change duration"
-					onclick={() => (durationOpen = true)}
+					command="show-modal"
+					commandfor="pin-duration-dialog"
 				/>
 
 				<NoticeAction icon={PushPinSlash} tooltip="Unpin" onclick={() => pin.unpin()} />
@@ -70,4 +70,4 @@
 	{/if}
 </div>
 
-<PinDurationDialog {pin} bind:open={durationOpen} />
+<PinDurationDialog {pin} />

@@ -61,19 +61,13 @@
 				{/if}
 			</Button>
 
-			<JoinDialog class={buttonVariants({ variant: "ghost" })}>
+			<Button command="show-modal" commandfor="join-dialog" variant="ghost">
 				<Plus />
 
 				<span class="group-data-[state=collapsed]:sr-only">Join a channel</span>
-			</JoinDialog>
-
-			<Button variant="ghost" onclick={() => (app.sidebarCollapsed = !app.sidebarCollapsed)}>
-				<Sidebar />
-
-				<span class="group-data-[state=collapsed]:sr-only">
-					{app.sidebarCollapsed ? "Expand" : "Collapse"} sidebar
-				</span>
 			</Button>
+
+			<JoinDialog />
 		</div>
 
 		<nav class="space-y-1.5 pb-3">
@@ -94,9 +88,9 @@
 </ScrollArea.Root>
 
 <style>
-	@reference "../../app.css";
+	@reference "../../styles/app.css";
 
-	#sidebar-actions > :global(*) {
+	#sidebar-actions > :global(:is(button, a)) {
 		color: var(--color-muted-foreground);
 		height: --spacing(11);
 		justify-content: flex-start;

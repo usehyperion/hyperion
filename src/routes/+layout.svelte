@@ -1,5 +1,5 @@
 <script lang="ts">
-	import "../app.css";
+	import "../styles/app.css";
 	import { invoke } from "@tauri-apps/api/core";
 	import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 	import { ModeWatcher } from "mode-watcher";

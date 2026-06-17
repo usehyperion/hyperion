@@ -86,7 +86,7 @@
 </Tabs.Root>
 
 <style>
-	@reference "../../app.css";
+	@reference "../../styles/app.css";
 
 	:global(#settings-tabs [data-slot="separator"]) {
 		margin: --spacing(2) 0;
