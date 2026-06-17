@@ -6,7 +6,7 @@
 	import Users from "~icons/ph/users-bold";
 	import GuestList from "./GuestList.svelte";
 	import StreamInfo from "./StreamInfo.svelte";
-	import * as Tooltip from "./ui/tooltip";
+	import Tooltip from "./ui/Tooltip.svelte";
 
 	interface Props {
 		channel: Channel;
@@ -15,28 +15,22 @@
 	const { channel }: Props = $props();
 </script>
 
-<Tooltip.Root>
-	<Tooltip.Trigger>
-		{#snippet child({ props })}
-			<div
-				{...props}
-				class="relative flex cursor-pointer items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-accent"
-				onclick={async () => {
-					await app.open(channel);
-					app.history.pushChannel(channel.id);
-				}}
-				oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}
-			>
-				<StreamInfo {channel} />
-			</div>
-		{/snippet}
-	</Tooltip.Trigger>
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+	class="relative flex cursor-pointer items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-accent"
+	onclick={async () => {
+		await app.open(channel);
+		app.history.pushChannel(channel.id);
+	}}
+	oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}
+	data-slot="tooltip-trigger"
+>
+	<StreamInfo {channel} />
+</div>
 
-	<Tooltip.Content
-		class={["max-w-64", !app.sidebarCollapsed && !channel.stream && "hidden"]}
-		side="right"
-		sideOffset={8}
-	>
+<Tooltip side="right">
+	<div class={["max-w-64", !app.sidebarCollapsed && !channel.stream && "hidden"]}>
 		{#if channel.stream}
 			<div class="space-y-0.5">
 				{#if app.sidebarCollapsed}
@@ -66,5 +60,5 @@
 		{:else if app.sidebarCollapsed}
 			{channel.user.displayName}
 		{/if}
-	</Tooltip.Content>
-</Tooltip.Root>
+	</div>
+</Tooltip>
