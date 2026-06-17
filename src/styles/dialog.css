@@ -1,0 +1,93 @@
+@layer components {
+	dialog {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		max-width: calc(100% - 2rem);
+		padding: --spacing(6);
+		margin: auto;
+		color: currentcolor;
+		background-color: var(--color-popover);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-3xl);
+		box-shadow: var(--shadow-lg);
+		opacity: 0;
+		scale: 0.95;
+		transition:
+			opacity 200ms ease-out,
+			scale 200ms ease-out,
+			overlay 200ms ease allow-discrete,
+			display 200ms ease-out allow-discrete;
+
+		@variant sm {
+			max-width: var(--container-lg);
+		}
+
+		> :not(:last-child) {
+			margin-block-end: --spacing(4);
+		}
+
+		&::backdrop {
+			background-color: oklch(0% 0 0deg / 50%);
+			opacity: 0;
+			transition:
+				opacity 200ms ease-out,
+				display 200ms ease-out allow-discrete;
+		}
+
+		&:open,
+		&[open] {
+			opacity: 1;
+			scale: 1;
+
+			&::backdrop {
+				opacity: 1;
+				backdrop-filter: blur(6px);
+
+				@starting-style {
+					opacity: 0;
+					backdrop-filter: blur(0);
+				}
+			}
+
+			@starting-style {
+				opacity: 0;
+				scale: 0.95;
+			}
+		}
+
+		[data-slot="dialog-header"] {
+			display: flex;
+			flex-direction: column;
+			gap: --spacing(2);
+			text-align: center;
+
+			@variant sm {
+				text-align: start;
+			}
+
+			> :where(h1, h2, h3, h4, h5, h6) {
+				font-size: var(--text-lg);
+				font-weight: 600;
+				line-height: 1;
+			}
+
+			p {
+				font-size: var(--text-sm);
+				line-height: var(--text-sm--line-height);
+				color: var(--color-muted-foreground);
+			}
+		}
+
+		[data-slot="dialog-footer"] {
+			display: flex;
+			flex-direction: column-reverse;
+			gap: --spacing(2);
+
+			@variant sm {
+				flex-direction: row;
+				justify-content: flex-end;
+			}
+		}
+	}
+}
