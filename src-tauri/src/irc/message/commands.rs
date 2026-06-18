@@ -1108,11 +1108,7 @@ impl IrcMessageParseExt for IrcMessage {
                 let start = usize::from_str(start).map_err(|_| make_error())?;
                 let end = usize::from_str(end).map_err(|_| make_error())? + 1;
 
-                let code: String = chars
-                    .get(start..end)
-                    .unwrap_or_default()
-                    .iter()
-                    .collect();
+                let code: String = chars.get(start..end).unwrap_or_default().iter().collect();
 
                 emotes.push(Emote {
                     id: emote_id.to_owned(),

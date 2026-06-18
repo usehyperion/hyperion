@@ -2,9 +2,8 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 
 use tokio::sync::{mpsc, oneshot};
-use tokio_stream::StreamExt;
-use tokio_stream::StreamMap;
 use tokio_stream::wrappers::UnboundedReceiverStream;
+use tokio_stream::{StreamExt, StreamMap};
 
 use super::pool_connection::PoolConnection;
 use crate::irc;
@@ -14,15 +13,9 @@ use crate::irc::message::{JoinMessage, PartMessage, ServerMessage};
 
 #[derive(Debug)]
 pub(crate) enum ClientLoopCommand {
-    Connect {
-        return_sender: oneshot::Sender<()>,
-    },
-    Join {
-        channel_login: String,
-    },
-    Part {
-        channel_login: String,
-    },
+    Connect { return_sender: oneshot::Sender<()> },
+    Join { channel_login: String },
+    Part { channel_login: String },
 }
 
 pub(crate) struct ClientLoopWorker {
@@ -31,8 +24,7 @@ pub(crate) struct ClientLoopWorker {
     current_whisper_connection_id: Option<usize>,
     client_loop_rx: mpsc::UnboundedReceiver<ClientLoopCommand>,
     connections: VecDeque<PoolConnection>,
-    connection_incoming:
-        StreamMap<usize, UnboundedReceiverStream<ConnectionIncomingMessage>>,
+    connection_incoming: StreamMap<usize, UnboundedReceiverStream<ConnectionIncomingMessage>>,
     client_incoming_messages_tx: mpsc::UnboundedSender<ServerMessage>,
 }
 

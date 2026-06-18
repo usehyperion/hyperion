@@ -32,4 +32,3 @@ pub enum Error {
     #[error("Remote server unexpectedly closed connection")]
     RemoteUnexpectedlyClosedConnection,
 }
-

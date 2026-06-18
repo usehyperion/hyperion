@@ -12,6 +12,7 @@ use tauri::async_runtime::{self, Mutex};
 use tauri::ipc::Invoke;
 use tauri::{Manager, WindowEvent};
 use tauri_plugin_cache::{CacheConfig, CompressionMethod};
+use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_svelte::ManagerExt;
 use twitch_api::HelixClient;
 use twitch_api::twitch_oauth2::{AccessToken, UserToken};
@@ -24,7 +25,6 @@ mod irc;
 mod json;
 mod log;
 mod pubsub;
-mod server;
 mod seventv;
 mod ws;
 
@@ -68,7 +68,7 @@ pub fn run() {
     let mut system = sysinfo::System::new_all();
     system.refresh_all();
 
-    let mut builder = tauri::Builder::default().plugin(tauri_plugin_process::init());
+    let mut builder = tauri::Builder::default();
     let mut state = AppState::default();
 
     #[cfg(desktop)]
@@ -88,11 +88,13 @@ pub fn run() {
             ..Default::default()
         }))
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .setup(|app| {
@@ -111,7 +113,7 @@ pub fn run() {
                 let stored_token = app_handle
                     .svelte()
                     .get_raw("storage", "user")
-                    .and_then(|user| user["token"].as_str().map(|t| t.to_string()));
+                    .and_then(|user| user["accessToken"].as_str().map(|t| t.to_string()));
 
                 let access_token = if let Some(token) = stored_token {
                     UserToken::from_token(&state.helix, AccessToken::from(token))
@@ -179,7 +181,6 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         log::log,
         log::update_log_level,
         pubsub::connect_pubsub,
-        server::start_server,
         seventv::connect_seventv,
         seventv::resub_emote_set,
     ]

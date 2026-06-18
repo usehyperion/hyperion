@@ -23,35 +23,6 @@ pub fn get_access_token(state: &AppState) -> Result<&UserToken, Error> {
     })
 }
 
-#[derive(Clone, Serialize)]
-pub struct TokenInfo {
-    user_id: String,
-    access_token: String,
-}
-
-pub async fn set_access_token(
-    state: State<'_, Mutex<AppState>>,
-    token: String,
-) -> Option<TokenInfo> {
-    let mut state = state.lock().await;
-
-    state.token = UserToken::from_token(&state.helix, AccessToken::from(token))
-        .await
-        .ok();
-
-    if let Some(ref token) = state.token {
-        let raw_token = token.access_token.as_str();
-        tracing::debug!("Set access token to {}", raw_token);
-
-        Some(TokenInfo {
-            user_id: token.user_id.to_string(),
-            access_token: raw_token.to_string(),
-        })
-    } else {
-        None
-    }
-}
-
 #[tracing::instrument(skip(state, is_mod))]
 #[tauri::command]
 pub async fn join(

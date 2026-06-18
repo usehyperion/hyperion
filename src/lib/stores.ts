@@ -5,7 +5,8 @@ import type { SplitNode } from "./split-layout";
 
 interface AccountUser {
 	id: string;
-	token: string;
+	accessToken: string;
+	refreshToken: string;
 	data: User;
 }
 

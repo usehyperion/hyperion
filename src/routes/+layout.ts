@@ -18,7 +18,7 @@ export async function load({ url, fetch }) {
 
 	if (storage.state.user) {
 		const response = await fetch("https://id.twitch.tv/oauth2/validate", {
-			headers: { Authorization: `OAuth ${storage.state.user.token}` },
+			headers: { Authorization: `OAuth ${storage.state.user.accessToken}` },
 		});
 
 		if (response.status === 401) {
@@ -36,7 +36,7 @@ export async function load({ url, fetch }) {
 		return { detached: false };
 	}
 
-	app.twitch.token ??= storage.state.user.token;
+	app.twitch.token ??= storage.state.user.accessToken;
 
 	if (!app.user) {
 		const user = new User(app.twitch, storage.state.user.data);
