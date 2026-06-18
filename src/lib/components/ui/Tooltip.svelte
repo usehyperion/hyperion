@@ -17,12 +17,14 @@
 		if (!(trigger instanceof HTMLElement)) return;
 
 		trigger.style.setProperty("anchor-name", anchorName);
+
 		return () => trigger.style.removeProperty("anchor-name");
 	});
 </script>
 
 <div
 	class={className}
+	role="tooltip"
 	data-component="tooltip"
 	data-side={side}
 	style:position-anchor={anchorName}
