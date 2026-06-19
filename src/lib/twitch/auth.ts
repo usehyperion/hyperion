@@ -97,6 +97,11 @@ export async function handleDeepLink(url: URL) {
 }
 
 export async function logOut() {
+	if (!app.twitch.token) {
+		await goto("/auth/login");
+		return;
+	}
+
 	storage.state.user = null;
 	storage.state.lastJoined = null;
 
@@ -106,5 +111,13 @@ export async function logOut() {
 	await tick();
 	await storage.saveNow();
 
+	await fetch("http://localhost:5173/api/auth/twitch/revoke", {
+		method: "POST",
+		headers: {
+			Authorization: app.twitch.token,
+		},
+	});
+
 	log.info("User logged out");
+	await goto("/auth/login");
 }
