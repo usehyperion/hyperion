@@ -28,6 +28,7 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = ["protocol-asset"] }
 tauri-plugin-cache = "0.1.5"
 tauri-plugin-clipboard-manager = "2"
+tauri-plugin-deep-link = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-notification = "2"
@@ -39,9 +40,7 @@ tauri-plugin-svelte = "3"
 anyhow = "1.0.97"
 either = "1.15.0"
 futures = "0.3.31"
-httparse = "1.10.1"
 mimalloc = "0.1"
-regex = "1.11.1"
 reqwest = { version = "0.12.15", features = ["json"] }
 rustls = { version = "0.23.25", features = ["ring"] }
 serde = { version = "1.0.219", features = ["derive"] }
@@ -56,7 +55,8 @@ tracing = "0.1"
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "time"] }
 twitch_api = { version = "0.7.2", features = ["beta", "client", "helix", "eventsub", "reqwest"] }
-tauri-plugin-deep-link = "2"
+keyring = "4.1.1"
+tauri-plugin-http = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }

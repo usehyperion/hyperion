@@ -1,4 +1,5 @@
 import { redirect } from "@sveltejs/kit";
+import { invoke } from "@tauri-apps/api/core";
 import { app } from "$lib/app.svelte";
 import { log } from "$lib/log";
 import { Channel } from "$lib/models/channel.svelte";
@@ -11,20 +12,16 @@ import type { Prefix } from "$lib/util";
 
 export const ssr = false;
 
-export async function load({ url, fetch }) {
+export async function load({ url }) {
 	if (url.searchParams.has("detached")) {
 		return { detached: true };
 	}
 
-	if (storage.state.user) {
-		const response = await fetch("https://id.twitch.tv/oauth2/validate", {
-			headers: { Authorization: `OAuth ${storage.state.user.accessToken}` },
-		});
+	app.twitch.token ??= await invoke<string | null>("get_token");
 
-		if (response.status === 401) {
-			log.info("Stored token expired, clearing user");
-			storage.state.user = null;
-		}
+	if (!app.twitch.token) {
+		log.info("Stored token expired, clearing user");
+		storage.state.user = null;
 	}
 
 	if (!storage.state.user) {
@@ -36,10 +33,8 @@ export async function load({ url, fetch }) {
 		return { detached: false };
 	}
 
-	app.twitch.token ??= storage.state.user.accessToken;
-
 	if (!app.user) {
-		const user = new User(app.twitch, storage.state.user.data);
+		const user = new User(app.twitch, storage.state.user);
 		app.twitch.users.set(user.id, user);
 
 		app.user = new CurrentUser(user);

@@ -1,6 +1,7 @@
 use anyhow::anyhow;
 use futures::TryStreamExt;
-use serde::{Deserialize, Serialize};
+use keyring::Entry;
+use serde::Deserialize;
 use serde_json::json;
 use tauri::{AppHandle, Emitter, Manager, State, async_runtime};
 use tokio::sync::Mutex;
@@ -21,6 +22,37 @@ pub fn get_access_token(state: &AppState) -> Result<&UserToken, Error> {
         tracing::error!("Attempted to retrieve access token but no token is set");
         Error::Generic(anyhow!("Access token not set"))
     })
+}
+
+#[tauri::command]
+pub async fn store_tokens(
+    state: State<'_, Mutex<AppState>>,
+    access_token: String,
+    refresh_token: String,
+) -> Result<(), Error> {
+    let mut state = state.lock().await;
+
+    let at_entry = Entry::new("com.hyperion.chat", "access-token")?;
+    at_entry.set_password(&access_token)?;
+
+    let rt_entry = Entry::new("com.hyperion.chat", "refresh-token")?;
+    rt_entry.set_password(&refresh_token)?;
+
+    state.token = UserToken::from_token(&state.helix, AccessToken::new(access_token))
+        .await
+        .ok();
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn get_token(state: State<'_, Mutex<AppState>>) -> Result<Option<String>, Error> {
+    let state = state.lock().await;
+
+    Ok(state
+        .token
+        .as_ref()
+        .map(|token| token.access_token.as_str().to_string()))
 }
 
 #[tracing::instrument(skip(state, is_mod))]

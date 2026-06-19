@@ -14,6 +14,8 @@
 		"core:webview:allow-create-webview-window",
 		"cache:default",
 		"clipboard-manager:allow-write-text",
+		"deep-link:default",
+		"dialog:default",
 		"fs:allow-exists",
 		"fs:allow-mkdir",
 		"fs:allow-read-dir",
@@ -23,6 +25,17 @@
 			"allow": [
 				{
 					"path": "$APPCONFIG/**"
+				}
+			]
+		},
+		{
+			"identifier": "http:default",
+			"allow": [
+				{
+					"url": "https://usehyperion.app"
+				},
+				{
+					"url": "http://localhost:5173"
 				}
 			]
 		},
@@ -40,8 +53,6 @@
 				}
 			]
 		},
-		"dialog:default",
-		"process:default",
-		"deep-link:default"
+		"process:default"
 	]
 }

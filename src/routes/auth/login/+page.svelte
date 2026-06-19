@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { openUrl } from "@tauri-apps/plugin-opener";
 	import { Button } from "$lib/components/ui/button";
-	import { SCOPES } from "$lib/twitch";
+	import { SCOPES } from "$lib/twitch/auth";
 	import { TwitchClient } from "$lib/twitch/client";
 	import Twitch from "~icons/local/twitch";
 
@@ -12,8 +12,7 @@
 		scope: SCOPES.join(" "),
 	});
 
-	const baseUrl = "https://id.twitch.tv/oauth2/authorize";
-	const authUrl = `${baseUrl}?${params.toString()}`;
+	const authUrl = `https://id.twitch.tv/oauth2/authorize?${params.toString()}`;
 </script>
 
 <img class="size-16" src="/logo.svg" alt="Hyperion logo" />

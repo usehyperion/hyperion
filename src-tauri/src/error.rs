@@ -17,6 +17,9 @@ pub enum Error {
     Io(#[from] std::io::Error),
 
     #[error(transparent)]
+    Keyring(#[from] keyring::Error),
+
+    #[error(transparent)]
     WebSocket(#[from] tungstenite::Error),
 }
 

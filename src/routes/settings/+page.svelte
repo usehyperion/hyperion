@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { Tabs } from "bits-ui";
-	import { beforeNavigate, goto } from "$app/navigation";
-	import { resolve } from "$app/paths";
+	import { beforeNavigate } from "$app/navigation";
 	import { page } from "$app/state";
 	import { app } from "$lib/app.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import { Separator } from "$lib/components/ui/separator";
 	import { log } from "$lib/log";
 	import { settings } from "$lib/settings";
+	import { logOut } from "$lib/twitch/auth";
 	import SignOut from "~icons/ph/sign-out";
 	import X from "~icons/ph/x";
 	import Category from "./Category.svelte";
@@ -61,11 +61,7 @@
 
 		<Separator />
 
-		<Button
-			class="text-muted-foreground"
-			variant="ghost"
-			onclick={() => goto(resolve("/auth/logout"))}
-		>
+		<Button class="text-muted-foreground" variant="ghost" onclick={logOut}>
 			<SignOut />
 			<span class="text-sm">Log out</span>
 		</Button>

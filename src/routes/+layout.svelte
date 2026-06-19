@@ -12,6 +12,7 @@
 	import { settings } from "$lib/settings";
 	import { storage } from "$lib/stores";
 	import { injectTheme } from "$lib/themes";
+	import { handleDeepLink } from "$lib/twitch/auth";
 
 	const { children } = $props();
 
@@ -21,32 +22,7 @@
 		injectTheme(settings.state["appearance.theme"]);
 
 		unlisten = await onOpenUrl(async (urls) => {
-			const url = new URL(urls[0]);
-			log.info("User authenticated");
-
-			if (url.host !== "auth") return;
-
-			const userId = url.searchParams.get("user_id");
-			const accessToken = url.searchParams.get("access_token");
-			const refreshToken = url.searchParams.get("refresh_token");
-
-			if (!userId || !accessToken || !refreshToken) {
-				throw new Error("Missing authentication params");
-			}
-
-			const user = await app.twitch.users.fetch(userId);
-
-			storage.state.user = {
-				id: userId,
-				accessToken,
-				refreshToken,
-				data: user.data,
-			};
-
-			app.user = new CurrentUser(user);
-
-			await storage.saveNow();
-			await goto("/");
+			await handleDeepLink(new URL(urls[0]));
 		});
 	});
 
