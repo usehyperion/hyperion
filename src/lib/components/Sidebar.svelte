@@ -42,7 +42,7 @@
 			<JoinDialog />
 		</div>
 
-		<nav class="space-y-1.5 pb-3">
+		<nav class="mt-1.5 space-y-1.5 pb-3">
 			<ChannelList />
 		</nav>
 	</ScrollArea.Viewport>

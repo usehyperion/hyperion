@@ -116,19 +116,6 @@
 				>
 					<Chats />
 				</Button>
-
-				<Button
-					class="size-min p-1 hover:text-foreground"
-					size="icon"
-					variant="ghost"
-					aria-label="Go to your channel"
-					onclick={async () => {
-						const channel = app.channels.get(app.user!.id);
-						if (channel) await app.open(channel);
-					}}
-				>
-					<User />
-				</Button>
 			{/if}
 
 			<Button
