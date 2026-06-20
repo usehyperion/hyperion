@@ -11,6 +11,7 @@
 	import Logo from "~icons/local/logo";
 	import ArrowLeft from "~icons/ph/arrow-left";
 	import ArrowRight from "~icons/ph/arrow-right";
+	import Chats from "~icons/ph/chats";
 	import Gear from "~icons/ph/gear";
 	import User from "~icons/ph/user";
 	import { Button } from "./ui/button";
@@ -102,6 +103,16 @@
 	<div class="flex items-center justify-end" data-tauri-drag-region>
 		<div class="flex items-center gap-0.5 pr-3 text-muted-foreground">
 			{#if app.user}
+				<Button
+					class="size-min p-1 hover:text-foreground"
+					href={resolve("/whispers")}
+					size="icon"
+					variant="ghost"
+					aria-label="Go to whispers"
+				>
+					<Chats />
+				</Button>
+
 				<Button
 					class="size-min p-1 hover:text-foreground"
 					size="icon"
