@@ -54,7 +54,7 @@ function cleanQuery(params: QueryParams): QueryParams {
 
 export class TwitchClient {
 	public static readonly CLIENT_ID = "2z7vk7rabefjdhey6m5cxfxsbspw7c";
-	public static readonly REDIRECT_URL = "http://localhost:5173/api/auth/twitch/callback";
+	public static readonly REDIRECT_URL = "https://usehyperion.app/api/auth/twitch/callback";
 	public static readonly DEFAULT_TIMEOUT = 15_000;
 
 	#refreshing: Promise<string | null> | null = null;

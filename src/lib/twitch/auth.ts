@@ -61,7 +61,7 @@ export const SCOPES = [
 ];
 
 async function getTokens(id: string) {
-	const response = await fetch(`http://localhost:5173/api/auth/twitch/tokens?user_id=${id}`);
+	const response = await fetch(`https://usehyperion.app/api/auth/twitch/tokens?user_id=${id}`);
 	if (!response.ok) return;
 
 	return response.json();

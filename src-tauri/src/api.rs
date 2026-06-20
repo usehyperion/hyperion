@@ -13,8 +13,6 @@ use twitch_api::twitch_oauth2::{AccessToken, UserToken};
 use crate::error::Error;
 use crate::{AppState, HTTP};
 
-const AUTH_BASE_URL: &str = "http://localhost:5173";
-
 #[derive(Debug, Deserialize)]
 pub struct Response<T> {
     pub data: T,
@@ -32,7 +30,7 @@ pub async fn refresh_access_token(
     let refresh_token = Entry::new("com.hyperion.chat", "refresh-token")?.get_password()?;
 
     let tokens = HTTP
-        .post(format!("{AUTH_BASE_URL}/api/auth/twitch/refresh"))
+        .post("https://usehyperion.app/api/auth/twitch/refresh")
         .json(&json!({ "refresh_token": refresh_token }))
         .send()
         .await?
