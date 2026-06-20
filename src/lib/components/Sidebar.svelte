@@ -1,23 +1,14 @@
 <script lang="ts">
 	import { createHotkeys } from "@tanstack/svelte-hotkeys";
 	import { ScrollArea } from "bits-ui";
-	import { crossfade } from "svelte/transition";
-	import { resolve } from "$app/paths";
-	import { app } from "$lib/app.svelte";
 	import { useSidebar } from "$lib/hooks/use-sidebar.svelte";
-	import Chats from "~icons/ph/chats";
 	import Plus from "~icons/ph/plus";
-	import Sidebar from "~icons/ph/sidebar";
+	import SidebarIcon from "~icons/ph/sidebar";
 	import ChannelList from "./ChannelList.svelte";
 	import JoinDialog from "./JoinDialog.svelte";
 	import { Button, buttonVariants } from "./ui/button";
 
 	const sidebar = useSidebar();
-	const [send, receive] = crossfade({ duration: 400 });
-
-	const id = $props.id();
-
-	const unread = $derived(app.user?.whispers.values().reduce((sum, w) => sum + w.unread, 0));
 
 	createHotkeys([
 		{ hotkey: "Mod+B", callback: () => sidebar.cycle() },
@@ -36,28 +27,6 @@
 >
 	<ScrollArea.Viewport class="h-full">
 		<div id="sidebar-actions" class="flex flex-col gap-1 px-1.5 py-1">
-			<Button class="relative" href={resolve("/whispers")} variant="ghost">
-				<Chats class={[sidebar.collapsed && unread && "animate-pulse"]} />
-
-				<span class="not-group-data-[state=expanded]:sr-only">Whispers</span>
-
-				{#if sidebar.collapsed && unread}
-					<div
-						in:receive={{ key: id }}
-						out:send={{ key: id }}
-						class="absolute top-2 right-2 size-2 rounded-full bg-red-500"
-					></div>
-				{:else if unread}
-					<div
-						in:receive={{ key: id }}
-						out:send={{ key: id }}
-						class="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[0.625rem] font-medium text-foreground"
-					>
-						{unread}
-					</div>
-				{/if}
-			</Button>
-
 			<Button command="show-modal" commandfor="join-dialog" variant="ghost">
 				<Plus />
 
@@ -65,7 +34,7 @@
 			</Button>
 
 			<Button variant="ghost" onclick={() => sidebar.cycle()}>
-				<Sidebar />
+				<SidebarIcon />
 
 				<span class="not-group-data-[state=expanded]:sr-only"> Toggle sidebar </span>
 			</Button>
