@@ -13,7 +13,9 @@
 	import ArrowRight from "~icons/ph/arrow-right";
 	import Chats from "~icons/ph/chats";
 	import Gear from "~icons/ph/gear";
+	import MagnifyingGlass from "~icons/ph/magnifying-glass";
 	import User from "~icons/ph/user";
+	import JoinDialog from "./JoinDialog.svelte";
 	import { Button } from "./ui/button";
 
 	type ControlType = "minimize" | "maximize" | "close";
@@ -25,8 +27,6 @@
 
 	let maximized = $state(false);
 	let fullscreen = $state(false);
-
-	const { icon: Icon, title } = $derived(page.data.titleBar ?? { icon: Logo, title: "Hyperion" });
 
 	onMount(async () => {
 		if (!currentWindow) return;
@@ -93,11 +93,17 @@
 		class="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-1.5"
 		data-tauri-drag-region
 	>
-		<Icon class="size-4" data-tauri-drag-region />
+		<button
+			class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent"
+			command="show-modal"
+			commandfor="join-dialog"
+		>
+			<MagnifyingGlass />
 
-		<span class="pointer-events-none text-sm font-medium">
-			{title}
-		</span>
+			Search channels
+		</button>
+
+		<JoinDialog />
 	</div>
 
 	<div class="flex items-center justify-end" data-tauri-drag-region>
