@@ -6,15 +6,15 @@
 	import JoinDialog from "$lib/components/JoinDialog.svelte";
 	import { buttonVariants } from "$lib/components/ui/button";
 	import * as Empty from "$lib/components/ui/empty";
-	import { layout, storage } from "$lib/stores";
+	import type { SplitNode } from "$lib/split-layout";
+	import { storage } from "$lib/stores";
 	import ChatDots from "~icons/ph/chat-dots";
 	import Spinner from "~icons/ph/spinner";
 
 	let loading = $state(true);
 
-	function findFirstLeaf(node: NonNullable<typeof layout.state.root>): string {
-		if (typeof node === "string") return node;
-		return findFirstLeaf(node.before);
+	function findFirstLeaf(node: SplitNode): string {
+		return typeof node === "string" ? node : findFirstLeaf(node.before);
 	}
 
 	onMount(async () => {
@@ -28,9 +28,10 @@
 		// otherwise fall back to the last joined channel.
 		let username: string | null = null;
 
-		if (layout.state.root) {
-			const leafId = findFirstLeaf(layout.state.root);
+		if (storage.state.layout) {
+			const leafId = findFirstLeaf(storage.state.layout);
 			const channel = app.channels.get(leafId);
+
 			if (channel) username = channel.user.username;
 		}
 

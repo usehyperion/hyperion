@@ -1,6 +1,6 @@
 import type { DragEndEvent } from "@dnd-kit/abstract";
 import type { PaneGroupProps } from "paneforge";
-import { layout } from "./stores";
+import { storage } from "./stores";
 
 export type SplitDirection = "up" | "down" | "left" | "right";
 export type SplitDropPosition = SplitDirection | "center";
@@ -64,7 +64,7 @@ export class SplitLayout {
 	#focused: string | null = null;
 
 	public get root() {
-		return layout.state.root;
+		return storage.state.layout;
 	}
 
 	public set root(value: SplitNode | null) {
@@ -72,7 +72,7 @@ export class SplitLayout {
 			this.#focused = value;
 		}
 
-		layout.state.root = value;
+		storage.state.layout = value;
 	}
 
 	public get focused() {

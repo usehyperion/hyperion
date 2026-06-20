@@ -7,6 +7,7 @@ interface Storage {
 	[key: string]: unknown;
 	user: User | null;
 	accounts: User[];
+	layout: SplitNode | null;
 	lastJoined: string | null;
 	pinned: string[];
 }
@@ -16,26 +17,16 @@ export const storage = new RuneStore<Storage>(
 	{
 		user: null,
 		accounts: [],
+		layout: null,
 		lastJoined: null,
 		pinned: [],
 	},
-	{ autoStart: true },
-);
-
-interface Layout {
-	[key: string]: unknown;
-	root: SplitNode | null;
-}
-
-export const layout = new RuneStore<Layout>(
-	"layout",
-	{ root: null },
 	{
 		autoStart: true,
 		hooks: {
 			beforeBackendSync(state) {
 				if (settings.state["advanced.singleConnection"]) {
-					state.root = null;
+					state.layout = null;
 				}
 
 				return state;
