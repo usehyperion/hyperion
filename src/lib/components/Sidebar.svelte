@@ -58,18 +58,3 @@
 		<ScrollArea.Thumb class="rounded-full bg-muted-foreground/80" />
 	</ScrollArea.Scrollbar>
 </ScrollArea.Root>
-
-<style>
-	@reference "../../styles/app.css";
-
-	#sidebar-actions > :global(:is(button, a)) {
-		color: var(--color-muted-foreground);
-		height: --spacing(11);
-		justify-content: flex-start;
-		padding-inline: --spacing(3.5);
-
-		@variant hover {
-			color: var(--color-foreground);
-		}
-	}
-</style>
