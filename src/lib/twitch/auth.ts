@@ -76,12 +76,9 @@ export async function handleDeepLink(url: URL) {
 		throw new Error("Missing user id");
 	}
 
-	const user = await app.twitch.users.fetch(userId);
-	storage.state.user = user.data;
-
 	const tokens = await getTokens(userId);
 	if (!tokens) {
-		console.log("No tokens found for user", userId);
+		log.warn(`No tokens found for ${userId}`);
 		return;
 	}
 
@@ -89,6 +86,9 @@ export async function handleDeepLink(url: URL) {
 		accessToken: tokens.access_token,
 		refreshToken: tokens.refresh_token,
 	});
+
+	const user = await app.twitch.users.fetch(userId);
+	storage.state.user = user.data;
 
 	app.user = new CurrentUser(user);
 
