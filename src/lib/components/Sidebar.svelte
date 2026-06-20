@@ -1,21 +1,10 @@
 <script lang="ts">
 	import { ScrollArea } from "bits-ui";
 	import { MediaQuery } from "svelte/reactivity";
-	import { crossfade } from "svelte/transition";
-	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
-	import Plus from "~icons/ph/plus";
 	import ChannelList from "./ChannelList.svelte";
-	import JoinDialog from "./JoinDialog.svelte";
-	import { Button, buttonVariants } from "./ui/button";
-
-	const [send, receive] = crossfade({ duration: 400 });
-
-	const id = $props.id();
 
 	app.sidebarCollapsed = new MediaQuery("(width < 48rem)").current;
-
-	const unread = $derived(app.user?.whispers.values().reduce((sum, w) => sum + w.unread, 0));
 </script>
 
 <svelte:document
@@ -36,16 +25,6 @@
 	data-state={app.sidebarCollapsed ? "collapsed" : "expanded"}
 >
 	<ScrollArea.Viewport class="h-full">
-		<div id="sidebar-actions" class="flex flex-col gap-1 px-1.5 py-1">
-			<Button command="show-modal" commandfor="join-dialog" variant="ghost">
-				<Plus />
-
-				<span class="group-data-[state=collapsed]:sr-only">Join a channel</span>
-			</Button>
-
-			<JoinDialog />
-		</div>
-
 		<nav class="space-y-1.5 pb-3">
 			<ChannelList />
 		</nav>
@@ -62,18 +41,3 @@
 		<ScrollArea.Thumb class="rounded-full bg-muted-foreground/80" />
 	</ScrollArea.Scrollbar>
 </ScrollArea.Root>
-
-<style>
-	@reference "../../styles/app.css";
-
-	#sidebar-actions > :global(:is(button, a)) {
-		color: var(--color-muted-foreground);
-		height: --spacing(11);
-		justify-content: flex-start;
-		padding-inline: --spacing(3.5);
-
-		@variant hover {
-			color: var(--color-foreground);
-		}
-	}
-</style>

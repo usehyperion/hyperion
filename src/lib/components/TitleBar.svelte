@@ -6,9 +6,7 @@
 	import type { HTMLButtonAttributes } from "svelte/elements";
 	import { afterNavigate, goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
-	import { page } from "$app/state";
 	import { app } from "$lib/app.svelte";
-	import Logo from "~icons/local/logo";
 	import ArrowLeft from "~icons/ph/arrow-left";
 	import ArrowRight from "~icons/ph/arrow-right";
 	import Chats from "~icons/ph/chats";
@@ -62,7 +60,7 @@
 >
 	<div
 		class={[
-			"flex items-center gap-0.5 text-muted-foreground",
+			"flex items-center text-muted-foreground",
 			platform === "macos" && (fullscreen ? "pl-3" : "pl-18"),
 			["windows", "linux"].includes(platform) && "pl-3",
 		]}
@@ -94,7 +92,7 @@
 		data-tauri-drag-region
 	>
 		<button
-			class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent"
+			class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-colors hover:bg-accent"
 			command="show-modal"
 			commandfor="join-dialog"
 		>
