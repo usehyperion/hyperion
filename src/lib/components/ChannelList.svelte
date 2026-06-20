@@ -24,34 +24,26 @@
 			}),
 	);
 
+	const userChannel = $derived(sorted.find((c) => c.id === app.user?.id) ?? null);
+
 	const groups = $derived.by(() => {
-		const pinnedChannels = sorted
-			.filter((c) => c.pinned)
-			.toSorted((a, b) => {
-				const indexA = storage.state.pinned.indexOf(a.id);
-				const indexB = storage.state.pinned.indexOf(b.id);
-
-				return indexA - indexB;
-			});
-
-		const pinned = { type: "Pinned", channels: pinnedChannels };
+		const pinned = { type: "Pinned", channels: [] as Channel[] };
 		const ephemeral = { type: "Ephemeral", channels: [] as Channel[] };
 		const online = { type: "Online", channels: [] as Channel[] };
 		const offline = { type: "Offline", channels: [] as Channel[] };
 
 		for (const channel of sorted) {
-			if (channel.id === app.user?.id || channel.pinned) {
-				continue;
-			}
+			if (channel.id === app.user?.id) continue;
 
-			if (channel.ephemeral) {
-				ephemeral.channels.push(channel);
-			} else if (channel.stream) {
-				online.channels.push(channel);
-			} else {
-				offline.channels.push(channel);
-			}
+			if (channel.pinned) pinned.channels.push(channel);
+			else if (channel.ephemeral) ephemeral.channels.push(channel);
+			else if (channel.stream) online.channels.push(channel);
+			else offline.channels.push(channel);
 		}
+
+		pinned.channels.sort(
+			(a, b) => storage.state.pinned.indexOf(a.id) - storage.state.pinned.indexOf(b.id),
+		);
 
 		return [pinned, ephemeral, online, offline].filter((g) => g.channels.length);
 	});
@@ -71,6 +63,10 @@
 
 	onDestroy(() => clearInterval(interval));
 </script>
+
+{#if userChannel}
+	<Draggable channel={userChannel} />
+{/if}
 
 {#each groups as group}
 	{#if app.sidebarCollapsed}
