@@ -29,36 +29,34 @@
 	<StreamInfo {channel} />
 </div>
 
-<Tooltip side="right">
-	<div class={["max-w-64", !app.sidebarCollapsed && !channel.stream && "hidden"]}>
-		{#if channel.stream}
-			<div class="space-y-0.5">
-				{#if app.sidebarCollapsed}
-					<div
-						class="overflow-hidden text-ellipsis whitespace-nowrap text-twitch-link dark:text-twitch"
-					>
-						{channel.user.displayName} &bullet; {channel.stream.game}
-					</div>
-				{/if}
+<Tooltip class={["max-w-64", !app.sidebarCollapsed && !channel.stream && "hidden"]} side="right">
+	{#if channel.stream}
+		<div class="space-y-0.5">
+			{#if app.sidebarCollapsed}
+				<div
+					class="overflow-hidden text-ellipsis whitespace-nowrap text-twitch-link dark:text-twitch"
+				>
+					{channel.user.displayName} &bullet; {channel.stream.game}
+				</div>
+			{/if}
 
-				<p class="line-clamp-2">{channel.stream.title}</p>
+			<p class="line-clamp-2">{channel.stream.title}</p>
 
-				{#if app.sidebarCollapsed}
-					<div class="flex items-center text-red-400 dark:text-red-500">
-						<Users class="mr-1 size-3" />
+			{#if app.sidebarCollapsed}
+				<div class="flex items-center text-red-400 dark:text-red-500">
+					<Users class="mr-1 size-3" />
 
-						<p class="text-xs">
-							{channel.stream.viewers} viewers
-						</p>
-					</div>
-				{/if}
+					<p class="text-xs">
+						{channel.stream.viewers} viewers
+					</p>
+				</div>
+			{/if}
 
-				{#if channel.stream.guests.size}
-					<GuestList {channel} tooltip />
-				{/if}
-			</div>
-		{:else if app.sidebarCollapsed}
-			{channel.user.displayName}
-		{/if}
-	</div>
+			{#if channel.stream.guests.size}
+				<GuestList {channel} tooltip />
+			{/if}
+		</div>
+	{:else if app.sidebarCollapsed}
+		{channel.user.displayName}
+	{/if}
 </Tooltip>
