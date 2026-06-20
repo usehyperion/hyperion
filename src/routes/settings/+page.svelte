@@ -68,17 +68,15 @@
 	</div>
 
 	<div class="relative grow overflow-y-auto border-l bg-accent/15 p-4 pb-8">
-		{#if !page.data.detached}
-			<Button
-				class="absolute top-2 right-2"
-				size="icon"
-				variant="ghost"
-				onclick={() => app.history.back()}
-				aria-label="Close settings"
-			>
-				<X />
-			</Button>
-		{/if}
+		<Button
+			class="absolute top-2 right-2"
+			size="icon"
+			variant="ghost"
+			onclick={() => app.history.back()}
+			aria-label="Close settings"
+		>
+			<X />
+		</Button>
 
 		{#each categories as category (category.label)}
 			<Tabs.Content class="mx-auto max-w-xl" value={category.label}>

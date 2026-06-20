@@ -119,30 +119,6 @@ pub fn run() {
 
             Ok(())
         })
-        .on_window_event(|window, event| {
-            if let WindowEvent::CloseRequested { .. } = event {
-                let app_handle = window.app_handle();
-
-                match window.label() {
-                    "main" => {
-                        if let Some(settings_win) =
-                            window.app_handle().get_webview_window("settings")
-                        {
-                            settings_win
-                                .close()
-                                .expect("failed to close settings window");
-                        }
-                    }
-                    "settings" => {
-                        app_handle
-                            .svelte()
-                            .save("settings")
-                            .expect("failed to save settings while closing window");
-                    }
-                    _ => (),
-                }
-            }
-        })
         .invoke_handler(get_handler())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

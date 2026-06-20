@@ -13,10 +13,6 @@ import type { Prefix } from "$lib/util";
 export const ssr = false;
 
 export async function load({ url }) {
-	if (url.searchParams.has("detached")) {
-		return { detached: true };
-	}
-
 	app.twitch.token ??= await invoke<string | null>("get_token");
 
 	if (!app.twitch.token) {
@@ -30,7 +26,7 @@ export async function load({ url }) {
 			redirect(302, "/auth/login");
 		}
 
-		return { detached: false };
+		return;
 	}
 
 	if (!app.user) {
@@ -87,6 +83,4 @@ export async function load({ url }) {
 	if (!app.badges.size) {
 		await app.badges.fetch();
 	}
-
-	return { detached: false };
 }
