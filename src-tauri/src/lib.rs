@@ -8,11 +8,10 @@ use irc::IrcClient;
 use pubsub::PubSubClient;
 use reqwest::header::HeaderMap;
 use seventv::SeventTvClient;
+use tauri::Manager;
 use tauri::async_runtime::{self, Mutex};
 use tauri::ipc::Invoke;
-use tauri::{Manager, WindowEvent};
 use tauri_plugin_cache::{CacheConfig, CompressionMethod};
-use tauri_plugin_svelte::ManagerExt;
 use twitch_api::HelixClient;
 use twitch_api::twitch_oauth2::UserToken;
 

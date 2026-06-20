@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { UnlistenFn } from "@tauri-apps/api/event";
-	import { getAllWindows, getCurrentWindow } from "@tauri-apps/api/window";
+	import { getCurrentWindow } from "@tauri-apps/api/window";
 	import { platform as getPlatform } from "@tauri-apps/plugin-os";
 	import { onDestroy, onMount } from "svelte";
 	import type { HTMLButtonAttributes } from "svelte/elements";
@@ -49,17 +49,6 @@
 			app.history.push(navigation.to.url.pathname);
 		}
 	});
-
-	async function openSettings() {
-		const windows = await getAllWindows();
-		const settingsWindow = windows.find((win) => win.label === "settings");
-
-		if (settingsWindow) {
-			await settingsWindow.setFocus();
-		} else {
-			await goto(resolve("/settings"));
-		}
-	}
 </script>
 
 <div
@@ -128,7 +117,7 @@
 				size="icon"
 				variant="ghost"
 				aria-label="Go to settings"
-				onclick={openSettings}
+				onclick={() => goto(resolve("/settings"))}
 			>
 				<Gear />
 			</Button>

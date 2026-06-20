@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Tabs } from "bits-ui";
 	import { beforeNavigate } from "$app/navigation";
-	import { page } from "$app/state";
 	import { app } from "$lib/app.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import { Separator } from "$lib/components/ui/separator";
