@@ -5,7 +5,6 @@ use std::sync::{Arc, LazyLock};
 
 use eventsub::EventSubClient;
 use irc::IrcClient;
-use keyring::Entry;
 use pubsub::PubSubClient;
 use reqwest::header::HeaderMap;
 use seventv::SeventTvClient;
@@ -15,7 +14,9 @@ use tauri::{Manager, WindowEvent};
 use tauri_plugin_cache::{CacheConfig, CompressionMethod};
 use tauri_plugin_svelte::ManagerExt;
 use twitch_api::HelixClient;
-use twitch_api::twitch_oauth2::{AccessToken, UserToken};
+use twitch_api::twitch_oauth2::UserToken;
+
+use crate::api::refresh_access_token;
 
 mod api;
 mod commands;
@@ -110,27 +111,7 @@ pub fn run() {
             app_handle.plugin(svelte)?;
 
             async_runtime::block_on(async {
-                let stored_token = Entry::new("com.hyperion.chat", "access-token")
-                    .map(|entry| entry.get_password().ok())
-                    .ok()
-                    .flatten();
-
-                let access_token = if let Some(token) = stored_token {
-                    UserToken::from_token(&state.helix, AccessToken::from(token))
-                        .await
-                        .ok()
-                } else {
-                    None
-                };
-
-                if let Some(ref token) = access_token {
-                    tracing::debug!(
-                        token = token.access_token.as_str(),
-                        "Using access token from storage",
-                    );
-                }
-
-                state.token = access_token;
+                state.token = refresh_access_token(&state.helix).await.ok();
             });
 
             app.manage(Mutex::new(state));
@@ -175,6 +156,7 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         api::fetch_user_emotes,
         api::store_tokens,
         api::get_token,
+        api::refresh_token,
         commands::fetch_recent_messages,
         commands::get_cache_size,
         commands::get_debug_info,

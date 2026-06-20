@@ -1,6 +1,7 @@
 // oxlint-disable typescript/no-unsafe-type-assertion
 // oxlint-disable no-await-in-loop
 
+import { invoke } from "@tauri-apps/api/core";
 import { FetchError, ofetch } from "ofetch";
 import { ApiError } from "$lib/errors/api-error";
 import { sendTwitch } from "$lib/graphql";
@@ -55,6 +56,8 @@ export class TwitchClient {
 	public static readonly CLIENT_ID = "2z7vk7rabefjdhey6m5cxfxsbspw7c";
 	public static readonly REDIRECT_URL = "http://localhost:5173/api/auth/twitch/callback";
 	public static readonly DEFAULT_TIMEOUT = 15_000;
+
+	#refreshing: Promise<string | null> | null = null;
 
 	// This should only be null between the time of app start up and settings
 	// synchronization because of browser restrictions; however, any subsequent
@@ -136,6 +139,8 @@ export class TwitchClient {
 		body: Record<string, unknown> | undefined,
 		timeout: number,
 	): Promise<HelixResponse<T>> {
+		let refreshed = false;
+
 		for (let attempt = 0; ; attempt++) {
 			try {
 				const response = await ofetch.raw<HelixResponse<T>>(path, {
@@ -155,6 +160,17 @@ export class TwitchClient {
 				return response._data ?? { data: null as T };
 			} catch (error) {
 				const status = error instanceof FetchError ? error.status : undefined;
+
+				if (status === 401 && !refreshed) {
+					refreshed = true;
+					const token = await this.#refresh();
+
+					if (token) {
+						attempt--;
+						continue;
+					}
+				}
+
 				const wait =
 					status !== undefined && RETRYABLE_STATUSES.has(status) && attempt < MAX_RETRIES
 						? this.#retryDelay(status, (error as FetchError).response, attempt)
@@ -197,5 +213,23 @@ export class TwitchClient {
 
 		// Short exponential backoff for transient 5xx
 		return 300 * 2 ** attempt;
+	}
+
+	async #refresh(): Promise<string | null> {
+		this.#refreshing ??= invoke<string | null>("refresh_token")
+			.then((token) => {
+				this.token = token;
+				return token;
+			})
+			.catch((error: unknown) => {
+				void log.error(`Failed to refresh Twitch token: ${String(error)}`).catch(() => {});
+				return null;
+			});
+
+		try {
+			return await this.#refreshing;
+		} finally {
+			this.#refreshing = null;
+		}
 	}
 }
