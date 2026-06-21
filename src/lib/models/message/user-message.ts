@@ -167,6 +167,7 @@ export class UserMessage extends TextualMessage {
 			is_highlighted: false,
 			is_mod: false,
 			is_subscriber: false,
+			custom_reward_id: null,
 			is_recent: false,
 			is_returning_chatter: false,
 			reply: null,

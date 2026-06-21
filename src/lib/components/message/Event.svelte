@@ -7,8 +7,6 @@
 	}
 
 	const { message }: Props = $props();
-
-	const Inner = $derived(message.component);
 </script>
 
 <div
@@ -18,6 +16,6 @@
 	<Timestamp date={message.timestamp} />
 
 	<p class="inline">
-		<Inner {...message.props} />
+		<message.component {...message.props} />
 	</p>
 </div>

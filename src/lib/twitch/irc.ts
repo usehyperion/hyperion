@@ -170,6 +170,7 @@ export interface PrivmsgMessage extends BaseUserMessage {
 	is_mod: boolean;
 	is_subscriber: boolean;
 	bits: number | null;
+	custom_reward_id: string | null;
 }
 
 export interface RoomStateMessage {

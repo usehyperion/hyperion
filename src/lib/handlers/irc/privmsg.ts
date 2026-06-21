@@ -27,6 +27,11 @@ export default defineHandler({
 			await message.setSource(data.source);
 		}
 
+		if (data.custom_reward_id) {
+			channel.chat.redemptions.resolveMessage(data.custom_reward_id, data.sender.id, message);
+			return;
+		}
+
 		channel.chat.add(message);
 	},
 });

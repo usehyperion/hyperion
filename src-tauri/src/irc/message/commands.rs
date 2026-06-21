@@ -327,6 +327,7 @@ pub struct PrivmsgMessage {
     pub is_highlighted: bool,
     pub is_mod: bool,
     pub is_subscriber: bool,
+    pub custom_reward_id: Option<String>,
     pub sender: BasicUser,
     pub badge_info: Vec<Badge>,
     pub badges: Vec<Badge>,
@@ -379,6 +380,9 @@ impl TryFrom<IrcMessage> for PrivmsgMessage {
                 .unwrap_or_default(),
             is_mod: raw.try_get_bool("mod")?,
             is_subscriber: raw.try_get_bool("subscriber")?,
+            custom_reward_id: raw
+                .try_get_optional_nonempty_tag_value("custom-reward-id")?
+                .map(|s| s.to_owned()),
             deleted: raw.try_get_optional_bool("rm-deleted")?.unwrap_or_default(),
             is_recent: raw.try_get_optional_bool("historical")?.unwrap_or_default(),
             source_only: raw.try_get_bool("source-only").ok(),

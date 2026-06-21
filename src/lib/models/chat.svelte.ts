@@ -7,6 +7,7 @@ import { sendPresence } from "$lib/seventv";
 import type { SentMessage } from "$lib/twitch/api";
 import { commands } from "../commands";
 import Notice from "../components/message/events/Notice.svelte";
+import { RedemptionManager } from "../managers/redemption-manager.svelte";
 import type { Channel } from "./channel.svelte";
 import { ComponentMessage } from "./message/component-message";
 import { EventMessage, type EventMessageData } from "./message/event-message";
@@ -56,6 +57,11 @@ export class Chat {
 	 * The commands available in the chat.
 	 */
 	public readonly commands = new Map<string, Command>();
+
+	/**
+	 * Correlates channel point redemptions with their chat messages.
+	 */
+	public readonly redemptions = new RedemptionManager(this);
 
 	public mode: ChatMode;
 
@@ -177,6 +183,7 @@ export class Chat {
 		this.replyTarget = null;
 		this.messages = [];
 		this.history = [];
+		this.redemptions.clear();
 	}
 
 	public async announce(message: string) {
