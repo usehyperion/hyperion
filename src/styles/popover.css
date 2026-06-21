@@ -1,0 +1,57 @@
+@layer components {
+	[data-component="popover"] {
+		position: fixed;
+		position-try-fallbacks: flip-block, flip-inline;
+		width: max-content;
+		inset: auto;
+		margin: 0;
+		padding: --spacing(4);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-2xl);
+		background-color: var(--color-popover);
+		color: var(--color-popover-foreground);
+		box-shadow: var(--shadow-md);
+		z-index: 50;
+		opacity: 0;
+		scale: 0.95;
+		transition:
+			opacity 150ms ease,
+			scale 150ms ease,
+			overlay 150ms ease allow-discrete,
+			display 150ms ease allow-discrete;
+
+		&[data-side="top"] {
+			bottom: anchor(top);
+			justify-self: anchor-center;
+			margin-bottom: 0.5rem;
+		}
+
+		&[data-side="bottom"] {
+			top: anchor(bottom);
+			justify-self: anchor-center;
+			margin-top: 0.5rem;
+		}
+
+		&[data-side="left"] {
+			right: anchor(left);
+			align-self: anchor-center;
+			margin-right: 0.5rem;
+		}
+
+		&[data-side="right"] {
+			left: anchor(right);
+			align-self: anchor-center;
+			margin-left: 0.5rem;
+		}
+
+		&:popover-open {
+			opacity: 1;
+			scale: 1;
+
+			@starting-style {
+				opacity: 0;
+				scale: 0.95;
+			}
+		}
+	}
+}

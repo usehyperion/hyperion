@@ -35,7 +35,7 @@
 			config={{ enabled: true, color: config.color, style: "default" }}
 		>
 			<div class="flex items-center gap-x-1.5 p-1.5">
-				<Color bind:value={config.color} />
+				<Color id={highlight.value} bind:value={config.color} />
 
 				<StyleSelect bind:config={viewers[highlight.value]} />
 
