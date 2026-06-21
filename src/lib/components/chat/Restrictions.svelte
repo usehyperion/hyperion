@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Chat } from "$lib/models/chat.svelte";
 	import { formatDuration } from "$lib/util";
-	import * as Popover from "../ui/popover";
+	import Popover from "../ui/Popover.svelte";
 
 	interface Props {
 		chat: Chat;
@@ -34,39 +34,38 @@
 	const topMostActive = $derived(modes.find((m) => m.active));
 </script>
 
-<div class="text-muted-foreground">
-	<Popover.Root>
-		<Popover.Trigger class={["flex items-center", topMostActive && "text-green-500"]}>
-			<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
+<button
+	class={["flex items-center", topMostActive && "text-green-500"]}
+	popovertarget="restrictions"
+>
+	<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
 
-			<span class="text-xs">
-				{topMostActive?.label ?? "No chat restrictions"}
-			</span>
-		</Popover.Trigger>
+	<span class="text-xs">
+		{topMostActive?.label ?? "No chat restrictions"}
+	</span>
+</button>
 
-		<Popover.Content class="w-max p-3 text-xs" sideOffset={4} collisionPadding={8}>
-			<ul class="space-y-1">
-				{#each modes as mode}
-					<li
-						class={[
-							"flex items-center",
-							mode.active ? "text-green-500" : "text-muted-foreground",
-						]}
-					>
-						<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
+<Popover id="restrictions" class="w-max p-3 text-xs">
+	<ul class="space-y-1">
+		{#each modes as mode}
+			<li
+				class={[
+					"flex items-center",
+					mode.active ? "text-green-500" : "text-muted-foreground",
+				]}
+			>
+				<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
 
-						{mode.label}
+				{mode.label}
 
-						{#if mode.key === "followerOnly" && typeof chat.mode.followerOnly === "number" && chat.mode.followerOnly > 0}
-							({formatDuration(chat.mode.followerOnly * 60)})
-						{/if}
+				{#if mode.key === "followerOnly" && typeof chat.mode.followerOnly === "number" && chat.mode.followerOnly > 0}
+					({formatDuration(chat.mode.followerOnly * 60)})
+				{/if}
 
-						{#if mode.key === "slow" && typeof chat.mode.slow === "number" && chat.mode.slow > 0}
-							({formatDuration(chat.mode.slow)})
-						{/if}
-					</li>
-				{/each}
-			</ul>
-		</Popover.Content>
-	</Popover.Root>
-</div>
+				{#if mode.key === "slow" && typeof chat.mode.slow === "number" && chat.mode.slow > 0}
+					({formatDuration(chat.mode.slow)})
+				{/if}
+			</li>
+		{/each}
+	</ul>
+</Popover>

@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 
 @import "./dialog.css";
+@import "./popover.css";
 @import "./tooltip.css";
 
 @layer {
@@ -142,6 +143,7 @@
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant popover-open (&:popover-open);
 
 @layer base {
 	* {
