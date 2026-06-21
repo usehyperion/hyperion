@@ -244,8 +244,6 @@ export class Channel {
 			},
 		});
 
-		console.log(data);
-
 		return data;
 	}
 

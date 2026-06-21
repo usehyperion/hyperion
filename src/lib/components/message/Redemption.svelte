@@ -12,8 +12,6 @@
 	}
 
 	const { reward, message, viewer }: Props = $props();
-
-	$inspect(reward);
 </script>
 
 {#if reward}

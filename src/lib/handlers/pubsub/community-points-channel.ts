@@ -8,7 +8,6 @@ export default defineHandler({
 		// Don't care about the other event types
 		if (msg.type !== "reward-redeemed") return;
 
-		console.log(msg);
 		const { redemption } = msg.data;
 
 		const channel = app.channels.get(redemption.channel_id);
