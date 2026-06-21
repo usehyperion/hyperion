@@ -10,7 +10,7 @@
 
 	let ref = $state<HTMLDivElement>();
 
-	const anchorName = $derived(`--tooltip-${id}`);
+	const anchorName = `--tooltip-${id}`;
 
 	$effect(() => {
 		const trigger = ref?.previousElementSibling;

@@ -5,9 +5,10 @@
 
 	interface Props {
 		message: UserMessage;
+		nested?: boolean;
 	}
 
-	const { message }: Props = $props();
+	const { message, nested = false }: Props = $props();
 </script>
 
 <p
@@ -33,7 +34,7 @@
 						{node.value}
 					</span>
 				{:else}
-					<User {message} mention={node} />
+					<User {message} mention={node} {nested} />
 				{/if}
 			{/if}
 		{:else if node.type === "cheer"}
