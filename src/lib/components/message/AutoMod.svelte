@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { UserMessage } from "$lib/models/message/user-message";
+	import { UserMessage } from "$lib/models/message/user-message.svelte";
 	import type { AutoModMetadata } from "$lib/twitch/eventsub";
 	import { Button } from "../ui/button";
 	import Message from "./Message.svelte";

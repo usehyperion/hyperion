@@ -13,15 +13,17 @@ export default defineHandler({
 		const channel = app.channels.get(redemption.channel_id);
 		if (!channel) return;
 
-		const viewer = await channel.viewers.fetch(redemption.user.id);
-
-		// Input-required rewards also emit a PRIVMSG; let the redemption manager
-		// merge the two into a single message. Other rewards have no associated
-		// chat message, so render them standalone.
+		// Input-required rewards also emit a PRIVMSG; attach the reward to that
+		// message instead of rendering it separately
 		if (redemption.reward.is_user_input_required) {
-			channel.chat.redemptions.resolveReward(redemption.reward, redemption.user.id, viewer);
+			channel.chat.redemptions.attachReward(redemption.reward, redemption.user.id);
 		} else {
-			channel.chat.component(Redemption, { reward: redemption.reward, viewer });
+			const viewer = await channel.viewers.fetch(redemption.user.id);
+
+			channel.chat.component(Redemption, {
+				reward: redemption.reward,
+				viewer,
+			});
 		}
 	},
 });

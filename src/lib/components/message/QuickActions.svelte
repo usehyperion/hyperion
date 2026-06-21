@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Component, ComponentProps } from "svelte";
-	import type { UserMessage } from "$lib/models/message/user-message";
+	import type { UserMessage } from "$lib/models/message/user-message.svelte";
 	import ArrowBendUpLeft from "~icons/ph/arrow-bend-up-left";
 	import Clipboard from "~icons/ph/clipboard";
 	import Clock from "~icons/ph/clock";

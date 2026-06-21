@@ -3,7 +3,7 @@
 	import dayjs from "dayjs";
 	import localizedFormat from "dayjs/plugin/localizedFormat";
 	import type { MentionNode } from "$lib/models/message/parse";
-	import { UserMessage } from "$lib/models/message/user-message";
+	import { UserMessage } from "$lib/models/message/user-message.svelte";
 	import { User } from "$lib/models/user.svelte";
 	import { settings } from "$lib/settings";
 	import Cake from "~icons/ph/cake-fill";

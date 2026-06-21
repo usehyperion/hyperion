@@ -1,7 +1,7 @@
 import { app } from "$lib/app.svelte";
 import { pinnedMessageQuery, toStructuredMessage } from "$lib/graphql/twitch";
 import type { Chat } from "./chat.svelte";
-import { UserMessage } from "./message/user-message";
+import { UserMessage } from "./message/user-message.svelte";
 import type { User } from "./user.svelte";
 
 interface PinData {

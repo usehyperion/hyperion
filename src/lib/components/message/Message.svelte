@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { LinkNode } from "$lib/models/message/parse";
-	import type { UserMessage } from "$lib/models/message/user-message";
+	import type { UserMessage } from "$lib/models/message/user-message.svelte";
 	import { settings } from "$lib/settings";
 	import Timestamp from "../Timestamp.svelte";
 	import User from "../User.svelte";

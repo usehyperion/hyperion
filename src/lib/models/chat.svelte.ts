@@ -7,13 +7,13 @@ import { sendPresence } from "$lib/seventv";
 import type { SentMessage } from "$lib/twitch/api";
 import { commands } from "../commands";
 import Notice from "../components/message/events/Notice.svelte";
-import { RedemptionManager } from "../managers/redemption-manager.svelte";
+import { RedemptionManager } from "../managers/redemption-manager";
 import type { Channel } from "./channel.svelte";
 import { ComponentMessage } from "./message/component-message";
 import { EventMessage, type EventMessageData } from "./message/event-message";
 import type { Message } from "./message/message";
 import { TextualMessage } from "./message/textual-message.svelte";
-import type { UserMessage } from "./message/user-message";
+import type { UserMessage } from "./message/user-message.svelte";
 import { Pin } from "./pin.svelte";
 import { Viewer } from "./viewer.svelte";
 
@@ -61,7 +61,7 @@ export class Chat {
 	/**
 	 * Correlates channel point redemptions with their chat messages.
 	 */
-	public readonly redemptions = new RedemptionManager(this);
+	public readonly redemptions = new RedemptionManager();
 
 	public mode: ChatMode;
 

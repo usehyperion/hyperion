@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { app } from "$lib/app.svelte";
 	import { createMessageMenu } from "$lib/menus/message-menu";
-	import type { UserMessage } from "$lib/models/message/user-message";
+	import type { UserMessage } from "$lib/models/message/user-message.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
 	import { settings } from "$lib/settings";
 	import { openMenu } from "$lib/util";
@@ -9,6 +9,7 @@
 	import Highlight from "./Highlight.svelte";
 	import Message from "./Message.svelte";
 	import QuickActions from "./QuickActions.svelte";
+	import Redemption from "./Redemption.svelte";
 
 	interface Props {
 		message: UserMessage;
@@ -84,7 +85,9 @@
 		/>
 	{/if}
 
-	{#if message.highlighted}
+	{#if message.redemption}
+		<Redemption reward={message.redemption} {message} viewer={message.viewer} />
+	{:else if message.highlighted}
 		<div
 			class="my-0.5 border-l-4 bg-muted/50 p-2"
 			style:border-color={message.source.user.color}

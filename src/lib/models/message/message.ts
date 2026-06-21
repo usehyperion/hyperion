@@ -1,6 +1,6 @@
 import type { ComponentMessage } from "./component-message";
 import type { EventMessage } from "./event-message";
-import type { UserMessage } from "./user-message";
+import type { UserMessage } from "./user-message.svelte";
 
 export abstract class Message {
 	public abstract readonly [Symbol.toStringTag]: string;

@@ -1,5 +1,5 @@
 import { Menu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/menu";
-import type { UserMessage } from "$lib/models/message/user-message";
+import type { UserMessage } from "$lib/models/message/user-message.svelte";
 
 export async function createMessageMenu(message: UserMessage) {
 	const items: (MenuItem | PredefinedMenuItem)[] = [];

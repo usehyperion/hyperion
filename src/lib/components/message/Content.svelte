@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { UserMessage } from "$lib/models/message/user-message";
+	import { UserMessage } from "$lib/models/message/user-message.svelte";
 	import Emote from "../Emote.svelte";
 	import User from "../User.svelte";
 

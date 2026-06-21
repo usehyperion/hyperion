@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { UserMessage } from "$lib/models/message/user-message";
+	import type { UserMessage } from "$lib/models/message/user-message.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
 	import type { ChannelPointReward } from "$lib/twitch/pubsub";
 	import { colorizeName } from "$lib/util";

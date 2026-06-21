@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { UserMessage } from "$lib/models/message/user-message";
+	import type { UserMessage } from "$lib/models/message/user-message.svelte";
 	import type {
 		GiftPaidUpgradeEvent,
 		PrimePaidUpgradeEvent,

@@ -1,5 +1,5 @@
 import { app } from "$lib/app.svelte";
-import { UserMessage } from "$lib/models/message/user-message";
+import { UserMessage } from "$lib/models/message/user-message.svelte";
 import { defineHandler } from "../helper";
 
 export default defineHandler({
@@ -27,11 +27,10 @@ export default defineHandler({
 			await message.setSource(data.source);
 		}
 
-		if (data.custom_reward_id) {
-			channel.chat.redemptions.resolveMessage(data.custom_reward_id, data.sender.id, message);
-			return;
-		}
-
 		channel.chat.add(message);
+
+		if (data.custom_reward_id) {
+			channel.chat.redemptions.attachMessage(data.custom_reward_id, data.sender.id, message);
+		}
 	},
 });
