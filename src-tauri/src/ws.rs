@@ -1,20 +1,26 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use tauri::async_runtime;
 use tauri::ipc::Channel;
 use tokio::sync::{Mutex, mpsc};
 
+pub type ChannelSink<T> = Arc<Mutex<Channel<T>>>;
+
+pub fn channel_sink<T>(channel: Channel<T>) -> ChannelSink<T> {
+    Arc::new(Mutex::new(channel))
+}
+
 pub fn forward_to_channel<T: serde::Serialize + Send + 'static>(
     mut incoming: mpsc::UnboundedReceiver<T>,
-    channel: Channel<T>,
+    sink: ChannelSink<T>,
     label: &'static str,
 ) {
     async_runtime::spawn(async move {
         while let Some(message) = incoming.recv().await {
-            if channel.send(message).is_err() {
-                tracing::warn!("{label} channel closed");
-                break;
+            if sink.lock().await.send(message).is_err() {
+                tracing::warn!("{label} channel send failed");
             }
         }
     });
@@ -76,6 +82,10 @@ impl<V> SubscriptionStore<V> {
             .lock()
             .await
             .insert(sub_key(channel, event), value);
+    }
+
+    pub async fn contains(&self, channel: &str, event: &str) -> bool {
+        self.inner.lock().await.contains_key(&sub_key(channel, event))
     }
 
     pub async fn remove(&self, channel: &str, event: &str) -> Option<V> {

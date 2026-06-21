@@ -11,7 +11,7 @@ use tokio::sync::Mutex;
 use crate::AppState;
 use crate::api::get_access_token;
 use crate::error::Error;
-use crate::ws::forward_to_channel;
+use crate::ws::{channel_sink, forward_to_channel};
 
 #[tauri::command]
 pub async fn connect_pubsub(
@@ -24,6 +24,9 @@ pub async fn connect_pubsub(
     if let Some(client) = &guard.pubsub
         && client.connected()
     {
+        if let Some(sink) = &guard.pubsub_channel {
+            *sink.lock().await = channel;
+        }
         return Ok(());
     }
 
@@ -32,7 +35,10 @@ pub async fn connect_pubsub(
     let (PubSubHandles { events, outgoing }, client) = PubSubClient::new(Arc::new(token));
     let client = Arc::new(client);
 
+    let sink = channel_sink(channel);
     guard.pubsub = Some(Arc::clone(&client));
+    guard.pubsub_channel = Some(Arc::clone(&sink));
+
     drop(guard);
 
     async_runtime::spawn(async move {
@@ -46,7 +52,7 @@ pub async fn connect_pubsub(
         }
     });
 
-    forward_to_channel(events, channel, "PubSub");
+    forward_to_channel(events, sink, "PubSub");
 
     Ok(())
 }

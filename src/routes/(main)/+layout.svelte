@@ -17,6 +17,8 @@
 	const { children } = $props();
 
 	onMount(async () => {
+		await app.connect();
+
 		const update = await check();
 		if (!update) return;
 

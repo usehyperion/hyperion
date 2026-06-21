@@ -11,7 +11,7 @@ use tokio::sync::Mutex;
 use crate::AppState;
 use crate::error::Error;
 use crate::seventv::client::SeventTvHandles;
-use crate::ws::forward_to_channel;
+use crate::ws::{channel_sink, forward_to_channel};
 
 #[tauri::command]
 pub async fn connect_seventv(
@@ -24,6 +24,9 @@ pub async fn connect_seventv(
     if let Some(client) = &state.seventv
         && client.connected()
     {
+        if let Some(sink) = &state.seventv_channel {
+            *sink.lock().await = channel;
+        }
         return Ok(());
     }
 
@@ -31,7 +34,10 @@ pub async fn connect_seventv(
 
     let client = Arc::new(client);
 
+    let sink = channel_sink(channel);
     state.seventv = Some(Arc::clone(&client));
+    state.seventv_channel = Some(Arc::clone(&sink));
+
     drop(state);
 
     async_runtime::spawn(async move {
@@ -45,7 +51,7 @@ pub async fn connect_seventv(
         }
     });
 
-    forward_to_channel(events, channel, "7TV");
+    forward_to_channel(events, sink, "7TV");
 
     Ok(())
 }

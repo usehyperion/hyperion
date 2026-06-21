@@ -11,7 +11,7 @@ use tauri::{AppHandle, Manager, State};
 use crate::AppState;
 use crate::api::get_access_token;
 use crate::error::Error;
-use crate::ws::forward_to_channel;
+use crate::ws::{channel_sink, forward_to_channel};
 
 #[tauri::command]
 pub async fn connect_eventsub(
@@ -26,13 +26,20 @@ pub async fn connect_eventsub(
     if let Some(client) = &guard.eventsub
         && client.connected()
     {
+        if let Some(sink) = &guard.eventsub_channel {
+            *sink.lock().await = channel;
+        }
+
         return Ok(());
     }
 
     let (incoming, client) = EventSubClient::new(helix, Arc::new(token));
     let client = Arc::new(client);
 
+    let sink = channel_sink(channel);
     guard.eventsub = Some(Arc::clone(&client));
+    guard.eventsub_channel = Some(Arc::clone(&sink));
+
     drop(guard);
 
     async_runtime::spawn(async move {
@@ -46,7 +53,7 @@ pub async fn connect_eventsub(
         }
     });
 
-    forward_to_channel(incoming, channel, "EventSub");
+    forward_to_channel(incoming, sink, "EventSub");
 
     Ok(())
 }
