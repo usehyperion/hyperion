@@ -20,7 +20,7 @@ use twitch_api::twitch_oauth2::{TwitchToken, UserToken};
 use crate::HTTP;
 use crate::api::Response;
 use crate::error::Error;
-use crate::ws::{ConnectionState, SubscriptionStore};
+use crate::ws::{Backoff, ConnectionState, SubscriptionStore};
 
 #[cfg(local)]
 const TWITCH_EVENTSUB_WS_URI: &str = "ws://127.0.0.1:8080/ws";
@@ -161,22 +161,33 @@ impl EventSubClient {
 
     #[tracing::instrument(name = "eventsub_connect", skip_all)]
     pub async fn connect(&self) -> Result<(), Error> {
-        tracing::info!("Connecting to EventSub");
+        let mut backoff = Backoff::new();
 
-        let (stream, _) = connect_async(TWITCH_EVENTSUB_WS_URI).await.map_err(|err| {
-            tracing::error!(%err, "Failed to connect to EventSub");
-            Error::WebSocket(err)
-        })?;
+        loop {
+            tracing::info!("Connecting to EventSub");
 
-        tracing::info!("Connected to EventSub");
-        self.state.set_connected(true);
+            match connect_async(TWITCH_EVENTSUB_WS_URI).await {
+                Ok((stream, _)) => {
+                    tracing::info!("Connected to EventSub");
 
-        let result = self.process_stream(stream).await;
+                    backoff.reset();
+                    self.state.set_connected(true);
+                    self.reconnecting.store(false, Ordering::SeqCst);
 
-        self.state.set_connected(false);
-        self.state.set_session_id(None).await;
+                    if let Err(err) = self.process_stream(stream).await {
+                        tracing::error!(%err, "EventSub stream error");
+                    }
 
-        result
+                    self.state.set_connected(false);
+                    self.state.set_session_id(None).await;
+                }
+                Err(err) => {
+                    tracing::error!(%err, "Failed to connect to EventSub; retrying");
+                }
+            }
+
+            backoff.sleep().await;
+        }
     }
 
     async fn process_stream(&self, mut stream: Stream) -> Result<(), Error> {
@@ -213,16 +224,7 @@ impl EventSubClient {
                 },
                 Some(Err(err)) => {
                     tracing::error!(%err, "EventSub connection error");
-
-                    match self.reconnect(TWITCH_EVENTSUB_WS_URI).await {
-                        Ok(new_stream) => {
-                            stream = new_stream;
-                        }
-                        Err(reconnect_err) => {
-                            tracing::error!(%reconnect_err, "Failed to reconnect to EventSub");
-                            break;
-                        }
-                    }
+                    break;
                 }
                 None => {
                     tracing::warn!("EventSub connection closed, end of stream reached");
@@ -230,8 +232,6 @@ impl EventSubClient {
                 }
             }
         }
-
-        self.reconnecting.store(false, Ordering::SeqCst);
 
         Ok(())
     }
