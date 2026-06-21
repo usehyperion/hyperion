@@ -29,7 +29,7 @@
 	{#each settings.state["highlights.keywords"] as config, i}
 		<Highlight class="m-0" type="custom" config={{ ...config, style: "default" }}>
 			<div class="flex items-center gap-x-1.5 p-1.5">
-				<Color bind:value={config.color} />
+				<Color id="keyword-{i}" bind:value={config.color} />
 
 				<StyleSelect bind:config />
 

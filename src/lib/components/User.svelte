@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Avatar, Popover } from "bits-ui";
+	import { Avatar } from "bits-ui";
 	import dayjs from "dayjs";
 	import localizedFormat from "dayjs/plugin/localizedFormat";
 	import type { MentionNode } from "$lib/models/message/parse";
@@ -12,6 +12,7 @@
 	import Star from "~icons/ph/star-fill";
 	import UserIcon from "~icons/ph/user-bold";
 	import Message from "./message/Message.svelte";
+	import Popover from "./ui/Popover.svelte";
 
 	dayjs.extend(localizedFormat);
 
@@ -57,38 +58,37 @@
 	}
 </script>
 
-<Popover.Root
-	onOpenChange={async (open) => {
-		if (open) await fetchInfo();
-	}}
->
-	{#if mention}
-		<Popover.Trigger
-			class="font-semibold wrap-break-word disabled:cursor-default"
-			disabled={nested}
-			style={getMentionStyle()}
-		>
-			@{mention.data.user?.displayName ?? mention.value.slice(1)}
-		</Popover.Trigger>
-	{:else}
-		<Popover.Trigger
-			class="font-semibold wrap-break-word disabled:cursor-default"
-			disabled={nested}
-			style={message.author.style}
-		>
-			{message.author.displayName}
-		</Popover.Trigger>{#if !message.action}:{/if}
-	{/if}
+{#if mention}
+	<button
+		class="font-semibold wrap-break-word disabled:cursor-default"
+		popovertarget="user-card-{user.id}"
+		disabled={nested}
+		style={getMentionStyle()}
+	>
+		@{mention.data.user?.displayName ?? mention.value.slice(1)}
+	</button>
+{:else}
+	<button
+		class="font-semibold wrap-break-word disabled:cursor-default"
+		popovertarget="user-card-{user.id}"
+		disabled={nested}
+		style={message.author.style}
+	>
+		{message.author.displayName}
+	</button>{#if !message.action}:{/if}
+{/if}
 
-	<Popover.Portal>
-		<Popover.Content
-			class="z-50 w-sm origin-(--bits-popover-content-transform-origin) overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md outline-hidden slide-in-from-left-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
-			sideOffset={8}
-		>
-			{@render card(user)}
-		</Popover.Content>
-	</Popover.Portal>
-</Popover.Root>
+{#if !nested}
+	<Popover
+		id="user-card-{user.id}"
+		class="w-sm overflow-hidden p-0"
+		onbeforetoggle={async (event) => {
+			if (event.newState === "open") await fetchInfo();
+		}}
+	>
+		{@render card(user)}
+	</Popover>
+{/if}
 
 {#snippet card(user: User)}
 	{@const history = message.channel.chat.messages.filter(

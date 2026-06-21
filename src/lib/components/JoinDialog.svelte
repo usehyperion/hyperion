@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Combobox } from "bits-ui";
 	import { tick } from "svelte";
-	import type { Snippet } from "svelte";
 	import { app } from "$lib/app.svelte";
 	import { searchSuggestionsQuery } from "$lib/graphql/twitch";
 	import type { ChannelSuggestion } from "$lib/graphql/twitch";
@@ -9,18 +8,9 @@
 	import Spinner from "~icons/ph/spinner";
 	import { Button } from "./ui/button";
 	import Dialog from "./ui/Dialog.svelte";
-	// import * as Dialog from "./ui/dialog";
 	import * as Field from "./ui/field";
 	import { Input } from "./ui/input";
 
-	// interface Props {
-	// 	children: Snippet;
-	// 	class?: string;
-	// }
-
-	// const { children, class: className = "" }: Props = $props();
-
-	let open = $state(false);
 	let loading = $state(false);
 	let value = $state("");
 	let error = $state<string | null>(null);
@@ -71,7 +61,6 @@
 
 			await app.open(channel);
 
-			open = false;
 			reset();
 		} catch (err) {
 			if (err instanceof Error) {
@@ -151,8 +140,7 @@
 
 							{#if channel.isLive}
 								<div class="flex items-center text-red-500">
-									<div
-										class="mr-1.5 size-2 animate-pulse rounded-full bg-current"
+									<div class="mr-1.5 size-2 animate-pulse rounded-full bg-current"
 									></div>
 
 									<span class="text-sm font-medium">Live</span>
