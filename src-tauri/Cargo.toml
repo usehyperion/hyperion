@@ -22,7 +22,7 @@ debug = false
 incremental = true
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { git = "https://github.com/tauri-apps/tauri", branch = "feat/cef", features = [] }
 
 [dependencies]
 anyhow = "1.0.97"
@@ -36,17 +36,20 @@ serde_json = "1.0.140"
 sysinfo = "0.37.2"
 thiserror = "2.0.12"
 time = { version = "0.3", features = ["formatting", "local-offset"] }
-tauri = { version = "2", features = ["protocol-asset"] }
+tauri = { git = "https://github.com/tauri-apps/tauri", branch = "feat/cef", default-features = false, features = [
+	"cef",
+	"protocol-asset",
+] }
 tauri-plugin-cache = "0.1.5"
-tauri-plugin-clipboard-manager = "2"
-tauri-plugin-deep-link = "2"
-tauri-plugin-dialog = "2"
-tauri-plugin-fs = "2"
-tauri-plugin-http = "2"
-tauri-plugin-notification = "2"
-tauri-plugin-opener = "2"
-tauri-plugin-os = "2"
-tauri-plugin-process = "2"
+tauri-plugin-clipboard-manager = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-deep-link = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-dialog = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-fs = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-http = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-notification = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-opener = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-os = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-process = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
 tauri-plugin-svelte = { version = "3", features = ["preserve-order"] }
 tokio = { version = "1.44.2", features = ["macros", "time"] }
 tokio-stream = { version = "0.1", features = ["sync"] }
@@ -58,6 +61,12 @@ twitch_api = { version = "0.7.2", features = ["beta", "client", "helix", "events
 keyring = "4.1.1"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+tauri-plugin-single-instance = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef", features = [
+	"deep-link",
+] }
 tauri-plugin-updater = "2"
 tauri-plugin-window-state = "2"
+
+[patch.crates-io]
+tauri = { git = "https://github.com/tauri-apps/tauri", branch = "feat/cef" }
+tauri-plugin = { git = "https://github.com/tauri-apps/tauri", branch = "feat/cef" }
