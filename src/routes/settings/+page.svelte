@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Tabs } from "bits-ui";
-	import { beforeNavigate } from "$app/navigation";
+	import { beforeNavigate, goto } from "$app/navigation";
 	import { app } from "$lib/app.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import { Separator } from "$lib/components/ui/separator";
@@ -71,7 +71,7 @@
 			class="absolute top-2 right-2"
 			size="icon"
 			variant="ghost"
-			onclick={() => app.history.back()}
+			onclick={() => (app.history.canGoBack ? app.history.back() : goto("/"))}
 			aria-label="Close settings"
 		>
 			<X />

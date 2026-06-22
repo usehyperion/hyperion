@@ -103,7 +103,6 @@ export async function logOut() {
 	}
 
 	storage.state.user = null;
-	storage.state.lastJoined = null;
 
 	app.user = null;
 	app.focused = null;

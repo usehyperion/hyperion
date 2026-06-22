@@ -52,6 +52,10 @@ export function emptyPaneId() {
 	return `split-${crypto.randomUUID()}`;
 }
 
+export function firstLeaf(node: SplitNode): string {
+	return typeof node === "string" ? node : firstLeaf(node.before);
+}
+
 export function isEmptyPaneId(id: string) {
 	return id.startsWith("split-");
 }

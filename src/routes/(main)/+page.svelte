@@ -1,72 +1,140 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { goto } from "$app/navigation";
-	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
 	import JoinDialog from "$lib/components/JoinDialog.svelte";
+	import SplitNode from "$lib/components/split/SplitNode.svelte";
 	import { buttonVariants } from "$lib/components/ui/button";
 	import * as Empty from "$lib/components/ui/empty";
-	import type { SplitNode } from "$lib/split-layout";
+	import { settings } from "$lib/settings";
+	import { firstLeaf, type SplitDirection } from "$lib/split-layout";
 	import { storage } from "$lib/stores";
 	import ChatDots from "~icons/ph/chat-dots";
 	import Spinner from "~icons/ph/spinner";
 
 	let loading = $state(true);
 
-	function findFirstLeaf(node: SplitNode): string {
-		return typeof node === "string" ? node : findFirstLeaf(node.before);
-	}
-
 	onMount(async () => {
 		if (app.user && !app.user.emoteSets.size) {
 			await app.user.fetchEmoteSets();
 		}
 
-		// Find a channel to navigate to: prefer a leaf in the persisted layout,
-		// otherwise fall back to the last joined channel.
-		let username: string | null = null;
-
+		// Restore the focused channel from the first leaf of the persisted layout.
 		if (storage.state.layout) {
-			const leafId = findFirstLeaf(storage.state.layout);
-			const channel = app.channels.get(leafId);
-
-			if (channel) username = channel.user.username;
-		}
-
-		if (!username && storage.state.lastJoined) {
-			username = storage.state.lastJoined;
-		}
-
-		if (username) {
-			await goto(resolve("/(main)/channels/[username]", { username }));
-			return;
+			const channel = app.channels.get(firstLeaf(storage.state.layout));
+			if (channel) await app.open(channel);
 		}
 
 		loading = false;
 	});
+
+	async function handleKeydown(event: KeyboardEvent) {
+		if ((!event.metaKey && !event.ctrlKey) || event.repeat) return;
+
+		switch (event.key) {
+			case "t": {
+				if (settings.state["advanced.singleConnection"] || !app.splits.focused) return;
+
+				app.splits.insertEmpty(
+					app.splits.focused,
+					settings.state["splits.defaultOrientation"],
+				);
+
+				break;
+			}
+
+			case "w": {
+				if (
+					app.splits.focused &&
+					app.splits.root &&
+					app.splits.root !== app.splits.focused
+				) {
+					event.preventDefault();
+					app.splits.remove(app.splits.focused);
+				} else if (app.focused) {
+					event.preventDefault();
+
+					const channel = app.focused;
+					await channel.leave();
+
+					app.splits.remove(channel.id);
+					app.focused = null;
+				}
+
+				break;
+			}
+		}
+	}
+
+	function navigateSplit(event: KeyboardEvent) {
+		if (!app.splits.focused || !(event.metaKey || event.ctrlKey)) return;
+
+		let direction: SplitDirection;
+
+		switch (event.key) {
+			case "ArrowUp":
+				direction = "up";
+				break;
+			case "ArrowDown":
+				direction = "down";
+				break;
+			case "ArrowLeft":
+				direction = "left";
+				break;
+			case "ArrowRight":
+				direction = "right";
+				break;
+			default:
+				return;
+		}
+
+		event.preventDefault();
+
+		const targetId = app.splits.navigate(app.splits.focused, direction);
+		if (!targetId) return;
+
+		const channel = app.channels.get(targetId);
+		if (channel) {
+			app.splits.focused = channel.id;
+			channel.chat.input?.focus();
+		} else {
+			app.splits.focused = targetId;
+		}
+	}
 </script>
 
-{#if loading}
-	<div class="flex size-full flex-col items-center justify-center">
-		<Spinner class="size-6 animate-spin" />
-		<span class="mt-2 text-lg font-medium">Loading</span>
-	</div>
-{:else}
-	<Empty.Root class="h-full">
-		<Empty.Header>
-			<Empty.Media variant="icon">
-				<ChatDots />
-			</Empty.Media>
+<svelte:window
+	onkeydown={(event) => {
+		handleKeydown(event);
+		navigateSplit(event);
+	}}
+/>
 
-			<Empty.Title>No channel selected</Empty.Title>
+<div class="h-full">
+	{#if app.splits.root}
+		<SplitNode bind:node={app.splits.root} />
+	{:else if loading}
+		<div class="flex size-full flex-col items-center justify-center">
+			<Spinner class="size-6 animate-spin" />
+			<span class="mt-2 text-lg font-medium">Loading</span>
+		</div>
+	{:else}
+		<Empty.Root class="h-full">
+			<Empty.Header>
+				<Empty.Media variant="icon">
+					<ChatDots />
+				</Empty.Media>
 
-			<Empty.Description>
-				Select a channel from your following list or search for a channel to start chatting.
-			</Empty.Description>
-		</Empty.Header>
+				<Empty.Title>No channel selected</Empty.Title>
 
-		<Empty.Content>
-			<JoinDialog class={buttonVariants()}>Search channels</JoinDialog>
-		</Empty.Content>
-	</Empty.Root>
-{/if}
+				<Empty.Description>
+					Select a channel from your following list or search for a channel to start
+					chatting.
+				</Empty.Description>
+			</Empty.Header>
+
+			<Empty.Content>
+				<JoinDialog class={buttonVariants()}>Search channels</JoinDialog>
+			</Empty.Content>
+		</Empty.Root>
+	{/if}
+</div>

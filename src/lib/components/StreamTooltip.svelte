@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { goto } from "$app/navigation";
-	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
 	import { createChannelMenu } from "$lib/menus/channel-menu";
 	import type { Channel } from "$lib/models/channel.svelte";
@@ -24,11 +22,8 @@
 				{...props}
 				class="relative flex cursor-pointer items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-accent"
 				onclick={async () => {
-					await goto(
-						resolve("/(main)/channels/[username]", {
-							username: channel.user.username,
-						}),
-					);
+					await app.open(channel);
+					app.history.pushChannel(channel.id);
 				}}
 				oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}
 			>

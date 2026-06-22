@@ -124,7 +124,6 @@ export class Channel {
 
 		if (!split) {
 			app.focused = this;
-			storage.state.lastJoined = this.ephemeral ? null : this.user.username;
 		}
 
 		if (!this.viewers.has(this.id)) {
@@ -173,7 +172,6 @@ export class Channel {
 			await invoke("leave", { channel: this.user.username });
 		} finally {
 			this.reset();
-			storage.state.lastJoined = null;
 
 			if (app.user) {
 				app.user.banned.delete(this.id);

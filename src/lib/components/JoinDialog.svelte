@@ -2,8 +2,6 @@
 	import { Combobox } from "bits-ui";
 	import { tick } from "svelte";
 	import type { Snippet } from "svelte";
-	import { goto } from "$app/navigation";
-	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
 	import { searchSuggestionsQuery } from "$lib/graphql/twitch";
 	import type { ChannelSuggestion } from "$lib/graphql/twitch";
@@ -70,11 +68,7 @@
 				app.channels.set(channel.id, channel);
 			}
 
-			await goto(
-				resolve("/(main)/channels/[username]", {
-					username: channel.user.username,
-				}),
-			);
+			await app.open(channel);
 
 			open = false;
 			reset();

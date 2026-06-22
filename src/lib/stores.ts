@@ -1,14 +1,13 @@
 import { RuneStore } from "@tauri-store/svelte";
 import type { User } from "./graphql/twitch";
 import { settings } from "./settings";
-import type { SplitNode } from "./split-layout";
+import { firstLeaf, type SplitNode } from "./split-layout";
 
 interface Storage {
 	[key: string]: unknown;
 	user: User | null;
 	accounts: User[];
 	layout: SplitNode | null;
-	lastJoined: string | null;
 	pinned: string[];
 }
 
@@ -18,15 +17,20 @@ export const storage = new RuneStore<Storage>(
 		user: null,
 		accounts: [],
 		layout: null,
-		lastJoined: null,
 		pinned: [],
 	},
 	{
 		autoStart: true,
 		hooks: {
 			beforeBackendSync(state) {
-				if (settings.state["advanced.singleConnection"]) {
-					state.layout = null;
+				// Single-connection mode has no splits, so collapse any leftover
+				// tree to its focused leaf rather than persisting a split layout.
+				if (
+					settings.state["advanced.singleConnection"] &&
+					state.layout &&
+					typeof state.layout !== "string"
+				) {
+					state.layout = firstLeaf(state.layout);
 				}
 
 				return state;

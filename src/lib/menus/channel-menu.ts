@@ -5,8 +5,6 @@ import {
 	PredefinedMenuItem,
 	type MenuOptions,
 } from "@tauri-apps/api/menu";
-import { goto } from "$app/navigation";
-import { resolve } from "$app/paths";
 import { app } from "$lib/app.svelte";
 import type { Channel } from "$lib/models/channel.svelte";
 import { settings } from "$lib/settings";
@@ -59,11 +57,7 @@ export async function createChannelMenu(channel: Channel) {
 		text: "Join",
 		enabled: !channel.joined,
 		async action() {
-			await goto(
-				resolve("/(main)/channels/[username]", {
-					username: channel.user.username,
-				}),
-			);
+			await app.open(channel);
 		},
 	});
 
@@ -77,7 +71,7 @@ export async function createChannelMenu(channel: Channel) {
 			if (app.splits.root && app.splits.contains(app.splits.root, channel.id)) {
 				app.splits.replace(channel.id, emptyPaneId());
 			} else if (app.focused === channel) {
-				await goto(resolve("/"));
+				app.focused = null;
 			}
 		},
 	});
@@ -116,8 +110,16 @@ export async function createChannelMenu(channel: Channel) {
 			text: "Remove",
 			async action() {
 				await channel.leave();
+
+				if (app.splits.root && app.splits.contains(app.splits.root, channel.id)) {
+					app.splits.remove(channel.id);
+				}
+
+				if (app.focused === channel) {
+					app.focused = null;
+				}
+
 				app.channels.delete(channel.id);
-				await goto(resolve("/"));
 			},
 		});
 

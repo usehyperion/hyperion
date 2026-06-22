@@ -1,5 +1,7 @@
 import { invoke, Channel as IpcChannel } from "@tauri-apps/api/core";
 import { SvelteMap } from "svelte/reactivity";
+import { goto } from "$app/navigation";
+import { page } from "$app/state";
 import type { EmoteSet } from "./emotes";
 import type { Badge } from "./graphql/twitch";
 import { handlers } from "./handlers";
@@ -10,6 +12,7 @@ import { ChannelManager } from "./managers/channel-manager";
 import { EmoteManager } from "./managers/emote-manager";
 import type { Channel } from "./models/channel.svelte";
 import type { CurrentUser } from "./models/current-user.svelte";
+import { settings } from "./settings";
 import type { DispatchPayload, Paint } from "./seventv";
 import { SplitLayout } from "./split-layout";
 import type { Theme } from "./themes";
@@ -82,6 +85,33 @@ class App {
 	// Associates a (u)ser id to a 7TV (b)adge or (p)aint.
 	public readonly u2b = new SvelteMap<string, Badge | undefined>();
 	public readonly u2p = new SvelteMap<string, Paint | undefined>();
+
+	/**
+	 * Switches the focused channel, joining it if necessary, and ensures it is
+	 * present in the split layout (replacing the focused pane when not already
+	 * shown).
+	 */
+	public async open(channel: Channel) {
+		if (this.focused !== channel) {
+			if (channel.joined) {
+				this.focused = channel;
+			} else {
+				if (settings.state["advanced.singleConnection"]) {
+					await this.focused?.leave();
+				}
+
+				await channel.join();
+			}
+		}
+
+		this.splits.ensure(channel.id);
+
+		// The split view only lives at the root route, so return to it when
+		// opening a channel from elsewhere.
+		if (page.url.pathname !== "/") {
+			await goto("/");
+		}
+	}
 
 	public async connect() {
 		if (!this.user || this.connected) return;

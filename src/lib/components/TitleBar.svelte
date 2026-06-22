@@ -46,7 +46,11 @@
 		}
 
 		if (navigation.type === "link" || navigation.type === "goto") {
-			app.history.push(navigation.to.url.pathname);
+			const path = navigation.to.url.pathname;
+
+			if (path !== "/") {
+				app.history.pushRoute(path);
+			}
 		}
 	});
 </script>
@@ -100,13 +104,13 @@
 			{#if app.user}
 				<Button
 					class="size-min p-1 hover:text-foreground"
-					href={resolve("/(main)/channels/[username]", {
-						username: app.user.username,
-					})}
 					size="icon"
 					variant="ghost"
 					aria-label="Go to your channel"
-					data-sveltekit-preload-data="off"
+					onclick={async () => {
+						const channel = app.channels.get(app.user!.id);
+						if (channel) await app.open(channel);
+					}}
 				>
 					<User />
 				</Button>
