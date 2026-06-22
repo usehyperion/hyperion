@@ -388,7 +388,6 @@ impl EventSubClient {
             return Err(Error::Generic(anyhow!("No EventSub connection")));
         };
 
-        #[cfg(debug_assertions)]
         if self
             .subscriptions
             .contains(username, &event.to_string())
