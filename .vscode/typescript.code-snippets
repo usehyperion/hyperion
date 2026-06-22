@@ -1,7 +1,7 @@
 {
 	"Event handler": {
 		"scope": "typescript",
-		"prefix": "defineHandler",
+		"prefix": "handler",
 		"body": [
 			"import { defineHandler } from \"../helper\";",
 			"",

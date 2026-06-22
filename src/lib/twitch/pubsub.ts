@@ -65,12 +65,52 @@ export interface Polls {
 	};
 }
 
+export interface PredictionOutcome {
+	id: string;
+	title: string;
+	total_points: number;
+	total_users: number;
+}
+
+export type PredictionStatus =
+	| "ACTIVE"
+	| "LOCKED"
+	| "RESOLVE_PENDING"
+	| "RESOLVED"
+	| "CANCEL_PENDING"
+	| "CANCELED";
+
+export interface Prediction {
+	id: string;
+	title: string;
+	channel_id: string;
+	created_at: string;
+	created_by: { type: string; user_id?: string };
+	ended_at: string | null;
+	ended_by: { user_id?: string } | null;
+	locked_at: string | null;
+	locked_by: { user_id?: string } | null;
+	outcomes: PredictionOutcome[];
+	status: PredictionStatus;
+	prediction_window_seconds: number;
+	winning_outcome_id: string | null;
+}
+
+export interface PredictionsChannel {
+	type: "event-created" | "event-updated";
+	data: {
+		event: Prediction;
+	};
+}
+
+export interface PredictionsUser {}
+
 export interface PubSubTopicMap {
 	"community-points-channel-v1": CommunityPointsChannel;
 	"pinned-chat-updates-v1": PinnedChatUpdates;
-	"predictions-channel-v1": {};
+	"predictions-channel-v1": PredictionsChannel;
 	polls: Polls;
-	"predictions-user-v1": {};
+	"predictions-user-v1": PredictionsUser;
 }
 
 export type PubSubMessage<K extends keyof PubSubTopicMap> = PubSubTopicMap[K] & {

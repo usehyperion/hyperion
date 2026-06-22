@@ -1,7 +1,7 @@
 import { initGraphQLTada } from "gql.tada";
 import type { FragmentOf, ResultOf } from "gql.tada";
 import type { Fragment, StructuredMessage } from "$lib/twitch/api";
-import type { Poll as PubSubPoll } from "$lib/twitch/pubsub";
+import type { Poll as ApiPoll, Prediction as ApiPrediction } from "$lib/twitch/pubsub";
 import type { NonNullableDeep } from ".";
 
 const gql = initGraphQLTada<{
@@ -59,6 +59,47 @@ const guestStarDetailsFragment = gql(`
 		}
 	}
 `);
+
+const predictionActorIdFragment = gql(`
+	fragment PredictionActorId on PredictionEventActor {
+		... on User {
+			id
+		}
+		... on ExtensionClient {
+			id
+		}
+	}
+`);
+
+const predictionDetailsFragment = gql(
+	`
+	fragment PredictionDetails on PredictionEvent {
+		id
+		title
+		status
+		createdAt
+		createdBy {
+			... PredictionActorId
+		}
+		endedAt
+		endedBy {
+			... PredictionActorId
+		}
+		lockedAt
+		lockedBy {
+			... PredictionActorId
+		}
+		outcomes {
+			id
+			title
+			total_points: totalPoints
+			total_users: totalUsers
+		}
+		predictionWindowSeconds
+	}
+`,
+	[predictionActorIdFragment],
+);
 
 const streamDetailsFragment = gql(`
 	fragment StreamDetails on Stream {
@@ -244,9 +285,9 @@ export const pollQuery = gql(`
 					id
 				}
 				choices {
-					id
+					choice_id: id
 					title
-					totalVoters
+					total_voters: totalVoters
 				}
 				startedAt
 				endedAt
@@ -259,6 +300,22 @@ export const pollQuery = gql(`
 		}
 	}
 `);
+
+export const predictionQuery = gql(
+	`
+	query GetPrediction($id: ID!) {
+		channel(id: $id) {
+			activePredictionEvents {
+				...PredictionDetails
+			}
+			lockedPredictionEvents {
+				...PredictionDetails
+			}
+		}
+	}
+`,
+	[predictionDetailsFragment],
+);
 
 export const searchSuggestionsQuery = gql(`
 	query GetSearchSuggestions($query: String!) {
@@ -368,16 +425,14 @@ type PinnedMessage = NonNullableDeep<
 
 type Poll = NonNullableDeep<ResultOf<typeof pollQuery>, "user.viewablePoll">;
 
+type Prediction = FragmentOf<typeof predictionDetailsFragment>;
+
 // Transformers
 
-export function toPubSubPoll(channel: string, poll: Poll): PubSubPoll {
+export function toPubSubPoll(channel: string, poll: Poll): ApiPoll {
 	return {
 		poll_id: poll.id,
-		choices: poll.choices.map((c) => ({
-			choice_id: c.id,
-			title: c.title,
-			total_voters: c.totalVoters,
-		})),
+		choices: poll.choices,
 		created_by: poll.createdBy!.id,
 		duration_seconds: poll.durationSeconds,
 		ended_at: poll.endedAt,
@@ -387,6 +442,28 @@ export function toPubSubPoll(channel: string, poll: Poll): PubSubPoll {
 		status: poll.status,
 		title: poll.title,
 		total_voters: poll.totalVoters,
+	};
+}
+
+function resolveUser(p: Prediction["createdBy"]) {
+	return { user_id: p?.id };
+}
+
+export function toPubSubPrediction(channel: string, prediction: Prediction): ApiPrediction {
+	return {
+		channel_id: channel,
+		id: prediction.id,
+		title: prediction.title,
+		created_at: prediction.createdAt,
+		created_by: resolveUser(prediction.createdBy),
+		ended_at: prediction.endedAt,
+		ended_by: resolveUser(prediction.endedBy),
+		locked_at: prediction.lockedAt,
+		locked_by: resolveUser(prediction.lockedBy),
+		outcomes: prediction.outcomes,
+		status: prediction.status,
+		prediction_window_seconds: prediction.predictionWindowSeconds,
+		winning_outcome_id: null,
 	};
 }
 

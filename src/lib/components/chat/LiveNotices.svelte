@@ -5,9 +5,10 @@
 	import { Button } from "../ui/button";
 	import Pinned from "./Pinned.svelte";
 	import Poll from "./Poll.svelte";
+	import Prediction from "./Prediction.svelte";
 
 	interface Notice {
-		kind: "pin" | "poll";
+		kind: "pin" | "poll" | "prediction";
 		label: string;
 	}
 
@@ -26,6 +27,10 @@
 
 		if (chat.channel.poll && !chat.channel.poll.hidden) {
 			list.push({ kind: "poll", label: "Poll" });
+		}
+
+		if (chat.channel.prediction && !chat.channel.prediction.hidden) {
+			list.push({ kind: "prediction", label: "Prediction" });
 		}
 
 		return list;
@@ -100,6 +105,8 @@
 			<Pinned pin={chat.pinned} />
 		{:else if active?.kind === "poll" && chat.channel.poll}
 			<Poll poll={chat.channel.poll} />
+		{:else if active?.kind === "prediction" && chat.channel.prediction}
+			<Prediction prediction={chat.channel.prediction} />
 		{/if}
 	</div>
 {/if}

@@ -11,6 +11,7 @@
 	import type { IrcMessage } from "$lib/twitch/irc";
 	import LiveNotices from "./chat/LiveNotices.svelte";
 	import PollDialog, { pollOpen } from "./chat/PollDialog.svelte";
+	import PredictionDialog, { predictionOpen } from "./chat/PredictionDialog.svelte";
 
 	interface Props {
 		channel: Channel;
@@ -48,6 +49,8 @@
 	</div>
 
 	<PollDialog {channel} bind:open={pollOpen.value} />
+
+	<PredictionDialog {channel} bind:open={predictionOpen.value} />
 
 	<div class="p-2">
 		<ChatInput chat={channel.chat} />

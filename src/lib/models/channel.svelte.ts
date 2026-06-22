@@ -4,8 +4,10 @@ import {
 	channelBadgesQuery,
 	cheermoteQuery,
 	pollQuery,
+	predictionQuery,
 	streamQuery,
 	toPubSubPoll,
+	toPubSubPrediction,
 } from "$lib/graphql/twitch";
 import type { Cheermote } from "$lib/graphql/twitch";
 import { ChannelEmoteManager } from "$lib/managers/channel-emote-manager";
@@ -19,6 +21,7 @@ import type { TwitchClient } from "../twitch/client";
 import { Badge } from "./badge";
 import { Chat } from "./chat.svelte";
 import { Poll } from "./poll.svelte";
+import { Prediction } from "./prediction.svelte";
 import { Stream } from "./stream.svelte";
 import type { User } from "./user.svelte";
 import { Viewer } from "./viewer.svelte";
@@ -28,6 +31,12 @@ export interface PollOptions {
 	choices: string[];
 	duration: number;
 	channelPointsPerVote?: number;
+}
+
+export interface PredictionOptions {
+	title: string;
+	outcomes: string[];
+	window: number;
 }
 
 export class Channel {
@@ -74,6 +83,11 @@ export class Channel {
 	 * The poll associated with the channel if one is currently active.
 	 */
 	public poll = $state<Poll | null>(null);
+
+	/**
+	 * The prediction associated with the channel if one is currently active.
+	 */
+	public prediction = $state<Prediction | null>(null);
 
 	/**
 	 * Whether the channel is joined.
@@ -139,8 +153,9 @@ export class Channel {
 			this.emotes.fetch(),
 			this.fetchBadges(),
 			this.fetchCheermotes(),
-			this.fetchPoll(),
 			this.chat.fetchPinned(),
+			this.fetchPoll(),
+			this.fetchPrediction(),
 		]);
 
 		this.seventvId = seventvId;
@@ -194,10 +209,18 @@ export class Channel {
 		}
 	}
 
+	public clearPrediction(prediction = this.prediction) {
+		if (this.prediction === prediction) {
+			this.prediction?.dispose();
+			this.prediction = null;
+		}
+	}
+
 	public reset() {
 		this.joined = false;
 
 		this.clearPoll();
+		this.clearPrediction();
 
 		this.chat.reset();
 		this.badges.clear();
@@ -265,6 +288,26 @@ export class Channel {
 	}
 
 	/**
+	 * Retrieves the prediction in the channel if there one is active.
+	 */
+	public async fetchPrediction() {
+		const { channel } = await this.client.gql(predictionQuery, { id: this.id });
+
+		if (!channel?.activePredictionEvents?.length && !channel?.lockedPredictionEvents?.length) {
+			return null;
+		}
+
+		const prediction =
+			channel.activePredictionEvents?.[0] ?? channel.lockedPredictionEvents?.[0];
+		if (!prediction?.createdBy) return null;
+
+		const creator = await this.client.users.fetch(prediction.createdBy.id);
+		this.prediction = new Prediction(this, creator, toPubSubPrediction(this.id, prediction));
+
+		return this.prediction;
+	}
+
+	/**
 	 * Retrieves the stream of the channel if it's live.
 	 */
 	public async fetchStream() {
@@ -289,8 +332,7 @@ export class Channel {
 	}
 
 	/**
-	 * Creates a new poll in the channel. The resulting poll is delivered
-	 * through the `polls` PubSub topic rather than returned here.
+	 * Creates a new poll in the channel.
 	 */
 	public async createPoll(options: PollOptions) {
 		if (!this.isMod) return;
@@ -305,6 +347,22 @@ export class Channel {
 					channel_points_voting_enabled: true,
 					channel_points_per_vote: options.channelPointsPerVote,
 				}),
+			},
+		});
+	}
+
+	/**
+	 * Creates a new prediction in the channel.
+	 */
+	public async createPrediction(options: PredictionOptions) {
+		if (!this.isMod) return;
+
+		await this.client.post("/predictions", {
+			body: {
+				broadcaster_id: this.id,
+				title: options.title,
+				outcomes: options.outcomes.map((title) => ({ title })),
+				prediction_window: options.window,
 			},
 		});
 	}
