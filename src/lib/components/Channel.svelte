@@ -9,6 +9,8 @@
 	import type { Channel } from "$lib/models/channel.svelte";
 	import type { IrcMessage } from "$lib/twitch/irc";
 	import Pinned from "./chat/Pinned.svelte";
+	import Poll from "./chat/Poll.svelte";
+	import PollDialog from "./chat/PollDialog.svelte";
 
 	interface Props {
 		channel: Channel;
@@ -45,7 +47,13 @@
 		{/if}
 
 		<Chat chat={channel.chat} />
+
+		{#if channel.chat.poll}
+			<Poll poll={channel.chat.poll} />
+		{/if}
 	</div>
+
+	<PollDialog {channel} bind:open={channel.chat.pollDialogOpen} />
 
 	<div class="p-2">
 		<ChatInput chat={channel.chat} />

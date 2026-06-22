@@ -5,6 +5,7 @@ import { log } from "$lib/log";
 import { settings } from "$lib/settings";
 import { sendPresence } from "$lib/seventv";
 import type { SentMessage } from "$lib/twitch/api";
+import type { Poll as PollPayload } from "$lib/twitch/pubsub";
 import { commands } from "../commands";
 import Notice from "../components/message/events/Notice.svelte";
 import { RedemptionManager } from "../managers/redemption-manager";
@@ -15,6 +16,7 @@ import type { Message } from "./message/message";
 import { TextualMessage } from "./message/textual-message.svelte";
 import type { UserMessage } from "./message/user-message.svelte";
 import { Pin } from "./pin.svelte";
+import { Poll } from "./poll.svelte";
 import { Viewer } from "./viewer.svelte";
 
 const RATE_LIMIT_WINDOW = 30 * 1000;
@@ -79,6 +81,16 @@ export class Chat {
 	public value = $state("");
 
 	public pinned = $state<Pin | null>(null);
+
+	/**
+	 * The active or recently completed poll in the chat.
+	 */
+	public poll = $state<Poll | null>(null);
+
+	/**
+	 * Whether the poll creation dialog is open.
+	 */
+	public pollDialogOpen = $state(false);
 
 	/**
 	 * The message the current user is replying to if any.
@@ -176,8 +188,41 @@ export class Chat {
 		});
 	}
 
+	/**
+	 * Creates or updates the active poll from a PubSub payload.
+	 */
+	public setPoll(payload: PollPayload) {
+		console.log(this.poll?.id, payload.poll_id);
+		if (this.poll?.id === payload.poll_id) {
+			this.poll.update(payload);
+		} else {
+			this.poll?.dispose();
+			this.poll = new Poll(this, payload);
+		}
+	}
+
+	/**
+	 * Marks the active poll as completed from a PubSub payload.
+	 */
+	public completePoll(payload: PollPayload) {
+		if (this.poll?.id !== payload.poll_id) {
+			this.poll?.dispose();
+			this.poll = new Poll(this, payload);
+		}
+
+		this.poll.complete(payload);
+	}
+
+	public clearPoll(poll = this.poll) {
+		if (this.poll === poll) {
+			this.poll?.dispose();
+			this.poll = null;
+		}
+	}
+
 	public reset() {
 		this.#setPinned(null);
+		this.clearPoll();
 		this.#bypassNext = false;
 		this.#lastRecentAt = null;
 		this.replyTarget = null;

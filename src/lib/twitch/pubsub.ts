@@ -30,11 +30,48 @@ export interface PinnedChatUpdates {
 	updated_at?: number;
 }
 
+export interface PollVotes {
+	total: number;
+	bits: number;
+	channel_pointers: number;
+	base: number;
+}
+
+export interface PollChoice {
+	choice_id: string;
+	title: string;
+	total_voters: number;
+	votes: PollVotes;
+}
+
+export interface Poll {
+	choices: PollChoice[];
+	created_by: string;
+	duration_seconds: number;
+	ended_at: string | null;
+	ended_by: string | null;
+	owned_by: string;
+	poll_id: string;
+	remaining_duration_milliseconds: number;
+	started_at: string;
+	status: "ACTIVE";
+	title: string;
+	total_voters: number;
+	votes: PollVotes;
+}
+
+export interface Polls {
+	type: "POLL_CREATE" | "POLL_UPDATE" | "POLL_COMPLETE";
+	data: {
+		poll: Poll;
+	};
+}
+
 export interface PubSubTopicMap {
 	"community-points-channel-v1": CommunityPointsChannel;
 	"pinned-chat-updates-v1": PinnedChatUpdates;
 	"predictions-channel-v1": {};
-	polls: {};
+	polls: Polls;
 	"predictions-user-v1": {};
 }
 
