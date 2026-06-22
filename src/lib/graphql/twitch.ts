@@ -1,6 +1,7 @@
 import { initGraphQLTada } from "gql.tada";
 import type { FragmentOf, ResultOf } from "gql.tada";
 import type { Fragment, StructuredMessage } from "$lib/twitch/api";
+import type { Poll as PubSubPoll } from "$lib/twitch/pubsub";
 import type { NonNullableDeep } from ".";
 
 const gql = initGraphQLTada<{
@@ -233,6 +234,33 @@ export const pinnedMessageQuery = gql(
 	[badgeDetailsFragment],
 );
 
+export const pollQuery = gql(`
+	query GetPoll($id: ID!) {
+		user(id: $id) {
+			viewablePoll {
+				id
+				title
+				status
+				createdBy {
+					id
+				}
+				choices {
+					id
+					title
+					totalVoters
+				}
+				startedAt
+				endedAt
+				endedBy {
+					id
+				}
+				durationSeconds
+				totalVoters
+			}
+		}
+	}
+`);
+
 export const searchSuggestionsQuery = gql(`
 	query GetSearchSuggestions($query: String!) {
 		searchSuggestions(queryFragment: $query, withOfflineChannelContent: true) {
@@ -338,14 +366,36 @@ export type ChannelSuggestion = Extract<
 	{ __typename: "SearchSuggestionChannel" }
 >;
 
+type MessageContent = NonNullableDeep<PinnedMessage, "pinnedMessage.content">;
+
 type PinnedMessage = NonNullableDeep<
 	ResultOf<typeof pinnedMessageQuery>,
 	"channel.pinnedChatMessages.edges.0.node"
 >;
 
-type MessageContent = NonNullableDeep<PinnedMessage, "pinnedMessage.content">;
+type Poll = NonNullableDeep<ResultOf<typeof pollQuery>, "user.viewablePoll">;
 
 // Transformers
+
+export function toPubSubPoll(channel: string, poll: Poll): PubSubPoll {
+	return {
+		poll_id: poll.id,
+		choices: poll.choices.map((c) => ({
+			choice_id: c.id,
+			title: c.title,
+			total_voters: c.totalVoters,
+		})),
+		created_by: poll.createdBy!.id,
+		duration_seconds: poll.durationSeconds,
+		ended_at: poll.endedAt,
+		ended_by: poll.endedBy?.id ?? null,
+		owned_by: channel,
+		started_at: poll.startedAt,
+		status: poll.status,
+		title: poll.title,
+		total_voters: poll.totalVoters,
+	};
+}
 
 export function toStructuredMessage(id: string, content: MessageContent): StructuredMessage {
 	const fragments: Fragment[] = content.fragments.map((fragment) => {

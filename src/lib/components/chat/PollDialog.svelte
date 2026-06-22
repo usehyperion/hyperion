@@ -1,6 +1,9 @@
+<script lang="ts" module>
+	export const pollOpen = $state({ value: false });
+</script>
+
 <script lang="ts">
 	import type { Channel } from "$lib/models/channel.svelte";
-	import { Poll } from "$lib/models/poll.svelte";
 	import Plus from "~icons/ph/plus";
 	import X from "~icons/ph/x";
 	import { Button } from "../ui/button";
@@ -17,12 +20,12 @@
 	const POINTS_MAX = 1_000_000;
 
 	const DURATIONS = [
-		{ label: "30 seconds", value: 30 },
 		{ label: "1 minute", value: 60 },
 		{ label: "2 minutes", value: 120 },
 		{ label: "3 minutes", value: 180 },
 		{ label: "5 minutes", value: 300 },
 		{ label: "10 minutes", value: 600 },
+		{ label: "30 minutes", value: 1800 },
 	];
 
 	interface Props {
@@ -30,9 +33,8 @@
 		open: boolean;
 	}
 
-	const id = $props.id();
-
 	let { channel, open = $bindable() }: Props = $props();
+	const id = $props.id();
 
 	let title = $state("");
 	let choices = $state(["", ""]);
@@ -62,11 +64,10 @@
 	async function create() {
 		if (!canSubmit) return;
 
-		await Poll.create(channel, {
+		await channel.createPoll({
 			title: title.trim(),
 			choices: validChoices,
 			duration,
-			channelPointsVoting: pointsEnabled,
 			channelPointsPerVote: pointsEnabled ? pointsPerVote : undefined,
 		});
 

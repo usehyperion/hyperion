@@ -7,12 +7,10 @@ export default defineCommand({
 	description: "End the active poll in the channel",
 	modOnly: true,
 	async exec(_, channel) {
-		const { poll } = channel.chat;
-
-		if (!poll || poll.status !== "ACTIVE") {
+		if (!channel.poll || channel.poll.status !== "ACTIVE") {
 			throw new CommandError("There is no active poll to end.");
 		}
 
-		await poll.terminate();
+		await channel.poll.end();
 	},
 });

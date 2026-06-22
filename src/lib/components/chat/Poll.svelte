@@ -1,13 +1,10 @@
 <script lang="ts">
 	import type { Poll } from "$lib/models/poll.svelte";
-	import { formatDuration } from "$lib/util";
-	import CaretDown from "~icons/ph/caret-down";
-	import CaretUp from "~icons/ph/caret-up";
+	import { colorizeName, formatDuration } from "$lib/util";
 	import ChartBar from "~icons/ph/chart-bar";
-	import StopCircle from "~icons/ph/stop-circle";
-	import { Button } from "../ui/button";
+	import Stop from "~icons/ph/stop-fill";
 	import { Progress } from "../ui/progress";
-	import * as Tooltip from "../ui/tooltip";
+	import NoticeAction, { details, hide } from "./NoticeAction.svelte";
 
 	interface Props {
 		poll: Poll;
@@ -25,94 +22,64 @@
 		return () => clearInterval(id);
 	});
 
-	const remaining = $derived(Math.max(0, Math.ceil((poll.endsAt - now) / 1000)));
+	const remaining = $derived(Math.max(0, Math.ceil((poll.endsTimestamp - now) / 1000)));
 
-	const label = $derived(
-		poll.status === "ACTIVE"
-			? remaining > 0
-				? `${formatDuration(remaining)} left`
-				: "Ending…"
-			: poll.status === "TERMINATED"
-				? "Ended"
-				: "Final results",
+	const status = $derived(
+		poll.status === "ACTIVE" && remaining > 0 ? `${formatDuration(remaining)} left` : "Ended",
 	);
+
+	const leading = $derived(Math.max(0, ...poll.choices.map((c) => c.votes)));
 
 	function percent(votes: number) {
 		return poll.totalVotes > 0 ? Math.round((votes / poll.totalVotes) * 100) : 0;
 	}
-
-	const leading = $derived(Math.max(0, ...poll.choices.map((c) => c.votes)));
 </script>
 
-<div
-	class="absolute inset-x-2 bottom-2 z-10 overflow-hidden rounded-md border bg-background p-2 text-sm shadow-md"
->
+<div class="p-2 text-sm">
 	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
-		<ChartBar class="size-3" />
-		<p class="truncate font-medium text-foreground">{poll.title}</p>
+		<ChartBar class="size-3 shrink-0" />
 
-		<span class="ml-auto whitespace-nowrap">{label}</span>
+		<span class="truncate">
+			Poll by {@html colorizeName(poll.creator)}
+		</span>
 
-		<div class="flex items-center gap-0.5">
-			{#if poll.status === "ACTIVE" && poll.chat.channel.isMod}
-				<Tooltip.Root>
-					<Tooltip.Trigger>
-						{#snippet child({ props })}
-							<Button
-								{...props}
-								class="size-5 [&_svg]:size-3.5"
-								size="icon-sm"
-								variant="ghost"
-								aria-label="End poll"
-								onclick={() => poll.terminate()}
-							>
-								<StopCircle />
-							</Button>
-						{/snippet}
-					</Tooltip.Trigger>
+		<span class="ml-auto shrink-0 whitespace-nowrap">{status}</span>
 
-					<Tooltip.Content side="top">End poll</Tooltip.Content>
-				</Tooltip.Root>
+		<div class="flex shrink-0 items-center gap-0.5">
+			{#if poll.status === "ACTIVE" && poll.channel.isMod}
+				<NoticeAction icon={Stop} tooltip="End poll" onclick={() => poll.end()} />
 			{/if}
 
-			<Button
-				class="size-5 [&_svg]:size-3.5"
-				size="icon-sm"
-				variant="ghost"
-				aria-label={expanded ? "Collapse" : "Expand"}
-				onclick={() => (expanded = !expanded)}
-			>
-				{#if expanded}
-					<CaretUp />
-				{:else}
-					<CaretDown />
-				{/if}
-			</Button>
+			{@render details(expanded, () => (expanded = !expanded))}
+			{@render hide(() => (poll.hidden = true))}
 		</div>
 	</div>
+
+	<p class="mb-1.5 font-medium">{poll.title}</p>
 
 	{#if expanded}
 		<ul class="flex flex-col gap-1.5">
 			{#each poll.choices as choice (choice.id)}
 				{@const pct = percent(choice.votes)}
+				{@const winner =
+					poll.status !== "ACTIVE" && choice.votes === leading && leading > 0}
 
 				<li>
 					<div class="mb-0.5 flex items-center justify-between gap-2">
-						<span
-							class="truncate"
-							class:font-semibold={poll.status !== "ACTIVE" &&
-								choice.votes === leading &&
-								leading > 0}
-						>
-							{choice.title}
-						</span>
+						<span class="truncate">{choice.title}</span>
 
 						<span class="text-xs whitespace-nowrap text-muted-foreground">
 							{pct}% ({choice.votes})
 						</span>
 					</div>
 
-					<Progress value={pct} class="h-1.5" />
+					<Progress
+						value={pct}
+						class={[
+							"h-1.5",
+							winner && "**:data-[slot=progress-indicator]:bg-green-500",
+						]}
+					/>
 				</li>
 			{/each}
 		</ul>

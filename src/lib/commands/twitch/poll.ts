@@ -1,3 +1,4 @@
+import { pollOpen } from "$lib/components/chat/PollDialog.svelte";
 import { defineCommand } from "../util";
 
 export default defineCommand({
@@ -5,7 +6,7 @@ export default defineCommand({
 	name: "poll",
 	description: "Create a poll for the channel",
 	modOnly: true,
-	async exec(_, channel) {
-		channel.chat.pollDialogOpen = true;
+	async exec() {
+		pollOpen.value = true;
 	},
 });

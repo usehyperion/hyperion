@@ -1,106 +1,111 @@
-import type { Poll as PollPayload } from "$lib/twitch/pubsub";
+import type { Poll as ApiPoll, PollStatus } from "$lib/twitch/pubsub";
 import type { Channel } from "./channel.svelte";
-import type { Chat } from "./chat.svelte";
+import type { User } from "./user.svelte";
 
-// How long the completed poll results stay visible before being cleared.
-const COMPLETE_LINGER = 10 * 1000;
+// Twitch keeps polls visible for a minute after they end
+const LINGER_DURATION = 60 * 1000;
 
-export interface PollChoiceState {
-	id: string;
-	title: string;
+export interface PollChoice {
+	readonly id: string;
+	readonly title: string;
 	votes: number;
 }
 
-export interface CreatePollOptions {
-	title: string;
-	choices: string[];
-	duration: number;
-	channelPointsVoting?: boolean;
-	channelPointsPerVote?: number;
-}
-
 /**
- * The active or recently completed poll in a chat.
+ * The active or recently completed poll in a channel.
  */
 export class Poll {
-	#removalId: ReturnType<typeof setTimeout> | null = null;
+	#expiryId: ReturnType<typeof setTimeout> | null = null;
 
 	public readonly id: string;
 
-	public title = $state("");
-	public choices = $state<PollChoiceState[]>([]);
-	public totalVotes = $state(0);
-	public status = $state<"ACTIVE" | "COMPLETED" | "TERMINATED">("ACTIVE");
+	/**
+	 * The title of the poll.
+	 */
+	public readonly title: string;
+
+	/**
+	 * The choices available in the poll.
+	 */
+	public readonly choices = $state<PollChoice[]>([]);
 
 	/**
 	 * The timestamp at which the poll started.
 	 */
-	public startedAt = $state(0);
+	public readonly startedTimestamp: number;
 
 	/**
 	 * The timestamp at which the poll ends.
 	 */
-	public endsAt = $state(0);
+	public readonly endsTimestamp: number;
+
+	/**
+	 * Whether the poll is hidden for the current user.
+	 */
+	public hidden = $state(false);
+
+	public totalVotes = $state(0);
+	public status = $state<PollStatus>("ACTIVE");
 
 	public constructor(
-		public readonly chat: Chat,
-		payload: PollPayload,
+		/**
+		 * The channel in which the poll is active.
+		 */
+		public readonly channel: Channel,
+
+		/**
+		 * The user who created the poll.
+		 */
+		public readonly creator: User,
+		data: ApiPoll,
 	) {
-		this.id = payload.poll_id;
-		this.#apply(payload);
+		this.id = data.poll_id;
+		this.title = data.title;
+
+		this.startedTimestamp = new Date(data.started_at).getTime();
+		this.endsTimestamp = this.startedTimestamp + data.duration_seconds * 1000;
+
+		this.choices = data.choices.map((c) => ({
+			id: c.choice_id,
+			title: c.title,
+			votes: c.total_voters,
+		}));
+
+		this.totalVotes = data.total_voters;
 	}
 
-	/**
-	 * Creates a new poll in the given channel. The resulting poll is delivered
-	 * through the `polls` PubSub topic rather than returned here.
-	 */
-	public static async create(channel: Channel, options: CreatePollOptions) {
-		if (!channel.isMod) return;
+	public update(payload: ApiPoll) {
+		this.totalVotes = payload.total_voters;
+		this.status = payload.status;
 
-		await channel.client.post("/polls", {
-			body: {
-				broadcaster_id: channel.id,
-				title: options.title,
-				choices: options.choices.map((title) => ({ title })),
-				duration: options.duration,
-				...(options.channelPointsVoting && {
-					channel_points_voting_enabled: true,
-					channel_points_per_vote: options.channelPointsPerVote ?? 0,
-				}),
-			},
-		});
-	}
-
-	/**
-	 * Updates this poll's reactive state from a fresh PubSub payload.
-	 */
-	public update(payload: PollPayload) {
-		this.#apply(payload);
+		for (const choice of this.choices) {
+			const newVotes = payload.choices.find((c) => c.choice_id === choice.id)?.total_voters;
+			if (newVotes) choice.votes = newVotes;
+		}
 	}
 
 	/**
 	 * Marks this poll as finished and schedules it to be cleared after a short
 	 * delay so the final results remain briefly visible.
 	 */
-	public complete(payload: PollPayload) {
-		this.#apply(payload);
-		this.status = payload.ended_by ? "TERMINATED" : "COMPLETED";
+	public complete(payload: ApiPoll) {
+		this.update(payload);
 
-		this.#removalId ??= setTimeout(() => {
-			this.#removalId = null;
-			this.chat.clearPoll(this);
-		}, COMPLETE_LINGER);
+		this.#expiryId ??= setTimeout(() => {
+			this.#expiryId = null;
+			this.channel.clearPoll(this);
+		}, LINGER_DURATION);
 	}
 
 	/**
 	 * Ends this poll early.
 	 */
-	public async terminate() {
-		if (!this.chat.channel.isMod) return;
+	public async end() {
+		if (!this.channel.isMod) return;
 
-		await this.chat.channel.client.patch("/polls", {
+		await this.channel.client.patch("/polls", {
 			body: {
-				broadcaster_id: this.chat.channel.id,
+				broadcaster_id: this.channel.id,
 				id: this.id,
 				status: "TERMINATED",
 			},
@@ -108,22 +113,9 @@ export class Poll {
 	}
 
 	public dispose() {
-		if (this.#removalId !== null) {
-			clearTimeout(this.#removalId);
-			this.#removalId = null;
+		if (this.#expiryId !== null) {
+			clearTimeout(this.#expiryId);
+			this.#expiryId = null;
 		}
-	}
-
-	#apply(payload: PollPayload) {
-		this.title = payload.title;
-		this.totalVotes = payload.votes.total;
-		this.choices = payload.choices.map((choice) => ({
-			id: choice.choice_id,
-			title: choice.title,
-			votes: choice.votes.total,
-		}));
-
-		this.startedAt = new Date(payload.started_at).getTime();
-		this.endsAt = this.startedAt + payload.duration_seconds * 1000;
 	}
 }

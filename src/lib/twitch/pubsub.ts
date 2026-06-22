@@ -30,19 +30,19 @@ export interface PinnedChatUpdates {
 	updated_at?: number;
 }
 
-export interface PollVotes {
-	total: number;
-	bits: number;
-	channel_pointers: number;
-	base: number;
-}
-
 export interface PollChoice {
 	choice_id: string;
 	title: string;
 	total_voters: number;
-	votes: PollVotes;
 }
+
+export type PollStatus =
+	| "UNKNOWN"
+	| "ACTIVE"
+	| "COMPLETED"
+	| "TERMINATED"
+	| "ARCHIVED"
+	| "MODERATED";
 
 export interface Poll {
 	choices: PollChoice[];
@@ -52,16 +52,14 @@ export interface Poll {
 	ended_by: string | null;
 	owned_by: string;
 	poll_id: string;
-	remaining_duration_milliseconds: number;
 	started_at: string;
-	status: "ACTIVE";
+	status: PollStatus;
 	title: string;
 	total_voters: number;
-	votes: PollVotes;
 }
 
 export interface Polls {
-	type: "POLL_CREATE" | "POLL_UPDATE" | "POLL_COMPLETE";
+	type: "POLL_CREATE" | "POLL_UPDATE" | "POLL_COMPLETE" | "POLL_TERMINATE";
 	data: {
 		poll: Poll;
 	};

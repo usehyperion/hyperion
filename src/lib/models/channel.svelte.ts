@@ -1,6 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
 import * as cache from "tauri-plugin-cache-api";
-import { channelBadgesQuery, cheermoteQuery, streamQuery } from "$lib/graphql/twitch";
+import {
+	channelBadgesQuery,
+	cheermoteQuery,
+	pollQuery,
+	streamQuery,
+	toPubSubPoll,
+} from "$lib/graphql/twitch";
 import type { Cheermote } from "$lib/graphql/twitch";
 import { ChannelEmoteManager } from "$lib/managers/channel-emote-manager";
 import { fetch7tvId } from "$lib/seventv";
@@ -12,9 +18,17 @@ import type { StreamMarker } from "../twitch/api";
 import type { TwitchClient } from "../twitch/client";
 import { Badge } from "./badge";
 import { Chat } from "./chat.svelte";
+import { Poll } from "./poll.svelte";
 import { Stream } from "./stream.svelte";
 import type { User } from "./user.svelte";
 import { Viewer } from "./viewer.svelte";
+
+export interface PollOptions {
+	title: string;
+	choices: string[];
+	duration: number;
+	channelPointsPerVote?: number;
+}
 
 export class Channel {
 	public readonly id: string;
@@ -47,9 +61,19 @@ export class Channel {
 	public readonly viewers: ViewerManager;
 
 	/**
+	 * Whether the channel is pinned.
+	 */
+	public readonly pinned: boolean;
+
+	/**
 	 * The stream associated with the channel if it's currently live.
 	 */
 	public stream = $state<Stream | null>(null);
+
+	/**
+	 * The poll associated with the channel if one is currently active.
+	 */
+	public poll = $state<Poll | null>(null);
 
 	/**
 	 * Whether the channel is joined.
@@ -60,11 +84,6 @@ export class Channel {
 	 * Whether the channel is ephemeral.
 	 */
 	public ephemeral = $state(false);
-
-	/**
-	 * Whether the channel is pinned.
-	 */
-	public readonly pinned: boolean;
 
 	/**
 	 * The id of the active 7TV emote set for the channel if any.
@@ -121,6 +140,7 @@ export class Channel {
 			this.emotes.fetch(),
 			this.fetchBadges(),
 			this.fetchCheermotes(),
+			this.fetchPoll(),
 			this.chat.fetchPinned(),
 		]);
 
@@ -169,8 +189,18 @@ export class Channel {
 		}
 	}
 
+	public clearPoll(poll = this.poll) {
+		if (this.poll === poll) {
+			this.poll?.dispose();
+			this.poll = null;
+		}
+	}
+
 	public reset() {
 		this.joined = false;
+
+		this.clearPoll();
+
 		this.chat.reset();
 		this.badges.clear();
 		this.emotes.clear();
@@ -224,6 +254,19 @@ export class Channel {
 	}
 
 	/**
+	 * Retrieves the poll in the channel if there one is active.
+	 */
+	public async fetchPoll() {
+		const { user } = await this.client.gql(pollQuery, { id: this.id });
+		if (!user?.viewablePoll) return null;
+
+		const creator = await this.client.users.fetch(user.viewablePoll.createdBy!.id);
+		this.poll = new Poll(this, creator, toPubSubPoll(this.id, user.viewablePoll));
+
+		return this.poll;
+	}
+
+	/**
 	 * Retrieves the stream of the channel if it's live.
 	 */
 	public async fetchStream() {
@@ -245,6 +288,27 @@ export class Channel {
 		});
 
 		return data;
+	}
+
+	/**
+	 * Creates a new poll in the channel. The resulting poll is delivered
+	 * through the `polls` PubSub topic rather than returned here.
+	 */
+	public async createPoll(options: PollOptions) {
+		if (!this.isMod) return;
+
+		await this.client.post("/polls", {
+			body: {
+				broadcaster_id: this.id,
+				title: options.title,
+				choices: options.choices.map((title) => ({ title })),
+				duration: options.duration,
+				...(options.channelPointsPerVote && {
+					channel_points_voting_enabled: true,
+					channel_points_per_vote: options.channelPointsPerVote,
+				}),
+			},
+		});
 	}
 
 	public async blockTerm(term: string) {
