@@ -24,7 +24,7 @@
 			list.push({ kind: "pin", label: "Pinned message" });
 		}
 
-		if (chat.channel.poll) {
+		if (chat.channel.poll && !chat.channel.poll.hidden) {
 			list.push({ kind: "poll", label: "Poll" });
 		}
 

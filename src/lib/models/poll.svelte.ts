@@ -72,6 +72,7 @@ export class Poll {
 		}));
 
 		this.totalVotes = data.total_voters;
+		this.status = data.status;
 	}
 
 	public update(payload: ApiPoll) {
@@ -80,7 +81,10 @@ export class Poll {
 
 		for (const choice of this.choices) {
 			const newVotes = payload.choices.find((c) => c.choice_id === choice.id)?.total_voters;
-			if (newVotes) choice.votes = newVotes;
+
+			if (typeof newVotes === "number") {
+				choice.votes = newVotes;
+			}
 		}
 	}
 

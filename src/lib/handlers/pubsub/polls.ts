@@ -9,7 +9,6 @@ export default defineHandler({
 		if (!channel) return;
 
 		const { poll } = data.data;
-		console.log(poll);
 
 		switch (data.type) {
 			case "POLL_CREATE": {
