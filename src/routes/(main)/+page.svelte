@@ -18,8 +18,6 @@
 	}
 
 	onMount(async () => {
-		await app.connect();
-
 		if (app.user && !app.user.emoteSets.size) {
 			await app.user.fetchEmoteSets();
 		}
