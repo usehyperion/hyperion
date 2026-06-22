@@ -3,7 +3,7 @@ import { ErrorMessage } from "$lib/errors/messages";
 import { defineCommand } from "../util";
 
 export default defineCommand({
-	provider: "Built-in",
+	provider: "Twitch",
 	name: "block-term",
 	description: "Block a term and prevent it from being used in chat",
 	modOnly: true,

@@ -1,7 +1,7 @@
 import { defineCommand } from "../util";
 
 export default defineCommand({
-	provider: "Built-in",
+	provider: "Twitch",
 	name: "unpin",
 	description: "Unpin the currently pinned message in the channel",
 	modOnly: true,

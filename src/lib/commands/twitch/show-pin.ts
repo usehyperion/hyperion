@@ -1,7 +1,7 @@
 import { defineCommand } from "../util";
 
 export default defineCommand({
-	provider: "Built-in",
+	provider: "Twitch",
 	name: "show-pin",
 	description: "Show the pinned message in chat",
 	async exec(_, channel) {

@@ -2,7 +2,7 @@ import { foundersQuery } from "$lib/graphql/twitch";
 import { defineCommand } from "../util";
 
 export default defineCommand({
-	provider: "Built-in",
+	provider: "Twitch",
 	name: "founders",
 	description: "Display a list of founders for this channel",
 	async exec(_, channel) {
