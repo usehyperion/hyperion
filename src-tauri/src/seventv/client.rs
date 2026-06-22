@@ -124,7 +124,9 @@ impl SeventTvClient {
 
     async fn handle_ws_message(&self, msg: WebSocketMessage) {
         match msg.op {
-            0 => {
+            0 =>
+            {
+                #[allow(clippy::collapsible_match)]
                 if self.sender.send(msg.d).is_err() {
                     tracing::warn!("7TV event receiver dropped");
                 }
