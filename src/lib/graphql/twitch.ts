@@ -305,10 +305,10 @@ export const predictionQuery = gql(
 	`
 	query GetPrediction($id: ID!) {
 		channel(id: $id) {
-			activePredictionEvents {
+			active: activePredictionEvents {
 				...PredictionDetails
 			}
-			lockedPredictionEvents {
+			locked: lockedPredictionEvents {
 				...PredictionDetails
 			}
 		}
@@ -445,21 +445,24 @@ export function toPubSubPoll(channel: string, poll: Poll): ApiPoll {
 	};
 }
 
-function resolveUser(p: Prediction["createdBy"]) {
-	return { user_id: p?.id };
-}
-
 export function toPubSubPrediction(channel: string, prediction: Prediction): ApiPrediction {
 	return {
 		channel_id: channel,
 		id: prediction.id,
 		title: prediction.title,
 		created_at: prediction.createdAt,
-		created_by: resolveUser(prediction.createdBy),
+		created_by: {
+			type: prediction.createdBy?.__typename?.toUpperCase() ?? "",
+			user_id: prediction.createdBy?.id,
+		},
 		ended_at: prediction.endedAt,
-		ended_by: resolveUser(prediction.endedBy),
+		ended_by: {
+			user_id: prediction.endedBy?.id,
+		},
 		locked_at: prediction.lockedAt,
-		locked_by: resolveUser(prediction.lockedBy),
+		locked_by: {
+			user_id: prediction.lockedBy?.id,
+		},
 		outcomes: prediction.outcomes,
 		status: prediction.status,
 		prediction_window_seconds: prediction.predictionWindowSeconds,

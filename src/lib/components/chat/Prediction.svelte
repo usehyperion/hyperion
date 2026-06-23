@@ -14,9 +14,8 @@
 
 	const { prediction }: Props = $props();
 
-	// Twitch colors the two-outcome case blue/pink; larger predictions use a
-	// distinct rainbow palette so each of the (up to ten) outcomes is legible.
 	const DUO = ["bg-blue-500", "bg-pink-500"];
+
 	const RAINBOW = [
 		"bg-red-500",
 		"bg-orange-500",
@@ -63,7 +62,6 @@
 		return prediction.totalPoints > 0 ? Math.round((points / prediction.totalPoints) * 100) : 0;
 	}
 
-	// The payout multiplier for an outcome: the whole pot divided by its share.
 	function ratio(points: number) {
 		return points > 0 ? prediction.totalPoints / points : 0;
 	}
@@ -105,7 +103,6 @@
 
 	<p class="mb-1.5 font-medium">{prediction.title}</p>
 
-	<!-- Segmented bar: each outcome's width is its share of the wagered pot. -->
 	<div class="flex h-2 w-full gap-0.5 overflow-hidden rounded-full">
 		{#each prediction.outcomes as outcome, i (outcome.id)}
 			{@const pct = percent(outcome.points)}
@@ -144,7 +141,7 @@
 							{outcome.users === 1 ? "predictor" : "predictors"}
 						</span>
 
-						<span>Returns {ratio(outcome.points).toFixed(2)}×</span>
+						<span>Returns {ratio(outcome.points).toFixed(2)}&times;</span>
 					</div>
 				</Tooltip.Content>
 			</Tooltip.Root>

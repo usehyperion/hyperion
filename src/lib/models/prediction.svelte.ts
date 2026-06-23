@@ -105,8 +105,6 @@ export class Prediction {
 			}
 		}
 
-		// Once resolved or canceled, schedule the prediction to be cleared after a
-		// short delay so the final results remain briefly visible.
 		if (this.status === "RESOLVED" || this.status === "CANCELED") {
 			this.#expiryId ??= setTimeout(() => {
 				this.#expiryId = null;

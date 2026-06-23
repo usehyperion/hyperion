@@ -292,13 +292,12 @@ export class Channel {
 	 */
 	public async fetchPrediction() {
 		const { channel } = await this.client.gql(predictionQuery, { id: this.id });
+		if (!channel) return null;
 
-		if (!channel?.activePredictionEvents?.length && !channel?.lockedPredictionEvents?.length) {
-			return null;
-		}
+		const { active, locked } = channel;
+		if (!active?.length && !locked?.length) return null;
 
-		const prediction =
-			channel.activePredictionEvents?.[0] ?? channel.lockedPredictionEvents?.[0];
+		const prediction = active?.[0] ?? locked?.[0];
 		if (!prediction?.createdBy) return null;
 
 		const creator = await this.client.users.fetch(prediction.createdBy.id);
