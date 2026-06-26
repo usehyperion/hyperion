@@ -37,6 +37,13 @@ export interface MentionFragment {
 	user_name: string;
 }
 
+export interface FollowedChannel {
+	broadcaster_id: string;
+	broadcaster_login: string;
+	broadcaster_name: string;
+	followed_at: string;
+}
+
 export type Fragment = TextFragment | CheermoteFragment | EmoteFragment | MentionFragment;
 
 export interface StructuredMessage {

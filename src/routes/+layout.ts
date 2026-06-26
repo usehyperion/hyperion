@@ -4,7 +4,6 @@ import { app } from "$lib/app.svelte";
 import { log } from "$lib/log";
 import { Channel } from "$lib/models/channel.svelte";
 import { CurrentUser } from "$lib/models/current-user.svelte";
-import { Stream } from "$lib/models/stream.svelte";
 import { User } from "$lib/models/user.svelte";
 import { storage } from "$lib/stores";
 import type { BasicUser } from "$lib/twitch/irc";
@@ -50,30 +49,10 @@ export async function load({ url }) {
 	}
 
 	if (!app.channels.size) {
-		const following = await app.user.fetchFollowing();
-
-		for (const followed of following) {
-			let stream: Stream | null = null;
-
-			if (followed.stream) {
-				stream = new Stream(app.twitch, followed.id, followed.stream);
-
-				for (const { user } of followed.channel?.guestStarSessionCall?.guests ?? []) {
-					stream.addGuest({
-						...user,
-						viewers: user.stream?.viewersCount ?? null,
-					});
-				}
-			}
-
-			const user = new User(app.twitch, followed);
-			const channel = new Channel(app.twitch, user, stream);
-
-			app.channels.set(channel.id, channel);
-		}
-
 		const self = new Channel(app.twitch, app.user);
 		app.channels.set(self.id, self);
+
+		void app.user.loadFollowing().catch(() => {});
 	}
 
 	if (!app.emotes.size) {

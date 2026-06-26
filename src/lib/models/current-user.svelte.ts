@@ -6,10 +6,17 @@ import { transform7tvEmote } from "$lib/emotes";
 import type { Emote, EmoteSet } from "$lib/emotes";
 import { send7tv } from "$lib/graphql";
 import { userEmoteSetsQuery } from "$lib/graphql/7tv";
-import { userFollowingQuery } from "$lib/graphql/twitch";
-import type { UserEmote } from "$lib/twitch/api";
+import { followedChannelsQuery } from "$lib/graphql/twitch";
+import { log } from "$lib/log";
+import type { FollowedChannel, UserEmote } from "$lib/twitch/api";
+import { chunk, mapPool } from "$lib/util";
+import { Channel } from "./channel.svelte";
+import { Stream } from "./stream.svelte";
 import { User } from "./user.svelte";
 import type { Whisper } from "./whisper.svelte";
+
+const FOLLOWING_BATCH_SIZE = 100;
+const FOLLOWING_CONCURRENCY = 4;
 
 export class CurrentUser extends User {
 	public seventvId: string | null = null;
@@ -82,12 +89,50 @@ export class CurrentUser extends User {
 	}
 
 	/**
-	 * Retrieves the list of channels the current user is following.
+	 * Loads the channels the current user follows.
 	 */
-	public async fetchFollowing() {
-		const { user } = await this.client.gql(userFollowingQuery, { id: this.id });
+	public async loadFollowing() {
+		const followed = await this.client.getAll<FollowedChannel>("/channels/followed", {
+			user_id: this.id,
+		});
 
-		return user?.follows?.edges?.flatMap((edge) => (edge?.node ? [edge.node] : [])) ?? [];
+		const batches = chunk(
+			followed.map((channel) => channel.broadcaster_id),
+			FOLLOWING_BATCH_SIZE,
+		);
+
+		await mapPool(batches, FOLLOWING_CONCURRENCY, (ids) => this.#loadChannels(ids));
+	}
+
+	async #loadChannels(ids: string[]) {
+		try {
+			const { users } = await this.client.gql(followedChannelsQuery, { ids });
+
+			for (const user of users ?? []) {
+				if (!user) continue;
+
+				let stream: Stream | null = null;
+
+				if (user.stream) {
+					stream = new Stream(this.client, user.id, user.stream);
+
+					for (const { user: guest } of user.channel?.guestStarSessionCall?.guests ??
+						[]) {
+						stream.addGuest({
+							...guest,
+							viewers: guest.stream?.viewersCount ?? null,
+						});
+					}
+				}
+
+				const model = new User(this.client, user);
+				this.client.users.set(model.id, model);
+
+				app.channels.set(model.id, new Channel(this.client, model, stream));
+			}
+		} catch (error) {
+			void log.error(`Failed to load followed channels: ${String(error)}`).catch(() => {});
+		}
 	}
 
 	async #fetch7tvSets() {

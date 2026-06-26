@@ -178,8 +178,7 @@ export const modsQuery = gql(`
 `);
 
 export const pinnedMessageQuery = gql(
-	`
-	query GetPinnedMessage($id: ID!) {
+	`query GetPinnedMessage($id: ID!) {
 		channel(id: $id) {
 			pinnedChatMessages {
 				edges {
@@ -315,21 +314,15 @@ export const userBadgesQuery = gql(
 	[badgeDetailsFragment],
 );
 
-export const userFollowingQuery = gql(
-	`query GetUserFollowing($id: ID!) {
-		user(id: $id) {
-			follows(first: 100) {
-				edges {
-					node {
-						...UserDetails
-						channel {
-							...GuestStarDetails
-						}
-						stream {
-							...StreamDetails
-						}
-					}
-				}
+export const followedChannelsQuery = gql(
+	`query GetFollowedChannels($ids: [ID!]!) {
+		users(ids: $ids) {
+			...UserDetails
+			channel {
+				...GuestStarDetails
+			}
+			stream {
+				...StreamDetails
 			}
 		}
 	}`,
