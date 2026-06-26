@@ -100,10 +100,6 @@ export class TwitchClient {
 		return this.#request<T>("GET", path, { params });
 	}
 
-	/**
-	 * Retrieves every page of a cursor-paginated Helix endpoint, following the
-	 * `pagination.cursor` until it's exhausted.
-	 */
 	public async getAll<T>(path: `/${string}`, params?: QueryParams): Promise<T[]> {
 		const results: T[] = [];
 		let after: string | undefined;

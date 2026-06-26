@@ -94,6 +94,7 @@ export class CurrentUser extends User {
 	public async loadFollowing() {
 		const followed = await this.client.getAll<FollowedChannel>("/channels/followed", {
 			user_id: this.id,
+			first: 100,
 		});
 
 		const batches = chunk(
@@ -109,7 +110,7 @@ export class CurrentUser extends User {
 			const { users } = await this.client.gql(followedChannelsQuery, { ids });
 
 			for (const user of users ?? []) {
-				if (!user) continue;
+				if (!user || app.channels.has(user.id)) continue;
 
 				let stream: Stream | null = null;
 
