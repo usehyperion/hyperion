@@ -47,8 +47,12 @@
 				return remaining > 0 ? `${formatDuration(remaining)} left` : "Locking";
 			case "LOCKED":
 				return "Locked";
+			case "RESOLVE_PENDING":
+				return "Resolving";
 			case "RESOLVED":
 				return "Resolved";
+			case "CANCEL_PENDING":
+				return "Refunding";
 			case "CANCELED":
 				return "Refunded";
 		}
