@@ -5,6 +5,7 @@
 	import LockSimple from "~icons/ph/lock-simple";
 	import Prohibit from "~icons/ph/prohibit";
 	import SealQuestion from "~icons/ph/seal-question";
+	import { Progress } from "../ui/progress";
 	import * as Tooltip from "../ui/tooltip";
 	import NoticeAction, { details, hide } from "./NoticeAction.svelte";
 
@@ -107,78 +108,68 @@
 
 	<p class="mb-1.5 font-medium">{prediction.title}</p>
 
-	<div class="flex h-2 w-full gap-0.5 overflow-hidden rounded-full">
-		{#each prediction.outcomes as outcome, i (outcome.id)}
-			{@const pct = percent(outcome.points)}
-			{@const won =
-				prediction.status === "RESOLVED" && prediction.winningOutcomeId === outcome.id}
-			{@const lost =
-				prediction.status === "RESOLVED" && prediction.winningOutcomeId !== outcome.id}
-
-			<Tooltip.Root>
-				<Tooltip.Trigger
-					class={[
-						"h-full min-w-1 transition-[width,opacity]",
-						colorFor(i),
-						lost && "opacity-25",
-					]}
-					style="width: {prediction.totalPoints > 0
-						? pct
-						: 100 / prediction.outcomes.length}%"
-					aria-label={outcome.title}
-				/>
-
-				<Tooltip.Content side="top">
-					<div class="flex flex-col gap-0.5">
-						<span class="flex items-center gap-1 font-medium">
-							<span class={["size-2 shrink-0 rounded-full", colorFor(i)]}></span>
-							{outcome.title}
-							{#if won}
-								<Crown class="size-3 text-yellow-400" />
-							{/if}
-						</span>
-
-						<span>{outcome.points.toLocaleString()} points ({pct}%)</span>
-
-						<span>
-							{outcome.users.toLocaleString()}
-							{outcome.users === 1 ? "predictor" : "predictors"}
-						</span>
-
-						<span>Returns {ratio(outcome.points).toFixed(2)}&times;</span>
-					</div>
-				</Tooltip.Content>
-			</Tooltip.Root>
-		{/each}
-	</div>
-
 	{#if expanded}
-		<ul class="mt-2 flex flex-col gap-1">
+		<ul class="flex flex-col gap-1.5">
 			{#each prediction.outcomes as outcome, i (outcome.id)}
 				{@const pct = percent(outcome.points)}
 				{@const won =
 					prediction.status === "RESOLVED" && prediction.winningOutcomeId === outcome.id}
+				{@const lost =
+					prediction.status === "RESOLVED" && prediction.winningOutcomeId !== outcome.id}
 
-				<li class="flex items-center gap-1.5">
-					<span class={["size-2 shrink-0 rounded-full", colorFor(i)]}></span>
+				<li class="flex flex-col">
+					<div class="mb-0.5 flex items-center gap-1.5">
+						<span class="truncate">{outcome.title}</span>
 
-					<span class="truncate">{outcome.title}</span>
+						{#if won}
+							<Crown class="size-3 shrink-0 text-yellow-400" />
+						{/if}
 
-					{#if won}
-						<Crown class="size-3 shrink-0 text-yellow-400" />
-					{/if}
+						<span
+							class="ml-auto shrink-0 text-xs whitespace-nowrap text-muted-foreground"
+						>
+							{pct}% ({outcome.points.toLocaleString()})
+						</span>
 
-					<span class="ml-auto shrink-0 text-xs whitespace-nowrap text-muted-foreground">
-						{pct}% ({outcome.points.toLocaleString()})
-					</span>
+						{#if prediction.channel.isMod && (prediction.status === "ACTIVE" || prediction.status === "LOCKED")}
+							<NoticeAction
+								icon={Crown}
+								tooltip="Resolve as winner"
+								onclick={() => prediction.resolve(outcome.id)}
+							/>
+						{/if}
+					</div>
 
-					{#if prediction.channel.isMod && (prediction.status === "ACTIVE" || prediction.status === "LOCKED")}
-						<NoticeAction
-							icon={Crown}
-							tooltip="Resolve as winner"
-							onclick={() => prediction.resolve(outcome.id)}
-						/>
-					{/if}
+					<Tooltip.Root>
+						<Tooltip.Trigger>
+							<Progress
+								value={pct}
+								class={["h-1.5", lost && "opacity-25"]}
+								indicatorClass={colorFor(i)}
+							/>
+						</Tooltip.Trigger>
+
+						<Tooltip.Content class="flex flex-col gap-0.5" side="top">
+							<span class="flex items-center gap-1 font-medium">
+								<span class={["size-2 shrink-0 rounded-full", colorFor(i)]}></span>
+
+								{outcome.title}
+
+								{#if won}
+									<Crown class="size-3 text-yellow-400" />
+								{/if}
+							</span>
+
+							<span>{outcome.points.toLocaleString()} points ({pct}%)</span>
+
+							<span>
+								{outcome.users.toLocaleString()}
+								{outcome.users === 1 ? "predictor" : "predictors"}
+							</span>
+
+							<span>Returns {ratio(outcome.points).toFixed(2)}&times;</span>
+						</Tooltip.Content>
+					</Tooltip.Root>
 				</li>
 			{/each}
 		</ul>
