@@ -300,7 +300,11 @@ export class Channel {
 		const prediction = active?.[0] ?? locked?.[0];
 		if (!prediction?.createdBy) return null;
 
-		const creator = await this.client.users.fetch(prediction.createdBy.id).catch(() => null);
+		const creator =
+			prediction.createdBy.__typename === "User"
+				? await this.client.users.fetch(prediction.createdBy.id)
+				: null;
+
 		this.prediction = new Prediction(this, creator, toPubSubPrediction(this.id, prediction));
 
 		return this.prediction;

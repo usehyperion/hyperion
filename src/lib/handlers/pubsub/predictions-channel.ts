@@ -21,9 +21,9 @@ export default defineHandler({
 		channel.prediction?.dispose();
 
 		const creator =
-			event.created_by.type !== "USER"
-				? null
-				: await channel.client.users.fetch(event.created_by.user_id!);
+			event.created_by.type === "USER"
+				? await channel.client.users.fetch(event.created_by.user_id!)
+				: null;
 
 		channel.prediction = new Prediction(channel, creator, event);
 	},
