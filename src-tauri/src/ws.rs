@@ -85,7 +85,10 @@ impl<V> SubscriptionStore<V> {
     }
 
     pub async fn contains(&self, channel: &str, event: &str) -> bool {
-        self.inner.lock().await.contains_key(&sub_key(channel, event))
+        self.inner
+            .lock()
+            .await
+            .contains_key(&sub_key(channel, event))
     }
 
     pub async fn remove(&self, channel: &str, event: &str) -> Option<V> {

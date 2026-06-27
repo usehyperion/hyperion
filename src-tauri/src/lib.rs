@@ -10,7 +10,6 @@ use pubsub::PubSubClient;
 use pubsub::client::PubSubMessage;
 use reqwest::header::HeaderMap;
 use seventv::SeventTvClient;
-use ws::ChannelSink;
 use tauri::Manager;
 use tauri::async_runtime::{self, Mutex};
 use tauri::ipc::Invoke;
@@ -18,6 +17,7 @@ use tauri_plugin_cache::{CacheConfig, CompressionMethod};
 use tauri_plugin_svelte::PrettyJsonMarshaler;
 use twitch_api::HelixClient;
 use twitch_api::twitch_oauth2::UserToken;
+use ws::ChannelSink;
 
 use crate::api::refresh_access_token;
 
@@ -141,7 +141,6 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         api::join,
         api::leave,
         api::rejoin,
-        api::fetch_user_emotes,
         api::store_tokens,
         api::get_token,
         api::refresh_token,

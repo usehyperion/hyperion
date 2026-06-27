@@ -1,9 +1,7 @@
-import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import { app } from "$lib/app.svelte";
 import { transform7tvEmote } from "$lib/emotes";
-import type { Emote, EmoteSet } from "$lib/emotes";
+import type { EmoteSet } from "$lib/emotes";
 import { send7tv } from "$lib/graphql";
 import { userEmoteSetsQuery } from "$lib/graphql/7tv";
 import { followedChannelsQuery } from "$lib/graphql/twitch";
@@ -16,7 +14,7 @@ import { User } from "./user.svelte";
 import type { Whisper } from "./whisper.svelte";
 
 const FOLLOWING_BATCH_SIZE = 100;
-const FOLLOWING_CONCURRENCY = 4;
+const FETCH_CONCURRENCY = 4;
 
 export class CurrentUser extends User {
 	public seventvId: string | null = null;
@@ -53,39 +51,21 @@ export class CurrentUser extends User {
 	}
 
 	public async fetchEmoteSets() {
-		await invoke("fetch_user_emotes");
 		await this.#fetch7tvSets();
+		void this.#fetchTwitchEmotes().catch(() => {});
+	}
 
-		await listen<UserEmote[]>("useremotes", async (event) => {
-			const grouped = Map.groupBy(event.payload, (emote) => emote.owner_id || "twitch");
-
-			for (const [id, emotes] of grouped) {
-				const owner = await app.twitch.users.fetch(id, {
-					by: id === "twitch" ? "login" : "id",
-				});
-
-				const mapped = emotes.map<Emote>((emote) => ({
-					provider: "Twitch",
-					id: emote.id,
-					name: emote.name,
-					width: 56,
-					height: 56,
-					srcset: emote.scale.map(
-						(d) =>
-							`https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark/${d} ${d}x`,
-					),
-				}));
-
-				this.emoteSets.set(id, {
-					id,
-					provider: "Twitch",
-					name: owner.displayName,
-					owner,
-					global: id === "twitch",
-					emotes: mapped,
-				});
-			}
+	async #fetchTwitchEmotes() {
+		const emotes = await this.client.getAll<UserEmote>("/chat/emotes/user", {
+			user_id: this.id,
+			first: 100,
 		});
+
+		const grouped = Map.groupBy(emotes, (emote) => emote.owner_id || "twitch");
+
+		await mapPool(Array.from(grouped), FETCH_CONCURRENCY, ([id, group]) =>
+			this.#fetchSetOwner(id, group),
+		);
 	}
 
 	/**
@@ -102,7 +82,7 @@ export class CurrentUser extends User {
 			FOLLOWING_BATCH_SIZE,
 		);
 
-		await mapPool(batches, FOLLOWING_CONCURRENCY, (ids) => this.#loadChannels(ids));
+		await mapPool(batches, FETCH_CONCURRENCY, (ids) => this.#loadChannels(ids));
 	}
 
 	async #loadChannels(ids: string[]) {
@@ -168,5 +148,30 @@ export class CurrentUser extends User {
 				});
 			}
 		}
+	}
+
+	async #fetchSetOwner(id: string, group: UserEmote[]) {
+		const owner = await app.twitch.users.fetch(id, {
+			by: id === "twitch" ? "login" : "id",
+		});
+
+		this.emoteSets.set(id, {
+			id,
+			provider: "Twitch",
+			name: owner.displayName,
+			owner,
+			global: id === "twitch",
+			emotes: group.map((emote) => ({
+				provider: "Twitch",
+				id: emote.id,
+				name: emote.name,
+				width: 56,
+				height: 56,
+				srcset: emote.scale.map(
+					(d) =>
+						`https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark/${d} ${d}x`,
+				),
+			})),
+		});
 	}
 }

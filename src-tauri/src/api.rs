@@ -1,9 +1,8 @@
 use anyhow::anyhow;
-use futures::TryStreamExt;
 use keyring::Entry;
 use serde::Deserialize;
 use serde_json::json;
-use tauri::{AppHandle, Emitter, Manager, State, async_runtime};
+use tauri::{State, async_runtime};
 use tokio::sync::Mutex;
 use tracing::Instrument;
 use twitch_api::HelixClient;
@@ -281,33 +280,4 @@ pub async fn rejoin(state: State<'_, Mutex<AppState>>, channel: String) -> Resul
     }
 
     Ok(())
-}
-
-#[tracing::instrument(skip_all)]
-#[tauri::command]
-pub async fn fetch_user_emotes(app_handle: AppHandle) {
-    async_runtime::spawn(
-        async move {
-            let state = app_handle.state::<Mutex<AppState>>();
-
-            let (helix, token) = {
-                let state = state.lock().await;
-                let Some(token) = state.token.clone() else {
-                    return Ok::<_, Error>(());
-                };
-                (state.helix.clone(), token)
-            };
-
-            let emotes: Vec<_> = helix
-                .get_user_emotes(&token.user_id, &token)
-                .try_collect()
-                .await?;
-
-            tracing::info!("Fetched {} user emotes", emotes.len());
-
-            app_handle.emit("useremotes", emotes).unwrap();
-            Ok(())
-        }
-        .in_current_span(),
-    );
 }
