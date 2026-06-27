@@ -1,13 +1,9 @@
-<script lang="ts" module>
-	export const predictionOpen = $state({ value: false });
-</script>
-
 <script lang="ts">
 	import type { Channel } from "$lib/models/channel.svelte";
 	import Plus from "~icons/ph/plus";
 	import X from "~icons/ph/x";
 	import { Button } from "../ui/button";
-	import * as Dialog from "../ui/dialog";
+	import Dialog from "../ui/Dialog.svelte";
 	import * as Field from "../ui/field";
 	import { Input } from "../ui/input";
 	import { NativeSelect } from "../ui/native-select";
@@ -28,10 +24,9 @@
 
 	interface Props {
 		channel: Channel;
-		open: boolean;
 	}
 
-	let { channel, open = $bindable() }: Props = $props();
+	let { channel }: Props = $props();
 	const id = $props.id();
 
 	let title = $state("");
@@ -64,75 +59,71 @@
 			window,
 		});
 
-		open = false;
 		reset();
 	}
 </script>
 
-<Dialog.Root bind:open>
-	<Dialog.Content class="max-w-sm!">
-		<Dialog.Header>
-			<Dialog.Title>Create prediction</Dialog.Title>
+<Dialog id="prediction-dialog">
+	{#snippet header()}
+		<h2>Create prediction</h2>
+		<p>Let your community wager channel points.</p>
+	{/snippet}
 
-			<Dialog.Description>Let your community wager channel points.</Dialog.Description>
-		</Dialog.Header>
+	<Field.Field>
+		<Field.Label for="title-{id}">Question</Field.Label>
 
-		<Field.Field>
-			<Field.Label for="title-{id}">Question</Field.Label>
+		<Input
+			id="title-{id}"
+			placeholder="Will we win this game?"
+			maxlength={TITLE_MAX}
+			bind:value={title}
+		/>
+	</Field.Field>
 
-			<Input
-				id="title-{id}"
-				placeholder="Will we win this game?"
-				maxlength={TITLE_MAX}
-				bind:value={title}
-			/>
-		</Field.Field>
+	<Field.Field>
+		<Field.Label>Outcomes</Field.Label>
 
-		<Field.Field>
-			<Field.Label>Outcomes</Field.Label>
+		{#each outcomes as _, index (index)}
+			<div class="flex items-center gap-1">
+				<Input
+					placeholder="Outcome {index + 1}"
+					maxlength={OUTCOME_MAX}
+					bind:value={outcomes[index]}
+				/>
 
-			{#each outcomes as _, index (index)}
-				<div class="flex items-center gap-1">
-					<Input
-						placeholder="Outcome {index + 1}"
-						maxlength={OUTCOME_MAX}
-						bind:value={outcomes[index]}
-					/>
+				{#if outcomes.length > MIN_OUTCOMES}
+					<Button
+						class="shrink-0"
+						size="icon"
+						variant="ghost"
+						aria-label="Remove outcome"
+						onclick={() => removeOutcome(index)}
+					>
+						<X />
+					</Button>
+				{/if}
+			</div>
+		{/each}
 
-					{#if outcomes.length > MIN_OUTCOMES}
-						<Button
-							class="shrink-0"
-							size="icon"
-							variant="ghost"
-							aria-label="Remove outcome"
-							onclick={() => removeOutcome(index)}
-						>
-							<X />
-						</Button>
-					{/if}
-				</div>
+		{#if outcomes.length < MAX_OUTCOMES}
+			<Button class="self-start" size="sm" variant="ghost" onclick={addOutcome}>
+				<Plus />
+				Add outcome
+			</Button>
+		{/if}
+	</Field.Field>
+
+	<Field.Field>
+		<Field.Label for="window-{id}">Submission window</Field.Label>
+
+		<NativeSelect id="window-{id}" bind:value={window}>
+			{#each WINDOWS as option (option.value)}
+				<option value={option.value}>{option.label}</option>
 			{/each}
+		</NativeSelect>
+	</Field.Field>
 
-			{#if outcomes.length < MAX_OUTCOMES}
-				<Button class="self-start" size="sm" variant="ghost" onclick={addOutcome}>
-					<Plus />
-					Add outcome
-				</Button>
-			{/if}
-		</Field.Field>
-
-		<Field.Field>
-			<Field.Label for="window-{id}">Submission window</Field.Label>
-
-			<NativeSelect id="window-{id}" bind:value={window}>
-				{#each WINDOWS as option (option.value)}
-					<option value={option.value}>{option.label}</option>
-				{/each}
-			</NativeSelect>
-		</Field.Field>
-
-		<Dialog.Footer>
-			<Button disabled={!canSubmit} onclickwait={create}>Create prediction</Button>
-		</Dialog.Footer>
-	</Dialog.Content>
-</Dialog.Root>
+	{#snippet footer()}
+		<Button disabled={!canSubmit} onclickwait={create}>Create prediction</Button>
+	{/snippet}
+</Dialog>
