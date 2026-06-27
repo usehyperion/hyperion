@@ -34,7 +34,7 @@
 		{@render header?.()}
 	</header>
 
-	<div data-slot="dialog-content">
+	<div class="space-y-4" data-slot="dialog-content">
 		{@render children?.()}
 	</div>
 

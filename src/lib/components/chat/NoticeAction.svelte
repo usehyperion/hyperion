@@ -8,8 +8,8 @@
 	import CaretDown from "~icons/ph/caret-down";
 	import CaretUp from "~icons/ph/caret-up";
 	import X from "~icons/ph/x";
-	import { buttonVariants } from "../ui/button";
-	import * as Tooltip from "../ui/tooltip";
+	import { Button, buttonVariants } from "../ui/button";
+	import Tooltip from "../ui/Tooltip.svelte";
 	import NoticeAction from "./NoticeAction.svelte";
 
 	interface Props extends HTMLButtonAttributes {
@@ -20,19 +20,18 @@
 	const { icon: Icon, tooltip, ...rest }: Props = $props();
 </script>
 
-<Tooltip.Root>
-	<Tooltip.Trigger
-		class={buttonVariants({ class: "size-5", size: "icon-sm", variant: "ghost" })}
-		aria-label={tooltip}
-		{...rest}
-	>
-		<Icon class="size-3.5" />
-	</Tooltip.Trigger>
+<button
+	class={buttonVariants({ class: "size-5", size: "icon-sm", variant: "ghost" })}
+	aria-label={tooltip}
+	data-slot="tooltip-trigger"
+	{...rest}
+>
+	<Icon class="size-3.5" />
+</button>
 
-	<Tooltip.Content side="top">
-		{tooltip}
-	</Tooltip.Content>
-</Tooltip.Root>
+<Tooltip side="top">
+	{tooltip}
+</Tooltip>
 
 {#snippet details(expanded: boolean, onclick: () => void)}
 	<NoticeAction
