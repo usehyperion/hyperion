@@ -9,8 +9,8 @@
 	import type { Channel } from "$lib/models/channel.svelte";
 	import type { IrcMessage } from "$lib/twitch/irc";
 	import LiveNotices from "./chat/LiveNotices.svelte";
-	import PollDialog, { pollOpen } from "./chat/PollDialog.svelte";
-	import PredictionDialog, { predictionOpen } from "./chat/PredictionDialog.svelte";
+	import PollDialog from "./chat/PollDialog.svelte";
+	import PredictionDialog from "./chat/PredictionDialog.svelte";
 
 	interface Props {
 		channel: Channel;
@@ -49,9 +49,9 @@
 		<Chat {chat} />
 	</div>
 
-	<PollDialog {channel} bind:open={pollOpen.value} />
+	<PollDialog {channel} />
 
-	<PredictionDialog {channel} bind:open={predictionOpen.value} />
+	<PredictionDialog {channel} />
 
 	<div class="p-2">
 		<ChatInput {chat} />
