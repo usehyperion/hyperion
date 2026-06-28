@@ -2,8 +2,8 @@
 	import type { Channel } from "$lib/models/channel.svelte";
 	import type { Guest } from "$lib/models/stream.svelte";
 	import Users from "~icons/ph/users-bold";
+	import Popover from "../ui/Popover.svelte";
 	import { buttonVariants } from "./ui/button";
-	import Popover from "./ui/Popover.svelte";
 
 	interface Props {
 		tooltip?: boolean;

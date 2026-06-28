@@ -2,15 +2,15 @@
 	import { listen } from "@tauri-apps/api/event";
 	import type { UnlistenFn } from "@tauri-apps/api/event";
 	import { onDestroy, onMount } from "svelte";
-	import Chat from "$lib/components/chat/Chat.svelte";
-	import ChatInput from "$lib/components/chat/Input.svelte";
-	import StreamHeader from "$lib/components/StreamHeader.svelte";
 	import { handlers } from "$lib/handlers";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import type { IrcMessage } from "$lib/twitch/irc";
-	import LiveNotices from "./chat/LiveNotices.svelte";
-	import PollDialog from "./chat/PollDialog.svelte";
-	import PredictionDialog from "./chat/PredictionDialog.svelte";
+	import Chat from "../chat/Chat.svelte";
+	import ChatInput from "../chat/ChatInput.svelte";
+	import LiveNotices from "../chat/LiveNotices.svelte";
+	import PollDialog from "../chat/PollDialog.svelte";
+	import PredictionDialog from "../chat/PredictionDialog.svelte";
+	import StreamHeader from "../stream/StreamHeader.svelte";
 
 	interface Props {
 		channel: Channel;
