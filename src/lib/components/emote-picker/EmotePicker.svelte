@@ -84,10 +84,9 @@
 </script>
 
 <InputGroup.Button
-	class="size-9"
+	size="icon-sm"
 	popovertarget="emote-picker"
 	disabled={app.user?.banned.has(channel.id)}
-	size="icon-sm"
 	aria-label="Toggle emote picker"
 >
 	<Smiley />
