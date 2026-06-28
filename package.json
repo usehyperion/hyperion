@@ -37,6 +37,7 @@
 		"@tauri-store/svelte": "^3.2.0",
 		"bits-ui": "^2.18.1",
 		"chroma-js": "^3.2.0",
+		"cnfast": "^0.0.8",
 		"dayjs": "^1.11.20",
 		"gql.tada": "^1.9.2",
 		"graphql-web-lite": "16.6.0-4",

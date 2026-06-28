@@ -1,12 +1,11 @@
 import type { Menu } from "@tauri-apps/api/menu";
 import chroma from "chroma-js";
-import { clsx } from "clsx";
-import type { ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
 import type { User } from "./models/user.svelte";
 import { Viewer } from "./models/viewer.svelte";
 import type { Fragment } from "./twitch/api";
 import type { Emote } from "./twitch/irc";
+
+export { cn } from "cnfast";
 
 export type {
 	WithElementRef,
@@ -23,10 +22,6 @@ export type Prefix<T, P extends string> = {
 
 // Only for syntax highlighting
 export const html = String.raw;
-
-export function cn(...values: ClassValue[]) {
-	return twMerge(clsx(values));
-}
 
 export function clamp(min: number, value: number, max: number) {
 	return Math.min(Math.max(min, value), max);
