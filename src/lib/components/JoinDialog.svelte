@@ -9,7 +9,7 @@
 	import { Button } from "./ui/button";
 	import Dialog from "./ui/Dialog.svelte";
 	import * as Field from "./ui/field";
-	import { Input } from "./ui/input";
+	import Input from "./ui/Input.svelte";
 
 	let loading = $state(false);
 	let value = $state("");

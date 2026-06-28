@@ -9,8 +9,8 @@
 	import FrankerFaceZ from "~icons/logos/ffz";
 	import Twitch from "~icons/logos/twitch";
 	import Smiley from "~icons/ph/smiley";
-	import { Input } from "../ui/input";
 	import * as InputGroup from "../ui/input-group";
+	import Input from "../ui/Input.svelte";
 	import Popover from "../ui/Popover.svelte";
 	import Browser from "./Browser.svelte";
 	import Results from "./Results.svelte";
