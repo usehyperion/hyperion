@@ -12,6 +12,6 @@ export default defineCommand({
 			throw new CommandError("A prediction is already active.");
 		}
 
-		openDialog("prediction-dialog");
+		openDialog(`prediction-dialog-${channel.id}`);
 	},
 });

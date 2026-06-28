@@ -63,7 +63,7 @@
 	}
 </script>
 
-<Dialog id="prediction-dialog">
+<Dialog id="prediction-dialog-{channel.id}">
 	{#snippet header()}
 		<h2>Create prediction</h2>
 		<p>Let your community wager channel points.</p>
