@@ -14,9 +14,8 @@
 		pin: Pin;
 	}
 
-	const id = $props.id();
-
 	const { pin }: Props = $props();
+	const id = $props.id();
 
 	let mode = $derived(pin.duration === null ? "stream" : "duration");
 	let duration = $derived(clamp(MIN_DURATION, pin.duration ?? 1200, MAX_DURATION));
@@ -26,7 +25,7 @@
 	}
 </script>
 
-<Dialog id="pin-duration-dialog">
+<Dialog id="pin-duration-dialog-{pin.message.id}">
 	{#snippet header()}
 		<h2>Pin duration</h2>
 		<p>Choose how long this message stays pinned</p>

@@ -70,7 +70,7 @@
 	}
 </script>
 
-<Dialog id="poll-dialog">
+<Dialog id="poll-dialog-{channel.id}">
 	{#snippet header()}
 		<h2>Create poll</h2>
 		<p>Ask your community a question.</p>
