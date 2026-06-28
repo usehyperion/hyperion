@@ -5,9 +5,9 @@
 	import type { Channel } from "$lib/models/channel.svelte";
 	import { openMenu } from "$lib/util";
 	import Users from "~icons/ph/users-bold";
+	import Tooltip from "../ui/Tooltip.svelte";
 	import GuestList from "./GuestList.svelte";
 	import StreamInfo from "./StreamInfo.svelte";
-	import Tooltip from "./ui/Tooltip.svelte";
 
 	interface Props {
 		channel: Channel;
