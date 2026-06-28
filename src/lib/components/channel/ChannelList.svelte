@@ -5,8 +5,8 @@
 	import { useSidebar } from "$lib/hooks/use-sidebar.svelte";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import { storage } from "$lib/stores";
-	import Draggable from "./Draggable.svelte";
-	import Sortable from "./Sortable.svelte";
+	import Draggable from "../Draggable.svelte";
+	import Sortable from "../Sortable.svelte";
 	import { Separator } from "./ui/separator";
 
 	const sidebar = useSidebar();

@@ -7,8 +7,8 @@
 	import EmotePicker from "../emote-picker/EmotePicker.svelte";
 	import Suggestions from "../Suggestions.svelte";
 	import * as InputGroup from "../ui/input-group";
-	import ErrorBanner from "./ErrorBanner.svelte";
-	import ReplyBanner from "./ReplyBanner.svelte";
+	import ChatError from "./ChatError.svelte";
+	import ChatReply from "./ChatReply.svelte";
 	import Restrictions from "./Restrictions.svelte";
 
 	interface Props extends HTMLInputAttributes {
@@ -122,9 +122,9 @@
 />
 
 {#if chat.replyTarget}
-	<ReplyBanner target={chat.replyTarget} oncancel={() => (chat.replyTarget = null)} />
+	<ChatReply target={chat.replyTarget} oncancel={() => (chat.replyTarget = null)} />
 {:else if error}
-	<ErrorBanner message={error} />
+	<ChatError message={error} />
 {/if}
 
 <div class="flex flex-col gap-1.5">

@@ -140,7 +140,8 @@
 
 							{#if channel.isLive}
 								<div class="flex items-center text-red-500">
-									<div class="mr-1.5 size-2 animate-pulse rounded-full bg-current"
+									<div
+										class="mr-1.5 size-2 animate-pulse rounded-full bg-current"
 									></div>
 
 									<span class="text-sm font-medium">Live</span>

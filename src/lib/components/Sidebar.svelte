@@ -4,7 +4,7 @@
 	import { useSidebar } from "$lib/hooks/use-sidebar.svelte";
 	import Plus from "~icons/ph/plus";
 	import SidebarIcon from "~icons/ph/sidebar";
-	import ChannelList from "./ChannelList.svelte";
+	import ChannelList from "./channel/ChannelList.svelte";
 	import JoinDialog from "./JoinDialog.svelte";
 	import { Button, buttonVariants } from "./ui/button";
 
