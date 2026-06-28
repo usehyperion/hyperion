@@ -10,7 +10,7 @@
 	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
-	import StreamInfo from "$lib/components/StreamInfo.svelte";
+	import StreamInfo from "$lib/components/stream/StreamInfo.svelte";
 	import { storage } from "$lib/stores";
 
 	const { children } = $props();

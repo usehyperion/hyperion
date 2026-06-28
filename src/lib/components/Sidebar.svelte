@@ -2,7 +2,7 @@
 	import { ScrollArea } from "bits-ui";
 	import { MediaQuery } from "svelte/reactivity";
 	import { app } from "$lib/app.svelte";
-	import ChannelList from "./ChannelList.svelte";
+	import ChannelList from "./channel/ChannelList.svelte";
 
 	app.sidebarCollapsed = new MediaQuery("(width < 48rem)").current;
 </script>

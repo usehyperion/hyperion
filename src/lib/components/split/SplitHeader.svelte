@@ -10,7 +10,7 @@
 	import SquareHalfBottom from "~icons/ph/square-half-bottom-fill";
 	import SquareHalf from "~icons/ph/square-half-fill";
 	import X from "~icons/ph/x";
-	import GuestList from "../GuestList.svelte";
+	import GuestList from "../stream/GuestList.svelte";
 
 	interface Props {
 		id: string;
