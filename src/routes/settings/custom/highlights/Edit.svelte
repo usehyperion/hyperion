@@ -3,7 +3,7 @@
 	import { Checkbox } from "$lib/components/ui/checkbox";
 	import Dialog from "$lib/components/ui/Dialog.svelte";
 	import * as Field from "$lib/components/ui/field";
-	import Input from "$lib/components/ui/input/input.svelte";
+	import Input from "$lib/components/ui/Input.svelte";
 	import type { KeywordHighlightConfig } from "$lib/settings";
 	import Pencil from "~icons/ph/pencil";
 
@@ -33,7 +33,6 @@
 
 		<Input
 			id="pattern"
-			type="text"
 			autocapitalize="off"
 			autocorrect="off"
 			placeholder="Enter pattern"

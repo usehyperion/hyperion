@@ -100,7 +100,6 @@
 			<Combobox.Input id="name">
 				{#snippet child({ props })}
 					<Input
-						type="text"
 						autocapitalize="off"
 						autocorrect="off"
 						placeholder="Search for a channel"
