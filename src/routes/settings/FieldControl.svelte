@@ -51,7 +51,6 @@
 		<Input
 			id={field.id}
 			class="max-w-1/2"
-			type="text"
 			autocapitalize="off"
 			autocomplete="off"
 			disabled={field.disabled?.()}

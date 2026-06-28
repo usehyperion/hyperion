@@ -104,7 +104,7 @@
 		/>
 	</Slider.Root>
 
-	<Input class="text-xs uppercase shadow-none" type="text" value={hex} onchange={handleChange} />
+	<Input class="text-xs uppercase shadow-none" value={hex} onchange={handleChange} />
 </div>
 
 <style>
