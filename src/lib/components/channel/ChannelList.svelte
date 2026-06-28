@@ -6,7 +6,7 @@
 	import { storage } from "$lib/stores";
 	import Draggable from "../Draggable.svelte";
 	import Sortable from "../Sortable.svelte";
-	import { Separator } from "./ui/separator";
+	import { Separator } from "../ui/separator";
 
 	const sorted = $derived(
 		app.channels
