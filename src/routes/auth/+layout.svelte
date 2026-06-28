@@ -6,10 +6,7 @@
 	app.history.reset();
 </script>
 
-<div
-	class="rails pointer-events-none fixed inset-0 top-title-bar z-0 flex justify-center"
-	aria-hidden="true"
->
+<div class="rails fixed inset-0 top-title-bar z-0 flex justify-center" aria-hidden="true">
 	<main
 		class="relative flex size-full h-full items-center justify-center overflow-hidden border-x bg-background"
 	>
