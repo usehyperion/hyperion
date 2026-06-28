@@ -3,7 +3,7 @@
 	import chroma from "chroma-js";
 	import type { HTMLAttributes } from "svelte/elements";
 	import { clamp, cn } from "$lib/util";
-	import { Input } from "./input";
+	import Input from "./Input.svelte";
 
 	interface Props extends HTMLAttributes<HTMLDivElement> {
 		value?: chroma.ChromaInput;
