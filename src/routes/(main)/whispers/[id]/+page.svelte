@@ -65,7 +65,6 @@
 	<div class="p-2">
 		<Input
 			class="h-12"
-			type="text"
 			autocapitalize="off"
 			autocorrect="off"
 			placeholder="Send a message"
