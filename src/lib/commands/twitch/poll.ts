@@ -12,6 +12,6 @@ export default defineCommand({
 			throw new CommandError("A poll is already active.");
 		}
 
-		openDialog("poll-dialog");
+		openDialog(`poll-dialog-${channel.id}`);
 	},
 });

@@ -3,7 +3,7 @@
 	import CaretLeft from "~icons/ph/caret-left";
 	import CaretRight from "~icons/ph/caret-right";
 	import { Button } from "../ui/button";
-	import Pinned from "./Pinned.svelte";
+	import Pin from "./Pin.svelte";
 	import Poll from "./Poll.svelte";
 	import Prediction from "./Prediction.svelte";
 
@@ -102,7 +102,7 @@
 		{/if}
 
 		{#if active?.kind === "pin" && chat.pinned}
-			<Pinned pin={chat.pinned} />
+			<Pin pin={chat.pinned} />
 		{:else if active?.kind === "poll" && chat.channel.poll}
 			<Poll poll={chat.channel.poll} />
 		{:else if active?.kind === "prediction" && chat.channel.prediction}
