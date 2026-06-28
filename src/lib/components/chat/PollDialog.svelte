@@ -5,9 +5,9 @@
 	import { Button } from "../ui/button";
 	import Dialog from "../ui/Dialog.svelte";
 	import * as Field from "../ui/field";
-	import { Input } from "../ui/input";
+	import Input from "../ui/Input.svelte";
 	import { NativeSelect } from "../ui/native-select";
-	import { Switch } from "../ui/switch";
+	import Switch from "../ui/Switch.svelte";
 
 	const TITLE_MAX = 60;
 	const CHOICE_MAX = 25;

@@ -2,7 +2,7 @@
 	import { onMount, tick } from "svelte";
 	import type { KeyboardEventHandler } from "svelte/elements";
 	import Timestamp from "$lib/components/Timestamp.svelte";
-	import { Input } from "$lib/components/ui/input";
+	import Input from "$lib/components/ui/Input.svelte";
 
 	const { data } = $props();
 
