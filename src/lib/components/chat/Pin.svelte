@@ -41,7 +41,7 @@
 					icon={Clock}
 					tooltip="Change duration"
 					command="show-modal"
-					commandfor="pin-duration-dialog"
+					commandfor="pin-duration-dialog-{pin.message.id}"
 				/>
 
 				<NoticeAction icon={PushPinSlash} tooltip="Unpin" onclick={() => pin.unpin()} />
