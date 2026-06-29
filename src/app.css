@@ -1,10 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@import "./dialog.css";
-@import "./popover.css";
-@import "./tooltip.css";
-
 @layer {
 	:root {
 		--radius: 0.625rem;
@@ -143,7 +139,7 @@
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
-@custom-variant popover-open (&:popover-open);
+@custom-variant heading (&:where(h1, h2, h3, h4, h5, h6));
 
 @layer base {
 	* {

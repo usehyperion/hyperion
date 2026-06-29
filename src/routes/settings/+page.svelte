@@ -86,10 +86,8 @@
 </Tabs.Root>
 
 <style>
-	@reference "../../styles/app.css";
-
 	:global(#settings-tabs [data-slot="separator"]) {
-		margin: --spacing(2) 0;
+		margin: calc(var(--spacing) * 2) 0;
 	}
 
 	div:first-child :global(button) {

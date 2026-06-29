@@ -22,8 +22,8 @@
 		className,
 	)}
 	{type}
-	data-slot="input"
+	data-component="input"
+	{...rest}
 	bind:value
 	bind:this={ref}
-	{...rest}
 />
