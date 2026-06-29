@@ -4,8 +4,8 @@
 
 	let {
 		class: className,
-		ref = $bindable(null),
 		checked = $bindable(false),
+		ref = $bindable(null),
 		...rest
 	}: WithElementRef<HTMLInputAttributes> = $props();
 </script>
@@ -26,7 +26,7 @@
 	type="checkbox"
 	role="switch"
 	data-component="switch"
+	{...rest}
 	bind:checked
 	bind:this={ref}
-	{...rest}
 />

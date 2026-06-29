@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+	import { cn } from "cnfast";
 	import type { Component } from "svelte";
 	import type { HTMLButtonAttributes } from "svelte/elements";
 	import CaretDown from "~icons/ph/caret-down";
@@ -21,7 +22,7 @@
 </script>
 
 <button
-	class={buttonVariants({ class: "size-5", size: "icon-sm", variant: "ghost" })}
+	class={cn(buttonVariants({ size: "icon-sm", variant: "ghost" }), "size-5")}
 	aria-label={tooltip}
 	data-slot="tooltip-trigger"
 	{...rest}
