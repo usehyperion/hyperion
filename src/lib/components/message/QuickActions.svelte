@@ -6,8 +6,8 @@
 	import Clock from "~icons/ph/clock";
 	import Gavel from "~icons/ph/gavel";
 	import Trash from "~icons/ph/trash";
-	import { Button } from "../ui/button";
 	import * as ButtonGroup from "../ui/button-group";
+	import Button from "../ui/Button.svelte";
 	import Tooltip from "../ui/Tooltip.svelte";
 
 	interface Props {

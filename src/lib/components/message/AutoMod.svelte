@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { UserMessage } from "$lib/models/message/user-message.svelte";
 	import type { AutoModMetadata } from "$lib/twitch/eventsub";
-	import { Button } from "../ui/button";
+	import Button from "../ui/Button.svelte";
 	import Message from "./Message.svelte";
 
 	interface Props {

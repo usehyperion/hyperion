@@ -9,7 +9,7 @@
 	import CaretDown from "~icons/ph/caret-down";
 	import CaretUp from "~icons/ph/caret-up";
 	import X from "~icons/ph/x";
-	import { Button, buttonVariants } from "../ui/button";
+	import { buttonVariants } from "../ui/Button.svelte";
 	import Tooltip from "../ui/Tooltip.svelte";
 	import NoticeAction from "./NoticeAction.svelte";
 

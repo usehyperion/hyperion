@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Highlight from "$lib/components/message/Highlight.svelte";
-	import { Button } from "$lib/components/ui/button";
+	import Button from "$lib/components/ui/Button.svelte";
 	import { defaultHighlightTypes, settings } from "$lib/settings";
 	import type { HighlightType } from "$lib/settings";
 	import ArrowClockwise from "~icons/ph/arrow-clockwise";
