@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from "$lib/components/ui/Button.svelte";
-	import { Checkbox } from "$lib/components/ui/checkbox";
+	import Checkbox from "$lib/components/ui/Checkbox.svelte";
 	import Dialog from "$lib/components/ui/Dialog.svelte";
 	import * as Field from "$lib/components/ui/field";
 	import Input from "$lib/components/ui/Input.svelte";

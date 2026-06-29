@@ -5,7 +5,7 @@
 	import LockSimple from "~icons/ph/lock-simple";
 	import Prohibit from "~icons/ph/prohibit";
 	import SealQuestion from "~icons/ph/seal-question";
-	import { Progress } from "../ui/progress";
+	import Progress from "../ui/Progress.svelte";
 	import Tooltip from "../ui/Tooltip.svelte";
 	import NoticeAction, { details, hide } from "./NoticeAction.svelte";
 
