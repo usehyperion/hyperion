@@ -6,7 +6,7 @@
 	import type { ChannelSuggestion } from "$lib/graphql/twitch";
 	import { debounce } from "$lib/util";
 	import Spinner from "~icons/ph/spinner";
-	import { Button } from "./ui/button";
+	import Button from "./ui/Button.svelte";
 	import Dialog from "./ui/Dialog.svelte";
 	import * as Field from "./ui/field";
 	import Input from "./ui/Input.svelte";

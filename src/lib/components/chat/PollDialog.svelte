@@ -2,7 +2,7 @@
 	import type { Channel } from "$lib/models/channel.svelte";
 	import Plus from "~icons/ph/plus";
 	import X from "~icons/ph/x";
-	import { Button } from "../ui/button";
+	import Button from "../ui/Button.svelte";
 	import Dialog from "../ui/Dialog.svelte";
 	import * as Field from "../ui/field";
 	import Input from "../ui/Input.svelte";

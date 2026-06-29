@@ -1,5 +1,5 @@
 <script lang="ts">
-	import "../styles/app.css";
+	import "../app.css";
 	import { setHotkeysContext } from "@tanstack/svelte-hotkeys";
 	import { invoke } from "@tauri-apps/api/core";
 	import { onOpenUrl } from "@tauri-apps/plugin-deep-link";

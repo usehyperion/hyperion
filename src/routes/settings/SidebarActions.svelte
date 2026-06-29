@@ -4,7 +4,7 @@
 	import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 	import { openPath } from "@tauri-apps/plugin-opener";
 	import { scale } from "svelte/transition";
-	import { Button } from "$lib/components/ui/button";
+	import Button from "$lib/components/ui/Button.svelte";
 	import Check from "~icons/ph/check";
 	import Clipboard from "~icons/ph/clipboard";
 	import FolderOpen from "~icons/ph/folder-open";
