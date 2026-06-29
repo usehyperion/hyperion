@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from "$app/state";
-	import { Button } from "$lib/components/ui/button";
+	import Button from "$lib/components/ui/Button.svelte";
 	import * as Empty from "$lib/components/ui/empty";
 	import { log } from "$lib/log";
 	import WarningCircle from "~icons/ph/warning-circle";

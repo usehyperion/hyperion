@@ -14,7 +14,7 @@
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
 	import User from "~icons/ph/user";
 	import JoinDialog from "./JoinDialog.svelte";
-	import { Button } from "./ui/button";
+	import Button from "./ui/Button.svelte";
 
 	type ControlType = "minimize" | "maximize" | "close";
 

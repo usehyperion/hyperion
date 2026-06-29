@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Channel } from "$lib/models/channel.svelte";
 	import { colorizeName } from "$lib/util";
-	import { Button } from "../../ui/button";
+	import Button from "../../ui/Button.svelte";
 
 	interface Props {
 		channel: Channel;

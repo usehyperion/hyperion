@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Highlight from "$lib/components/message/Highlight.svelte";
-	import { Button } from "$lib/components/ui/button";
+	import Button from "$lib/components/ui/Button.svelte";
 	import { settings } from "$lib/settings";
 	import type { KeywordHighlightConfig } from "$lib/settings";
 	import Plus from "~icons/ph/plus";

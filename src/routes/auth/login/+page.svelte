@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { openUrl } from "@tauri-apps/plugin-opener";
-	import { Button } from "$lib/components/ui/button";
+	import Button from "$lib/components/ui/Button.svelte";
 	import { SCOPES } from "$lib/twitch/auth";
 	import { TwitchClient } from "$lib/twitch/client";
 	import Twitch from "~icons/local/twitch";

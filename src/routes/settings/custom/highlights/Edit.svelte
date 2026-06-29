@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from "$lib/components/ui/button";
+	import Button from "$lib/components/ui/Button.svelte";
 	import { Checkbox } from "$lib/components/ui/checkbox";
 	import Dialog from "$lib/components/ui/Dialog.svelte";
 	import * as Field from "$lib/components/ui/field";
