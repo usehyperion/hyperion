@@ -85,14 +85,14 @@
 
 <InputGroup.Button
 	size="icon-sm"
-	popovertarget="emote-picker"
+	popovertarget="emote-picker-{channel.id}"
 	disabled={app.user?.banned.has(channel.id)}
 	aria-label="Toggle emote picker"
 >
 	<Smiley />
 </InputGroup.Button>
 
-<Popover id="emote-picker" class="h-100 w-120 flex-col overflow-hidden p-0 open:flex">
+<Popover id="emote-picker-{channel.id}" class="h-100 w-120 flex-col overflow-hidden p-0 open:flex">
 	<Tabs.Root class="flex min-h-0 flex-1 flex-col" bind:value={activeProvider}>
 		<Tabs.List class="flex shrink-0 border-b">
 			{#each TABS as tab (tab.provider)}
