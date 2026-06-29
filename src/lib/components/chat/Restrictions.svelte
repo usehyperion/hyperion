@@ -36,7 +36,7 @@
 
 <button
 	class={["flex items-center", topMostActive && "text-green-500"]}
-	popovertarget="restrictions"
+	popovertarget="restrictions-{chat.channel.id}"
 >
 	<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
 
@@ -45,7 +45,7 @@
 	</span>
 </button>
 
-<Popover id="restrictions" class="w-max p-3 text-xs">
+<Popover id="restrictions-{chat.channel.id}" class="w-max p-3 text-xs">
 	<ul class="space-y-1">
 		{#each modes as mode}
 			<li
