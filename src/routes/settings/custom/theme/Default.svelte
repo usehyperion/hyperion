@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { RadioGroup } from "bits-ui";
 	import { setMode, userPrefersMode } from "mode-watcher";
-	import { Label } from "$lib/components/ui/label";
+	import Label from "$lib/components/ui/Label.svelte";
 	import ArrowsClockwise from "~icons/ph/arrows-clockwise";
 
 	const themes = [
