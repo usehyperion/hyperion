@@ -154,8 +154,6 @@
 </div>
 
 <style>
-	@reference "../../../styles/app.css";
-
 	@property --scroll-fade {
 		syntax: "<length-percentage>";
 		inherits: false;
@@ -175,12 +173,12 @@
 		mask-repeat: no-repeat;
 		animation: 1ms ease-in-out scroll-fade both;
 		animation-timeline: scroll(self y);
-		animation-range: calc(100% - --spacing(24));
+		animation-range: calc(100% - calc(var(--spacing) * 24));
 	}
 
 	@keyframes scroll-fade {
 		from {
-			--scroll-fade: min(12%, --spacing(10));
+			--scroll-fade: min(12%, calc(var(--spacing) * 10));
 		}
 
 		to {

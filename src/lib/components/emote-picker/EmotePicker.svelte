@@ -92,7 +92,7 @@
 	<Smiley />
 </InputGroup.Button>
 
-<Popover id="emote-picker" class="h-100 w-120 flex-col overflow-hidden p-0 popover-open:flex">
+<Popover id="emote-picker" class="h-100 w-120 flex-col overflow-hidden p-0 open:flex">
 	<Tabs.Root class="flex min-h-0 flex-1 flex-col" bind:value={activeProvider}>
 		<Tabs.List class="flex shrink-0 border-b">
 			{#each TABS as tab (tab.provider)}

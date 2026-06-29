@@ -29,7 +29,11 @@
 	<StreamInfo {channel} />
 </div>
 
-<Tooltip class={["max-w-64", !app.sidebarCollapsed && !channel.stream && "hidden"]} side="right">
+<Tooltip
+	class={["max-w-64", !app.sidebarCollapsed && !channel.stream && "hidden"]}
+	side="right"
+	delay={0}
+>
 	{#if channel.stream}
 		<div class="space-y-0.5">
 			{#if app.sidebarCollapsed}
