@@ -21,7 +21,7 @@
 
 <script lang="ts">
 	import type { ComponentProps } from "svelte";
-	import { Button } from "$lib/components/ui/button/index.js";
+	import Button from "$lib/components/ui/Button.svelte";
 	import { cn } from "$lib/util.js";
 
 	let {

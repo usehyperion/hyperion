@@ -2,7 +2,7 @@
 	import { tick } from "svelte";
 	import type { Attachment } from "svelte/attachments";
 	import { app } from "$lib/app.svelte";
-	import { Button } from "$lib/components/ui/button";
+	import Button from "$lib/components/ui/Button.svelte";
 	import { settings } from "$lib/settings";
 	import { emptyPaneId, isEmptyPaneId } from "$lib/split-layout";
 	import { storage } from "$lib/stores";

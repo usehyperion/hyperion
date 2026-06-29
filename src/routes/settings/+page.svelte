@@ -2,7 +2,7 @@
 	import { Tabs } from "bits-ui";
 	import { beforeNavigate, goto } from "$app/navigation";
 	import { app } from "$lib/app.svelte";
-	import { Button } from "$lib/components/ui/button";
+	import Button from "$lib/components/ui/Button.svelte";
 	import { Separator } from "$lib/components/ui/separator";
 	import { log } from "$lib/log";
 	import { settings } from "$lib/settings";
