@@ -178,3 +178,7 @@ export async function openMenu(event: MouseEvent, menufn: () => Promise<Menu>) {
 	const menu = await menufn();
 	await menu.popup();
 }
+
+export function openDialog(id: string) {
+	document.querySelector<HTMLDialogElement>(`#${id}`)?.showModal();
+}
