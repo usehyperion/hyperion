@@ -209,3 +209,7 @@ export function getOrInsertComputed<K, V>(map: Map<K, V>, key: K, defaultValue: 
 
 	return value;
 }
+
+export function openDialog(id: string) {
+	document.querySelector<HTMLDialogElement>(`#${id}`)?.showModal();
+}
