@@ -1,17 +1,13 @@
-<script lang="ts" module>
-	export const pollOpen = $state({ value: false });
-</script>
-
 <script lang="ts">
 	import type { Channel } from "$lib/models/channel.svelte";
 	import Plus from "~icons/ph/plus";
 	import X from "~icons/ph/x";
-	import { Button } from "../ui/button";
-	import * as Dialog from "../ui/dialog";
+	import Button from "../ui/Button.svelte";
+	import Dialog from "../ui/Dialog.svelte";
 	import * as Field from "../ui/field";
-	import { Input } from "../ui/input";
+	import Input from "../ui/Input.svelte";
 	import { NativeSelect } from "../ui/native-select";
-	import { Switch } from "../ui/switch";
+	import Switch from "../ui/Switch.svelte";
 
 	const TITLE_MAX = 60;
 	const CHOICE_MAX = 25;
@@ -30,10 +26,9 @@
 
 	interface Props {
 		channel: Channel;
-		open: boolean;
 	}
 
-	let { channel, open = $bindable() }: Props = $props();
+	let { channel }: Props = $props();
 	const id = $props.id();
 
 	let title = $state("");
@@ -71,99 +66,95 @@
 			channelPointsPerVote: pointsEnabled ? pointsPerVote : undefined,
 		});
 
-		open = false;
 		reset();
 	}
 </script>
 
-<Dialog.Root bind:open>
-	<Dialog.Content class="max-w-sm!">
-		<Dialog.Header>
-			<Dialog.Title>Create poll</Dialog.Title>
+<Dialog id="poll-dialog-{channel.id}">
+	{#snippet header()}
+		<h2>Create poll</h2>
+		<p>Ask your community a question.</p>
+	{/snippet}
 
-			<Dialog.Description>Ask your community a question.</Dialog.Description>
-		</Dialog.Header>
+	<Field.Field>
+		<Field.Label for="title-{id}">Question</Field.Label>
 
+		<Input
+			id="title-{id}"
+			placeholder="What should we play next?"
+			maxlength={TITLE_MAX}
+			bind:value={title}
+		/>
+	</Field.Field>
+
+	<Field.Field>
+		<Field.Label>Choices</Field.Label>
+
+		{#each choices as _, index (index)}
+			<div class="flex items-center gap-1">
+				<Input
+					placeholder="Choice {index + 1}"
+					maxlength={CHOICE_MAX}
+					bind:value={choices[index]}
+				/>
+
+				{#if choices.length > MIN_CHOICES}
+					<Button
+						class="shrink-0"
+						size="icon"
+						variant="ghost"
+						aria-label="Remove choice"
+						onclick={() => removeChoice(index)}
+					>
+						<X />
+					</Button>
+				{/if}
+			</div>
+		{/each}
+
+		{#if choices.length < MAX_CHOICES}
+			<Button class="self-start" size="sm" variant="ghost" onclick={addChoice}>
+				<Plus />
+				Add choice
+			</Button>
+		{/if}
+	</Field.Field>
+
+	<Field.Field>
+		<Field.Label for="duration-{id}">Duration</Field.Label>
+
+		<NativeSelect id="duration-{id}" bind:value={duration}>
+			{#each DURATIONS as option (option.value)}
+				<option value={option.value}>{option.label}</option>
+			{/each}
+		</NativeSelect>
+	</Field.Field>
+
+	<Field.Field orientation="horizontal">
+		<Field.Content>
+			<Field.Label for="points-{id}">Channel points voting</Field.Label>
+
+			<Field.Description>Let viewers spend points for extra votes.</Field.Description>
+		</Field.Content>
+
+		<Switch id="points-{id}" bind:checked={pointsEnabled} />
+	</Field.Field>
+
+	{#if pointsEnabled}
 		<Field.Field>
-			<Field.Label for="title-{id}">Question</Field.Label>
+			<Field.Label for="cost-{id}">Points per vote</Field.Label>
 
 			<Input
-				id="title-{id}"
-				placeholder="What should we play next?"
-				maxlength={TITLE_MAX}
-				bind:value={title}
+				id="cost-{id}"
+				type="number"
+				min={1}
+				max={POINTS_MAX}
+				bind:value={pointsPerVote}
 			/>
 		</Field.Field>
+	{/if}
 
-		<Field.Field>
-			<Field.Label>Choices</Field.Label>
-
-			{#each choices as _, index (index)}
-				<div class="flex items-center gap-1">
-					<Input
-						placeholder="Choice {index + 1}"
-						maxlength={CHOICE_MAX}
-						bind:value={choices[index]}
-					/>
-
-					{#if choices.length > MIN_CHOICES}
-						<Button
-							class="shrink-0"
-							size="icon"
-							variant="ghost"
-							aria-label="Remove choice"
-							onclick={() => removeChoice(index)}
-						>
-							<X />
-						</Button>
-					{/if}
-				</div>
-			{/each}
-
-			{#if choices.length < MAX_CHOICES}
-				<Button class="self-start" size="sm" variant="ghost" onclick={addChoice}>
-					<Plus />
-					Add choice
-				</Button>
-			{/if}
-		</Field.Field>
-
-		<Field.Field>
-			<Field.Label for="duration-{id}">Duration</Field.Label>
-
-			<NativeSelect id="duration-{id}" bind:value={duration}>
-				{#each DURATIONS as option (option.value)}
-					<option value={option.value}>{option.label}</option>
-				{/each}
-			</NativeSelect>
-		</Field.Field>
-
-		<Field.Field orientation="horizontal">
-			<Field.Content>
-				<Field.Label for="points-{id}">Channel points voting</Field.Label>
-
-				<Field.Description>Let viewers spend points for extra votes.</Field.Description>
-			</Field.Content>
-
-			<Switch id="points-{id}" bind:checked={pointsEnabled} />
-		</Field.Field>
-
-		{#if pointsEnabled}
-			<Field.Field>
-				<Field.Label for="cost-{id}">Points per vote</Field.Label>
-
-				<Input
-					id="cost-{id}"
-					type="number"
-					min={1}
-					max={POINTS_MAX}
-					bind:value={pointsPerVote}
-				/>
-			</Field.Field>
-		{/if}
-
-		<Dialog.Footer>
-			<Button disabled={!canSubmit} onclickwait={create}>Create poll</Button>
-		</Dialog.Footer>
-	</Dialog.Content>
-</Dialog.Root>
+	{#snippet footer()}
+		<Button disabled={!canSubmit} onclickwait={create}>Create poll</Button>
+	{/snippet}
+</Dialog>

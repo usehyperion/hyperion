@@ -10,8 +10,7 @@
 	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
-	import StreamInfo from "$lib/components/StreamInfo.svelte";
-	import * as Tooltip from "$lib/components/ui/tooltip";
+	import StreamInfo from "$lib/components/stream/StreamInfo.svelte";
 	import { storage } from "$lib/stores";
 
 	const { children } = $props();
@@ -75,17 +74,15 @@
 		}
 	}}
 >
-	<Tooltip.Provider delayDuration={100}>
-		<div class="flex grow overflow-hidden">
-			{#if storage.state.user}
-				<Sidebar />
-			{/if}
+	<div class="flex grow overflow-hidden">
+		{#if storage.state.user}
+			<Sidebar />
+		{/if}
 
-			<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
-				{@render children()}
-			</main>
-		</div>
-	</Tooltip.Provider>
+		<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
+			{@render children()}
+		</main>
+	</div>
 
 	<DragOverlay>
 		{#snippet children(source)}

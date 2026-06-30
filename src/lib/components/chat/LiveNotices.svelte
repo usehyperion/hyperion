@@ -2,8 +2,8 @@
 	import type { Chat } from "$lib/models/chat.svelte";
 	import CaretLeft from "~icons/ph/caret-left";
 	import CaretRight from "~icons/ph/caret-right";
-	import { Button } from "../ui/button";
-	import Pinned from "./Pinned.svelte";
+	import Button from "../ui/Button.svelte";
+	import Pin from "./Pin.svelte";
 	import Poll from "./Poll.svelte";
 	import Prediction from "./Prediction.svelte";
 
@@ -54,12 +54,10 @@
 
 {#if notices.length}
 	<div
-		class="absolute inset-x-2 top-2 z-10 overflow-hidden rounded-md border bg-background shadow-md"
+		class="absolute inset-x-2 top-2 z-10 overflow-hidden rounded-lg border bg-popover shadow-md"
 	>
 		{#if notices.length > 1}
-			<div
-				class="flex items-center gap-1 border-b bg-muted/30 px-1 py-0.5 text-xs text-muted-foreground"
-			>
+			<div class="flex items-center gap-1 border-b px-1 py-0.5 text-xs text-muted-foreground">
 				<Button
 					class="size-5"
 					size="icon-sm"
@@ -102,7 +100,7 @@
 		{/if}
 
 		{#if active?.kind === "pin" && chat.pinned}
-			<Pinned pin={chat.pinned} />
+			<Pin pin={chat.pinned} />
 		{:else if active?.kind === "poll" && chat.channel.poll}
 			<Poll poll={chat.channel.poll} />
 		{:else if active?.kind === "prediction" && chat.channel.prediction}

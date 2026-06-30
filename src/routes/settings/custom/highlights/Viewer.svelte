@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Highlight from "$lib/components/message/Highlight.svelte";
-	import { Button } from "$lib/components/ui/button";
+	import Button from "$lib/components/ui/Button.svelte";
 	import { defaultHighlightTypes, settings } from "$lib/settings";
 	import type { HighlightType } from "$lib/settings";
 	import ArrowClockwise from "~icons/ph/arrow-clockwise";
@@ -35,7 +35,7 @@
 			config={{ enabled: true, color: config.color, style: "default" }}
 		>
 			<div class="flex items-center gap-x-1.5 p-1.5">
-				<Color bind:value={config.color} />
+				<Color id={highlight.value} bind:value={config.color} />
 
 				<StyleSelect bind:config={viewers[highlight.value]} />
 

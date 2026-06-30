@@ -2,16 +2,15 @@
 	import { listen } from "@tauri-apps/api/event";
 	import type { UnlistenFn } from "@tauri-apps/api/event";
 	import { onDestroy, onMount } from "svelte";
-	import Chat from "$lib/components/chat/Chat.svelte";
-	import ChatInput from "$lib/components/chat/Input.svelte";
-	import StreamHeader from "$lib/components/StreamHeader.svelte";
 	import { handlers } from "$lib/handlers";
 	import type { Channel } from "$lib/models/channel.svelte";
-	import { Poll } from "$lib/models/poll.svelte";
 	import type { IrcMessage } from "$lib/twitch/irc";
-	import LiveNotices from "./chat/LiveNotices.svelte";
-	import PollDialog, { pollOpen } from "./chat/PollDialog.svelte";
-	import PredictionDialog, { predictionOpen } from "./chat/PredictionDialog.svelte";
+	import Chat from "../chat/Chat.svelte";
+	import ChatInput from "../chat/ChatInput.svelte";
+	import LiveNotices from "../chat/LiveNotices.svelte";
+	import PollDialog from "../chat/PollDialog.svelte";
+	import PredictionDialog from "../chat/PredictionDialog.svelte";
+	import StreamHeader from "../stream/StreamHeader.svelte";
 
 	interface Props {
 		channel: Channel;
@@ -48,9 +47,9 @@
 		<Chat chat={channel.chat} />
 	</div>
 
-	<PollDialog {channel} bind:open={pollOpen.value} />
+	<PollDialog {channel} />
 
-	<PredictionDialog {channel} bind:open={predictionOpen.value} />
+	<PredictionDialog {channel} />
 
 	<div class="p-2">
 		<ChatInput chat={channel.chat} />

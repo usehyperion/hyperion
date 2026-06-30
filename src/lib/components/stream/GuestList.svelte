@@ -2,8 +2,8 @@
 	import type { Channel } from "$lib/models/channel.svelte";
 	import type { Guest } from "$lib/models/stream.svelte";
 	import Users from "~icons/ph/users-bold";
-	import { buttonVariants } from "./ui/button";
-	import * as Popover from "./ui/popover";
+	import Button from "../ui/Button.svelte";
+	import Popover from "../ui/Popover.svelte";
 
 	interface Props {
 		tooltip?: boolean;
@@ -19,18 +19,19 @@
 {#if tooltip}
 	{@render content()}
 {:else}
-	<Popover.Root>
-		<Popover.Trigger
-			class={buttonVariants({ class: "size-min p-1 text-xs", size: "sm", variant: "ghost" })}
-			aria-label="View guests"
-		>
-			+{stream.guests.size}
-		</Popover.Trigger>
+	<Button
+		class="size-min p-1 text-xs"
+		size="sm"
+		variant="ghost"
+		popovertarget="guest-list-{channel.id}"
+		aria-label="View guests"
+	>
+		+{stream.guests.size}
+	</Button>
 
-		<Popover.Content class="w-fit">
-			{@render content()}
-		</Popover.Content>
-	</Popover.Root>
+	<Popover id="guest-list-{channel.id}" class="w-fit">
+		{@render content()}
+	</Popover>
 {/if}
 
 {#snippet content()}

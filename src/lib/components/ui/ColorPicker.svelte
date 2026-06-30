@@ -3,7 +3,7 @@
 	import chroma from "chroma-js";
 	import type { HTMLAttributes } from "svelte/elements";
 	import { clamp, cn } from "$lib/util";
-	import { Input } from "./input";
+	import Input from "./Input.svelte";
 
 	interface Props extends HTMLAttributes<HTMLDivElement> {
 		value?: chroma.ChromaInput;
@@ -11,12 +11,11 @@
 
 	let { class: className, value = $bindable(), ...rest }: Props = $props();
 
-	const color = $state(chroma(value ?? "#FFFFFF"));
-	const hsv = color.hsv();
+	const hsv = $derived(chroma(value ?? "#FFFFFF").hsv());
 
-	let h = $state(hsv[0] || 0);
-	let s = $state(hsv[1] * 100 || 100);
-	let v = $state(hsv[2] * 100 || 50);
+	let h = $derived(Number.isNaN(hsv[0]) ? 0 : hsv[0]);
+	let s = $derived(hsv[1] * 100);
+	let v = $derived(hsv[2] * 100);
 
 	let well = $state<HTMLElement>();
 	let isDragging = $state(false);
@@ -57,26 +56,28 @@
 	}
 
 	function handleChange(event: Event & { currentTarget: HTMLInputElement }) {
+		if (!chroma.valid(event.currentTarget.value)) return;
+
 		const hsv = chroma(event.currentTarget.value).hsv();
 
-		h = hsv[0];
+		h = Number.isNaN(hsv[0]) ? h : hsv[0];
 		s = hsv[1] * 100;
 		v = hsv[2] * 100;
 	}
 </script>
 
-<div class={cn("grid w-full gap-4", className)} {...rest}>
+<div class={cn("grid w-full gap-4", className)} data-component="color-picker" {...rest}>
 	<div
-		id="color-picker-well"
 		class="relative aspect-4/3 w-full cursor-crosshair rounded-md border border-muted"
-		style:--color-picker-well-hue={h}
 		role="group"
+		data-slot="color-picker-well"
 		onpointerdown={(event) => {
 			event.preventDefault();
 
 			isDragging = true;
 			handlePointerMove(event);
 		}}
+		style:--color-picker-well-hue={h}
 		bind:this={well}
 	>
 		<div
@@ -94,7 +95,7 @@
 		max={360}
 		bind:value={h}
 	>
-		<div id="color-picker-hue" class="relative my-0.5 h-2 w-full grow rounded-full">
+		<div class="relative my-0.5 h-2 w-full grow rounded-full" data-slot="color-picker-hue">
 			<Slider.Range class="absolute w-full" />
 		</div>
 
@@ -104,17 +105,17 @@
 		/>
 	</Slider.Root>
 
-	<Input class="text-xs uppercase shadow-none" type="text" value={hex} onchange={handleChange} />
+	<Input class="text-xs uppercase shadow-none" value={hex} onchange={handleChange} />
 </div>
 
 <style>
-	#color-picker-well {
+	[data-slot="color-picker-well"] {
 		background:
 			linear-gradient(0deg, #000, transparent),
 			linear-gradient(90deg, #fff, hsl(var(--color-picker-well-hue), 100%, 50%));
 	}
 
-	#color-picker-hue {
+	[data-slot="color-picker-hue"] {
 		background: linear-gradient(
 			90deg,
 			#ff0000,

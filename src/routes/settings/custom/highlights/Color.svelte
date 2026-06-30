@@ -1,16 +1,22 @@
 <script lang="ts">
-	import { Popover } from "bits-ui";
 	import ColorPicker from "$lib/components/ui/ColorPicker.svelte";
+	import Popover from "$lib/components/ui/Popover.svelte";
 
-	let { value = $bindable<string>() } = $props();
+	interface Props {
+		id: string;
+		value: string;
+	}
+
+	let { id, value = $bindable() }: Props = $props();
 </script>
 
-<Popover.Root>
-	<Popover.Trigger class="size-9 rounded-md bg-(--highlight)" --highlight={value} />
+<button
+	class="size-9 rounded-md bg-(--highlight)"
+	popovertarget="color-picker-{id}"
+	aria-label="Toggle color picker"
+	style:--highlight={value}
+></button>
 
-	<Popover.Portal>
-		<Popover.Content class="w-60" sideOffset={10}>
-			<ColorPicker class="rounded-md border bg-popover p-3" bind:value />
-		</Popover.Content>
-	</Popover.Portal>
-</Popover.Root>
+<Popover id="color-picker-{id}" class="w-60">
+	<ColorPicker bind:value />
+</Popover>

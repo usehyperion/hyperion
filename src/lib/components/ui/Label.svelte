@@ -1,20 +1,16 @@
 <script lang="ts">
-	import { Label as LabelPrimitive } from "bits-ui";
-	import { cn } from "$lib/util.js";
+	import { Label } from "bits-ui";
+	import { cn } from "cnfast";
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		...restProps
-	}: LabelPrimitive.RootProps = $props();
+	let { class: className, ref = $bindable(null), ...rest }: Label.RootProps = $props();
 </script>
 
-<LabelPrimitive.Root
-	bind:ref
-	data-slot="label"
+<Label.Root
 	class={cn(
 		"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
 		className,
 	)}
-	{...restProps}
+	data-component="label"
+	{...rest}
+	bind:ref
 />

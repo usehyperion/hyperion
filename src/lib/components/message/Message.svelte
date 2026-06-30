@@ -30,7 +30,7 @@
 <Timestamp date={message.timestamp} />
 <Badges badges={message.badges} />
 <User {message} {nested} />
-<Content {message} />
+<Content {message} {nested} />
 
 {#if settings.state["chat.embeds"] && !nested && linkNodes.some(canEmbed)}
 	<div class="mt-2 flex gap-2">

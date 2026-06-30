@@ -4,11 +4,13 @@
 	import { Completer } from "$lib/completer.svelte";
 	import { CommandError } from "$lib/errors/command-error";
 	import type { Chat } from "$lib/models/chat.svelte";
+	import ChartBarHorizontal from "~icons/ph/chart-bar-horizontal";
+	import SealQuestion from "~icons/ph/seal-question";
 	import EmotePicker from "../emote-picker/EmotePicker.svelte";
 	import Suggestions from "../Suggestions.svelte";
 	import * as InputGroup from "../ui/input-group";
-	import ErrorBanner from "./ErrorBanner.svelte";
-	import ReplyBanner from "./ReplyBanner.svelte";
+	import ChatError from "./ChatError.svelte";
+	import ChatReply from "./ChatReply.svelte";
 	import Restrictions from "./Restrictions.svelte";
 
 	interface Props extends HTMLInputAttributes {
@@ -122,16 +124,15 @@
 />
 
 {#if chat.replyTarget}
-	<ReplyBanner target={chat.replyTarget} oncancel={() => (chat.replyTarget = null)} />
+	<ChatReply target={chat.replyTarget} oncancel={() => (chat.replyTarget = null)} />
 {:else if error}
-	<ErrorBanner message={error} />
+	<ChatError message={error} />
 {/if}
 
 <div class="flex flex-col gap-1.5">
 	<InputGroup.Root class="h-12" bind:ref={anchor}>
 		<InputGroup.Input
-			class={[(chat.replyTarget || error) && "rounded-t-none", className]}
-			type="text"
+			class={["rounded-lg", (chat.replyTarget || error) && "rounded-t-none", className]}
 			autocapitalize="off"
 			autocorrect="off"
 			disabled={banned}
@@ -152,7 +153,25 @@
 			}
 		/>
 
-		<InputGroup.Addon align="inline-end">
+		<InputGroup.Addon class="mr-0! gap-1.5" align="inline-end">
+			{#if chat.channel.isMod}
+				<InputGroup.Button
+					size="icon-sm"
+					command="show-modal"
+					commandfor="poll-dialog-{chat.channel.id}"
+				>
+					<ChartBarHorizontal />
+				</InputGroup.Button>
+
+				<InputGroup.Button
+					size="icon-sm"
+					command="show-modal"
+					commandfor="prediction-dialog-{chat.channel.id}"
+				>
+					<SealQuestion />
+				</InputGroup.Button>
+			{/if}
+
 			<EmotePicker channel={chat.channel} />
 		</InputGroup.Addon>
 	</InputGroup.Root>

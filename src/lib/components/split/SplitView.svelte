@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { createDraggable, createDroppable } from "@dnd-kit/svelte";
 	import { app } from "$lib/app.svelte";
-	import Channel from "$lib/components/Channel.svelte";
 	import * as Empty from "$lib/components/ui/empty";
 	import { isEmptyPaneId, type SplitDropPosition } from "$lib/split-layout";
 	import Layout from "~icons/ph/layout";
+	import Channel from "../channel/Channel.svelte";
 	import SplitHeader from "./SplitHeader.svelte";
 
 	interface Props {
