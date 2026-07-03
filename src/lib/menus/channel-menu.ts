@@ -8,15 +8,11 @@ import {
 import { app } from "$lib/app.svelte";
 import type { Channel } from "$lib/models/channel.svelte";
 import { settings } from "$lib/settings";
-import { emptyPaneId, type SplitBranch, type SplitDirection } from "$lib/split-layout";
+import type { SplitDirection } from "$lib/split-layout";
 import { storage } from "$lib/stores";
 
 async function splitItem(channel: Channel, direction: SplitDirection) {
-	const enabled =
-		app.splits.focused !== null &&
-		app.splits.focused !== channel.id &&
-		app.splits.root !== null &&
-		!app.splits.contains(app.splits.root, channel.id);
+	const enabled = app.splits.focused !== null && app.splits.paneOf(channel.id) === null;
 
 	return MenuItem.new({
 		id: `split-${direction}`,
@@ -25,22 +21,10 @@ async function splitItem(channel: Channel, direction: SplitDirection) {
 		async action() {
 			await channel.join(true);
 
-			if (!app.splits.focused) return;
+			const focused = app.splits.focused;
+			if (!focused) return;
 
-			app.splits.root ??= app.splits.focused;
-
-			const node: SplitBranch = {
-				axis: direction === "up" || direction === "down" ? "vertical" : "horizontal",
-				before: channel.id,
-				after: app.splits.focused,
-			};
-
-			if (direction === "down" || direction === "right") {
-				node.before = app.splits.focused;
-				node.after = channel.id;
-			}
-
-			app.splits.insert(app.splits.focused, channel.id, node);
+			app.splits.splitWithTab(focused.id, direction, channel.id);
 		},
 	});
 }
@@ -68,9 +52,9 @@ export async function createChannelMenu(channel: Channel) {
 		async action() {
 			await channel.leave();
 
-			if (app.splits.root && app.splits.contains(app.splits.root, channel.id)) {
-				app.splits.replace(channel.id, emptyPaneId());
-			} else if (app.focused === channel) {
+			app.splits.closeTab(channel.id);
+
+			if (app.focused === channel) {
 				app.focused = null;
 			}
 		},
@@ -111,9 +95,7 @@ export async function createChannelMenu(channel: Channel) {
 			async action() {
 				await channel.leave();
 
-				if (app.splits.root && app.splits.contains(app.splits.root, channel.id)) {
-					app.splits.remove(channel.id);
-				}
+				app.splits.closeTab(channel.id);
 
 				if (app.focused === channel) {
 					app.focused = null;

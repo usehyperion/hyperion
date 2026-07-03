@@ -26,8 +26,6 @@ export interface KeywordHighlightConfig extends HighlightConfig {
 export interface Settings {
 	"appearance.theme": string;
 
-	"splits.defaultOrientation": "horizontal" | "vertical";
-	"splits.closeBehavior": "preserve" | "remove";
 	"splits.leaveOnClose": boolean;
 
 	"chat.hideScrollbar": boolean;
@@ -74,8 +72,6 @@ export const defaultHighlightTypes: Record<HighlightType, HighlightConfig> = {
 
 export const defaults: Settings = {
 	"appearance.theme": "",
-	"splits.defaultOrientation": "horizontal",
-	"splits.closeBehavior": "remove",
 	"splits.leaveOnClose": true,
 	"chat.hideScrollbar": false,
 	"chat.newSeparator": false,

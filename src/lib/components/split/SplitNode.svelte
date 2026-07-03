@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Pane, PaneGroup, PaneResizer } from "paneforge";
-	import type { SplitNode } from "$lib/split-layout";
+	import { isPane, type SplitNode } from "$lib/split-layout";
 	import Self from "./SplitNode.svelte";
 	import SplitView from "./SplitView.svelte";
 
@@ -11,8 +11,8 @@
 	let { node = $bindable() }: Props = $props();
 </script>
 
-{#if typeof node === "string"}
-	<SplitView id={node} />
+{#if isPane(node)}
+	<SplitView pane={node} />
 {:else}
 	<PaneGroup class="size-full" direction={node.axis}>
 		<Pane defaultSize={node.size ?? 50} onResize={(size) => (node.size = size)}>

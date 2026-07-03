@@ -61,13 +61,26 @@
 
 		if (source.type === "pinned" && target.type === "pinned") {
 			storage.state.pinned = move(storage.state.pinned, event);
+			return;
+		}
+
+		if (source.type === "tab") {
+			if (target.type === "tab") {
+				app.splits.tabGroups = move(app.splits.tabGroups, event);
+			} else if (target.type === "tab-bar" && target.data.paneId !== source.data.paneId) {
+				app.splits.moveTabToPane(source.data.id, target.data.paneId);
+			}
 		}
 	}}
 	onDragEnd={(event) => {
+		const source = event.operation.source;
 		const target = event.operation.target;
 
 		if (target?.type === "split-zone") {
 			app.splits.handleDragEnd(event);
+		} else if (source?.type === "tab") {
+			// Reordered within or moved between tab bars; land on the dragged tab.
+			app.splits.activate(source.data.id);
 		}
 	}}
 >
@@ -86,10 +99,10 @@
 	<DragOverlay>
 		{#snippet children(source)}
 			{@const channel = app.channels.get(source.data.id)}
-			{@const isPane = source.type === "pane"}
+			{@const isTab = source.type === "tab"}
 
 			{#if channel}
-				{#if isPane}
+				{#if isTab}
 					<div
 						class="mx-auto flex max-w-max items-center gap-2 rounded bg-background px-2 py-1"
 					>

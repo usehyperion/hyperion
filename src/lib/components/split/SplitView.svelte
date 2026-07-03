@@ -1,52 +1,36 @@
 <script lang="ts">
-	import { createDraggable, createDroppable } from "@dnd-kit/svelte";
+	import { createDroppable } from "@dnd-kit/svelte";
 	import { app } from "$lib/app.svelte";
 	import Channel from "$lib/components/Channel.svelte";
 	import * as Empty from "$lib/components/ui/empty";
-	import { isEmptyPaneId, type SplitDropPosition } from "$lib/split-layout";
+	import type { SplitDropPosition, SplitPane } from "$lib/split-layout";
 	import Layout from "~icons/ph/layout";
-	import SplitHeader from "./SplitHeader.svelte";
+	import TabBar from "./TabBar.svelte";
 
 	interface Props {
-		id: string;
+		pane: SplitPane;
 	}
 
-	const { id }: Props = $props();
+	const { pane }: Props = $props();
 
-	const channel = $derived(app.channels.get(id));
-
-	const draggable = createDraggable({
-		alignment: {
-			x: "center",
-			y: "start",
-		},
-		get id() {
-			return `pane:${id}`;
-		},
-		get type() {
-			return "pane";
-		},
-		get data() {
-			return { kind: "pane", id };
-		},
-		get disabled() {
-			return isEmptyPaneId(id);
-		},
-	});
+	const channel = $derived(pane.active ? app.channels.get(pane.active) : undefined);
 
 	function makeZone(position: SplitDropPosition, edge: boolean) {
 		return createDroppable({
 			get id() {
-				return `zone:${id}:${position}`;
+				return `zone:${pane.id}:${position}`;
 			},
 			get type() {
 				return "split-zone";
 			},
+			get accept() {
+				return ["tab", "channel"];
+			},
 			get data() {
-				return { paneId: id, position };
+				return { paneId: pane.id, position };
 			},
 			get disabled() {
-				return edge && !channel;
+				return edge && !pane.tabs.length;
 			},
 		});
 	}
@@ -66,17 +50,17 @@
 	});
 
 	function setFocus() {
-		app.splits.focused = id;
+		app.splits.focusedPane = pane.id;
 	}
 </script>
 
-<div class="relative flex size-full flex-col" onfocusin={setFocus} {@attach draggable.attach}>
-	<SplitHeader {id} attachHandle={draggable.attachHandle} />
+<div class="relative flex size-full flex-col" onfocusin={setFocus}>
+	<TabBar {pane} />
 
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="relative h-full" onclick={setFocus}>
-		<div class={["h-full", draggable.isDragging && "opacity-50"]}>
+	<div class="relative h-full min-h-0" onclick={setFocus}>
+		<div class="h-full">
 			{#if channel}
 				{#key channel.id}
 					<Channel {channel} split />
@@ -91,7 +75,7 @@
 						<Empty.Title>Empty split</Empty.Title>
 
 						<Empty.Description>
-							Drag a channel here or click to add it as a split.
+							Drag a tab or channel here, or click a channel to open it.
 						</Empty.Description>
 					</Empty.Header>
 				</Empty.Root>
