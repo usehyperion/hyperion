@@ -1,0 +1,372 @@
+import { storage } from "$lib/stores";
+import * as tree from "./tree";
+import type {
+	DragData,
+	DragState,
+	DropData,
+	DropTarget,
+	Pane,
+	SplitAxis,
+	SplitDirection,
+	SplitDropPosition,
+	SplitNode,
+} from "./types";
+
+type Point = { x: number; y: number } | undefined;
+
+export class SplitController {
+	#focusedPane = $state<string | null>(null);
+	readonly #paneRefs = new Map<string, HTMLElement>();
+
+	/**
+	 * The channel/tab drag in progress, or `null`.
+	 */
+	public drag = $state<DragState | null>(null);
+
+	/**
+	 * The pane + zone currently highlighted while dragging, or `null`.
+	 */
+	public dropTarget = $state<DropTarget | null>(null);
+
+	public get root(): SplitNode | null {
+		return storage.state.layout;
+	}
+
+	public set root(value: SplitNode | null) {
+		if (value && tree.isLeaf(value)) {
+			this.#focusedPane = value.id;
+		}
+
+		storage.state.layout = value;
+	}
+
+	public get focusedPane(): string | null {
+		return this.#focusedPane;
+	}
+
+	public set focusedPane(value: string | null) {
+		this.#focusedPane = value;
+	}
+
+	/** The focused pane, if it is still part of the layout. */
+	public get focused(): Pane | null {
+		return this.#focusedPane ? this.pane(this.#focusedPane) : null;
+	}
+
+	public pane(id: string): Pane | null {
+		return this.root ? tree.findLeaf(this.root, id) : null;
+	}
+
+	/** The pane containing the given channel tab, if any. */
+	public paneOf(tabId: string): Pane | null {
+		return this.root ? tree.leafOfTab(this.root, tabId) : null;
+	}
+
+	public registerPaneElement(paneId: string, el: HTMLElement) {
+		this.#paneRefs.set(paneId, el);
+	}
+
+	public unregisterPaneElement(paneId: string, el: HTMLElement) {
+		if (this.#paneRefs.get(paneId) === el) {
+			this.#paneRefs.delete(paneId);
+		}
+	}
+
+	/**
+	 * Ensures the given channel is open as a tab. Activates it if already in the
+	 * layout; otherwise opens it in the focused pane, or a new root pane.
+	 */
+	public ensure(channelId: string) {
+		const existing = this.paneOf(channelId);
+
+		if (existing) {
+			this.#focus(existing, channelId);
+			return;
+		}
+
+		if (!this.root) {
+			this.root = tree.createPane([channelId]);
+			return;
+		}
+
+		const pane = this.focused ?? tree.firstLeaf(this.root);
+		pane.tabs.push(channelId);
+
+		this.#focus(pane, channelId);
+	}
+
+	/**
+	 * Opens the given channel as a tab of the given pane, moving it there if it
+	 * is already open elsewhere.
+	 */
+	public addTab(paneId: string, channelId: string, index?: number) {
+		const pane = this.pane(paneId);
+		if (!pane) return;
+
+		const source = this.paneOf(channelId);
+		if (source === pane) {
+			this.#focus(pane, channelId);
+			return;
+		}
+
+		pane.tabs.splice(index ?? pane.tabs.length, 0, channelId);
+		this.#focus(pane, channelId);
+
+		this.#detach(source, channelId);
+	}
+
+	/**
+	 * Activates the given tab and focuses its pane.
+	 */
+	public activate(id: string) {
+		const pane = this.paneOf(id);
+		if (pane) this.#focus(pane, id);
+	}
+
+	/**
+	 * Reorders a tab within its own pane to the given index.
+	 */
+	public reorderTab(id: string, paneId: string, index: number) {
+		const pane = this.pane(paneId);
+		if (!pane) return;
+
+		const from = pane.tabs.indexOf(id);
+		if (from === -1) return;
+
+		pane.tabs.splice(from, 1);
+
+		const dest = Math.max(0, Math.min(index > from ? index - 1 : index, pane.tabs.length));
+
+		pane.tabs.splice(dest, 0, id);
+		this.#focus(pane, id);
+	}
+
+	/**
+	 * Moves a tab to the given pane at an optional index, removing it from its
+	 * source pane.
+	 */
+	public moveTab(id: string, paneId: string, index?: number) {
+		const source = this.paneOf(id);
+		const target = this.pane(paneId);
+
+		if (!target || source === target) return;
+
+		target.tabs.splice(index ?? target.tabs.length, 0, id);
+
+		this.#focus(target, id);
+		this.#detach(source, id);
+	}
+
+	/**
+	 * Closes the given tab, auto-closing the pane if it becomes empty.
+	 */
+	public closeTab(id: string) {
+		const pane = this.paneOf(id);
+		if (pane) this.#detach(pane, id);
+	}
+
+	/**
+	 * Splits the given pane along the axis, opening a new empty pane after it.
+	 */
+	public split(paneId: string, axis: SplitAxis): Pane {
+		const pane = tree.createPane();
+
+		if (!this.root) {
+			this.root = pane;
+			return pane;
+		}
+
+		this.root = tree.splitLeaf(this.root, paneId, axis, pane, false);
+		this.focusedPane = pane.id;
+		return pane;
+	}
+
+	/**
+	 * Splits the target pane in the given direction, placing the channel in the
+	 * new sibling and removing it from its current pane.
+	 */
+	public splitWithTab(paneId: string, direction: SplitDirection, channelId: string) {
+		const source = this.paneOf(channelId);
+		this.#removeTab(source, channelId);
+
+		if (!this.root) {
+			this.root = tree.createPane([channelId]);
+			return;
+		}
+
+		const pane = tree.createPane([channelId]);
+		const edge = tree.directionToEdge(direction);
+
+		this.root = tree.splitLeaf(
+			this.root,
+			paneId,
+			tree.edgeAxis(edge),
+			pane,
+			tree.edgeInsertsBefore(edge),
+		);
+
+		this.focusedPane = pane.id;
+		this.#closeIfEmpty(source);
+	}
+
+	/**
+	 * Removes the pane from the layout, collapsing its parent split.
+	 */
+	public closePane(paneId: string) {
+		if (!this.root) return;
+
+		this.root = tree.removeLeaf(this.root, paneId);
+
+		if (this.#focusedPane === paneId) {
+			this.#focusedPane = this.root ? tree.firstLeaf(this.root).id : null;
+		}
+	}
+
+	/**
+	 * Applies new sibling sizes to a split (percentages summing to 100).
+	 */
+	public resize(splitId: string, [before, after]: number[]) {
+		const split = this.#findSplit(splitId);
+		if (!split) return;
+
+		split.before.size = before;
+		split.after.size = after;
+	}
+
+	/**
+	 * The pane adjacent to `startId` in the given direction, if any.
+	 */
+	public navigate(startId: string, direction: SplitDirection): string | null {
+		if (!this.root) return null;
+		return tree.neighbor(tree.bounds(this.root), startId, direction);
+	}
+
+	/**
+	 * Begins tracking a tab or channel drag.
+	 */
+	public startDrag(data: DragData) {
+		this.drag = { channelId: data.id, sourcePaneId: data.paneId ?? null };
+	}
+
+	/**
+	 * Recomputes the highlighted drop target for the given droppable + pointer.
+	 */
+	public updateDropTarget(data: DropData | null, point: Point) {
+		if (!this.drag || !data || this.#isSelfNoop(data.paneId)) {
+			this.dropTarget = null;
+			return;
+		}
+
+		if (data.kind === "pane") {
+			this.dropTarget = { paneId: data.paneId, zone: this.#zoneForPane(data.paneId, point) };
+		} else if (this.drag.sourcePaneId === data.paneId) {
+			// A reorder within the same pane relies on the per-tab highlight only.
+			this.dropTarget = null;
+		} else {
+			this.dropTarget = { paneId: data.paneId, zone: "center" };
+		}
+	}
+
+	/**
+	 * Resolves and clears the current drag against the given drop target.
+	 */
+	public endDrag(data: DropData | null, point: Point) {
+		const drag = this.drag;
+		this.drag = null;
+		this.dropTarget = null;
+
+		if (!drag || !data || this.#isSelfNoop(data.paneId)) return;
+
+		if (data.kind === "pane") {
+			this.#dropIntoZone(drag.channelId, data.paneId, this.#zoneForPane(data.paneId, point));
+		} else if (drag.sourcePaneId === data.paneId) {
+			const index = data.index ?? this.pane(data.paneId)?.tabs.length ?? 0;
+			this.reorderTab(drag.channelId, data.paneId, index);
+		} else {
+			this.moveTab(drag.channelId, data.paneId, data.index);
+		}
+	}
+
+	#focus(pane: Pane, tabId: string) {
+		pane.active = tabId;
+		this.focusedPane = pane.id;
+	}
+
+	#detach(pane: Pane | null, tabId: string) {
+		if (!pane) return;
+		this.#removeTab(pane, tabId);
+		this.#closeIfEmpty(pane);
+	}
+
+	#removeTab(pane: Pane | null, tabId: string) {
+		if (!pane) return;
+
+		const index = pane.tabs.indexOf(tabId);
+		if (index === -1) return;
+
+		pane.tabs.splice(index, 1);
+
+		if (pane.active === tabId) {
+			pane.active = pane.tabs[index] ?? pane.tabs.at(-1) ?? null;
+		}
+	}
+
+	#closeIfEmpty(pane: Pane | null) {
+		if (pane && !pane.tabs.length) this.closePane(pane.id);
+	}
+
+	#findSplit(splitId: string): Extract<SplitNode, { type: "split" }> | null {
+		const walk = (node: SplitNode | null): Extract<SplitNode, { type: "split" }> | null => {
+			if (!node || tree.isLeaf(node)) return null;
+			if (node.id === splitId) return node;
+			return walk(node.before) ?? walk(node.after);
+		};
+
+		return walk(this.root);
+	}
+
+	/**
+	 * Dropping a tab back onto its own pane when it's the only tab is a no-op
+	 */
+	#isSelfNoop(paneId: string): boolean {
+		if (!this.drag || this.drag.sourcePaneId !== paneId) {
+			return false;
+		}
+
+		return (this.pane(paneId)?.tabs.length ?? 0) <= 1;
+	}
+
+	/**
+	 * The drop zone for a pane, derived from the pointer position against the
+	 * pane's live bounding rect.
+	 */
+	#zoneForPane(paneId: string, point: Point): SplitDropPosition {
+		const rect = point && this.#paneRefs.get(paneId)?.getBoundingClientRect();
+		if (!rect || rect.width === 0 || rect.height === 0) return "center";
+
+		const x = point.x - rect.left;
+		const y = point.y - rect.top;
+
+		const hEdge = Math.max(80, rect.width * 0.25);
+		const vEdge = Math.max(80, rect.height * 0.25);
+
+		if (x < hEdge) return "left";
+		if (x > rect.width - hEdge) return "right";
+		if (y < vEdge) return "top";
+		if (y > rect.height - vEdge) return "bottom";
+
+		return "center";
+	}
+
+	/**
+	 * `center` moves/opens the channel in the pane; an edge splits the pane and
+	 * places the channel in the new sibling.
+	 */
+	#dropIntoZone(channelId: string, paneId: string, zone: SplitDropPosition) {
+		if (zone === "center") {
+			this.addTab(paneId, channelId);
+		} else {
+			this.splitWithTab(paneId, tree.edgeToDirection(zone), channelId);
+		}
+	}
+}

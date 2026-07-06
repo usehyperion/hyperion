@@ -3,12 +3,12 @@
 	import { app } from "$lib/app.svelte";
 	import Channel from "$lib/components/Channel.svelte";
 	import * as Empty from "$lib/components/ui/empty";
-	import type { SplitLeaf } from "$lib/split-layout.svelte";
+	import type { Pane } from "$lib/splits/types";
 	import Layout from "~icons/ph/layout";
 	import TabBar from "./TabBar.svelte";
 
 	interface Props {
-		pane: SplitLeaf;
+		pane: Pane;
 	}
 
 	const { pane }: Props = $props();
@@ -88,11 +88,6 @@
 			{/if}
 		</div>
 
-		<!--
-			Single drop surface spanning the content. Pointer-events are off so it
-			never blocks the content, but it always has layout (no display:none), so
-			@dnd-kit can measure it freshly at drag start.
-		-->
 		<div
 			class="pointer-events-none absolute inset-0 z-10"
 			{@attach droppable.attach}

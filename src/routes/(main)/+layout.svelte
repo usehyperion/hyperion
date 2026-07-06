@@ -1,12 +1,5 @@
 <script lang="ts">
-	import {
-		AutoScroller,
-		type DragEndEvent,
-		type DragMoveEvent,
-		type DragOverEvent,
-		type DragStartEvent,
-	} from "@dnd-kit/dom";
-	import { move } from "@dnd-kit/helpers";
+	import { AutoScroller } from "@dnd-kit/dom";
 	import { DragDropProvider, DragOverlay } from "@dnd-kit/svelte";
 	import { createHotkey } from "@tanstack/svelte-hotkeys";
 	import { ask } from "@tauri-apps/plugin-dialog";
@@ -19,6 +12,7 @@
 	import Sidebar from "$lib/components/Sidebar.svelte";
 	import StreamInfo from "$lib/components/StreamInfo.svelte";
 	import * as Tooltip from "$lib/components/ui/tooltip";
+	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "$lib/splits/events";
 	import { storage } from "$lib/stores";
 
 	const { children } = $props();
@@ -47,87 +41,6 @@
 			await relaunch();
 		}
 	});
-
-	function onDragStart(event: DragStartEvent) {
-		const source = event.operation.source;
-		if (!source) return;
-
-		if (source.type === "tab") {
-			app.splits.drag = { channelId: source.data.id, sourcePaneId: source.data.paneId };
-		} else if (source.type === "channel") {
-			app.splits.drag = { channelId: source.data.id, sourcePaneId: null };
-		}
-	}
-
-	function onDragOver(event: DragOverEvent) {
-		const { source, target } = event.operation;
-		if (!source) return;
-
-		if (source.type === "pinned") {
-			if (target?.type === "pinned") {
-				storage.state.pinned = move(storage.state.pinned, event);
-			}
-
-			return;
-		}
-
-		app.splits.updateDropTarget(
-			target ? (target.data as { kind: string; paneId?: string }) : null,
-			event.operation.position?.current,
-		);
-	}
-
-	function onDragMove(event: DragMoveEvent) {
-		// A pane is a single droppable, so moving between its edge zones does not
-		// fire `dragover` — recompute the highlighted zone on every pointer move.
-		if (event.operation.source?.type === "pinned") return;
-
-		app.splits.updateDropTarget(
-			event.operation.target
-				? (event.operation.target.data as { kind: string; paneId?: string })
-				: null,
-			event.operation.position?.current,
-		);
-	}
-
-	function onDragEnd(event: DragEndEvent) {
-		const target = event.operation.target;
-		const drag = app.splits.drag;
-		const point = event.operation.position?.current;
-
-		app.splits.drag = null;
-		app.splits.dropTarget = null;
-
-		if (event.operation.canceled || !drag || !target) return;
-
-		const data = target.data as { kind: string; paneId?: string; index?: number };
-		const paneId = data.paneId;
-		if (!paneId) return;
-
-		// Dropping a tab back onto its own single-tab pane is a no-op.
-		const sameSole =
-			drag.sourcePaneId === paneId && (app.splits.pane(paneId)?.tabs.length ?? 0) <= 1;
-
-		if (data.kind === "pane") {
-			if (sameSole) return;
-
-			const zone = app.splits.zoneForPane(paneId, point);
-			app.splits.dropIntoZone(drag.channelId, paneId, zone);
-		} else if (data.kind === "tab") {
-			if (drag.sourcePaneId === paneId) {
-				app.splits.reorderTab(drag.channelId, paneId, data.index ?? 0);
-			} else {
-				app.splits.moveTabToPane(drag.channelId, paneId, data.index);
-			}
-		} else if (data.kind === "tabbar") {
-			if (drag.sourcePaneId === paneId) {
-				const length = app.splits.pane(paneId)?.tabs.length ?? 0;
-				app.splits.reorderTab(drag.channelId, paneId, length);
-			} else {
-				app.splits.moveTabToPane(drag.channelId, paneId);
-			}
-		}
-	}
 
 	createHotkey("Mod+,", async () => {
 		await goto(resolve("/settings"));

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { Pane, PaneGroup, PaneResizer } from "paneforge";
 	import { app } from "$lib/app.svelte";
-	import { isLeaf, type SplitNode } from "$lib/split-layout.svelte";
+	import { isLeaf } from "$lib/splits/tree";
+	import type { SplitNode } from "$lib/splits/types";
 	import Self from "./SplitNode.svelte";
 	import SplitView from "./SplitView.svelte";
 
@@ -18,9 +19,9 @@
 	<PaneGroup
 		class="size-full"
 		direction={node.axis}
-		onLayoutChange={(layout) => app.splits.setSizes(node.id, layout)}
+		onLayoutChange={(layout) => app.splits.resize(node.id, layout)}
 	>
-		<Pane defaultSize={node.sizes[0]} minSize={10}>
+		<Pane defaultSize={node.before.size} minSize={10}>
 			<Self node={node.before} />
 		</Pane>
 
@@ -31,7 +32,7 @@
 			]}
 		/>
 
-		<Pane defaultSize={node.sizes[1]} minSize={10}>
+		<Pane defaultSize={node.after.size} minSize={10}>
 			<Self node={node.after} />
 		</Pane>
 	</PaneGroup>

@@ -3,7 +3,7 @@
 	import { app } from "$lib/app.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import { settings } from "$lib/settings";
-	import type { SplitLeaf } from "$lib/split-layout.svelte";
+	import type { Pane } from "$lib/splits/types";
 	import SquareHalfBottom from "~icons/ph/square-half-bottom-fill";
 	import SquareHalf from "~icons/ph/square-half-fill";
 	import X from "~icons/ph/x";
@@ -11,7 +11,7 @@
 	import Tab from "./Tab.svelte";
 
 	interface Props {
-		pane: SplitLeaf;
+		pane: Pane;
 	}
 
 	const { pane }: Props = $props();

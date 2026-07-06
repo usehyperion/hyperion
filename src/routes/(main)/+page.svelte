@@ -7,7 +7,8 @@
 	import { buttonVariants } from "$lib/components/ui/button";
 	import * as Empty from "$lib/components/ui/empty";
 	import { settings } from "$lib/settings";
-	import { createLeaf, firstLeaf, type SplitDirection } from "$lib/split-layout.svelte";
+	import { createPane, firstLeaf } from "$lib/splits/tree";
+	import type { SplitDirection } from "$lib/splits/types";
 	import { storage } from "$lib/stores";
 	import ChatDots from "~icons/ph/chat-dots";
 	import Spinner from "~icons/ph/spinner";

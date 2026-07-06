@@ -1,7 +1,7 @@
 import { RuneStore } from "@tauri-store/svelte";
 import type { User } from "./graphql/twitch";
 import type { SidebarState } from "./hooks/use-sidebar.svelte";
-import type { SplitNode } from "./split-layout.svelte";
+import type { SplitNode } from "./splits/types";
 
 interface Storage {
 	[key: string]: unknown;

@@ -7,7 +7,7 @@ import {
 } from "@tauri-apps/api/menu";
 import { app } from "$lib/app.svelte";
 import type { Channel } from "$lib/models/channel.svelte";
-import type { SplitDirection } from "$lib/split-layout.svelte";
+import type { SplitDirection } from "$lib/splits/types";
 import { storage } from "$lib/stores";
 
 async function splitItem(channel: Channel, direction: SplitDirection) {

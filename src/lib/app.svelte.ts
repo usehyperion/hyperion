@@ -13,7 +13,7 @@ import { EmoteManager } from "./managers/emote-manager";
 import type { Channel } from "./models/channel.svelte";
 import type { CurrentUser } from "./models/current-user.svelte";
 import type { DispatchPayload, Paint } from "./seventv";
-import { SplitLayout } from "./split-layout.svelte";
+import { SplitController } from "./splits/controller.svelte";
 import type { Theme } from "./themes";
 import { TwitchClient } from "./twitch/client";
 import type { NotificationPayload } from "./twitch/eventsub";
@@ -48,7 +48,7 @@ class App {
 	/**
 	 * The current split layout.
 	 */
-	public readonly splits = new SplitLayout();
+	public readonly splits = new SplitController();
 
 	/**
 	 * Route history.
