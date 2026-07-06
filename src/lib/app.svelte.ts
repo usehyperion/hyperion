@@ -12,9 +12,8 @@ import { ChannelManager } from "./managers/channel-manager";
 import { EmoteManager } from "./managers/emote-manager";
 import type { Channel } from "./models/channel.svelte";
 import type { CurrentUser } from "./models/current-user.svelte";
-import { settings } from "./settings";
 import type { DispatchPayload, Paint } from "./seventv";
-import { SplitLayout } from "./split-layout";
+import { SplitLayout } from "./split-layout.svelte";
 import type { Theme } from "./themes";
 import { TwitchClient } from "./twitch/client";
 import type { NotificationPayload } from "./twitch/eventsub";
@@ -91,10 +90,6 @@ class App {
 			if (channel.joined) {
 				this.focused = channel;
 			} else {
-				if (settings.state["advanced.singleConnection"]) {
-					await this.focused?.leave();
-				}
-
 				await channel.join();
 			}
 		}

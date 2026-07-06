@@ -3,7 +3,7 @@
 	import { app } from "$lib/app.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import { settings } from "$lib/settings";
-	import type { SplitPane } from "$lib/split-layout";
+	import type { SplitLeaf } from "$lib/split-layout.svelte";
 	import SquareHalfBottom from "~icons/ph/square-half-bottom-fill";
 	import SquareHalf from "~icons/ph/square-half-fill";
 	import X from "~icons/ph/x";
@@ -11,26 +11,25 @@
 	import Tab from "./Tab.svelte";
 
 	interface Props {
-		pane: SplitPane;
+		pane: SplitLeaf;
 	}
 
 	const { pane }: Props = $props();
 
 	const channel = $derived(pane.active ? app.channels.get(pane.active) : undefined);
 
-	// Lets tabs be dropped on the empty area of the bar to append them.
 	const droppable = createDroppable({
 		get id() {
 			return `tabbar:${pane.id}`;
 		},
 		get type() {
-			return "tab-bar";
+			return "tabbar";
 		},
 		get accept() {
-			return ["tab"];
+			return ["tab", "channel"];
 		},
 		get data() {
-			return { paneId: pane.id };
+			return { kind: "tabbar", paneId: pane.id };
 		},
 	});
 

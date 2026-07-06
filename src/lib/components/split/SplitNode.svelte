@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Pane, PaneGroup, PaneResizer } from "paneforge";
-	import { isPane, type SplitNode } from "$lib/split-layout";
+	import { app } from "$lib/app.svelte";
+	import { isLeaf, type SplitNode } from "$lib/split-layout.svelte";
 	import Self from "./SplitNode.svelte";
 	import SplitView from "./SplitView.svelte";
 
@@ -8,15 +9,19 @@
 		node: SplitNode;
 	}
 
-	let { node = $bindable() }: Props = $props();
+	const { node }: Props = $props();
 </script>
 
-{#if isPane(node)}
+{#if isLeaf(node)}
 	<SplitView pane={node} />
 {:else}
-	<PaneGroup class="size-full" direction={node.axis}>
-		<Pane defaultSize={node.size ?? 50} onResize={(size) => (node.size = size)}>
-			<Self bind:node={node.before} />
+	<PaneGroup
+		class="size-full"
+		direction={node.axis}
+		onLayoutChange={(layout) => app.splits.setSizes(node.id, layout)}
+	>
+		<Pane defaultSize={node.sizes[0]} minSize={10}>
+			<Self node={node.before} />
 		</Pane>
 
 		<PaneResizer
@@ -26,8 +31,8 @@
 			]}
 		/>
 
-		<Pane defaultSize={100 - (node.size ?? 50)} onResize={(size) => (node.size = 100 - size)}>
-			<Self bind:node={node.after} />
+		<Pane defaultSize={node.sizes[1]} minSize={10}>
+			<Self node={node.after} />
 		</Pane>
 	</PaneGroup>
 {/if}

@@ -7,7 +7,7 @@
 	import { buttonVariants } from "$lib/components/ui/button";
 	import * as Empty from "$lib/components/ui/empty";
 	import { settings } from "$lib/settings";
-	import { createPane, firstPane, type SplitDirection } from "$lib/split-layout";
+	import { createLeaf, firstLeaf, type SplitDirection } from "$lib/split-layout.svelte";
 	import { storage } from "$lib/stores";
 	import ChatDots from "~icons/ph/chat-dots";
 	import Spinner from "~icons/ph/spinner";
@@ -20,7 +20,7 @@
 		}
 
 		if (storage.state.layout) {
-			const pane = firstPane(storage.state.layout);
+			const pane = firstLeaf(storage.state.layout);
 			app.splits.focusedPane = pane.id;
 
 			const channel = pane.active ? app.channels.get(pane.active) : undefined;
@@ -114,7 +114,7 @@
 
 <div class="h-full">
 	{#if app.splits.root}
-		<SplitNode bind:node={app.splits.root} />
+		<SplitNode node={app.splits.root} />
 	{:else if loading}
 		<div class="flex size-full flex-col items-center justify-center">
 			<Spinner class="size-6 animate-spin" />

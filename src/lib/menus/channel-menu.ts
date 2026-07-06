@@ -7,8 +7,7 @@ import {
 } from "@tauri-apps/api/menu";
 import { app } from "$lib/app.svelte";
 import type { Channel } from "$lib/models/channel.svelte";
-import { settings } from "$lib/settings";
-import type { SplitDirection } from "$lib/split-layout";
+import type { SplitDirection } from "$lib/split-layout.svelte";
 import { storage } from "$lib/stores";
 
 async function splitItem(channel: Channel, direction: SplitDirection) {
@@ -30,8 +29,6 @@ async function splitItem(channel: Channel, direction: SplitDirection) {
 }
 
 export async function createChannelMenu(channel: Channel) {
-	const singleConnection = settings.state["advanced.singleConnection"];
-
 	const separator = await PredefinedMenuItem.new({
 		item: "Separator",
 	});
@@ -75,18 +72,14 @@ export async function createChannelMenu(channel: Channel) {
 		},
 	});
 
-	const items: MenuOptions["items"] = [join, leave, pin];
+	const splitItems = await Promise.all([
+		splitItem(channel, "up"),
+		splitItem(channel, "down"),
+		splitItem(channel, "left"),
+		splitItem(channel, "right"),
+	]);
 
-	if (!singleConnection) {
-		const splitItems = await Promise.all([
-			splitItem(channel, "up"),
-			splitItem(channel, "down"),
-			splitItem(channel, "left"),
-			splitItem(channel, "right"),
-		]);
-
-		items.push(separator, ...splitItems);
-	}
+	const items: MenuOptions["items"] = [join, leave, pin, separator, ...splitItems];
 
 	if (channel.ephemeral) {
 		const remove = await MenuItem.new({

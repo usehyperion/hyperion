@@ -55,7 +55,6 @@ export interface Settings {
 	"highlights.viewers": Record<HighlightType, HighlightConfig>;
 	"highlights.keywords": KeywordHighlightConfig[];
 
-	"advanced.singleConnection": boolean;
 	"advanced.logs.level": "error" | "warn" | "info" | "debug" | "trace";
 }
 
@@ -98,7 +97,6 @@ export const defaults: Settings = {
 	"highlights.enabled": true,
 	"highlights.viewers": { ...defaultHighlightTypes },
 	"highlights.keywords": [],
-	"advanced.singleConnection": false,
 	"advanced.logs.level": "info",
 };
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createSortable } from "@dnd-kit/svelte/sortable";
+	import { createDraggable, createDroppable } from "@dnd-kit/svelte";
 	import { app } from "$lib/app.svelte";
 	import { settings } from "$lib/settings";
 	import X from "~icons/ph/x";
@@ -15,24 +15,30 @@
 
 	const channel = $derived(app.channels.get(tabId));
 
-	const sortable = createSortable({
+	const draggable = createDraggable({
 		get id() {
-			return tabId;
+			return `tab:${tabId}`;
 		},
-		get index() {
-			return index;
+		get type() {
+			return "tab";
 		},
-		get group() {
-			return paneId;
+		get data() {
+			return { kind: "tab", id: tabId, paneId };
+		},
+	});
+
+	const droppable = createDroppable({
+		get id() {
+			return `tabdrop:${tabId}`;
 		},
 		get type() {
 			return "tab";
 		},
 		get accept() {
-			return ["tab"];
+			return ["tab", "channel"];
 		},
 		get data() {
-			return { kind: "tab", id: tabId, paneId };
+			return { kind: "tab", id: tabId, paneId, index };
 		},
 	});
 
@@ -62,14 +68,16 @@
 		active
 			? "bg-background text-foreground"
 			: "text-muted-foreground hover:bg-background/50 hover:text-foreground",
-		sortable.isDragging && "opacity-50",
+		draggable.isDragging && "opacity-50",
+		droppable.isDropTarget && "shadow-[inset_2px_0_0_var(--color-primary)]",
 	]}
 	role="tab"
 	tabindex="-1"
 	aria-selected={active}
 	onclick={select}
 	onauxclick={(event) => event.button === 1 && close(event)}
-	{@attach sortable.attach}
+	{@attach draggable.attach}
+	{@attach droppable.attach}
 >
 	{#if channel}
 		<img

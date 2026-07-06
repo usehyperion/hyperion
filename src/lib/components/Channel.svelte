@@ -20,6 +20,9 @@
 
 	const { channel, split = false }: Props = $props();
 
+	// svelte-ignore state_referenced_locally
+	const chat = channel.chat;
+
 	let unlisten: UnlistenFn | undefined;
 
 	onMount(async () => {
@@ -43,9 +46,9 @@
 	{/if}
 
 	<div class="relative grow">
-		<LiveNotices chat={channel.chat} />
+		<LiveNotices {chat} />
 
-		<Chat chat={channel.chat} />
+		<Chat {chat} />
 	</div>
 
 	<PollDialog {channel} bind:open={pollOpen.value} />
@@ -53,6 +56,6 @@
 	<PredictionDialog {channel} bind:open={predictionOpen.value} />
 
 	<div class="p-2">
-		<ChatInput chat={channel.chat} />
+		<ChatInput {chat} />
 	</div>
 </div>
