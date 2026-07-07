@@ -49,7 +49,7 @@
 			<Button class="relative" href={resolve("/whispers")} variant="ghost">
 				<Chats class={[sidebar.collapsed && unread && "animate-pulse"]} />
 
-				<span class="group-data-[state=collapsed]:sr-only">Whispers</span>
+				<span class="not-group-data-[state=expanded]:sr-only">Whispers</span>
 
 				{#if sidebar.collapsed && unread}
 					<div
@@ -71,15 +71,13 @@
 			<JoinDialog class={buttonVariants({ variant: "ghost" })}>
 				<Plus />
 
-				<span class="group-data-[state=collapsed]:sr-only">Join a channel</span>
+				<span class="not-group-data-[state=expanded]:sr-only">Join a channel</span>
 			</JoinDialog>
 
 			<Button variant="ghost" onclick={() => sidebar.cycle()}>
 				<Sidebar />
 
-				<span class="group-data-[state=collapsed]:sr-only">
-					{sidebar.collapsed ? "Expand" : "Collapse"} sidebar
-				</span>
+				<span class="not-group-data-[state=expanded]:sr-only"> Toggle sidebar </span>
 			</Button>
 		</div>
 

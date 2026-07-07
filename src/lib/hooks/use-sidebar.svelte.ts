@@ -43,9 +43,6 @@ class Sidebar {
 
 let instance: Sidebar | undefined;
 
-/**
- * Returns the shared sidebar store, holding its visibility state and controls.
- */
 export function useSidebar(): Sidebar {
 	return (instance ??= new Sidebar());
 }
