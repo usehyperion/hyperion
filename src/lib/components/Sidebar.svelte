@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { ScrollArea } from "bits-ui";
-	import { MediaQuery } from "svelte/reactivity";
 	import { crossfade } from "svelte/transition";
 	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
+	import { useSidebar } from "$lib/hooks/use-sidebar.svelte";
 	import Chats from "~icons/ph/chats";
 	import Plus from "~icons/ph/plus";
 	import Sidebar from "~icons/ph/sidebar";
@@ -11,11 +11,10 @@
 	import JoinDialog from "./JoinDialog.svelte";
 	import { Button, buttonVariants } from "./ui/button";
 
+	const sidebar = useSidebar();
 	const [send, receive] = crossfade({ duration: 400 });
 
 	const id = $props.id();
-
-	app.sidebarCollapsed = new MediaQuery("(width < 48rem)").current;
 
 	const unread = $derived(app.user?.whispers.values().reduce((sum, w) => sum + w.unread, 0));
 </script>
@@ -24,27 +23,35 @@
 	onkeydown={(event) => {
 		if (event.repeat) return;
 
-		if ((event.metaKey || event.ctrlKey) && event.key === "b") {
-			app.sidebarCollapsed = !app.sidebarCollapsed;
+		if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "b") {
+			event.preventDefault();
+
+			if (event.shiftKey) {
+				sidebar.toggle();
+			} else {
+				sidebar.cycle();
+			}
 		}
 	}}
 />
 
 <ScrollArea.Root
 	class={[
-		"group shrink-0 transition-[width] duration-300 ease-out-quint",
-		app.sidebarCollapsed ? "w-14" : "w-56 md:w-64 lg:w-72",
+		"group shrink-0 overflow-hidden transition-[width] duration-300 ease-out-quint",
+		sidebar.state === "hidden" && "w-0",
+		sidebar.state === "collapsed" && "w-14",
+		sidebar.state === "expanded" && "w-56 md:w-64 lg:w-72",
 	]}
-	data-state={app.sidebarCollapsed ? "collapsed" : "expanded"}
+	data-state={sidebar.state}
 >
 	<ScrollArea.Viewport class="h-full">
 		<div id="sidebar-actions" class="flex flex-col gap-1 px-1.5 py-1">
 			<Button class="relative" href={resolve("/whispers")} variant="ghost">
-				<Chats class={[app.sidebarCollapsed && unread && "animate-pulse"]} />
+				<Chats class={[sidebar.collapsed && unread && "animate-pulse"]} />
 
 				<span class="group-data-[state=collapsed]:sr-only">Whispers</span>
 
-				{#if app.sidebarCollapsed && unread}
+				{#if sidebar.collapsed && unread}
 					<div
 						in:receive={{ key: id }}
 						out:send={{ key: id }}
@@ -67,11 +74,11 @@
 				<span class="group-data-[state=collapsed]:sr-only">Join a channel</span>
 			</JoinDialog>
 
-			<Button variant="ghost" onclick={() => (app.sidebarCollapsed = !app.sidebarCollapsed)}>
+			<Button variant="ghost" onclick={() => sidebar.cycle()}>
 				<Sidebar />
 
 				<span class="group-data-[state=collapsed]:sr-only">
-					{app.sidebarCollapsed ? "Expand" : "Collapse"} sidebar
+					{sidebar.collapsed ? "Expand" : "Collapse"} sidebar
 				</span>
 			</Button>
 		</div>

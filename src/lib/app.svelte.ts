@@ -30,11 +30,6 @@ class App {
 	public connected = $state(false);
 
 	/**
-	 * Whether the sidebar is collapsed.
-	 */
-	public sidebarCollapsed = $state(false);
-
-	/**
 	 * The currently authenticated user.
 	 */
 	public user = $state<CurrentUser | null>(null);

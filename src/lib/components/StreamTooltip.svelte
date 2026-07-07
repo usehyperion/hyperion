@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { app } from "$lib/app.svelte";
+	import { useSidebar } from "$lib/hooks/use-sidebar.svelte";
 	import { createChannelMenu } from "$lib/menus/channel-menu";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import { openMenu } from "$lib/util";
@@ -13,6 +14,8 @@
 	}
 
 	const { channel }: Props = $props();
+
+	const sidebar = useSidebar();
 </script>
 
 <Tooltip.Root>
@@ -33,13 +36,13 @@
 	</Tooltip.Trigger>
 
 	<Tooltip.Content
-		class={["max-w-64", !app.sidebarCollapsed && !channel.stream && "hidden"]}
+		class={["max-w-64", !sidebar.collapsed && !channel.stream && "hidden"]}
 		side="right"
 		sideOffset={8}
 	>
 		{#if channel.stream}
 			<div class="space-y-0.5">
-				{#if app.sidebarCollapsed}
+				{#if sidebar.collapsed}
 					<div
 						class="overflow-hidden text-ellipsis whitespace-nowrap text-twitch-link dark:text-twitch"
 					>
@@ -49,7 +52,7 @@
 
 				<p class="line-clamp-2">{channel.stream.title}</p>
 
-				{#if app.sidebarCollapsed}
+				{#if sidebar.collapsed}
 					<div class="flex items-center text-red-400 dark:text-red-500">
 						<Users class="mr-1 size-3" />
 
@@ -63,7 +66,7 @@
 					<GuestList {channel} tooltip />
 				{/if}
 			</div>
-		{:else if app.sidebarCollapsed}
+		{:else if sidebar.collapsed}
 			{channel.user.displayName}
 		{/if}
 	</Tooltip.Content>
