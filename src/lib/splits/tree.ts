@@ -43,12 +43,12 @@ export function leaves(node: SplitNode | null): Pane[] {
 	return [...leaves(node.before), ...leaves(node.after)];
 }
 
-export function findLeaf(node: SplitNode, id: string): Pane | null {
-	return leaves(node).find((pane) => pane.id === id) ?? null;
-}
+export function findLeaf(node: SplitNode, predicate: (pane: Pane) => boolean): Pane | null {
+	if (isLeaf(node)) {
+		return predicate(node) ? node : null;
+	}
 
-export function leafOfTab(node: SplitNode, id: string): Pane | null {
-	return leaves(node).find((pane) => pane.tabs.includes(id)) ?? null;
+	return findLeaf(node.before, predicate) ?? findLeaf(node.after, predicate);
 }
 
 export function directionToEdge(direction: SplitDirection): SplitEdge {

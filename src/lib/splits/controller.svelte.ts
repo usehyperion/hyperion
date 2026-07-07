@@ -48,18 +48,22 @@ export class SplitController {
 		this.#focusedPane = value;
 	}
 
-	/** The focused pane, if it is still part of the layout. */
+	/**
+	 * The focused pane, if it is still part of the layout.
+	 */
 	public get focused(): Pane | null {
 		return this.#focusedPane ? this.pane(this.#focusedPane) : null;
 	}
 
 	public pane(id: string): Pane | null {
-		return this.root ? tree.findLeaf(this.root, id) : null;
+		return this.root ? tree.findLeaf(this.root, (p) => p.id === id) : null;
 	}
 
-	/** The pane containing the given channel tab, if any. */
+	/**
+	 * The pane containing the given channel tab, if any.
+	 */
 	public paneOf(tabId: string): Pane | null {
-		return this.root ? tree.leafOfTab(this.root, tabId) : null;
+		return this.root ? tree.findLeaf(this.root, (p) => p.tabs.includes(tabId)) : null;
 	}
 
 	public registerPaneElement(paneId: string, el: HTMLElement) {
@@ -294,6 +298,7 @@ export class SplitController {
 
 	#detach(pane: Pane | null, tabId: string) {
 		if (!pane) return;
+
 		this.#removeTab(pane, tabId);
 		this.#closeIfEmpty(pane);
 	}
@@ -319,6 +324,7 @@ export class SplitController {
 		const walk = (node: SplitNode | null): Extract<SplitNode, { type: "split" }> | null => {
 			if (!node || tree.isLeaf(node)) return null;
 			if (node.id === splitId) return node;
+
 			return walk(node.before) ?? walk(node.after);
 		};
 
