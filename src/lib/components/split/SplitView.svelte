@@ -13,7 +13,7 @@
 
 	const { pane }: Props = $props();
 
-	const channel = $derived(pane.active ? app.channels.get(pane.active) : undefined);
+	const channel = $derived(pane.active ? app.channels.get(pane.active) : null);
 
 	const droppable = createDroppable({
 		get id() {
@@ -57,7 +57,7 @@
 	});
 
 	function setFocus() {
-		app.splits.focusedPane = pane.id;
+		app.splits.focusedPaneId = pane.id;
 	}
 </script>
 

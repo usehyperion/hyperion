@@ -22,7 +22,7 @@
 
 		if (storage.state.layout) {
 			const pane = firstLeaf(storage.state.layout);
-			app.splits.focusedPane = pane.id;
+			app.splits.focusedPaneId = pane.id;
 
 			const channel = pane.active ? app.channels.get(pane.active) : undefined;
 			if (channel) await app.open(channel);
@@ -102,10 +102,10 @@
 	function navigateSplit(direction: SplitDirection) {
 		if (!app.splits.focusedPane) return;
 
-		const paneId = app.splits.navigate(app.splits.focusedPane, direction);
+		const paneId = app.splits.navigate(app.splits.focusedPaneId, direction);
 		if (!paneId) return;
 
-		app.splits.focusedPane = paneId;
+		app.splits.focusedPaneId = paneId;
 
 		const pane = app.splits.pane(paneId);
 		const channel = pane?.active ? app.channels.get(pane.active) : undefined;

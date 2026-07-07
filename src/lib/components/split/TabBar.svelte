@@ -16,17 +16,13 @@
 
 	const { pane }: Props = $props();
 
-	const channel = $derived(pane.active ? app.channels.get(pane.active) : undefined);
+	const channel = $derived(pane.active ? app.channels.get(pane.active) : null);
 
 	const droppable = createDroppable({
+		type: "tabbar",
+		accept: ["tab", "channel"],
 		get id() {
 			return `tabbar:${pane.id}`;
-		},
-		get type() {
-			return "tabbar";
-		},
-		get accept() {
-			return ["tab", "channel"];
 		},
 		get data() {
 			return { kind: "tabbar", paneId: pane.id };
@@ -52,7 +48,7 @@
 		{@attach droppable.attach}
 	>
 		{#each pane.tabs as tabId, index (tabId)}
-			<Tab {tabId} {index} paneId={pane.id} active={pane.active === tabId} />
+			<Tab id={tabId} {index} paneId={pane.id} active={pane.active === tabId} />
 		{/each}
 	</div>
 

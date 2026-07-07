@@ -6,6 +6,7 @@ import type {
 	DropData,
 	DropTarget,
 	Pane,
+	Split,
 	SplitAxis,
 	SplitDirection,
 	SplitDropPosition,
@@ -15,16 +16,25 @@ import type {
 type Point = { x: number; y: number } | undefined;
 
 export class SplitController {
-	#focusedPane = $state<string | null>(null);
 	readonly #paneRefs = new Map<string, HTMLElement>();
 
 	/**
-	 * The channel/tab drag in progress, or `null`.
+	 * The id of the focused pane.
+	 */
+	public focusedPaneId = $state<string | null>(null);
+
+	/**
+	 * The focused pane if it is still part of the layout.
+	 */
+	public readonly focused = $derived(this.focusedPaneId ? this.pane(this.focusedPaneId) : null);
+
+	/**
+	 * The channel or tab drag in progress.
 	 */
 	public drag = $state<DragState | null>(null);
 
 	/**
-	 * The pane + zone currently highlighted while dragging, or `null`.
+	 * The pane and zone currently highlighted while dragging.
 	 */
 	public dropTarget = $state<DropTarget | null>(null);
 
@@ -34,25 +44,10 @@ export class SplitController {
 
 	public set root(value: SplitNode | null) {
 		if (value && tree.isLeaf(value)) {
-			this.#focusedPane = value.id;
+			this.focusedPaneId = value.id;
 		}
 
 		storage.state.layout = value;
-	}
-
-	public get focusedPane(): string | null {
-		return this.#focusedPane;
-	}
-
-	public set focusedPane(value: string | null) {
-		this.#focusedPane = value;
-	}
-
-	/**
-	 * The focused pane, if it is still part of the layout.
-	 */
-	public get focused(): Pane | null {
-		return this.#focusedPane ? this.pane(this.#focusedPane) : null;
 	}
 
 	public pane(id: string): Pane | null {
@@ -181,7 +176,8 @@ export class SplitController {
 		}
 
 		this.root = tree.splitLeaf(this.root, paneId, axis, pane, false);
-		this.focusedPane = pane.id;
+		this.focusedPaneId = pane.id;
+
 		return pane;
 	}
 
@@ -209,7 +205,7 @@ export class SplitController {
 			tree.edgeInsertsBefore(edge),
 		);
 
-		this.focusedPane = pane.id;
+		this.focusedPaneId = pane.id;
 		this.#closeIfEmpty(source);
 	}
 
@@ -221,13 +217,13 @@ export class SplitController {
 
 		this.root = tree.removeLeaf(this.root, paneId);
 
-		if (this.#focusedPane === paneId) {
-			this.#focusedPane = this.root ? tree.firstLeaf(this.root).id : null;
+		if (this.focusedPaneId === paneId) {
+			this.focusedPaneId = this.root ? tree.firstLeaf(this.root).id : null;
 		}
 	}
 
 	/**
-	 * Applies new sibling sizes to a split (percentages summing to 100).
+	 * Applies new sibling sizes to a split.
 	 */
 	public resize(splitId: string, [before, after]: number[]) {
 		const split = this.#findSplit(splitId);
@@ -242,6 +238,7 @@ export class SplitController {
 	 */
 	public navigate(startId: string, direction: SplitDirection): string | null {
 		if (!this.root) return null;
+
 		return tree.neighbor(tree.bounds(this.root), startId, direction);
 	}
 
@@ -293,7 +290,7 @@ export class SplitController {
 
 	#focus(pane: Pane, tabId: string) {
 		pane.active = tabId;
-		this.focusedPane = pane.id;
+		this.focusedPaneId = pane.id;
 	}
 
 	#detach(pane: Pane | null, tabId: string) {
@@ -317,11 +314,13 @@ export class SplitController {
 	}
 
 	#closeIfEmpty(pane: Pane | null) {
-		if (pane && !pane.tabs.length) this.closePane(pane.id);
+		if (pane && pane.tabs.length === 0) {
+			this.closePane(pane.id);
+		}
 	}
 
-	#findSplit(splitId: string): Extract<SplitNode, { type: "split" }> | null {
-		const walk = (node: SplitNode | null): Extract<SplitNode, { type: "split" }> | null => {
+	#findSplit(splitId: string): Split | null {
+		const walk = (node: SplitNode | null): Split | null => {
 			if (!node || tree.isLeaf(node)) return null;
 			if (node.id === splitId) return node;
 

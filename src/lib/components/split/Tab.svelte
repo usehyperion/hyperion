@@ -5,40 +5,34 @@
 	import X from "~icons/ph/x";
 
 	interface Props {
-		tabId: string;
+		id: string;
 		index: number;
 		paneId: string;
 		active: boolean;
 	}
 
-	const { tabId, index, paneId, active }: Props = $props();
+	const { id, index, paneId, active }: Props = $props();
 
-	const channel = $derived(app.channels.get(tabId));
+	const channel = $derived(app.channels.get(id));
 
 	const draggable = createDraggable({
+		type: "tab",
 		get id() {
-			return `tab:${tabId}`;
-		},
-		get type() {
-			return "tab";
+			return `tab:${id}`;
 		},
 		get data() {
-			return { kind: "tab", id: tabId, paneId };
+			return { kind: "tab", id, paneId };
 		},
 	});
 
 	const droppable = createDroppable({
+		type: "tab",
+		accept: ["tab", "channel"],
 		get id() {
-			return `tabdrop:${tabId}`;
-		},
-		get type() {
-			return "tab";
-		},
-		get accept() {
-			return ["tab", "channel"];
+			return `tabdrop:${id}`;
 		},
 		get data() {
-			return { kind: "tab", id: tabId, paneId, index };
+			return { kind: "tab", id, paneId, index };
 		},
 	});
 
@@ -46,14 +40,14 @@
 		if (channel) {
 			await app.open(channel);
 		} else {
-			app.splits.activate(tabId);
+			app.splits.activate(id);
 		}
 	}
 
 	async function close(event: Event) {
 		event.stopPropagation();
 
-		app.splits.closeTab(tabId);
+		app.splits.closeTab(id);
 
 		if (settings.state["splits.leaveOnClose"]) {
 			await channel?.leave();
@@ -91,7 +85,7 @@
 
 		<span class="truncate">{channel.user.displayName}</span>
 	{:else}
-		<span class="truncate">{tabId}</span>
+		<span class="truncate">{id}</span>
 	{/if}
 
 	<button
