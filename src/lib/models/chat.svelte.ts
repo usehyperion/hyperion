@@ -20,6 +20,9 @@ import { Viewer } from "./viewer.svelte";
 const RATE_LIMIT_WINDOW = 30 * 1000;
 const RATE_LIMIT_GRACE = 1000;
 
+const MAX_MESSAGES = 1000;
+const FLUSH_INTERVAL = 50;
+
 export interface ChatMode {
 	unique: boolean;
 	subOnly: boolean;
@@ -44,6 +47,11 @@ interface MessageOptions {
 export class Chat {
 	#bypassNext = false;
 	#lastRecentAt: number | null = null;
+
+	#pending: Message[] = [];
+	#flushHandle: ReturnType<typeof setTimeout> | null = null;
+
+	#seenIds = new Set<string>();
 
 	// Timestamps of last messages sent by normal/elevated users.
 	#lastMessage: number[] = [];
@@ -103,20 +111,15 @@ export class Chat {
 	}
 
 	public add(message: Message) {
-		if (this.messages.some((m) => m.id === message.id)) {
+		if (this.#seenIds.has(message.id)) {
 			return this;
 		}
 
-		if (message instanceof TextualMessage && message.recent) {
-			if (this.#lastRecentAt === null) {
-				this.messages.unshift(message);
-				this.#lastRecentAt = 0;
-			} else {
-				this.messages.splice(this.#lastRecentAt + 1, 0, message);
-				this.#lastRecentAt++;
-			}
-		} else {
-			this.messages.push(message);
+		this.#seenIds.add(message.id);
+		this.#pending.push(message);
+
+		if (this.#flushHandle === null) {
+			this.#flushHandle = setTimeout(() => this.#flush(), FLUSH_INTERVAL);
 		}
 
 		return this;
@@ -156,7 +159,7 @@ export class Chat {
 	}
 
 	public deleteMessages(id?: string) {
-		for (const message of this.messages) {
+		for (const message of [...this.messages, ...this.#pending]) {
 			if (
 				message instanceof TextualMessage &&
 				message.isUser() &&
@@ -180,6 +183,14 @@ export class Chat {
 		this.#bypassNext = false;
 		this.#lastRecentAt = null;
 		this.replyTarget = null;
+
+		if (this.#flushHandle !== null) {
+			clearTimeout(this.#flushHandle);
+			this.#flushHandle = null;
+		}
+
+		this.#pending = [];
+		this.#seenIds.clear();
 		this.messages = [];
 		this.history = [];
 
@@ -338,6 +349,44 @@ export class Chat {
 
 			log.warn(`Message dropped: ${reason}`);
 			this.notice(reason);
+		}
+	}
+
+	#flush() {
+		this.#flushHandle = null;
+
+		if (this.#pending.length === 0) return;
+
+		const pending = this.#pending;
+		this.#pending = [];
+
+		for (const message of pending) {
+			if (message instanceof TextualMessage && message.recent) {
+				if (this.#lastRecentAt === null) {
+					this.messages.unshift(message);
+					this.#lastRecentAt = 0;
+				} else {
+					this.messages.splice(this.#lastRecentAt + 1, 0, message);
+					this.#lastRecentAt++;
+				}
+			} else {
+				this.messages.push(message);
+			}
+		}
+
+		const excess = this.messages.length - MAX_MESSAGES;
+
+		if (excess > 0) {
+			const evicted = this.messages.splice(0, excess);
+
+			for (const message of evicted) {
+				this.#seenIds.delete(message.id);
+			}
+
+			// Keep the recent-history insertion point aligned with the shift.
+			if (this.#lastRecentAt !== null) {
+				this.#lastRecentAt = Math.max(this.#lastRecentAt - excess, -1);
+			}
 		}
 	}
 
