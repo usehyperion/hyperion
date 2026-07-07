@@ -1,5 +1,6 @@
 import { RuneStore } from "@tauri-store/svelte";
 import type { User } from "./graphql/twitch";
+import type { SidebarState } from "./hooks/use-sidebar.svelte";
 import { settings } from "./settings";
 import { firstLeaf, type SplitNode } from "./split-layout";
 
@@ -9,6 +10,7 @@ interface Storage {
 	accounts: User[];
 	layout: SplitNode | null;
 	pinned: string[];
+	sidebar: SidebarState;
 }
 
 export const storage = new RuneStore<Storage>(
@@ -18,6 +20,7 @@ export const storage = new RuneStore<Storage>(
 		accounts: [],
 		layout: null,
 		pinned: [],
+		sidebar: "expanded",
 	},
 	{
 		autoStart: true,

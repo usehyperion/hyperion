@@ -1,40 +1,24 @@
-type SidebarState = "hidden" | "collapsed" | "expanded";
+import { storage } from "$lib/stores";
 
-const SIDEBAR_STATE_KEY = "hyperion:sidebar";
-
-function loadState(): SidebarState {
-	if (typeof localStorage === "undefined") {
-		return "collapsed";
-	}
-
-	const stored = localStorage.getItem(SIDEBAR_STATE_KEY);
-
-	if (stored === "hidden" || stored === "collapsed" || stored === "expanded") {
-		return stored;
-	}
-
-	return "collapsed";
-}
+export type SidebarState = "hidden" | "collapsed" | "expanded";
 
 class Sidebar {
 	/**
 	 * The current sidebar visibility state.
 	 */
-	public state = $state<SidebarState>(loadState());
+	public get state(): SidebarState {
+		return storage.state.sidebar;
+	}
+
+	public set state(value: SidebarState) {
+		storage.state.sidebar = value;
+	}
 
 	/**
 	 * Whether the sidebar is collapsed.
 	 */
-	public readonly collapsed = $derived(this.state === "collapsed");
-
-	public constructor() {
-		if (typeof localStorage !== "undefined") {
-			$effect.root(() => {
-				$effect(() => {
-					localStorage.setItem(SIDEBAR_STATE_KEY, this.state);
-				});
-			});
-		}
+	public get collapsed() {
+		return this.state === "collapsed";
 	}
 
 	/**
