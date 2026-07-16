@@ -19,13 +19,13 @@
 	const channel = $derived(pane.active ? app.channels.get(pane.active) : null);
 
 	const droppable = createDroppable({
-		type: "tabbar",
+		type: "tab-bar",
 		accept: ["tab", "channel"],
 		get id() {
-			return `tabbar:${pane.id}`;
+			return `tab-bar:${pane.id}`;
 		},
 		get data() {
-			return { kind: "tabbar", paneId: pane.id };
+			return { kind: "tab-bar", paneId: pane.id };
 		},
 	});
 
@@ -42,7 +42,7 @@
 
 <div class="flex h-8 shrink-0 items-center border-b bg-sidebar" data-slot="tab-bar">
 	<div
-		class="flex h-full min-w-0 grow items-stretch overflow-x-auto"
+		class="flex h-full min-w-0 grow scrollbar-none items-stretch overflow-x-auto"
 		role="tablist"
 		tabindex="-1"
 		{@attach droppable.attach}

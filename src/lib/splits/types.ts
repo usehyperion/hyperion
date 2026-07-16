@@ -73,7 +73,7 @@ export interface DragData {
 }
 
 export interface DropData {
-	kind: "pane" | "tab" | "tabbar";
+	kind: "pane" | "tab" | "tab-bar";
 	paneId: string;
 	index?: number;
 }
