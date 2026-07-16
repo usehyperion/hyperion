@@ -63,7 +63,7 @@ export interface DragState {
 
 export interface DropTarget {
 	paneId: string;
-	zone: SplitDropPosition;
+	zone: SplitDropPosition | "tab-bar";
 }
 
 export interface DragData {

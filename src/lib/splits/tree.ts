@@ -1,12 +1,5 @@
 import type { Pane, Rect, SplitAxis, SplitDirection, SplitEdge, SplitNode } from "./types";
 
-const DIRECTION_EDGE: Record<SplitDirection, SplitEdge> = {
-	up: "top",
-	down: "bottom",
-	left: "left",
-	right: "right",
-};
-
 const EDGE_DIRECTION: Record<SplitEdge, SplitDirection> = {
 	top: "up",
 	bottom: "down",
@@ -51,48 +44,41 @@ export function findLeaf(node: SplitNode, predicate: (pane: Pane) => boolean): P
 	return findLeaf(node.before, predicate) ?? findLeaf(node.after, predicate);
 }
 
-export function directionToEdge(direction: SplitDirection): SplitEdge {
-	return DIRECTION_EDGE[direction];
-}
-
 export function edgeToDirection(edge: SplitEdge): SplitDirection {
 	return EDGE_DIRECTION[edge];
 }
 
-export function edgeAxis(edge: SplitEdge): SplitAxis {
-	return edge === "left" || edge === "right" ? "horizontal" : "vertical";
-}
-
-export function edgeInsertsBefore(edge: SplitEdge): boolean {
-	return edge === "left" || edge === "top";
+export function directionAxis(direction: SplitDirection): SplitAxis {
+	return direction === "left" || direction === "right" ? "horizontal" : "vertical";
 }
 
 /**
- * Replaces the pane `paneId` with a split of it and `newPane`, returning the
- * new tree. The two children share the original pane's slot evenly.
+ * Replaces the pane `paneId` with a split of it and `newPane`, placing the new
+ * pane on the side given by `direction`. The two children share the original
+ * pane's slot evenly.
  */
 export function splitLeaf(
 	root: SplitNode,
 	paneId: string,
-	axis: SplitAxis,
+	direction: SplitDirection,
 	newPane: Pane,
-	insertBefore: boolean,
 ): SplitNode {
+	const insertBefore = direction === "left" || direction === "up";
+
 	const transform = (node: SplitNode): SplitNode => {
 		if (isLeaf(node)) {
 			if (node.id !== paneId) return node;
 
-			const size = node.size;
-			node.size = 50;
-			newPane.size = 50;
+			const existing = { ...node, size: 50 };
+			const added = { ...newPane, size: 50 };
 
 			return {
 				type: "split",
 				id: uid("split"),
-				size,
-				axis,
-				before: insertBefore ? newPane : node,
-				after: insertBefore ? node : newPane,
+				size: node.size,
+				axis: directionAxis(direction),
+				before: insertBefore ? added : existing,
+				after: insertBefore ? existing : added,
 			};
 		}
 
@@ -119,13 +105,11 @@ export function removeLeaf(root: SplitNode, paneId: string): SplitNode | null {
 		if (isLeaf(node)) return node;
 
 		if (isLeaf(node.before) && node.before.id === paneId) {
-			node.after.size = node.size;
-			return node.after;
+			return { ...node.after, size: node.size };
 		}
 
 		if (isLeaf(node.after) && node.after.id === paneId) {
-			node.before.size = node.size;
-			return node.before;
+			return { ...node.before, size: node.size };
 		}
 
 		return {

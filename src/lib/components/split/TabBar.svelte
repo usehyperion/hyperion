@@ -18,6 +18,10 @@
 
 	const channel = $derived(pane.active ? app.channels.get(pane.active) : null);
 
+	const showDropIndicator = $derived(
+		app.splits.dropTarget?.paneId === pane.id && app.splits.dropTarget.zone === "tab-bar",
+	);
+
 	const droppable = createDroppable({
 		type: "tab-bar",
 		accept: ["tab", "channel"],
@@ -50,6 +54,10 @@
 		{#each pane.tabs as tabId, index (tabId)}
 			<Tab id={tabId} {index} paneId={pane.id} active={pane.active === tabId} />
 		{/each}
+
+		{#if showDropIndicator}
+			<div class="w-0.5 shrink-0 self-stretch bg-primary" aria-hidden="true"></div>
+		{/if}
 	</div>
 
 	<div class="flex shrink-0 items-center gap-x-1 px-1 text-muted-foreground">
@@ -63,7 +71,7 @@
 			variant="ghost"
 			title="Split right"
 			onclick={() => {
-				app.splits.split(pane.id, "horizontal");
+				app.splits.split(pane.id, "right");
 			}}
 		>
 			<SquareHalf />
@@ -75,7 +83,7 @@
 			variant="ghost"
 			title="Split down"
 			onclick={() => {
-				app.splits.split(pane.id, "vertical");
+				app.splits.split(pane.id, "down");
 			}}
 		>
 			<SquareHalfBottom />

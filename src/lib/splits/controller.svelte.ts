@@ -7,7 +7,6 @@ import type {
 	DropTarget,
 	Pane,
 	Split,
-	SplitAxis,
 	SplitDirection,
 	SplitDropPosition,
 	SplitNode,
@@ -165,20 +164,10 @@ export class SplitController {
 	}
 
 	/**
-	 * Splits the given pane along the axis, opening a new empty pane after it.
+	 * Splits the given pane in the given direction, opening a new empty pane.
 	 */
-	public split(paneId: string, axis: SplitAxis): Pane {
-		const pane = tree.createPane();
-
-		if (!this.root) {
-			this.root = pane;
-			return pane;
-		}
-
-		this.root = tree.splitLeaf(this.root, paneId, axis, pane, false);
-		this.focusedPaneId = pane.id;
-
-		return pane;
+	public split(paneId: string, direction: SplitDirection) {
+		this.#insertPane(paneId, direction, tree.createPane());
 	}
 
 	/**
@@ -189,23 +178,7 @@ export class SplitController {
 		const source = this.paneOf(channelId);
 		this.#removeTab(source, channelId);
 
-		if (!this.root) {
-			this.root = tree.createPane([channelId]);
-			return;
-		}
-
-		const pane = tree.createPane([channelId]);
-		const edge = tree.directionToEdge(direction);
-
-		this.root = tree.splitLeaf(
-			this.root,
-			paneId,
-			tree.edgeAxis(edge),
-			pane,
-			tree.edgeInsertsBefore(edge),
-		);
-
-		this.focusedPaneId = pane.id;
+		this.#insertPane(paneId, direction, tree.createPane([channelId]));
 		this.#closeIfEmpty(source);
 	}
 
@@ -260,11 +233,13 @@ export class SplitController {
 
 		if (data.kind === "pane") {
 			this.dropTarget = { paneId: data.paneId, zone: this.#zoneForPane(data.paneId, point) };
-		} else if (this.drag.sourcePaneId === data.paneId) {
-			// A reorder within the same pane relies on the per-tab highlight only.
-			this.dropTarget = null;
+		} else if (data.kind === "tab-bar") {
+			// Dropping on the tab bar appends, shown as an insertion indicator
+			// after the last tab.
+			this.dropTarget = { paneId: data.paneId, zone: "tab-bar" };
 		} else {
-			this.dropTarget = { paneId: data.paneId, zone: "center" };
+			// A drop onto a tab relies on the per-tab highlight only.
+			this.dropTarget = null;
 		}
 	}
 
@@ -286,6 +261,11 @@ export class SplitController {
 		} else {
 			this.moveTab(drag.channelId, data.paneId, data.index);
 		}
+	}
+
+	#insertPane(paneId: string, direction: SplitDirection, pane: Pane) {
+		this.root = this.root ? tree.splitLeaf(this.root, paneId, direction, pane) : pane;
+		this.focusedPaneId = pane.id;
 	}
 
 	#focus(pane: Pane, tabId: string) {
