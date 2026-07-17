@@ -34,7 +34,7 @@
 		if (settings.state["advanced.singleConnection"]) return;
 
 		if (app.splits.focused) {
-			app.splits.split(app.splits.focused.id, "horizontal");
+			app.splits.split(app.splits.focused.id, "right");
 		} else {
 			app.splits.root = createPane();
 		}
@@ -45,8 +45,7 @@
 
 		if (!pane) {
 			if (app.focused) {
-				const channel = app.focused;
-				await channel.leave();
+				await app.focused.leave();
 				app.focused = null;
 			}
 
@@ -64,7 +63,8 @@
 			}
 
 			if (app.focused === channel) {
-				app.focused = pane.active ? (app.channels.get(pane.active) ?? null) : null;
+				const nextId = app.splits.focused?.active;
+				app.focused = nextId ? (app.channels.get(nextId) ?? null) : null;
 			}
 		} else {
 			app.splits.closePane(pane.id);
@@ -91,6 +91,7 @@
 		const next = pane.tabs[(index + offset + pane.tabs.length) % pane.tabs.length];
 
 		const channel = app.channels.get(next);
+
 		if (channel) {
 			await app.open(channel);
 		} else {
@@ -99,7 +100,7 @@
 	}
 
 	function navigateSplit(direction: SplitDirection) {
-		if (!app.splits.focusedPane) return;
+		if (!app.splits.focusedPaneId) return;
 
 		const paneId = app.splits.navigate(app.splits.focusedPaneId, direction);
 		if (!paneId) return;

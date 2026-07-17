@@ -39,10 +39,6 @@ export class SplitController {
 	 */
 	public dropTarget = $state<DropTarget | null>(null);
 
-	public constructor() {
-		console.log("SplitController initialized");
-	}
-
 	public get root(): SplitNode | null {
 		return storage.state.layout?.root ?? null;
 	}
