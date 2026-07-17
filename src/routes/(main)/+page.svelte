@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createHotkey, createHotkeys } from "@tanstack/svelte-hotkeys";
 	import { onMount } from "svelte";
 	import { app } from "$lib/app.svelte";
 	import JoinDialog from "$lib/components/JoinDialog.svelte";
@@ -27,72 +28,39 @@
 		loading = false;
 	});
 
-	async function handleKeydown(event: KeyboardEvent) {
-		if ((!event.metaKey && !event.ctrlKey) || event.repeat) return;
+	createHotkey("Mod+T", () => {
+		if (settings.state["advanced.singleConnection"] || !app.splits.focused) return;
 
-		switch (event.key) {
-			case "t": {
-				if (settings.state["advanced.singleConnection"] || !app.splits.focused) return;
+		app.splits.insertEmpty(app.splits.focused, settings.state["splits.defaultOrientation"]);
+	});
 
-				app.splits.insertEmpty(
-					app.splits.focused,
-					settings.state["splits.defaultOrientation"],
-				);
+	createHotkey("Mod+W", async () => {
+		if (app.splits.focused && app.splits.root && app.splits.root !== app.splits.focused) {
+			app.splits.remove(app.splits.focused);
+		} else if (app.focused) {
+			const channel = app.focused;
+			await channel.leave();
 
-				break;
-			}
-
-			case "w": {
-				if (
-					app.splits.focused &&
-					app.splits.root &&
-					app.splits.root !== app.splits.focused
-				) {
-					event.preventDefault();
-					app.splits.remove(app.splits.focused);
-				} else if (app.focused) {
-					event.preventDefault();
-
-					const channel = app.focused;
-					await channel.leave();
-
-					app.splits.remove(channel.id);
-					app.focused = null;
-				}
-
-				break;
-			}
+			app.splits.remove(channel.id);
+			app.focused = null;
 		}
-	}
+	});
 
-	function navigateSplit(event: KeyboardEvent) {
-		if (!app.splits.focused || !(event.metaKey || event.ctrlKey)) return;
+	createHotkeys([
+		{ hotkey: "Mod+ArrowUp", callback: () => navigateSplit("up") },
+		{ hotkey: "Mod+ArrowDown", callback: () => navigateSplit("down") },
+		{ hotkey: "Mod+ArrowLeft", callback: () => navigateSplit("left") },
+		{ hotkey: "Mod+ArrowRight", callback: () => navigateSplit("right") },
+	]);
 
-		let direction: SplitDirection;
-
-		switch (event.key) {
-			case "ArrowUp":
-				direction = "up";
-				break;
-			case "ArrowDown":
-				direction = "down";
-				break;
-			case "ArrowLeft":
-				direction = "left";
-				break;
-			case "ArrowRight":
-				direction = "right";
-				break;
-			default:
-				return;
-		}
-
-		event.preventDefault();
+	function navigateSplit(direction: SplitDirection) {
+		if (!app.splits.focused) return;
 
 		const targetId = app.splits.navigate(app.splits.focused, direction);
 		if (!targetId) return;
 
 		const channel = app.channels.get(targetId);
+
 		if (channel) {
 			app.splits.focused = channel.id;
 			channel.chat.input?.focus();
@@ -101,13 +69,6 @@
 		}
 	}
 </script>
-
-<svelte:window
-	onkeydown={(event) => {
-		handleKeydown(event);
-		navigateSplit(event);
-	}}
-/>
 
 <div class="h-full">
 	{#if app.splits.root}

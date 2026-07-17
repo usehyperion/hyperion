@@ -2,6 +2,7 @@
 	import { AutoScroller } from "@dnd-kit/dom";
 	import { move } from "@dnd-kit/helpers";
 	import { DragDropProvider, DragOverlay } from "@dnd-kit/svelte";
+	import { createHotkey } from "@tanstack/svelte-hotkeys";
 	import { ask } from "@tauri-apps/plugin-dialog";
 	import { relaunch } from "@tauri-apps/plugin-process";
 	import { check } from "@tauri-apps/plugin-updater";
@@ -40,16 +41,11 @@
 			await relaunch();
 		}
 	});
-</script>
 
-<svelte:window
-	onkeydown={async (event) => {
-		if ((event.metaKey || event.ctrlKey) && event.key === ",") {
-			event.preventDefault();
-			await goto(resolve("/settings"));
-		}
-	}}
-/>
+	createHotkey("Mod+,", async () => {
+		await goto(resolve("/settings"));
+	});
+</script>
 
 <DragDropProvider
 	plugins={(defaults) => [
