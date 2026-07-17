@@ -44,6 +44,16 @@ export interface Split extends Node {
 
 export type SplitNode = Split | Pane;
 
+export const LAYOUT_VERSION = 1;
+
+/**
+ * The persisted split layout.
+ */
+export interface Layout {
+	version: number;
+	root: SplitNode | null;
+}
+
 /**
  * A normalized rectangle occupied by a pane, used for spatial focus navigation
  * and drop-zone geometry.

@@ -1,15 +1,17 @@
 import { storage } from "$lib/stores";
+import { bounds, neighbor } from "./geometry";
 import * as tree from "./tree";
-import type {
-	DragData,
-	DragState,
-	DropData,
-	DropTarget,
-	Pane,
-	Split,
-	SplitDirection,
-	SplitDropPosition,
-	SplitNode,
+import {
+	LAYOUT_VERSION,
+	type DragData,
+	type DragState,
+	type DropData,
+	type DropTarget,
+	type Pane,
+	type Split,
+	type SplitDirection,
+	type SplitDropPosition,
+	type SplitNode,
 } from "./types";
 
 type Point = { x: number; y: number } | undefined;
@@ -37,8 +39,12 @@ export class SplitController {
 	 */
 	public dropTarget = $state<DropTarget | null>(null);
 
+	public constructor() {
+		console.log("SplitController initialized");
+	}
+
 	public get root(): SplitNode | null {
-		return storage.state.layout;
+		return storage.state.layout?.root ?? null;
 	}
 
 	public set root(value: SplitNode | null) {
@@ -46,7 +52,7 @@ export class SplitController {
 			this.focusedPaneId = value.id;
 		}
 
-		storage.state.layout = value;
+		storage.state.layout = value ? { version: LAYOUT_VERSION, root: value } : null;
 	}
 
 	public pane(id: string): Pane | null {
@@ -212,7 +218,7 @@ export class SplitController {
 	public navigate(startId: string, direction: SplitDirection): string | null {
 		if (!this.root) return null;
 
-		return tree.neighbor(tree.bounds(this.root), startId, direction);
+		return neighbor(bounds(this.root), startId, direction);
 	}
 
 	/**

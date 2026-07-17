@@ -9,7 +9,6 @@
 	import { settings } from "$lib/settings";
 	import { createPane, firstLeaf } from "$lib/splits/tree";
 	import type { SplitDirection } from "$lib/splits/types";
-	import { storage } from "$lib/stores";
 	import ChatDots from "~icons/ph/chat-dots";
 	import Spinner from "~icons/ph/spinner";
 
@@ -20,8 +19,8 @@
 			await app.user.fetchEmoteSets();
 		}
 
-		if (storage.state.layout) {
-			const pane = firstLeaf(storage.state.layout);
+		if (app.splits.root) {
+			const pane = firstLeaf(app.splits.root);
 			app.splits.focusedPaneId = pane.id;
 
 			const channel = pane.active ? app.channels.get(pane.active) : undefined;
