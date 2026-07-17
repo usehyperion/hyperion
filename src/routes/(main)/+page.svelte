@@ -46,12 +46,15 @@
 		}
 	});
 
-	createHotkeys([
-		{ hotkey: "Mod+ArrowUp", callback: () => navigateSplit("up") },
-		{ hotkey: "Mod+ArrowDown", callback: () => navigateSplit("down") },
-		{ hotkey: "Mod+ArrowLeft", callback: () => navigateSplit("left") },
-		{ hotkey: "Mod+ArrowRight", callback: () => navigateSplit("right") },
-	]);
+	createHotkeys(
+		[
+			{ hotkey: "Mod+ArrowUp", callback: () => navigateSplit("up") },
+			{ hotkey: "Mod+ArrowDown", callback: () => navigateSplit("down") },
+			{ hotkey: "Mod+ArrowLeft", callback: () => navigateSplit("left") },
+			{ hotkey: "Mod+ArrowRight", callback: () => navigateSplit("right") },
+		],
+		{ requireReset: true },
+	);
 
 	function navigateSplit(direction: SplitDirection) {
 		if (!app.splits.focused) return;

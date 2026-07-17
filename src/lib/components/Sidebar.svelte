@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createHotkey } from "@tanstack/svelte-hotkeys";
+	import { createHotkeys } from "@tanstack/svelte-hotkeys";
 	import { ScrollArea } from "bits-ui";
 	import { crossfade } from "svelte/transition";
 	import { resolve } from "$app/paths";
@@ -19,13 +19,13 @@
 
 	const unread = $derived(app.user?.whispers.values().reduce((sum, w) => sum + w.unread, 0));
 
-	createHotkey("Mod+B", (event) => {
-		if (event.shiftKey) {
-			sidebar.toggle();
-		} else {
-			sidebar.cycle();
-		}
-	});
+	createHotkeys(
+		[
+			{ hotkey: "Mod+B", callback: () => sidebar.cycle() },
+			{ hotkey: "Mod+Shift+B", callback: () => sidebar.toggle() },
+		],
+		{ requireReset: true },
+	);
 </script>
 
 <ScrollArea.Root
