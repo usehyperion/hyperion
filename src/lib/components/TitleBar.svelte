@@ -12,7 +12,6 @@
 	import Chats from "~icons/ph/chats";
 	import Gear from "~icons/ph/gear";
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
-	import User from "~icons/ph/user";
 	import JoinDialog from "./JoinDialog.svelte";
 	import Button from "./ui/Button.svelte";
 
@@ -66,6 +65,13 @@
 		]}
 		data-tauri-drag-region
 	>
+		<img class="size-4" src="/logo.svg" alt="Hyperion logo" />
+	</div>
+
+	<div
+		class="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-1.5"
+		data-tauri-drag-region
+	>
 		<Button
 			class="size-min p-1 hover:text-foreground"
 			size="icon"
@@ -85,12 +91,7 @@
 		>
 			<ArrowRight />
 		</Button>
-	</div>
 
-	<div
-		class="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-1.5"
-		data-tauri-drag-region
-	>
 		<button
 			class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-colors hover:bg-accent"
 			command="show-modal"
