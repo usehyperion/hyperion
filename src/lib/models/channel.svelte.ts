@@ -130,15 +130,13 @@ export class Channel {
 		return app.user?.moderates(this.id) ?? false;
 	}
 
-	public async join(split = false) {
+	public async join() {
 		if (this.joined) return;
 
 		app.channels.set(this.id, this);
 		this.joined = true;
 
-		if (!split) {
-			app.focused = this;
-		}
+		app.focused = this;
 
 		if (!this.viewers.has(this.id)) {
 			const viewer = new Viewer(this, this.user);

@@ -69,7 +69,7 @@
 		<div class="h-full">
 			{#if channel}
 				{#key channel.id}
-					<Channel {channel} split />
+					<Channel {channel} />
 				{/key}
 			{:else}
 				<Empty.Root class="h-full">

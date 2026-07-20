@@ -7,7 +7,6 @@
 	import StreamHeader from "$lib/components/StreamHeader.svelte";
 	import { handlers } from "$lib/handlers";
 	import type { Channel } from "$lib/models/channel.svelte";
-	import { Poll } from "$lib/models/poll.svelte";
 	import type { IrcMessage } from "$lib/twitch/irc";
 	import LiveNotices from "./chat/LiveNotices.svelte";
 	import PollDialog, { pollOpen } from "./chat/PollDialog.svelte";
@@ -15,10 +14,9 @@
 
 	interface Props {
 		channel: Channel;
-		split?: boolean;
 	}
 
-	const { channel, split = false }: Props = $props();
+	const { channel }: Props = $props();
 
 	// svelte-ignore state_referenced_locally
 	const chat = channel.chat;
@@ -26,7 +24,7 @@
 	let unlisten: UnlistenFn | undefined;
 
 	onMount(async () => {
-		await channel.join(split);
+		await channel.join();
 
 		unlisten = await listen<IrcMessage[]>("recentmessages", async (event) => {
 			for (const message of event.payload) {

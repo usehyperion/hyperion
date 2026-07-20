@@ -16,7 +16,7 @@
 
 	const { pane }: Props = $props();
 
-	const channel = $derived(pane.active ? app.channels.get(pane.active) : null);
+	const channel = $derived(pane.active ? app.channels.get(pane.active) : undefined);
 
 	const showDropIndicator = $derived(
 		app.splits.dropTarget?.paneId === pane.id && app.splits.dropTarget.zone === "tab-bar",
@@ -37,11 +37,7 @@
 		const tabs = [...pane.tabs];
 
 		app.splits.closePane(pane.id);
-
-		if (app.focused === channel) {
-			const nextId = app.splits.focused?.active;
-			app.focused = nextId ? (app.channels.get(nextId) ?? null) : null;
-		}
+		app.refocus(channel);
 
 		if (settings.state["splits.leaveOnClose"]) {
 			await Promise.all(tabs.map((id) => app.channels.get(id)?.leave()));

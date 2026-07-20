@@ -60,10 +60,7 @@
 				await channel?.leave();
 			}
 
-			if (app.focused === channel) {
-				const nextId = app.splits.focused?.active;
-				app.focused = nextId ? (app.channels.get(nextId) ?? null) : null;
-			}
+			app.refocus(channel);
 		} else {
 			app.splits.closePane(pane.id);
 		}

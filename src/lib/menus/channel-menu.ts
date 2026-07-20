@@ -18,7 +18,7 @@ async function splitItem(channel: Channel, direction: SplitDirection) {
 		text: `Split ${direction.charAt(0).toUpperCase() + direction.slice(1)}`,
 		enabled,
 		async action() {
-			await channel.join(true);
+			await channel.join();
 
 			const focused = app.splits.focused;
 			if (!focused) return;
@@ -50,11 +50,7 @@ export async function createChannelMenu(channel: Channel) {
 			await channel.leave();
 
 			app.splits.closeTab(channel.id);
-
-			if (app.focused === channel) {
-				const nextId = app.splits.focused?.active;
-				app.focused = nextId ? (app.channels.get(nextId) ?? null) : null;
-			}
+			app.refocus(channel);
 		},
 	});
 
@@ -90,11 +86,7 @@ export async function createChannelMenu(channel: Channel) {
 				await channel.leave();
 
 				app.splits.closeTab(channel.id);
-
-				if (app.focused === channel) {
-					app.focused = null;
-				}
-
+				app.refocus(channel);
 				app.channels.delete(channel.id);
 			},
 		});

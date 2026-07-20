@@ -48,11 +48,7 @@
 		event.stopPropagation();
 
 		app.splits.closeTab(id);
-
-		if (app.focused === channel) {
-			const nextId = app.splits.focused?.active;
-			app.focused = nextId ? (app.channels.get(nextId) ?? null) : null;
-		}
+		app.refocus(channel);
 
 		if (settings.state["splits.leaveOnClose"]) {
 			await channel?.leave();

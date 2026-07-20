@@ -138,6 +138,13 @@ class App {
 		log.info("All connections established");
 	}
 
+	public refocus(previous: Channel | undefined) {
+		if (this.focused === previous) {
+			const nextId = this.splits.focused?.active;
+			this.focused = nextId ? (this.channels.get(nextId) ?? null) : null;
+		}
+	}
+
 	async #handle(key: string, payload: any) {
 		await handlers.get(key)?.handle(payload);
 	}
