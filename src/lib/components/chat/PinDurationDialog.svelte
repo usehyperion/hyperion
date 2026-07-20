@@ -5,7 +5,7 @@
 	import Dialog from "../ui/Dialog.svelte";
 	import * as Field from "../ui/field";
 	import * as RadioGroup from "../ui/radio-group";
-	import { Slider } from "../ui/slider";
+	import Slider from "../ui/Slider.svelte";
 
 	const MIN_DURATION = 30;
 	const MAX_DURATION = 30 * 60;
