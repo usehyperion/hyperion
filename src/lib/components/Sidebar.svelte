@@ -2,12 +2,7 @@
 	import { createHotkeys } from "@tanstack/svelte-hotkeys";
 	import { ScrollArea } from "bits-ui";
 	import { useSidebar } from "$lib/hooks/use-sidebar.svelte";
-	import Plus from "~icons/ph/plus";
-	import SidebarIcon from "~icons/ph/sidebar";
 	import ChannelList from "./channel/ChannelList.svelte";
-	import JoinDialog from "./JoinDialog.svelte";
-	import Button from "./ui/Button.svelte";
-
 	const sidebar = useSidebar();
 
 	createHotkeys([
@@ -26,22 +21,6 @@
 	data-state={sidebar.state}
 >
 	<ScrollArea.Viewport class="h-full">
-		<div id="sidebar-actions" class="flex flex-col gap-1 px-1.5 py-1">
-			<Button command="show-modal" commandfor="join-dialog" variant="ghost">
-				<Plus />
-
-				<span class="not-group-data-[state=expanded]:sr-only">Join a channel</span>
-			</Button>
-
-			<Button variant="ghost" onclick={() => sidebar.cycle()}>
-				<SidebarIcon />
-
-				<span class="not-group-data-[state=expanded]:sr-only"> Toggle sidebar </span>
-			</Button>
-
-			<JoinDialog />
-		</div>
-
 		<nav class="mt-1.5 space-y-1.5 pb-3">
 			<ChannelList />
 		</nav>
