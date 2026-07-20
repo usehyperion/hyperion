@@ -31,8 +31,6 @@
 	});
 
 	createHotkey("Mod+T", () => {
-		if (settings.state["advanced.singleConnection"]) return;
-
 		if (app.splits.focused) {
 			app.splits.split(app.splits.focused.id, "right");
 		} else {

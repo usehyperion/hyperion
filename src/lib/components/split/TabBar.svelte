@@ -38,6 +38,11 @@
 
 		app.splits.closePane(pane.id);
 
+		if (app.focused === channel) {
+			const nextId = app.splits.focused?.active;
+			app.focused = nextId ? (app.channels.get(nextId) ?? null) : null;
+		}
+
 		if (settings.state["splits.leaveOnClose"]) {
 			await Promise.all(tabs.map((id) => app.channels.get(id)?.leave()));
 		}

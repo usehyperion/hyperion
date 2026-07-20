@@ -52,7 +52,8 @@ export async function createChannelMenu(channel: Channel) {
 			app.splits.closeTab(channel.id);
 
 			if (app.focused === channel) {
-				app.focused = null;
+				const nextId = app.splits.focused?.active;
+				app.focused = nextId ? (app.channels.get(nextId) ?? null) : null;
 			}
 		},
 	});

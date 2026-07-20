@@ -149,7 +149,11 @@ export class SplitController {
 		const source = this.paneOf(id);
 		const target = this.pane(paneId);
 
-		if (!target || source === target) return;
+		if (!target) return;
+
+		if (target === source) {
+			return this.#focus(target, id);
+		}
 
 		target.tabs.splice(index ?? target.tabs.length, 0, id);
 
