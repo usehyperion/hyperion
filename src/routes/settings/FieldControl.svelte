@@ -3,7 +3,7 @@
 	import Input from "$lib/components/ui/Input.svelte";
 	import * as NativeSelect from "$lib/components/ui/native-select";
 	import * as RadioGroup from "$lib/components/ui/radio-group";
-	import { Slider } from "$lib/components/ui/slider";
+	import Slider from "$lib/components/ui/Slider.svelte";
 	import Switch from "$lib/components/ui/Switch.svelte";
 	import { settings } from "$lib/settings";
 	import FieldControl from "./FieldControl.svelte";
