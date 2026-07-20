@@ -1,5 +1,5 @@
-import { predictionOpen } from "$lib/components/chat/PredictionDialog.svelte";
 import { CommandError } from "$lib/errors/command-error";
+import { openDialog } from "$lib/util";
 import { defineCommand } from "../util";
 
 export default defineCommand({
@@ -12,6 +12,6 @@ export default defineCommand({
 			throw new CommandError("A prediction is already active.");
 		}
 
-		predictionOpen.value = true;
+		openDialog(`prediction-dialog-${channel.id}`);
 	},
 });

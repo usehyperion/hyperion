@@ -1,10 +1,10 @@
 <script lang="ts">
 	import * as Field from "$lib/components/ui/field";
-	import { Input } from "$lib/components/ui/input";
+	import Input from "$lib/components/ui/Input.svelte";
 	import * as NativeSelect from "$lib/components/ui/native-select";
 	import * as RadioGroup from "$lib/components/ui/radio-group";
-	import { Slider } from "$lib/components/ui/slider";
-	import { Switch } from "$lib/components/ui/switch";
+	import Slider from "$lib/components/ui/Slider.svelte";
+	import Switch from "$lib/components/ui/Switch.svelte";
 	import { settings } from "$lib/settings";
 	import FieldControl from "./FieldControl.svelte";
 	import type { BaseField, SettingsField } from "./types";
@@ -51,7 +51,6 @@
 		<Input
 			id={field.id}
 			class="max-w-1/2"
-			type="text"
 			autocapitalize="off"
 			autocomplete="off"
 			disabled={field.disabled?.()}
@@ -127,7 +126,7 @@
 
 		<Switch
 			id={field.id}
-			onCheckedChange={field.onchange}
+			onchange={(event) => field.onchange?.(event.currentTarget.checked)}
 			bind:checked={settings.state[field.id]}
 		/>
 	</Field.Field>

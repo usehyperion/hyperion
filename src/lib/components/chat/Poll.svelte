@@ -3,7 +3,7 @@
 	import { colorizeName, formatDuration } from "$lib/util";
 	import ChartBar from "~icons/ph/chart-bar";
 	import Stop from "~icons/ph/stop-fill";
-	import { Progress } from "../ui/progress";
+	import Progress from "../ui/Progress.svelte";
 	import NoticeAction, { details, hide } from "./NoticeAction.svelte";
 
 	interface Props {

@@ -2,8 +2,8 @@
 	import { Tabs } from "bits-ui";
 	import { beforeNavigate, goto } from "$app/navigation";
 	import { app } from "$lib/app.svelte";
-	import { Button } from "$lib/components/ui/button";
-	import { Separator } from "$lib/components/ui/separator";
+	import Button from "$lib/components/ui/Button.svelte";
+	import Separator from "$lib/components/ui/Separator.svelte";
 	import { log } from "$lib/log";
 	import { settings } from "$lib/settings";
 	import { logOut } from "$lib/twitch/auth";
@@ -86,10 +86,8 @@
 </Tabs.Root>
 
 <style>
-	@reference "../../app.css";
-
 	:global(#settings-tabs [data-slot="separator"]) {
-		margin: --spacing(2) 0;
+		margin: calc(var(--spacing) * 2) 0;
 	}
 
 	div:first-child :global(button) {

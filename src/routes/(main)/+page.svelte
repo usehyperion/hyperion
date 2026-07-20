@@ -4,7 +4,7 @@
 	import { app } from "$lib/app.svelte";
 	import JoinDialog from "$lib/components/JoinDialog.svelte";
 	import SplitNode from "$lib/components/split/SplitNode.svelte";
-	import { buttonVariants } from "$lib/components/ui/button";
+	import Button from "$lib/components/ui/Button.svelte";
 	import * as Empty from "$lib/components/ui/empty";
 	import { settings } from "$lib/settings";
 	import { createPane, firstLeaf } from "$lib/splits/tree";
@@ -132,8 +132,10 @@
 			</Empty.Header>
 
 			<Empty.Content>
-				<JoinDialog class={buttonVariants()}>Search channels</JoinDialog>
+				<Button command="show-modal" commandfor="join-dialog">Search channels</Button>
 			</Empty.Content>
 		</Empty.Root>
+
+		<JoinDialog />
 	{/if}
 </div>

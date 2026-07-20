@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Highlight from "$lib/components/message/Highlight.svelte";
-	import { Button } from "$lib/components/ui/button";
+	import Button from "$lib/components/ui/Button.svelte";
 	import { settings } from "$lib/settings";
 	import type { KeywordHighlightConfig } from "$lib/settings";
 	import Plus from "~icons/ph/plus";
@@ -29,7 +29,7 @@
 	{#each settings.state["highlights.keywords"] as config, i}
 		<Highlight class="m-0" type="custom" config={{ ...config, style: "default" }}>
 			<div class="flex items-center gap-x-1.5 p-1.5">
-				<Color bind:value={config.color} />
+				<Color id="keyword-{i}" bind:value={config.color} />
 
 				<StyleSelect bind:config />
 

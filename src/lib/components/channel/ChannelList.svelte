@@ -1,0 +1,96 @@
+<script lang="ts">
+	import { onDestroy } from "svelte";
+	import { flip } from "svelte/animate";
+	import { app } from "$lib/app.svelte";
+	import { useSidebar } from "$lib/hooks/use-sidebar.svelte";
+	import type { Channel } from "$lib/models/channel.svelte";
+	import { storage } from "$lib/stores";
+	import Draggable from "../Draggable.svelte";
+	import Sortable from "../Sortable.svelte";
+	import Separator from "../ui/Separator.svelte";
+
+	const sidebar = useSidebar();
+
+	const sorted = $derived(
+		app.channels
+			.values()
+			.toArray()
+			.toSorted((a, b) => {
+				if (a.stream && b.stream) {
+					return b.stream.viewers - a.stream.viewers;
+				}
+
+				if (a.stream && !b.stream) return -1;
+				if (!a.stream && b.stream) return 1;
+
+				return a.user.username.localeCompare(b.user.username);
+			}),
+	);
+
+	const userChannel = $derived(sorted.find((c) => c.id === app.user?.id) ?? null);
+
+	const groups = $derived.by(() => {
+		const pinned = { type: "Pinned", channels: [] as Channel[] };
+		const ephemeral = { type: "Ephemeral", channels: [] as Channel[] };
+		const online = { type: "Online", channels: [] as Channel[] };
+		const offline = { type: "Offline", channels: [] as Channel[] };
+
+		for (const channel of sorted) {
+			if (channel.id === app.user?.id) continue;
+
+			if (channel.pinned) pinned.channels.push(channel);
+			else if (channel.ephemeral) ephemeral.channels.push(channel);
+			else if (channel.stream) online.channels.push(channel);
+			else offline.channels.push(channel);
+		}
+
+		pinned.channels.sort(
+			(a, b) => storage.state.pinned.indexOf(a.id) - storage.state.pinned.indexOf(b.id),
+		);
+
+		return [pinned, ephemeral, online, offline].filter((g) => g.channels.length);
+	});
+
+	const interval = setInterval(
+		async () => {
+			const ids = app.channels.keys().toArray();
+			const streams = await app.twitch.fetchStreams(ids);
+
+			for (const channel of app.channels.values()) {
+				const stream = streams.find((s) => s.channelId === channel.user.id);
+				channel.stream = stream ?? null;
+			}
+		},
+		5 * 60 * 1000,
+	);
+
+	onDestroy(() => clearInterval(interval));
+</script>
+
+{#if userChannel}
+	<Draggable channel={userChannel} />
+{/if}
+
+{#each groups as group}
+	{#if sidebar.collapsed}
+		<Separator />
+	{:else}
+		<span class="mt-2 inline-block px-2 text-xs font-semibold text-muted-foreground uppercase">
+			{group.type}
+		</span>
+	{/if}
+
+	{#if group.type === "Pinned"}
+		<div class="space-y-1.5">
+			{#each group.channels as channel, i (channel.user.id)}
+				<Sortable {channel} index={i} />
+			{/each}
+		</div>
+	{:else}
+		{#each group.channels as channel (channel.user.id)}
+			<div animate:flip={{ duration: 500 }}>
+				<Draggable {channel} />
+			</div>
+		{/each}
+	{/if}
+{/each}

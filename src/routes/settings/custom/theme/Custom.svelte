@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { openPath } from "@tauri-apps/plugin-opener";
 	import { app } from "$lib/app.svelte";
-	import { Button } from "$lib/components/ui/button";
+	import Button from "$lib/components/ui/Button.svelte";
 	import * as Field from "$lib/components/ui/field";
 	import * as RadioGroup from "$lib/components/ui/radio-group";
-	import { Separator } from "$lib/components/ui/separator";
+	import Separator from "$lib/components/ui/Separator.svelte";
 	import { settings } from "$lib/settings";
 	import { getThemesDir, injectTheme, loadThemes } from "$lib/themes";
 
