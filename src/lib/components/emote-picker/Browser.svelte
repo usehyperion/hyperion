@@ -74,7 +74,7 @@
 					<Accordion.Trigger class="group flex w-full items-center justify-between">
 						<div class="flex items-center">
 							<img
-								class="mr-2 size-5 rounded-full object-contain"
+								class="mr-2 size-5 rounded-full object-contain ring-1 ring-black/10 dark:ring-white/10"
 								src={set.owner.avatarUrl}
 								alt={set.owner.displayName}
 								decoding="async"

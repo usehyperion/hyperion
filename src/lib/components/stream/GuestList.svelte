@@ -63,7 +63,10 @@
 			<img
 				src={guest.avatarUrl}
 				alt={guest.displayName}
-				class={["rounded-full", tooltip ? "size-5" : "size-6"]}
+				class={[
+					"rounded-full ring-1 ring-black/10 dark:ring-white/10",
+					tooltip ? "size-5" : "size-6",
+				]}
 				width="50"
 				height="50"
 			/>
@@ -77,7 +80,7 @@
 		</div>
 
 		{#if viewers != null}
-			<div class="flex items-center text-xs text-red-400 dark:text-red-500">
+			<div class="flex items-center text-xs text-red-400 tabular-nums dark:text-red-500">
 				<Users class="mr-1" />
 				{viewers}
 			</div>

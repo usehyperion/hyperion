@@ -4,7 +4,9 @@ import type { Command } from "./commands";
 import type { Suggestion } from "./components/Suggestions.svelte";
 import type { Emote } from "./emotes";
 import type { Chat } from "./models/chat.svelte";
+import type { User } from "./models/user.svelte";
 import type { Viewer } from "./models/viewer.svelte";
+import { debounce } from "./util";
 
 interface SearchOptions<T> {
 	source: () => T[];
@@ -24,6 +26,11 @@ export class Completer {
 
 	public current = $state(0);
 	public suggestions = $state<Suggestion[]>([]);
+
+	// Debounced so a burst of keystrokes collapses into a single batched request.
+	#hydrateAvatars = debounce((users: User[]) => {
+		void this.chat.channel.client.users.fetchAvatars(users);
+	}, 200);
 
 	public constructor(
 		private readonly chat: Chat,
@@ -69,6 +76,14 @@ export class Completer {
 				value: item.username,
 				display: item.displayName,
 				style: item.user.style,
+				user: item.user,
+				role: item.broadcaster
+					? ("broadcaster" as const)
+					: item.moderator
+						? ("moderator" as const)
+						: item.vip
+							? ("vip" as const)
+							: undefined,
 			}),
 		};
 	}
@@ -165,6 +180,14 @@ export class Completer {
 				...this.#search(this.#viewerOptions, true),
 			];
 		}
+
+		// Backfill avatars for the visible user suggestions only, keeping the
+		// request small instead of hydrating every chatter.
+		const users = this.suggestions
+			.filter((suggestion) => suggestion.type === "user")
+			.map((suggestion) => suggestion.user);
+
+		if (users.length) this.#hydrateAvatars(users);
 	}
 
 	public next() {

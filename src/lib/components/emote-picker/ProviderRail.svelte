@@ -15,7 +15,7 @@
 		<button class="group" type="button" onclick={() => onselect(set.id)}>
 			<img
 				class={[
-					"size-7 rounded-full object-contain",
+					"size-7 rounded-full object-contain ring-1 ring-black/10 dark:ring-white/10",
 					activeId === set.id && "outline-1 outline-primary",
 				]}
 				src={set.owner.avatarUrl}

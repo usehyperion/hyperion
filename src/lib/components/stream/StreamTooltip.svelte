@@ -50,7 +50,7 @@
 					<div class="flex items-center text-red-400 dark:text-red-500">
 						<Users class="mr-1 size-3" />
 
-						<p class="text-xs">
+						<p class="text-xs tabular-nums">
 							{channel.stream.viewers} viewers
 						</p>
 					</div>

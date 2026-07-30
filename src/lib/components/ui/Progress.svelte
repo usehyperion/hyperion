@@ -25,7 +25,7 @@
 	bind:ref
 >
 	<div
-		class={cn("h-full w-full flex-1 bg-primary transition-all", indicatorClass)}
+		class={cn("h-full w-full flex-1 bg-primary transition-transform", indicatorClass)}
 		data-slot="progress-indicator"
 		style:transform="translateX(-{100 - (100 * (value ?? 0)) / (max ?? 1)}%)"
 	></div>

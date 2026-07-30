@@ -150,6 +150,8 @@
 	body {
 		background-color: var(--color-background);
 		color: var(--color-foreground);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
 	}
 
 	button:hover {

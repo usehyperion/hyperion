@@ -22,7 +22,10 @@
 </script>
 
 <img
-	class={["size-8 rounded-full object-cover", !channel.stream && "grayscale"]}
+	class={[
+		"size-8 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10",
+		!channel.stream && "grayscale",
+	]}
 	src={channel.user.avatarUrl}
 	alt={channel.user.displayName}
 	width="150"
@@ -52,7 +55,7 @@
 					{/if}
 				</div>
 
-				<div class="flex items-center gap-1 text-xs font-medium text-red-400">
+				<div class="flex items-center gap-1 text-xs font-medium text-red-400 tabular-nums">
 					<Users />
 					{formatViewers(channel.stream.viewers)}
 				</div>

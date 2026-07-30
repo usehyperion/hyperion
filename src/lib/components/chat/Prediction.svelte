@@ -126,7 +126,7 @@
 						{/if}
 
 						<span
-							class="ml-auto shrink-0 text-xs whitespace-nowrap text-muted-foreground"
+							class="ml-auto shrink-0 text-xs whitespace-nowrap text-muted-foreground tabular-nums"
 						>
 							{pct}% ({outcome.points.toLocaleString()})
 						</span>
@@ -171,7 +171,7 @@
 			{/each}
 		</ul>
 
-		<p class="mt-1.5 text-xs text-muted-foreground">
+		<p class="mt-1.5 text-xs text-muted-foreground tabular-nums">
 			{prediction.totalPoints.toLocaleString()} points ·
 			{prediction.totalUsers.toLocaleString()}
 			{prediction.totalUsers === 1 ? "predictor" : "predictors"}

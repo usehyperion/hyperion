@@ -48,7 +48,7 @@
 			></a>
 
 			<img
-				class="mr-3 rounded-full"
+				class="mr-3 rounded-full ring-1 ring-black/10 dark:ring-white/10"
 				src={whisper.sender.avatarUrl}
 				alt={whisper.sender.displayName}
 				width="56"

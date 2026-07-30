@@ -68,7 +68,7 @@
 					<div class="mb-0.5 flex items-center justify-between gap-2">
 						<span class="truncate">{choice.title}</span>
 
-						<span class="text-xs whitespace-nowrap text-muted-foreground">
+						<span class="text-xs whitespace-nowrap text-muted-foreground tabular-nums">
 							{pct}% ({choice.votes})
 						</span>
 					</div>
@@ -84,7 +84,7 @@
 			{/each}
 		</ul>
 
-		<p class="mt-1.5 text-xs text-muted-foreground">
+		<p class="mt-1.5 text-xs text-muted-foreground tabular-nums">
 			{poll.totalVotes.toLocaleString()}
 			{poll.totalVotes === 1 ? "vote" : "votes"}
 		</p>

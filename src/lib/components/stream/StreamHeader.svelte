@@ -45,7 +45,7 @@
 	<div class="ml-[3ch] flex items-center gap-x-2.5">
 		<div class="flex items-center">
 			<Users class="mr-1" />
-			<span>{stream.viewers}</span>
+			<span class="tabular-nums">{stream.viewers}</span>
 		</div>
 
 		<div class="flex items-center">
