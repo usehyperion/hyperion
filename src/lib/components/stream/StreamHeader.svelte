@@ -1,4 +1,5 @@
 <script lang="ts">
+	import NumberFlow from "@number-flow/svelte";
 	import dayjs from "dayjs";
 	import duration from "dayjs/plugin/duration";
 	import { onDestroy } from "svelte";
@@ -45,7 +46,7 @@
 	<div class="ml-[3ch] flex items-center gap-x-2.5">
 		<div class="flex items-center">
 			<Users class="mr-1" />
-			<span class="tabular-nums">{stream.viewers}</span>
+			<NumberFlow class="tabular-nums" value={stream.viewers} />
 		</div>
 
 		<div class="flex items-center">
