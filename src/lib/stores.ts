@@ -3,12 +3,22 @@ import type { User } from "./graphql/twitch";
 import type { SidebarState } from "./hooks/use-sidebar.svelte";
 import { LAYOUT_VERSION, type Layout } from "./splits/types";
 
+export interface RecentSearch {
+	id: string;
+	login: string;
+	displayName: string;
+	profileImageURL: string;
+	isLive: boolean;
+	streamTitle: string | null;
+}
+
 interface Storage {
 	[key: string]: unknown;
 	user: User | null;
 	accounts: User[];
 	layout: Layout | null;
 	pinned: string[];
+	recentSearches: RecentSearch[];
 	sidebar: SidebarState;
 }
 
@@ -19,6 +29,7 @@ export const storage = new RuneStore<Storage>(
 		accounts: [],
 		layout: null,
 		pinned: [],
+		recentSearches: [],
 		sidebar: "collapsed",
 	},
 	{

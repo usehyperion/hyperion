@@ -40,7 +40,7 @@
 		{#each data.whisper.messages as message (message.id)}
 			<div class="flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-muted/50">
 				<img
-					class="rounded-full"
+					class="rounded-full ring-1 ring-black/10 dark:ring-white/10"
 					src={message.user.avatarUrl}
 					alt={message.user.displayName}
 					width="40"

@@ -68,10 +68,7 @@
 		<img class="size-4" src="/logo.svg" alt="Hyperion logo" />
 	</div>
 
-	<div
-		class="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-1.5"
-		data-tauri-drag-region
-	>
+	<div class="flex items-center justify-center gap-1.5" data-tauri-drag-region>
 		<Button
 			class="size-min p-1 hover:text-foreground"
 			size="icon"
@@ -93,7 +90,7 @@
 		</Button>
 
 		<button
-			class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-colors hover:bg-accent"
+			class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-[background-color,scale] hover:bg-accent active:scale-[0.96]"
 			command="show-modal"
 			commandfor="join-dialog"
 		>
@@ -103,24 +100,24 @@
 		</button>
 
 		<JoinDialog />
+
+		{#if app.user}
+			<Button
+				class="size-min p-1 text-muted-foreground"
+				href={resolve("/whispers")}
+				size="icon"
+				variant="ghost"
+				aria-label="Go to whispers"
+			>
+				<Chats />
+			</Button>
+		{/if}
 	</div>
 
 	<div class="flex items-center justify-end" data-tauri-drag-region>
-		<div class="flex items-center gap-0.5 pr-3 text-muted-foreground">
-			{#if app.user}
-				<Button
-					class="size-min p-1 hover:text-foreground"
-					href={resolve("/whispers")}
-					size="icon"
-					variant="ghost"
-					aria-label="Go to whispers"
-				>
-					<Chats />
-				</Button>
-			{/if}
-
+		<div class="pr-3">
 			<Button
-				class="size-min p-1 hover:text-foreground"
+				class="size-min p-1 text-muted-foreground"
 				size="icon"
 				variant="ghost"
 				aria-label="Go to settings"

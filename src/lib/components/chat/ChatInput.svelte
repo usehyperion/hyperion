@@ -118,8 +118,11 @@
 <Suggestions
 	{anchor}
 	open={showSuggestions}
-	index={completer?.current ?? 0}
+	current={completer?.current ?? 0}
 	suggestions={completer?.suggestions ?? []}
+	onhighlight={(index) => {
+		if (completer) completer.current = index;
+	}}
 	onselect={() => completer?.complete()}
 />
 
@@ -130,9 +133,9 @@
 {/if}
 
 <div class="flex flex-col gap-1.5">
-	<InputGroup.Root class="h-12" bind:ref={anchor}>
+	<InputGroup.Root class="h-12 rounded-xl" bind:ref={anchor}>
 		<InputGroup.Input
-			class={["rounded-lg", (chat.replyTarget || error) && "rounded-t-none", className]}
+			class={[(chat.replyTarget || error) && "rounded-t-none", className]}
 			autocapitalize="off"
 			autocorrect="off"
 			disabled={banned}

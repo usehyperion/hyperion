@@ -80,7 +80,7 @@
 					>
 						<img
 							class={[
-								"size-6 rounded-full object-cover",
+								"size-6 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10",
 								!channel.stream && "grayscale",
 							]}
 							src={channel.user.avatarUrl}

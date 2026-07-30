@@ -61,7 +61,7 @@ get along, so we shut typescript up by casting `value` to `never`.
 
 		{#if typeof step === "number"}
 			<SliderPrimitive.ThumbLabel
-				class="mt-3 bg-popover text-xs font-medium"
+				class="mt-3 bg-popover text-xs font-medium tabular-nums"
 				index={0}
 				position="bottom"
 			>
