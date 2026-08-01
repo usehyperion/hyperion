@@ -5,6 +5,8 @@
 	import { createChannelMenu } from "$lib/menus/channel-menu";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import { openMenu } from "$lib/util";
+	import ClockCountdown from "~icons/ph/clock-countdown";
+	import PushPin from "~icons/ph/push-pin";
 	import Users from "~icons/ph/users-bold";
 	import Tooltip from "../ui/Tooltip.svelte";
 	import GuestList from "./GuestList.svelte";
@@ -19,10 +21,20 @@
 	const sidebar = useSidebar();
 </script>
 
+{#snippet indicators()}
+	{#if channel.pinned}
+		<PushPin />
+	{/if}
+
+	{#if channel.ephemeral}
+		<ClockCountdown />
+	{/if}
+{/snippet}
+
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="relative flex cursor-pointer items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-accent"
+	class="relative flex cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-accent"
 	onclick={async () => {
 		await app.open(channel);
 		app.history.pushChannel(channel.id);
@@ -33,36 +45,41 @@
 	<StreamInfo {channel} />
 </div>
 
-<Tooltip side="right" delay={0}>
-	<div class={["max-w-64", !sidebar.collapsed && !channel.stream && "hidden"]}>
-		{#if channel.stream}
-			<div class="space-y-0.5">
-				{#if sidebar.collapsed}
+<Tooltip class="max-w-64" side="right" delay={0}>
+	{#if channel.stream}
+		<div class="space-y-0.5">
+			{#if !sidebar.collapsed}
+				<div class="flex items-center gap-1">
+					{@render indicators()}
+
 					<div
-						class="overflow-hidden text-ellipsis whitespace-nowrap text-twitch-link dark:text-twitch"
+						class="overflow-hidden text-ellipsis whitespace-nowrap text-twitch dark:text-twitch-link"
 					>
 						{channel.user.displayName} &bullet; {channel.stream.game}
 					</div>
-				{/if}
+				</div>
+			{/if}
 
-				<p class="line-clamp-2">{channel.stream.title}</p>
+			<p class="line-clamp-2">{channel.stream.title}</p>
 
-				{#if sidebar.collapsed}
-					<div class="flex items-center text-red-400 dark:text-red-500">
-						<Users class="mr-1 size-3" />
+			{#if !sidebar.collapsed}
+				<div class="flex items-center text-red-500 dark:text-red-400">
+					<Users class="mr-1 size-3" />
 
-						<p class="text-xs">
-							<NumberFlow class="tabular-nums" value={channel.stream.viewers} /> viewers
-						</p>
-					</div>
-				{/if}
+					<p class="text-xs">
+						<NumberFlow class="tabular-nums" value={channel.stream.viewers} /> viewers
+					</p>
+				</div>
+			{/if}
 
-				{#if channel.stream.guests.size}
-					<GuestList {channel} tooltip />
-				{/if}
-			</div>
-		{:else if sidebar.collapsed}
+			{#if channel.stream.guests.size}
+				<GuestList {channel} tooltip />
+			{/if}
+		</div>
+	{:else if !sidebar.collapsed}
+		<div class="flex items-center gap-1">
+			{@render indicators()}
 			{channel.user.displayName}
-		{/if}
-	</div>
+		</div>
+	{/if}
 </Tooltip>

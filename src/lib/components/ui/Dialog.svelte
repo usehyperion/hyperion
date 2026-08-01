@@ -26,7 +26,7 @@
 <dialog
 	{id}
 	class={cn(
-		"fixed inset-0 m-auto w-full max-w-[calc(100%-2rem)] rounded-3xl border bg-popover p-6 text-popover-foreground shadow-lg sm:max-w-lg",
+		"fixed inset-0 m-auto w-full max-w-[calc(100%-2rem)] rounded-3xl bg-popover p-6 text-popover-foreground smooth-shadow-ring-lg sm:max-w-lg",
 		"scale-95 opacity-0 transition-[opacity,scale,overlay,display] transition-discrete ease-out",
 		className,
 	)}

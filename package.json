@@ -45,6 +45,7 @@
 		"mode-watcher": "^1.1.0",
 		"ofetch": "^1.5.1",
 		"paneforge": "^1.0.2",
+		"shadow-plugin": "^1.2.6",
 		"tailwindcss": "^4.3.0",
 		"tauri-plugin-cache-api": "^0.1.6",
 		"tldts": "^7.4.0",

@@ -54,7 +54,7 @@
 
 {#if notices.length}
 	<div
-		class="absolute inset-x-2 top-2 z-10 overflow-hidden rounded-lg border bg-popover shadow-md"
+		class="absolute inset-x-2 top-2 z-10 overflow-hidden rounded-lg bg-popover smooth-shadow-ring-md"
 	>
 		{#if notices.length > 1}
 			<div class="flex items-center gap-1 border-b px-1 py-0.5 text-xs text-muted-foreground">
