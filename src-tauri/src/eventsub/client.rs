@@ -281,10 +281,7 @@ impl EventSubClient {
 
                     let to_restore: Vec<_> = drained
                         .into_iter()
-                        .filter_map(|(key, sub)| {
-                            let (username, _) = key.split_once(':')?;
-                            Some((username.to_string(), sub.kind, sub.condition))
-                        })
+                        .map(|(key, sub)| (key.channel, sub.kind, sub.condition))
                         .collect();
 
                     self.subscribe(

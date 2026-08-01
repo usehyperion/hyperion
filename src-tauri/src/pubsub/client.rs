@@ -310,13 +310,8 @@ impl PubSubClient {
         }
 
         for (key, topic) in drained {
-            let Some((channel, _)) = key.split_once(':') else {
-                tracing::warn!("Malformed subscription key: {key}");
-                continue;
-            };
-
             self.subscriptions
-                .insert(channel, &topic, topic.clone())
+                .insert(&key.channel, &key.event, topic)
                 .await;
         }
     }

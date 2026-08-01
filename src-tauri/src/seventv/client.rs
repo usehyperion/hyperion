@@ -152,12 +152,7 @@ impl SeventTvClient {
                     tracing::warn!("Resume unsuccessful, restoring {} events", to_restore.len());
 
                     for (key, condition) in to_restore {
-                        let Some((channel, event)) = key.split_once(':') else {
-                            tracing::warn!("Malformed subscription key: {key}");
-                            continue;
-                        };
-
-                        self.subscribe(channel, event, &condition).await;
+                        self.subscribe(&key.channel, &key.event, &condition).await;
                     }
                 }
             }

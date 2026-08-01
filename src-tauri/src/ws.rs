@@ -25,10 +25,6 @@ pub fn forward_to_channel<T: serde::Serialize + Send + 'static>(
     });
 }
 
-pub fn sub_key(channel: &str, event: &str) -> String {
-    format!("{channel}:{event}")
-}
-
 /// The lifecycle of a websocket connection.
 ///
 /// Kept as a single value so that "is connected" and "has a session" cannot
@@ -110,9 +106,27 @@ impl<S: Clone> ConnectionState<S> {
     }
 }
 
+/// Identifies a subscription. Previously a `"{channel}:{event}"` string that
+/// every consumer had to take apart again; keeping the parts separate means
+/// there is nothing to mis-parse.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct SubKey {
+    pub channel: String,
+    pub event: String,
+}
+
+impl SubKey {
+    pub fn new(channel: &str, event: &str) -> Self {
+        Self {
+            channel: channel.to_owned(),
+            event: event.to_owned(),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct SubscriptionStore<V> {
-    inner: Mutex<HashMap<String, V>>,
+    inner: Mutex<HashMap<SubKey, V>>,
 }
 
 impl<V> Default for SubscriptionStore<V> {
@@ -132,18 +146,18 @@ impl<V> SubscriptionStore<V> {
         self.inner
             .lock()
             .await
-            .insert(sub_key(channel, event), value);
+            .insert(SubKey::new(channel, event), value);
     }
 
     pub async fn contains(&self, channel: &str, event: &str) -> bool {
         self.inner
             .lock()
             .await
-            .contains_key(&sub_key(channel, event))
+            .contains_key(&SubKey::new(channel, event))
     }
 
     pub async fn remove(&self, channel: &str, event: &str) -> Option<V> {
-        self.inner.lock().await.remove(&sub_key(channel, event))
+        self.inner.lock().await.remove(&SubKey::new(channel, event))
     }
 
     pub async fn remove_by<F>(&self, mut predicate: F) -> Option<V>
@@ -158,18 +172,17 @@ impl<V> SubscriptionStore<V> {
         map.remove(&key)
     }
 
-    pub async fn drain(&self) -> Vec<(String, V)> {
+    pub async fn drain(&self) -> Vec<(SubKey, V)> {
         self.inner.lock().await.drain().collect()
     }
 
     pub async fn events_for_channel(&self, channel: &str) -> Vec<String> {
-        let prefix = format!("{channel}:");
-
         self.inner
             .lock()
             .await
             .keys()
-            .filter_map(|k| k.strip_prefix(&prefix).map(String::from))
+            .filter(|key| key.channel == channel)
+            .map(|key| key.event.clone())
             .collect()
     }
 }
