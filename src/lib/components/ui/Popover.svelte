@@ -21,7 +21,7 @@
 <div
 	{id}
 	class={cn(
-		"fixed inset-auto m-0 w-max rounded-xl border bg-popover p-4 text-popover-foreground shadow-md",
+		"fixed inset-auto m-0 w-max rounded-xl bg-popover p-4 text-popover-foreground smooth-shadow-ring-md",
 		"scale-95 opacity-0 transition-[opacity,scale,overlay,display] transition-discrete",
 		className,
 	)}

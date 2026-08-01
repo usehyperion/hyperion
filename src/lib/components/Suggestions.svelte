@@ -74,7 +74,7 @@
 <Combobox.Root type="single" onValueChange={select} bind:open>
 	<Combobox.Portal>
 		<Combobox.Content
-			class="flex max-h-72 w-(--bits-combobox-anchor-width) flex-col gap-0.5 overflow-y-auto rounded-2xl border bg-popover p-1 text-popover-foreground shadow-md"
+			class="flex max-h-72 w-(--bits-combobox-anchor-width) flex-col gap-0.5 overflow-y-auto rounded-2xl bg-popover p-1 text-popover-foreground smooth-shadow-ring-md"
 			customAnchor={anchor}
 			side="top"
 			sideOffset={8}

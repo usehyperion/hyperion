@@ -35,7 +35,7 @@
 	<div
 		class="h-full w-44 shrink-0 p-2 transition-[width] duration-300 ease-out-quint md:w-64 lg:w-72"
 	>
-		<Tabs.List class="space-y-1">
+		<Tabs.List class="space-y-0.5">
 			{#each categories as category (category.label)}
 				<Tabs.Trigger value={category.label}>
 					{#snippet child({ props })}

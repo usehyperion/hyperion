@@ -1,6 +1,5 @@
 import { RuneStore } from "@tauri-store/svelte";
 import type { User } from "./graphql/twitch";
-import type { SidebarState } from "./hooks/use-sidebar.svelte";
 import { LAYOUT_VERSION, type Layout } from "./splits/types";
 
 export interface RecentSearch {
@@ -19,7 +18,7 @@ interface Storage {
 	layout: Layout | null;
 	pinned: string[];
 	recentSearches: RecentSearch[];
-	sidebar: SidebarState;
+	sidebarCollapsed: boolean;
 }
 
 export const storage = new RuneStore<Storage>(
@@ -30,7 +29,7 @@ export const storage = new RuneStore<Storage>(
 		layout: null,
 		pinned: [],
 		recentSearches: [],
-		sidebar: "collapsed",
+		sidebarCollapsed: true,
 	},
 	{
 		autoStart: true,

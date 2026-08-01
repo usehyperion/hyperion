@@ -2,14 +2,11 @@
 	import { onDestroy } from "svelte";
 	import { flip } from "svelte/animate";
 	import { app } from "$lib/app.svelte";
-	import { useSidebar } from "$lib/hooks/use-sidebar.svelte";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import { storage } from "$lib/stores";
 	import Draggable from "../Draggable.svelte";
 	import Sortable from "../Sortable.svelte";
 	import Separator from "../ui/Separator.svelte";
-
-	const sidebar = useSidebar();
 
 	const sorted = $derived(
 		app.channels
@@ -72,13 +69,7 @@
 {/if}
 
 {#each groups as group}
-	{#if sidebar.collapsed}
-		<Separator />
-	{:else}
-		<span class="mt-2 inline-block px-2 text-xs font-semibold text-muted-foreground uppercase">
-			{group.type}
-		</span>
-	{/if}
+	<Separator />
 
 	{#if group.type === "Pinned"}
 		<div class="space-y-1.5">
