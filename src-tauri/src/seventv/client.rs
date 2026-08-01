@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use futures::future::join_all;
 use futures::{SinkExt, StreamExt};
 use serde::Deserialize;
@@ -26,29 +28,44 @@ pub struct SeventTvClient {
 
 pub struct SeventTvHandles {
     pub events: mpsc::UnboundedReceiver<serde_json::Value>,
-    pub outgoing: mpsc::UnboundedReceiver<Message>,
+    pub connector: SeventTvConnector,
+}
+
+/// Owns the client's outgoing queue and is consumed by connecting, so a client
+/// can only be connected once, and only ever to its own queue.
+pub struct SeventTvConnector {
+    client: Arc<SeventTvClient>,
+    outgoing: mpsc::UnboundedReceiver<Message>,
+}
+
+impl SeventTvConnector {
+    pub async fn connect(self) -> Result<(), Error> {
+        self.client.run(self.outgoing).await
+    }
 }
 
 impl SeventTvClient {
-    pub fn new() -> (SeventTvHandles, Self) {
+    pub fn new() -> (SeventTvHandles, Arc<Self>) {
         let (sender, events) = mpsc::unbounded_channel::<serde_json::Value>();
         let (message_tx, outgoing) = mpsc::unbounded_channel();
 
-        let client = Self {
+        let client = Arc::new(Self {
             subscriptions: SubscriptionStore::new(),
             state: ConnectionState::connecting(),
             sender,
             message_tx,
+        });
+
+        let connector = SeventTvConnector {
+            client: Arc::clone(&client),
+            outgoing,
         };
 
-        (SeventTvHandles { events, outgoing }, client)
+        (SeventTvHandles { events, connector }, client)
     }
 
     #[tracing::instrument(name = "7tv_connect", skip_all)]
-    pub async fn connect(
-        &self,
-        mut message_rx: mpsc::UnboundedReceiver<Message>,
-    ) -> Result<(), Error> {
+    async fn run(&self, mut message_rx: mpsc::UnboundedReceiver<Message>) -> Result<(), Error> {
         // Held across reconnects so a session can still be resumed after a drop
         let mut resume: Option<String> = None;
 

@@ -32,8 +32,7 @@ pub async fn connect_pubsub(
 
     let token = get_access_token(&guard)?.clone();
 
-    let (PubSubHandles { events, outgoing }, client) = PubSubClient::new(Arc::new(token));
-    let client = Arc::new(client);
+    let (PubSubHandles { events, connector }, client) = PubSubClient::new(Arc::new(token));
 
     let sink = channel_sink(channel);
     guard.pubsub = Some(Arc::clone(&client));
@@ -42,7 +41,7 @@ pub async fn connect_pubsub(
     drop(guard);
 
     async_runtime::spawn(async move {
-        if let Err(err) = client.connect(outgoing).await {
+        if let Err(err) = connector.connect().await {
             tracing::error!(%err, "PubSub connection failed");
 
             let state = app_handle.state::<Mutex<AppState>>();

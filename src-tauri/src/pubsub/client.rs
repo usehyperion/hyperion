@@ -79,31 +79,46 @@ pub struct PubSubClient {
 
 pub struct PubSubHandles {
     pub events: mpsc::UnboundedReceiver<PubSubMessage>,
-    pub outgoing: mpsc::UnboundedReceiver<Message>,
+    pub connector: PubSubConnector,
+}
+
+/// Owns the client's outgoing queue and is consumed by connecting, so a client
+/// can only be connected once, and only ever to its own queue.
+pub struct PubSubConnector {
+    client: Arc<PubSubClient>,
+    outgoing: mpsc::UnboundedReceiver<Message>,
+}
+
+impl PubSubConnector {
+    pub async fn connect(self) -> Result<(), Error> {
+        self.client.run(self.outgoing).await
+    }
 }
 
 impl PubSubClient {
-    pub fn new(token: Arc<UserToken>) -> (PubSubHandles, Self) {
+    pub fn new(token: Arc<UserToken>) -> (PubSubHandles, Arc<Self>) {
         let (sender, events) = mpsc::unbounded_channel::<PubSubMessage>();
         let (message_tx, outgoing) = mpsc::unbounded_channel();
 
-        let client = Self {
+        let client = Arc::new(Self {
             token,
             state: ConnectionState::connecting(),
             subscriptions: SubscriptionStore::new(),
             sender,
             message_tx,
             nonce: AtomicU64::new(0),
+        });
+
+        let connector = PubSubConnector {
+            client: Arc::clone(&client),
+            outgoing,
         };
 
-        (PubSubHandles { events, outgoing }, client)
+        (PubSubHandles { events, connector }, client)
     }
 
     #[tracing::instrument(name = "pubsub_connect", skip_all)]
-    pub async fn connect(
-        &self,
-        mut message_rx: mpsc::UnboundedReceiver<Message>,
-    ) -> Result<(), Error> {
+    async fn run(&self, mut message_rx: mpsc::UnboundedReceiver<Message>) -> Result<(), Error> {
         let mut backoff = INITIAL_BACKOFF;
 
         loop {

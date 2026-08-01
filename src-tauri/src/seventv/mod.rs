@@ -30,9 +30,7 @@ pub async fn connect_seventv(
         return Ok(());
     }
 
-    let (SeventTvHandles { events, outgoing }, client) = SeventTvClient::new();
-
-    let client = Arc::new(client);
+    let (SeventTvHandles { events, connector }, client) = SeventTvClient::new();
 
     let sink = channel_sink(channel);
     state.seventv = Some(Arc::clone(&client));
@@ -41,7 +39,7 @@ pub async fn connect_seventv(
     drop(state);
 
     async_runtime::spawn(async move {
-        if let Err(err) = client.connect(outgoing).await {
+        if let Err(err) = connector.connect().await {
             tracing::error!(%err, "7TV connection failed");
 
             let state = app_handle.state::<Mutex<AppState>>();
