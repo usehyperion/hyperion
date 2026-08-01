@@ -24,7 +24,7 @@ pub async fn connect_eventsub(
     let helix = Arc::new(guard.helix.clone());
 
     if let Some(client) = &guard.eventsub
-        && client.connected()
+        && client.active()
     {
         if let Some(sink) = &guard.eventsub_channel {
             *sink.lock().await = channel;

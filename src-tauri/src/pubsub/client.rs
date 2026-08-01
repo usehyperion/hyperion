@@ -89,7 +89,7 @@ impl PubSubClient {
 
         let client = Self {
             token,
-            state: ConnectionState::new(),
+            state: ConnectionState::connecting(),
             subscriptions: SubscriptionStore::new(),
             sender,
             message_tx,
@@ -108,6 +108,7 @@ impl PubSubClient {
 
         loop {
             tracing::info!("Connecting to Twitch PubSub");
+            self.state.set_connecting();
 
             let mut stream = match connect_async(TWITCH_PUBSUB_WS_URI).await {
                 Ok((stream, _)) => stream,
@@ -122,7 +123,7 @@ impl PubSubClient {
             tracing::info!("Connected to Twitch PubSub");
             backoff = INITIAL_BACKOFF;
 
-            self.state.set_connected(true);
+            self.state.set_ready(());
             self.restore().await;
             self.listen_user_topics();
 
@@ -194,7 +195,9 @@ impl PubSubClient {
                 }
             }
 
-            self.state.set_connected(false);
+            // Stays active across the backoff, since this loop owns the retry
+            self.state.set_connecting();
+
             tracing::info!(?backoff, "Reconnecting to PubSub");
             tokio::time::sleep(backoff).await;
             backoff = (backoff * 2).min(MAX_BACKOFF);
@@ -318,8 +321,9 @@ impl PubSubClient {
         }
     }
 
-    pub fn connected(&self) -> bool {
-        self.state.connected()
+    /// Whether the client is connected or still establishing its connection.
+    pub fn active(&self) -> bool {
+        self.state.active()
     }
 
     #[tracing::instrument(name = "pubsub_listen", skip(self, topics))]

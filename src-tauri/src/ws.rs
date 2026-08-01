@@ -1,6 +1,5 @@
 use std::collections::HashMap;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex as SyncMutex, MutexGuard, PoisonError};
 
 use tauri::async_runtime;
 use tauri::ipc::Channel;
@@ -30,32 +29,84 @@ pub fn sub_key(channel: &str, event: &str) -> String {
     format!("{channel}:{event}")
 }
 
-/// Connection-level state shared by every websocket subscription client.
-#[derive(Debug, Default)]
-pub struct ConnectionState {
-    pub session_id: Mutex<Option<String>>,
-    pub connected: AtomicBool,
+/// The lifecycle of a websocket connection.
+///
+/// Kept as a single value so that "is connected" and "has a session" cannot
+/// disagree: a session only exists in [`Connection::Ready`], and the gap
+/// between opening the socket and negotiating the session is its own state
+/// rather than an unrepresentable combination of the two.
+#[derive(Debug)]
+pub enum Connection<S> {
+    Disconnected,
+    /// The socket is being established, or is open but the server has not
+    /// handed out a session yet.
+    Connecting,
+    Ready(S),
 }
 
-impl ConnectionState {
-    pub fn new() -> Self {
-        Self::default()
+/// Connection-level state shared by every websocket subscription client.
+///
+/// `S` is whatever the server hands back to identify the session; clients that
+/// have no such concept use the default of `()`.
+#[derive(Debug)]
+pub struct ConnectionState<S = ()> {
+    inner: SyncMutex<Connection<S>>,
+}
+
+impl<S> Default for ConnectionState<S> {
+    fn default() -> Self {
+        Self {
+            inner: SyncMutex::new(Connection::Disconnected),
+        }
+    }
+}
+
+impl<S> ConnectionState<S> {
+    /// Starts out [`Connection::Connecting`], so a client counts as active from
+    /// the moment it is constructed rather than once its connect task happens
+    /// to be scheduled.
+    pub fn connecting() -> Self {
+        Self {
+            inner: SyncMutex::new(Connection::Connecting),
+        }
     }
 
-    pub fn connected(&self) -> bool {
-        self.connected.load(Ordering::Relaxed)
+    fn lock(&self) -> MutexGuard<'_, Connection<S>> {
+        self.inner.lock().unwrap_or_else(PoisonError::into_inner)
     }
 
-    pub fn set_connected(&self, value: bool) {
-        self.connected.store(value, Ordering::Relaxed);
+    pub fn set_connecting(&self) {
+        *self.lock() = Connection::Connecting;
     }
 
-    pub async fn set_session_id(&self, id: Option<String>) {
-        *self.session_id.lock().await = id;
+    pub fn set_ready(&self, session: S) {
+        *self.lock() = Connection::Ready(session);
     }
 
-    pub async fn session_id(&self) -> Option<String> {
-        self.session_id.lock().await.clone()
+    /// Drops back to [`Connection::Disconnected`], handing back the session
+    /// that was in use, if there was one.
+    pub fn disconnect(&self) -> Option<S> {
+        match std::mem::replace(&mut *self.lock(), Connection::Disconnected) {
+            Connection::Ready(session) => Some(session),
+            _ => None,
+        }
+    }
+
+    /// Whether a connection is live *or* being established. Callers deciding
+    /// whether to spawn a client want this, not [`Self::session`], so that two
+    /// racing connect attempts can't both start one.
+    pub fn active(&self) -> bool {
+        !matches!(*self.lock(), Connection::Disconnected)
+    }
+}
+
+impl<S: Clone> ConnectionState<S> {
+    /// The negotiated session, available only once the connection is ready.
+    pub fn session(&self) -> Option<S> {
+        match &*self.lock() {
+            Connection::Ready(session) => Some(session.clone()),
+            _ => None,
+        }
     }
 }
 

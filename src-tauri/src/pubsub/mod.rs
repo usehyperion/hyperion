@@ -22,7 +22,7 @@ pub async fn connect_pubsub(
     let mut guard = state.lock().await;
 
     if let Some(client) = &guard.pubsub
-        && client.connected()
+        && client.active()
     {
         if let Some(sink) = &guard.pubsub_channel {
             *sink.lock().await = channel;

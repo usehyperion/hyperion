@@ -22,7 +22,7 @@ pub async fn connect_seventv(
     let mut state = state.lock().await;
 
     if let Some(client) = &state.seventv
-        && client.connected()
+        && client.active()
     {
         if let Some(sink) = &state.seventv_channel {
             *sink.lock().await = channel;

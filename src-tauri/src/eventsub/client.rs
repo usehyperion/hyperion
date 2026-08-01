@@ -132,7 +132,7 @@ impl<'de> Deserialize<'de> for WebSocketMessage {
 pub struct EventSubClient {
     helix: Arc<HelixClient<'static, reqwest::Client>>,
     pub token: Arc<UserToken>,
-    state: ConnectionState,
+    state: ConnectionState<String>,
     pub subscriptions: SubscriptionStore<Subscription>,
     sender: mpsc::UnboundedSender<NotificationPayload>,
     reconnecting: AtomicBool,
@@ -150,7 +150,7 @@ impl EventSubClient {
         let client = Self {
             helix,
             token,
-            state: ConnectionState::new(),
+            state: ConnectionState::connecting(),
             subscriptions: SubscriptionStore::new(),
             sender,
             reconnecting: AtomicBool::default(),
@@ -163,18 +163,22 @@ impl EventSubClient {
     pub async fn connect(&self) -> Result<(), Error> {
         tracing::info!("Connecting to EventSub");
 
-        let (stream, _) = connect_async(TWITCH_EVENTSUB_WS_URI).await.map_err(|err| {
-            tracing::error!(%err, "Failed to connect to EventSub");
-            Error::WebSocket(err)
-        })?;
+        let (stream, _) = match connect_async(TWITCH_EVENTSUB_WS_URI).await {
+            Ok(connected) => connected,
+            Err(err) => {
+                tracing::error!(%err, "Failed to connect to EventSub");
+                self.state.disconnect();
 
+                return Err(Error::WebSocket(err));
+            }
+        };
+
+        // Stays `Connecting` until the welcome message hands us a session id
         tracing::info!("Connected to EventSub");
-        self.state.set_connected(true);
 
         let result = self.process_stream(stream).await;
 
-        self.state.set_connected(false);
-        self.state.set_session_id(None).await;
+        self.state.disconnect();
 
         result
     }
@@ -260,7 +264,7 @@ impl EventSubClient {
         match msg {
             Ws::Welcome(payload) => {
                 tracing::debug!("Set EventSub session id to {}", payload.session.id);
-                self.state.set_session_id(Some(payload.session.id)).await;
+                self.state.set_ready(payload.session.id);
 
                 let was_reconnecting = self.reconnecting.swap(false, Ordering::Relaxed);
 
@@ -373,8 +377,9 @@ impl EventSubClient {
         }
     }
 
-    pub fn connected(&self) -> bool {
-        self.state.connected()
+    /// Whether the client is connected or still establishing its connection.
+    pub fn active(&self) -> bool {
+        self.state.active()
     }
 
     #[tracing::instrument(name = "eventsub_subscribe", skip(self, condition), fields(%condition))]
@@ -384,8 +389,8 @@ impl EventSubClient {
         event: EventType,
         condition: serde_json::Value,
     ) -> Result<(), Error> {
-        let Some(session_id) = self.state.session_id().await else {
-            return Err(Error::Generic(anyhow!("No EventSub connection")));
+        let Some(session_id) = self.state.session() else {
+            return Err(Error::Generic(anyhow!("No EventSub session")));
         };
 
         if self

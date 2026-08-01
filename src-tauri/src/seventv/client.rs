@@ -18,7 +18,7 @@ struct WebSocketMessage {
 }
 
 pub struct SeventTvClient {
-    state: ConnectionState,
+    state: ConnectionState<String>,
     subscriptions: SubscriptionStore<serde_json::Value>,
     sender: mpsc::UnboundedSender<serde_json::Value>,
     message_tx: mpsc::UnboundedSender<Message>,
@@ -36,7 +36,7 @@ impl SeventTvClient {
 
         let client = Self {
             subscriptions: SubscriptionStore::new(),
-            state: ConnectionState::new(),
+            state: ConnectionState::connecting(),
             sender,
             message_tx,
         };
@@ -49,20 +49,26 @@ impl SeventTvClient {
         &self,
         mut message_rx: mpsc::UnboundedReceiver<Message>,
     ) -> Result<(), Error> {
+        // Held across reconnects so a session can still be resumed after a drop
+        let mut resume: Option<String> = None;
+
         loop {
             tracing::info!("Connecting to 7TV Event API");
+            self.state.set_connecting();
 
             let mut stream = match connect_async(SEVENTV_WS_URI).await {
                 Ok((stream, _)) => stream,
                 Err(err) => {
                     tracing::error!(%err, "Failed to connect to 7TV Event API");
+                    self.state.disconnect();
+
                     return Err(Error::WebSocket(err));
                 }
             };
 
             tracing::info!("Connected to 7TV Event API");
 
-            if let Some(id) = self.state.session_id().await {
+            if let Some(id) = &resume {
                 tracing::info!(%id, "Resuming 7TV session");
 
                 let payload = json!({
@@ -76,8 +82,6 @@ impl SeventTvClient {
                     tracing::error!(%err, "Error sending resume message");
                 }
             }
-
-            self.state.set_connected(true);
 
             loop {
                 tokio::select! {
@@ -118,7 +122,9 @@ impl SeventTvClient {
                 }
             }
 
-            self.state.set_connected(false);
+            // Keep the previous id when the drop happened before the session
+            // was re-established, so the resume attempt isn't lost
+            resume = self.state.disconnect().or(resume);
         }
     }
 
@@ -133,7 +139,7 @@ impl SeventTvClient {
             }
             1 => {
                 if let Some(id) = msg.d["session_id"].as_str() {
-                    self.state.set_session_id(Some(id.to_string())).await;
+                    self.state.set_ready(id.to_string());
                     tracing::info!(%id, "Hello received, session established");
                 }
             }
@@ -162,8 +168,9 @@ impl SeventTvClient {
         }
     }
 
-    pub fn connected(&self) -> bool {
-        self.state.connected()
+    /// Whether the client is connected or still establishing its connection.
+    pub fn active(&self) -> bool {
+        self.state.active()
     }
 
     #[tracing::instrument(name = "7tv_subscribe", skip(self, condition), fields(%condition))]
