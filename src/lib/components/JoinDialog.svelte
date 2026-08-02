@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { cn } from "tailwind-variants";
 	import { app } from "$lib/app.svelte";
 	import { searchSuggestionsQuery } from "$lib/graphql/twitch";
 	import type { ChannelSuggestion } from "$lib/graphql/twitch";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import { storage } from "$lib/stores";
 	import type { RecentSearch } from "$lib/stores";
-	import { cn, debounce } from "$lib/util";
+	import { debounce } from "$lib/util";
 	import Broadcast from "~icons/ph/broadcast";
 	import CaretRight from "~icons/ph/caret-right";
 	import ClockCounterClockwise from "~icons/ph/clock-counter-clockwise";
