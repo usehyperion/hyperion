@@ -23,7 +23,7 @@ export interface KeywordHighlightConfig extends HighlightConfig {
 	matchCase: boolean;
 }
 
-export interface Settings {
+export type Settings = {
 	"appearance.theme": string;
 
 	"splits.leaveOnClose": boolean;
@@ -56,7 +56,7 @@ export interface Settings {
 	"highlights.keywords": KeywordHighlightConfig[];
 
 	"advanced.logs.level": "error" | "warn" | "info" | "debug" | "trace";
-}
+};
 
 export const defaultHighlightTypes: Record<HighlightType, HighlightConfig> = {
 	mention: { enabled: true, color: "#adadb8", style: "background" },
@@ -100,6 +100,6 @@ export const defaults: Settings = {
 	"advanced.logs.level": "info",
 };
 
-export const settings = new RuneStore<Settings & Record<string, any>>("settings", defaults, {
+export const settings = new RuneStore<Settings>("settings", defaults, {
 	autoStart: true,
 });
