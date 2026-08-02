@@ -106,9 +106,6 @@ impl<S: Clone> ConnectionState<S> {
     }
 }
 
-/// Identifies a subscription. Previously a `"{channel}:{event}"` string that
-/// every consumer had to take apart again; keeping the parts separate means
-/// there is nothing to mis-parse.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SubKey {
     pub channel: String,
