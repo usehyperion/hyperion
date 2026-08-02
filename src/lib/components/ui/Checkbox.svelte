@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Checkbox } from "bits-ui";
 	import type { WithoutChildrenOrChild } from "bits-ui";
-	import { cn } from "cnfast";
+	import { cn } from "tailwind-variants";
 	import CheckIcon from "~icons/ph/check";
 	import MinusIcon from "~icons/ph/minus";
 

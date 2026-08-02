@@ -5,8 +5,6 @@ import { Viewer } from "./models/viewer.svelte";
 import type { Fragment } from "./twitch/api";
 import type { Emote } from "./twitch/irc";
 
-export { cn } from "cnfast";
-
 export type {
 	WithElementRef,
 	WithoutChild,

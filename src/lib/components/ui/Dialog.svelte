@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { WithElementRef } from "bits-ui";
-	import { cn } from "cnfast";
 	import type { Snippet } from "svelte";
 	import type { HTMLDialogAttributes } from "svelte/elements";
+	import { cn } from "tailwind-variants";
 
 	interface Props extends WithElementRef<HTMLDialogAttributes> {
 		id: string;

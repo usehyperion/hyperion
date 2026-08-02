@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { WithElementRef } from "bits-ui";
-	import { cn } from "cnfast";
 	import type { HTMLAttributes } from "svelte/elements";
+	import { cn } from "tailwind-variants";
 
 	interface Props extends WithElementRef<HTMLAttributes<HTMLDivElement>> {
 		id: string;

@@ -84,9 +84,6 @@ importers:
       chroma-js:
         specifier: ^3.2.0
         version: 3.2.0
-      cnfast:
-        specifier: ^0.0.8
-        version: 0.0.8
       dayjs:
         specifier: ^1.11.20
         version: 1.11.21
@@ -152,8 +149,8 @@ importers:
         specifier: ^4.7.1
         version: 4.7.1(picomatch@4.0.4)(svelte@5.56.4)(typescript@6.0.3)
       tailwind-variants:
-        specifier: ^3.2.2
-        version: 3.2.2(tailwindcss@4.3.0)
+        specifier: ^3.3.0
+        version: 3.3.0(tailwindcss@4.3.0)
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
@@ -1313,10 +1310,6 @@ packages:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
 
-  cnfast@0.0.8:
-    resolution: {integrity: sha512-EjXKMfGfdwtV4AcNSQ6AwQaVzpC1B7IxeiwA3FlhTXz+YFlMKVi4c1JX9tgD2QOlahQXjB8KUXrBaYG+3v871Q==}
-    hasBin: true
-
   confbox@0.1.8:
     resolution: {integrity: sha512-RMtmw0iFkeR4YV+fUOSucriAQNb9g8zFR52MWCtl+cCZOFRNL6zeB395vPzFhEjjn4fMxXudmELnl/KF/WrK6w==}
 
@@ -1812,14 +1805,16 @@ packages:
   tabbable@6.4.0:
     resolution: {integrity: sha512-05PUHKSNE8ou2dwIxTngl4EzcnsCDZGJ/iCLtDflR/SHB/ny14rXc+qU5P4mG9JkusiV7EivzY9Mhm55AzAvCg==}
 
-  tailwind-variants@3.2.2:
-    resolution: {integrity: sha512-Mi4kHeMTLvKlM98XPnK+7HoBPmf4gygdFmqQPaDivc3DpYS6aIY6KiG/PgThrGvii5YZJqRsPz0aPyhoFzmZgg==}
-    engines: {node: '>=16.x', pnpm: '>=7.x'}
+  tailwind-variants@3.3.0:
+    resolution: {integrity: sha512-t1QsB42dcwUdaCEArO0tRZcP0nbCcAmJKRYCs7jmwYSFOCXlGqgO8c0TrCYm9OranYmT6i9YOi8LFo2gxmxnow==}
+    engines: {node: '>=16.9.x', pnpm: '>=7.x'}
     peerDependencies:
       tailwind-merge: '>=3.0.0'
       tailwindcss: '*'
     peerDependenciesMeta:
       tailwind-merge:
+        optional: true
+      tailwindcss:
         optional: true
 
   tailwindcss@4.3.0:
@@ -2804,8 +2799,6 @@ snapshots:
 
   clsx@2.1.1: {}
 
-  cnfast@0.0.8: {}
-
   confbox@0.1.8: {}
 
   confbox@0.2.4: {}
@@ -3287,8 +3280,8 @@ snapshots:
 
   tabbable@6.4.0: {}
 
-  tailwind-variants@3.2.2(tailwindcss@4.3.0):
-    dependencies:
+  tailwind-variants@3.3.0(tailwindcss@4.3.0):
+    optionalDependencies:
       tailwindcss: 4.3.0
 
   tailwindcss@4.3.0: {}

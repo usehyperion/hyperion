@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { RadioGroup as RadioGroupPrimitive } from "bits-ui";
-	import { cn } from "$lib/util.js";
+	import { cn } from "tailwind-variants";
 	import type { WithoutChildrenOrChild } from "$lib/util.js";
 	import CircleIcon from "~icons/ph/circle-fill";
 

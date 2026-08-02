@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Select as SelectPrimitive } from "bits-ui";
 	import type { ComponentProps } from "svelte";
-	import { cn } from "$lib/util.js";
+	import { cn } from "tailwind-variants";
 
 	let {
 		ref = $bindable(null),
