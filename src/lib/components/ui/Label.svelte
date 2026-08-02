@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Label } from "bits-ui";
-	import { cn } from "cnfast";
+	import { cn } from "tailwind-variants";
 
 	let { class: className, ref = $bindable(null), ...rest }: Label.RootProps = $props();
 </script>

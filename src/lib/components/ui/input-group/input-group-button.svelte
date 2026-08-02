@@ -21,8 +21,8 @@
 
 <script lang="ts">
 	import type { ComponentProps } from "svelte";
+	import { cn } from "tailwind-variants";
 	import Button from "$lib/components/ui/Button.svelte";
-	import { cn } from "$lib/util.js";
 
 	let {
 		ref = $bindable(null),

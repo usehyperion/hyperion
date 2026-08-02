@@ -1,9 +1,7 @@
 <script lang="ts">
 	import type { WithElementRef } from "bits-ui";
-	import { cn } from "cnfast";
-	import { onMount } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";
-	import { browser } from "$app/environment";
+	import { cn } from "tailwind-variants";
 
 	interface Props extends WithElementRef<HTMLAttributes<HTMLDivElement>> {
 		side?: "top" | "right" | "bottom" | "left";

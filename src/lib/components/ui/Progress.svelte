@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Progress, type WithoutChildrenOrChild } from "bits-ui";
-	import { cn } from "cnfast";
+	import { cn } from "tailwind-variants";
 
 	interface Props extends WithoutChildrenOrChild<Progress.RootProps> {
 		indicatorClass?: string;

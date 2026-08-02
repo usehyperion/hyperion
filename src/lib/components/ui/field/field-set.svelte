@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { HTMLFieldsetAttributes } from "svelte/elements";
-	import { cn } from "$lib/util.js";
+	import { cn } from "tailwind-variants";
 	import type { WithElementRef } from "$lib/util.js";
 
 	let {

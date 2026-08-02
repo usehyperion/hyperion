@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn } from "$lib/util.js";
+	import { cn } from "tailwind-variants";
 	import type { WithElementRef } from "$lib/util.js";
 
 	let {
