@@ -6,9 +6,8 @@
 	import { relaunch } from "@tauri-apps/plugin-process";
 	import { check } from "@tauri-apps/plugin-updater";
 	import { onMount } from "svelte";
-	import { goto } from "$app/navigation";
-	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
+	import { openSettings } from "$lib/components/settings/SettingsDialog.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
 	import StreamInfo from "$lib/components/stream/StreamInfo.svelte";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "$lib/splits/events";
@@ -41,9 +40,7 @@
 		}
 	});
 
-	createHotkey("Mod+,", async () => {
-		await goto(resolve("/settings"));
-	});
+	createHotkey("Mod+,", () => openSettings());
 </script>
 
 <DragDropProvider

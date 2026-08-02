@@ -4,7 +4,7 @@
 	import { platform as getPlatform } from "@tauri-apps/plugin-os";
 	import { onDestroy, onMount } from "svelte";
 	import type { HTMLButtonAttributes } from "svelte/elements";
-	import { afterNavigate, goto } from "$app/navigation";
+	import { afterNavigate } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
 	import ArrowLeft from "~icons/ph/arrow-left";
@@ -13,6 +13,7 @@
 	import Gear from "~icons/ph/gear";
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
 	import JoinDialog from "./JoinDialog.svelte";
+	import SettingsDialog, { openSettings } from "./settings/SettingsDialog.svelte";
 	import Button from "./ui/Button.svelte";
 
 	type ControlType = "minimize" | "maximize" | "close";
@@ -120,8 +121,8 @@
 				class="size-min p-1 text-muted-foreground"
 				size="icon"
 				variant="ghost"
-				aria-label="Go to settings"
-				onclick={() => goto(resolve("/settings"))}
+				aria-label="Open settings"
+				onclick={openSettings}
 			>
 				<Gear />
 			</Button>
@@ -144,6 +145,8 @@
 		{/if}
 	</div>
 </div>
+
+<SettingsDialog />
 
 {#snippet control(type: ControlType, rest: HTMLButtonAttributes)}
 	<button
