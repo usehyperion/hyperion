@@ -1,17 +1,33 @@
 import type { Component } from "svelte";
 import type { Settings } from "$lib/settings";
 
+type SettingKey = keyof Settings;
+
+/**
+ * Keys of {@linkcode Settings} whose value is assignable to `T`.
+ */
+type KeysWithValue<T> = {
+	[K in SettingKey]: Settings[K] extends T ? K : never;
+}[SettingKey];
+
+/**
+ * Keys of {@linkcode Settings} whose value is exactly `T`.
+ */
+type KeysWithExactValue<T> = {
+	[K in SettingKey]: [Settings[K]] extends [T] ? ([T] extends [Settings[K]] ? K : never) : never;
+}[SettingKey];
+
+export interface BaseField<Id extends string = string> {
+	id: Id;
+	label: string;
+	description?: string;
+	disabled?: () => boolean;
+}
+
 interface GroupField {
 	type: "group";
 	label?: string;
 	fields: SettingsField[];
-}
-
-export interface BaseField {
-	id: keyof Settings | (string & {});
-	label: string;
-	description?: string;
-	disabled?: () => boolean;
 }
 
 interface CustomField extends BaseField {
@@ -20,28 +36,36 @@ interface CustomField extends BaseField {
 	component: Component;
 }
 
-interface InputField extends BaseField {
+interface InputField extends BaseField<KeysWithExactValue<string>> {
 	type: "input";
 	placeholder?: string;
 }
 
-interface ChoiceItem {
+interface ChoiceItem<Value extends string> {
 	label: string;
-	value: string;
+	value: Value;
 	description?: string;
 }
 
-interface RadioField extends BaseField {
+interface RadioFieldFor<K extends KeysWithValue<string>> extends BaseField<K> {
 	type: "radio";
-	items: ChoiceItem[];
+	items: ChoiceItem<Settings[K] & string>[];
 }
 
-interface SelectField extends BaseField {
+interface SelectFieldFor<K extends KeysWithValue<string>> extends BaseField<K> {
 	type: "select";
-	items: ChoiceItem[];
+	items: ChoiceItem<Settings[K] & string>[];
 }
 
-interface SliderField extends BaseField {
+type RadioField = {
+	[K in KeysWithValue<string>]: RadioFieldFor<K>;
+}[KeysWithValue<string>];
+
+type SelectField = {
+	[K in KeysWithValue<string>]: SelectFieldFor<K>;
+}[KeysWithValue<string>];
+
+interface SliderField extends BaseField<KeysWithValue<number>> {
 	type: "slider";
 	thumbLabel?: string;
 	tickLabel?: string;
@@ -50,7 +74,7 @@ interface SliderField extends BaseField {
 	step?: number | number[];
 }
 
-interface SwitchField extends BaseField {
+interface SwitchField extends BaseField<KeysWithValue<boolean>> {
 	type: "switch";
 	onchange?: (value: boolean) => void;
 }
