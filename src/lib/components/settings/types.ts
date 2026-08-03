@@ -21,6 +21,7 @@ export interface BaseField<Id extends string = string> {
 	id: Id;
 	label: string;
 	description?: string;
+	keywords?: string[];
 	disabled?: () => boolean;
 }
 
