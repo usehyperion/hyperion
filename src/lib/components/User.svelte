@@ -24,11 +24,14 @@
 
 	const { message, nested = false, mention }: Props = $props();
 
+	const id = $props.id();
+
 	let loading = $state(false);
 	let showAllBadges = $state(false);
 
 	const user = $derived(mention?.data.user ?? message.author);
 	const relationship = $derived(user.relationships.get(message.channel.user.username));
+	const popoverId = $derived(`user-card-${user.id}-${id}`);
 
 	async function fetchInfo() {
 		try {
@@ -61,7 +64,7 @@
 {#if mention}
 	<button
 		class="font-semibold wrap-break-word disabled:cursor-default"
-		popovertarget="user-card-{user.id}"
+		popovertarget={popoverId}
 		disabled={nested}
 		style={getMentionStyle()}
 	>
@@ -70,7 +73,7 @@
 {:else}
 	<button
 		class="font-semibold wrap-break-word disabled:cursor-default"
-		popovertarget="user-card-{user.id}"
+		popovertarget={popoverId}
 		disabled={nested}
 		style={message.author.style}
 	>
@@ -80,7 +83,7 @@
 
 {#if !nested}
 	<Popover
-		id="user-card-{user.id}"
+		id={popoverId}
 		class="w-sm overflow-hidden p-0"
 		onbeforetoggle={async (event) => {
 			if (event.newState === "open") await fetchInfo();

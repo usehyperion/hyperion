@@ -16,6 +16,18 @@
 		children,
 		...rest
 	}: Props = $props();
+
+	const anchorName = $derived(`--popover-${id}`);
+
+	$effect(() => {
+		const trigger =
+			ref?.previousElementSibling || document.querySelector(`[popovertarget="${id}"]`);
+		if (!(trigger instanceof HTMLElement)) return;
+
+		trigger.style.setProperty("anchor-name", anchorName);
+
+		return () => trigger.style.removeProperty("anchor-name");
+	});
 </script>
 
 <div
@@ -28,6 +40,7 @@
 	popover="auto"
 	data-component="popover"
 	data-side={side}
+	style:position-anchor={anchorName}
 	{...rest}
 	bind:this={ref}
 >
