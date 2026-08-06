@@ -92,7 +92,7 @@
 	<Slider.Root
 		class="relative flex h-3 w-full items-center"
 		type="single"
-		step={1}
+		step={0.1}
 		max={360}
 		bind:value={h}
 	>

@@ -1,11 +1,9 @@
 <script lang="ts">
-	import Highlight from "$lib/components/message/Highlight.svelte";
 	import Button from "$lib/components/ui/Button.svelte";
 	import { defaultHighlightTypes, settings } from "$lib/settings";
 	import type { HighlightType } from "$lib/settings";
 	import ArrowClockwise from "~icons/ph/arrow-clockwise";
-	import Color from "./Color.svelte";
-	import StyleSelect from "./Style.svelte";
+	import Row from "./Row.svelte";
 
 	const highlights = [
 		{ label: "Mentions", value: "mention" },
@@ -21,35 +19,42 @@
 	const viewers = $derived(settings.state["highlights.viewers"]);
 
 	function reset(key: HighlightType) {
-		viewers[key] = defaultHighlightTypes[key];
+		viewers[key] = { ...defaultHighlightTypes[key] };
+	}
+
+	function isDefault(key: HighlightType) {
+		const config = viewers[key];
+		const original = defaultHighlightTypes[key];
+
+		return (
+			config.enabled === original.enabled &&
+			config.color === original.color &&
+			config.style === original.style
+		);
 	}
 </script>
 
-<div class="flex flex-col gap-y-2.5">
-	{#each highlights as highlight}
-		{@const config = viewers[highlight.value]}
-
-		<Highlight
-			class="m-0"
+<div class="flex flex-col gap-2">
+	{#each highlights as highlight (highlight.value)}
+		<Row
 			type={highlight.value}
-			config={{ enabled: true, color: config.color, style: "default" }}
+			id={highlight.value}
+			label={highlight.label}
+			bind:config={viewers[highlight.value]}
 		>
-			<div class="flex items-center gap-x-1.5 p-1.5">
-				<Color id={highlight.value} bind:value={config.color} />
-
-				<StyleSelect bind:config={viewers[highlight.value]} />
-
+			{#snippet actions()}
 				<Button
-					class="ml-auto"
-					title="Reset"
-					size="icon"
-					variant="outline"
-					aria-label="Reset to default"
+					class="text-muted-foreground hover:text-foreground"
+					title="Reset to default"
+					size="icon-sm"
+					variant="ghost"
+					aria-label="Reset {highlight.label} to default"
+					disabled={isDefault(highlight.value)}
 					onclick={() => reset(highlight.value)}
 				>
 					<ArrowClockwise />
 				</Button>
-			</div>
-		</Highlight>
+			{/snippet}
+		</Row>
 	{/each}
 </div>

@@ -44,7 +44,7 @@
 			</Empty.Header>
 		</Empty.Root>
 	{:else}
-		<div class="space-y-6">
+		<div class="space-y-6 divide-y divide-border *:pb-6">
 			{#each category.fields as field, i (i)}
 				<FieldControl {field} />
 			{/each}

@@ -77,7 +77,7 @@
 
 <Dialog
 	id={settingsDialogId}
-	class="m-0 h-screen max-h-none max-w-none! overflow-hidden rounded-none p-0 **:data-[slot=dialog-content]:h-full **:data-[slot=dialog-content]:space-y-0"
+	class="m-0 h-screen max-h-none max-w-none! overflow-hidden rounded-none p-0 *:data-[slot=dialog-content]:h-full *:data-[slot=dialog-content]:space-y-0"
 	aria-label="Settings"
 	{onkeydown}
 	{onclose}

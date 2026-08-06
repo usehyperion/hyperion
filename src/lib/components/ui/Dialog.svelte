@@ -26,7 +26,7 @@
 <dialog
 	{id}
 	class={cn(
-		"fixed inset-0 m-auto w-full max-w-[calc(100%-2rem)] rounded-3xl bg-popover p-6 text-popover-foreground smooth-shadow-ring-lg sm:max-w-lg",
+		"fixed inset-0 m-auto w-full max-w-[calc(100%-2rem)] space-y-4 rounded-3xl bg-popover p-6 text-popover-foreground smooth-shadow-ring-lg sm:max-w-lg",
 		"scale-95 opacity-0 transition-[opacity,scale,overlay,display] transition-discrete ease-out",
 		className,
 	)}
@@ -35,23 +35,27 @@
 	bind:this={ref}
 	{...rest}
 >
-	<header
-		class="flex flex-col gap-2 heading:text-lg/1 heading:font-semibold [p]:text-sm [p]:text-muted-foreground"
-		data-slot="dialog-header"
-	>
-		{@render header?.()}
-	</header>
+	{#if header}
+		<header
+			class="flex flex-col gap-2 heading:text-lg/1 heading:font-semibold [p]:text-sm [p]:text-muted-foreground"
+			data-slot="dialog-header"
+		>
+			{@render header()}
+		</header>
+	{/if}
 
 	<div class="space-y-4" data-slot="dialog-content">
 		{@render children?.()}
 	</div>
 
-	<footer
-		class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
-		data-slot="dialog-footer"
-	>
-		{@render footer?.()}
-	</footer>
+	{#if footer}
+		<footer
+			class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
+			data-slot="dialog-footer"
+		>
+			{@render footer()}
+		</footer>
+	{/if}
 </dialog>
 
 <style>

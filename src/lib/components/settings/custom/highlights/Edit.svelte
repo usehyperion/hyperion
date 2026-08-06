@@ -7,32 +7,35 @@
 	import type { KeywordHighlightConfig } from "$lib/settings";
 	import Pencil from "~icons/ph/pencil";
 
+	let { config = $bindable<KeywordHighlightConfig>() } = $props();
+
 	const id = $props.id();
 
-	let { config = $bindable<KeywordHighlightConfig>() } = $props();
+	const dialogId = `edit-highlight-dialog-${id}`;
 </script>
 
 <Button
+	class="text-muted-foreground hover:text-foreground"
 	title="Edit"
 	command="show-modal"
-	commandfor="edit-highlight-dialog"
-	size="icon"
-	variant="outline"
+	commandfor={dialogId}
+	size="icon-sm"
+	variant="ghost"
 	aria-label="Edit pattern"
 >
 	<Pencil />
 </Button>
 
-<Dialog id="edit-highlight-dialog" class="**:data-[slot=dialog-content]:space-y-2">
+<Dialog id={dialogId}>
 	{#snippet header()}
 		<h2>Edit pattern</h2>
 	{/snippet}
 
 	<Field.Field>
-		<Field.Label for="pattern">Pattern</Field.Label>
+		<Field.Label for="p-{id}">Pattern</Field.Label>
 
 		<Input
-			id="pattern"
+			id="p-{id}"
 			autocapitalize="off"
 			autocorrect="off"
 			placeholder="Enter pattern"
@@ -61,6 +64,6 @@
 	</Field.Group>
 
 	{#snippet footer()}
-		<Button command="close" commandfor="edit-highlight-dialog">Save</Button>
+		<Button command="close" commandfor={dialogId}>Save</Button>
 	{/snippet}
 </Dialog>
