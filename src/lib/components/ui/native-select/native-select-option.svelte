@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { HTMLOptionAttributes } from "svelte/elements";
-	import { cn, type WithElementRef } from "$lib/util.js";
+	import { cn } from "tailwind-variants";
+	import { type WithElementRef } from "$lib/util.js";
 
 	let {
 		ref = $bindable(null),
