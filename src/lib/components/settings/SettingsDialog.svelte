@@ -18,9 +18,7 @@
 	import Separator from "$lib/components/ui/Separator.svelte";
 	import { log } from "$lib/log";
 	import { settings } from "$lib/settings";
-	import { logOut } from "$lib/twitch/auth";
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
-	import SignOut from "~icons/ph/sign-out";
 	import X from "~icons/ph/x";
 	import Category from "./Category.svelte";
 	import { countFields, filterCategory } from "./search";
@@ -154,19 +152,7 @@
 
 			<Separator />
 
-			<div class="space-y-0.5 [&_button]:w-full [&_button]:justify-start">
-				<SidebarActions />
-
-				<Button
-					class="text-muted-foreground"
-					variant="ghost"
-					onclick={logOut}
-					data-slot="log-out"
-				>
-					<SignOut />
-					<span class="text-sm">Log out</span>
-				</Button>
-			</div>
+			<SidebarActions />
 		</div>
 
 		<div class="relative flex min-w-0 grow flex-col border-l bg-accent/15">

@@ -61,7 +61,7 @@
 	<div
 		class={[
 			"flex items-center text-muted-foreground",
-			platform === "macos" && (fullscreen ? "pl-3" : "pl-18"),
+			platform === "macos" && (fullscreen ? "pl-3" : "pl-20"),
 			["windows", "linux"].includes(platform) && "pl-3",
 		]}
 		data-tauri-drag-region
