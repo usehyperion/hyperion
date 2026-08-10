@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ComponentProps } from "svelte";
 	import { cn } from "tailwind-variants";
-	import { Label } from "$lib/components/ui/label/index.js";
+	import Label from "$lib/components/ui/Label.svelte";
 
 	let {
 		ref = $bindable(null),
