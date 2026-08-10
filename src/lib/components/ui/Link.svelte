@@ -2,7 +2,13 @@
 	import type { HTMLAnchorAttributes } from "svelte/elements";
 	import { cn } from "tailwind-variants";
 	import type { WithElementRef } from "$lib/util";
-	import { type ButtonSize, type ButtonVariant, buttonVariants } from "./button-variants";
+	import {
+		type ButtonSize,
+		type ButtonVariant,
+		buttonVariants,
+		emphasisOverlayClass,
+		isEmphasisVariant,
+	} from "./Button.svelte";
 
 	interface Props extends WithElementRef<HTMLAnchorAttributes, HTMLAnchorElement> {
 		variant?: ButtonVariant;
@@ -38,5 +44,13 @@
 	bind:this={ref}
 	{...rest}
 >
-	{@render children?.()}
+	{#if isEmphasisVariant(variant)}
+		<span class={emphasisOverlayClass} aria-hidden="true"></span>
+
+		<span class="relative flex items-center gap-1.5">
+			{@render children?.()}
+		</span>
+	{:else}
+		{@render children?.()}
+	{/if}
 </a>
