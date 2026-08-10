@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Tooltip as TooltipPrimitive } from "bits-ui";
-	import { cn } from "$lib/util.js";
+	import { cn } from "tailwind-variants";
 
 	let {
 		ref = $bindable(null),

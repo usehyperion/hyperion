@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Select as SelectPrimitive } from "bits-ui";
-	import { cn } from "$lib/util.js";
+	import { cn } from "tailwind-variants";
 	import type { WithoutChildrenOrChild } from "$lib/util.js";
 	import ChevronDownIcon from "~icons/ph/caret-down";
 

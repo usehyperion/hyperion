@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "shadow-plugin";
 
 @layer {
 	:root {
@@ -139,6 +140,7 @@
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant heading (&:where(h1, h2, h3, h4, h5, h6));
 
 @layer base {
 	* {
@@ -149,6 +151,8 @@
 	body {
 		background-color: var(--color-background);
 		color: var(--color-foreground);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
 	}
 
 	button:hover {

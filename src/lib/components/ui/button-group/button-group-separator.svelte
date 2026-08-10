@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ComponentProps } from "svelte";
+	import { cn } from "tailwind-variants";
 	import { Separator } from "$lib/components/ui/separator/index.js";
-	import { cn } from "$lib/util.js";
 
 	let {
 		ref = $bindable(null),

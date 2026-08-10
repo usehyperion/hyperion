@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Slider as SliderPrimitive } from "bits-ui";
-	import { cn } from "$lib/util.js";
+	import { cn } from "tailwind-variants";
 	import type { WithoutChildrenOrChild } from "$lib/util.js";
 
 	type Props = WithoutChildrenOrChild<SliderPrimitive.RootProps> & {

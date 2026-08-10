@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Progress as ProgressPrimitive } from "bits-ui";
-	import { cn } from "$lib/util.js";
+	import { cn } from "tailwind-variants";
 	import type { WithoutChildrenOrChild } from "$lib/util.js";
 
 	interface Props extends WithoutChildrenOrChild<ProgressPrimitive.RootProps> {

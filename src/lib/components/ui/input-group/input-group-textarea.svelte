@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ComponentProps } from "svelte";
+	import { cn } from "tailwind-variants";
 	import { Textarea } from "$lib/components/ui/textarea/index.js";
-	import { cn } from "$lib/util.js";
 
 	let {
 		ref = $bindable(null),

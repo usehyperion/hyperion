@@ -2,7 +2,8 @@
 	import { Slider } from "bits-ui";
 	import chroma from "chroma-js";
 	import type { HTMLAttributes } from "svelte/elements";
-	import { clamp, cn } from "$lib/util";
+	import { cn } from "tailwind-variants";
+	import { clamp } from "$lib/util";
 	import { Input } from "./input";
 
 	interface Props extends HTMLAttributes<HTMLDivElement> {

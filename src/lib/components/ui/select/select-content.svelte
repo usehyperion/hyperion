@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Select as SelectPrimitive } from "bits-ui";
-	import { cn } from "$lib/util.js";
+	import { cn } from "tailwind-variants";
 	import type { WithoutChild } from "$lib/util.js";
 	import SelectScrollDownButton from "./select-scroll-down-button.svelte";
 	import SelectScrollUpButton from "./select-scroll-up-button.svelte";
