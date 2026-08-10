@@ -39,13 +39,12 @@
 		</Field.Field>
 
 		<Slider
-			class="relative flex items-center"
 			type="single"
 			min={MIN_DURATION}
 			max={MAX_DURATION}
-			step={30}
+			step={[MIN_DURATION, 60, 120, 180, 300, 600, 900, 1200, MAX_DURATION]}
 			disabled={mode !== "duration"}
-			thumbLabel={formatDuration(duration)}
+			formatValue={formatDuration}
 			bind:value={duration}
 		/>
 

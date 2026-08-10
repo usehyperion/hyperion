@@ -109,10 +109,9 @@
 
 		<Slider
 			id={field.id}
-			class="relative flex items-center"
 			type="single"
-			thumbLabel={field.thumbLabel}
-			tickLabel={field.tickLabel}
+			formatValue={field.formatValue}
+			showSteps={field.showSteps}
 			min={field.min}
 			max={field.max}
 			step={field.step}

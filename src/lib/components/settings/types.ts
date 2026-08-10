@@ -68,8 +68,8 @@ type SelectField = {
 
 interface SliderField extends BaseField<KeysWithValue<number>> {
 	type: "slider";
-	thumbLabel?: string;
-	tickLabel?: string;
+	formatValue?: (value: number) => string;
+	showSteps?: boolean;
 	min?: number;
 	max?: number;
 	step?: number | number[];

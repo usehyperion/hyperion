@@ -11,7 +11,7 @@
 
 <div class="@container">
 	<RadioGroup.Root
-		class="grid gap-3 @min-[26rem]:grid-cols-3"
+		class="grid gap-3 @max-md:max-w-3xs @min-md:grid-cols-3"
 		bind:value={() => userPrefersMode.current, (value) => setMode(value)}
 	>
 		{#each themes as theme (theme.value)}

@@ -14,7 +14,7 @@
 </script>
 
 <NativeSelect.Root
-	class={cn("h-8 min-w-32 py-1", className)}
+	class={cn("min-w-32", className)}
 	aria-label="Highlight style"
 	bind:value={
 		() => (config.enabled ? config.style : "disabled"),

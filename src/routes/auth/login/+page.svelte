@@ -23,11 +23,7 @@
 	<p class="max-w-sm text-muted-foreground">Connect your Twitch account to start chatting.</p>
 </div>
 
-<Button
-	class="h-12 bg-twitch text-base text-primary hover:bg-twitch-600"
-	size="lg"
-	onclickwait={() => openUrl(authUrl.toString())}
->
+<Button class="h-12" size="lg" onclickwait={() => openUrl(authUrl.toString())}>
 	<Twitch class="size-5 fill-white" />
 	Log in with Twitch
 </Button>

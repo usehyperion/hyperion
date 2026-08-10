@@ -15,6 +15,7 @@
 	import JoinDialog from "./JoinDialog.svelte";
 	import SettingsDialog, { openSettings } from "./settings/SettingsDialog.svelte";
 	import Button from "./ui/Button.svelte";
+	import Link from "./ui/Link.svelte";
 
 	type ControlType = "minimize" | "maximize" | "close";
 
@@ -103,7 +104,7 @@
 		<JoinDialog />
 
 		{#if app.user}
-			<Button
+			<Link
 				class="size-min p-1 text-muted-foreground"
 				href={resolve("/whispers")}
 				size="icon"
@@ -111,7 +112,7 @@
 				aria-label="Go to whispers"
 			>
 				<Chats />
-			</Button>
+			</Link>
 		{/if}
 	</div>
 
