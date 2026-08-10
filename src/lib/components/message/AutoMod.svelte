@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { UserMessage } from "$lib/models/message/user-message.svelte";
 	import type { AutoModMetadata } from "$lib/twitch/eventsub";
-	import { Button } from "../ui/button";
+	import Button from "../ui/Button.svelte";
 	import Message from "./Message.svelte";
 
 	interface Props {
@@ -36,8 +36,8 @@
 		{#if metadata.category !== "msg_hold"}
 			<div class="flex gap-x-4">
 				<Button
-					class="h-min p-0 text-green-400"
-					variant="link"
+					class="text-green-400"
+					variant="inline"
 					disabled={message.deleted}
 					onclick={() => message.allow()}
 				>
@@ -45,8 +45,8 @@
 				</Button>
 
 				<Button
-					class="h-min p-0 text-destructive"
-					variant="link"
+					class="text-destructive"
+					variant="inline"
 					disabled={message.deleted}
 					onclick={() => message.deny()}
 				>

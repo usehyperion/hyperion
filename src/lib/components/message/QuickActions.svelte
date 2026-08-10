@@ -6,9 +6,9 @@
 	import Clock from "~icons/ph/clock";
 	import Gavel from "~icons/ph/gavel";
 	import Trash from "~icons/ph/trash";
-	import { Button } from "../ui/button";
 	import * as ButtonGroup from "../ui/button-group";
-	import * as Tooltip from "../ui/tooltip";
+	import Button from "../ui/Button.svelte";
+	import Tooltip from "../ui/Tooltip.svelte";
 
 	interface Props {
 		class?: string;
@@ -61,24 +61,16 @@
 </ButtonGroup.Root>
 
 {#snippet button(props: ComponentProps<typeof Button> & { icon: Component; tooltip: string })}
-	<Tooltip.Root>
-		<Tooltip.Trigger>
-			{#snippet child({ props: childProps })}
-				<Button
-					{...props}
-					{...childProps}
-					size="icon-sm"
-					variant="secondary"
-					aria-label={props.tooltip}
-					onclick={props.onclick}
-				>
-					<props.icon />
-				</Button>
-			{/snippet}
-		</Tooltip.Trigger>
+	<Button
+		{...props}
+		size="icon-sm"
+		variant="secondary"
+		data-slot="tooltip-trigger"
+		aria-label={props.tooltip}
+		onclick={props.onclick}
+	>
+		<props.icon />
+	</Button>
 
-		<Tooltip.Content side="top">
-			{props.tooltip}
-		</Tooltip.Content>
-	</Tooltip.Root>
+	<Tooltip side="top">{props.tooltip}</Tooltip>
 {/snippet}

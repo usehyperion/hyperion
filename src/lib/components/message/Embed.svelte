@@ -125,7 +125,7 @@
 
 					<div class="relative">
 						<img
-							class="h-full"
+							class="h-full ring-1 ring-black/10 dark:ring-white/10"
 							src={clip.thumbnailURL}
 							alt={clip.title}
 							decoding="async"
