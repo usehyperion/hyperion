@@ -4,16 +4,18 @@
 	import { platform as getPlatform } from "@tauri-apps/plugin-os";
 	import { onDestroy, onMount } from "svelte";
 	import type { HTMLButtonAttributes } from "svelte/elements";
-	import { afterNavigate, goto } from "$app/navigation";
+	import { afterNavigate } from "$app/navigation";
 	import { resolve } from "$app/paths";
-	import { page } from "$app/state";
 	import { app } from "$lib/app.svelte";
-	import Logo from "~icons/local/logo";
 	import ArrowLeft from "~icons/ph/arrow-left";
 	import ArrowRight from "~icons/ph/arrow-right";
+	import Chats from "~icons/ph/chats";
 	import Gear from "~icons/ph/gear";
-	import User from "~icons/ph/user";
-	import { Button } from "./ui/button";
+	import MagnifyingGlass from "~icons/ph/magnifying-glass";
+	import JoinDialog from "./JoinDialog.svelte";
+	import SettingsDialog, { openSettings } from "./settings/SettingsDialog.svelte";
+	import Button from "./ui/Button.svelte";
+	import Link from "./ui/Link.svelte";
 
 	type ControlType = "minimize" | "maximize" | "close";
 
@@ -24,8 +26,6 @@
 
 	let maximized = $state(false);
 	let fullscreen = $state(false);
-
-	const { icon: Icon, title } = $derived(page.data.titleBar ?? { icon: Logo, title: "Hyperion" });
 
 	onMount(async () => {
 		if (!currentWindow) return;
@@ -61,12 +61,16 @@
 >
 	<div
 		class={[
-			"flex items-center gap-0.5 text-muted-foreground",
-			platform === "macos" && (fullscreen ? "pl-3" : "pl-18"),
+			"flex items-center text-muted-foreground",
+			platform === "macos" && (fullscreen ? "pl-3" : "pl-20"),
 			["windows", "linux"].includes(platform) && "pl-3",
 		]}
 		data-tauri-drag-region
 	>
+		<img class="size-4" src="/logo.svg" alt="Hyperion logo" />
+	</div>
+
+	<div class="flex items-center justify-center gap-1.5" data-tauri-drag-region>
 		<Button
 			class="size-min p-1 hover:text-foreground"
 			size="icon"
@@ -86,42 +90,40 @@
 		>
 			<ArrowRight />
 		</Button>
-	</div>
 
-	<div
-		class="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-1.5"
-		data-tauri-drag-region
-	>
-		<Icon class="size-4" data-tauri-drag-region />
+		<button
+			class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-[background-color,scale] hover:bg-accent active:scale-[0.96]"
+			command="show-modal"
+			commandfor="join-dialog"
+		>
+			<MagnifyingGlass />
 
-		<span class="pointer-events-none text-sm font-medium">
-			{title}
-		</span>
+			Search channels
+		</button>
+
+		<JoinDialog />
+
+		{#if app.user}
+			<Link
+				class="size-min p-1 text-muted-foreground"
+				href={resolve("/whispers")}
+				size="icon"
+				variant="ghost"
+				aria-label="Go to whispers"
+			>
+				<Chats />
+			</Link>
+		{/if}
 	</div>
 
 	<div class="flex items-center justify-end" data-tauri-drag-region>
-		<div class="flex items-center gap-0.5 pr-3 text-muted-foreground">
-			{#if app.user}
-				<Button
-					class="size-min p-1 hover:text-foreground"
-					size="icon"
-					variant="ghost"
-					aria-label="Go to your channel"
-					onclick={async () => {
-						const channel = app.channels.get(app.user!.id);
-						if (channel) await app.open(channel);
-					}}
-				>
-					<User />
-				</Button>
-			{/if}
-
+		<div class="pr-3">
 			<Button
-				class="size-min p-1 hover:text-foreground"
+				class="size-min p-1 text-muted-foreground"
 				size="icon"
 				variant="ghost"
-				aria-label="Go to settings"
-				onclick={() => goto(resolve("/settings"))}
+				aria-label="Open settings"
+				onclick={openSettings}
 			>
 				<Gear />
 			</Button>
@@ -144,6 +146,8 @@
 		{/if}
 	</div>
 </div>
+
+<SettingsDialog />
 
 {#snippet control(type: ControlType, rest: HTMLButtonAttributes)}
 	<button

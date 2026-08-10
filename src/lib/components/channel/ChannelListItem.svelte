@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Attachment } from "svelte/attachments";
 	import type { Channel } from "$lib/models/channel.svelte";
-	import StreamInfo from "./StreamInfo.svelte";
-	import StreamTooltip from "./StreamTooltip.svelte";
+	import StreamInfo from "../stream/StreamInfo.svelte";
+	import StreamTooltip from "../stream/StreamTooltip.svelte";
 
 	interface Props {
 		channel: Channel;
@@ -13,7 +13,7 @@
 	const { channel, dragging, attach }: Props = $props();
 </script>
 
-<div class="relative px-1.5" {@attach attach}>
+<div class="relative" {@attach attach}>
 	<div class={[dragging && "invisible"]}>
 		<StreamTooltip {channel} />
 	</div>

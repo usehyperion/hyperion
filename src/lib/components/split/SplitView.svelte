@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { createDroppable } from "@dnd-kit/svelte";
 	import { app } from "$lib/app.svelte";
-	import Channel from "$lib/components/Channel.svelte";
 	import * as Empty from "$lib/components/ui/empty";
 	import type { Pane } from "$lib/splits/types";
 	import Layout from "~icons/ph/layout";
+	import Channel from "../channel/Channel.svelte";
 	import TabBar from "./TabBar.svelte";
 
 	interface Props {
@@ -97,7 +97,7 @@
 
 		<div
 			class={[
-				"pointer-events-none absolute z-20 bg-primary/50 brightness-50 transition-all duration-75 ease-out",
+				"pointer-events-none absolute z-20 bg-primary/50 brightness-50 transition-[opacity,top,left,width,height] duration-75 ease-out",
 				overlayClass ? "opacity-100" : "opacity-0",
 				overlayClass ?? "inset-0",
 			]}

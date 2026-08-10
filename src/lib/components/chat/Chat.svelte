@@ -1,13 +1,15 @@
 <script lang="ts">
+	import { fly } from "svelte/transition";
 	import { VList } from "virtua/svelte";
 	import { Chat } from "$lib/models/chat.svelte";
 	import type { Message } from "$lib/models/message/message";
 	import { settings } from "$lib/settings";
+	import ArrowDown from "~icons/ph/arrow-down";
 	import AutoMod from "../message/AutoMod.svelte";
 	import Event from "../message/Event.svelte";
 	import Notification from "../message/Notification.svelte";
 	import UserMessage from "../message/UserMessage.svelte";
-	import Separator from "./Separator.svelte";
+	import ChatSeparator from "./ChatSeparator.svelte";
 
 	interface Props {
 		class?: string;
@@ -29,12 +31,8 @@
 		if (!scrollingPaused) scrollToEnd();
 	});
 
-	const newMessageCount = $derived.by(() => {
-		if (!list) return "0";
-
-		const total = chat.messages.length - countSnapshot;
-		return total > 99 ? "99+" : Math.max(total, 0).toString();
-	});
+	const newMessageCount = $derived(chat.messages.length - countSnapshot);
+	const hasNew = $derived(newMessageCount > 0);
 
 	$effect(() => {
 		if (chat.messages.length && !scrollingPaused) {
@@ -71,7 +69,7 @@
 />
 
 <div
-	class="group/chat relative h-full"
+	class="chat group/chat relative h-full"
 	data-scrollbar={!settings.state["chat.hideScrollbar"]}
 	{@attach (element) => {
 		observer.observe(element);
@@ -80,21 +78,32 @@
 	}}
 >
 	{#if scrollingPaused}
-		<button
-			class="absolute bottom-0 z-10 flex w-full items-center justify-center rounded-t-md border bg-twitch/40 px-2 py-1 text-xs font-medium backdrop-blur-lg"
-			type="button"
-			onclick={scrollToEnd}
-		>
-			Scrolling paused
+		<div class="absolute inset-x-0 bottom-4 z-10 flex justify-center">
+			<button
+				class={[
+					"flex items-center rounded-full border bg-twitch/40 p-1.5 text-xs font-medium shadow-sm backdrop-blur-lg transition-[background-color,padding] duration-200 ease-out hover:bg-twitch/60",
+					hasNew && "pr-3",
+				]}
+				type="button"
+				onclick={scrollToEnd}
+				transition:fly={{ y: 16, duration: 200 }}
+			>
+				<ArrowDown class="size-4 shrink-0" />
 
-			{#if newMessageCount !== "0"}
-				({newMessageCount} new messages)
-			{/if}
-		</button>
+				<span
+					class="grid overflow-hidden transition-[grid-template-columns] duration-200 ease-out"
+					style:grid-template-columns={hasNew ? "minmax(0, 1fr)" : "minmax(0, 0fr)"}
+				>
+					<span class="overflow-hidden pl-1.5 whitespace-nowrap">
+						{newMessageCount} new {newMessageCount === 1 ? "message" : "messages"}
+					</span>
+				</span>
+			</button>
+		</div>
 	{/if}
 
 	<VList
-		class="{className} overflow-y-auto text-sm group-data-[scrollbar=false]/chat:[&::-webkit-scrollbar]:hidden"
+		class="{className} chat-viewport overflow-y-auto text-sm group-data-[scrollbar=false]/chat:[&::-webkit-scrollbar]:hidden"
 		data={chat.messages}
 		getKey={(message) => message.id}
 		onscroll={handleScroll}
@@ -106,16 +115,13 @@
 				{@const isNewDay = prev && prev.timestamp.getDate() !== message.timestamp.getDate()}
 
 				{#if isNewDay}
-					<Separator>
-						<time
-							class="text-muted-foreground/90"
-							datetime={message.timestamp.toISOString()}
-						>
+					<ChatSeparator>
+						<time datetime={message.timestamp.toISOString()}>
 							{message.timestamp.toLocaleDateString(navigator.languages, {
 								dateStyle: "long",
 							})}
 						</time>
-					</Separator>
+					</ChatSeparator>
 				{/if}
 
 				{#if message.isEvent()}
@@ -134,11 +140,11 @@
 				{@const nextRecent = next && (next.isEvent() || next.isUser()) && next.recent}
 
 				{#if message === lastRead && next && settings.state["chat.newSeparator"]}
-					<Separator class="text-red-400">New messages</Separator>
+					<ChatSeparator class="text-twitch-400">New messages</ChatSeparator>
 				{/if}
 
 				{#if message.recent && !nextRecent && settings.state["chat.messages.history.separator"]}
-					<Separator class="text-red-400">Live messages</Separator>
+					<ChatSeparator class="text-red-400">Live messages</ChatSeparator>
 				{/if}
 			{:else if message.isComponent()}
 				<message.component {...message.props} />
@@ -146,3 +152,37 @@
 		{/snippet}
 	</VList>
 </div>
+
+<style>
+	@property --scroll-fade {
+		syntax: "<length-percentage>";
+		inherits: false;
+		initial-value: 0;
+	}
+
+	.chat :global(.chat-viewport) {
+		--scroll-fade: 0;
+
+		mask-image: linear-gradient(
+			to bottom,
+			#000 0,
+			#000 calc(100% - var(--scroll-fade)),
+			transparent 100%
+		);
+		mask-composite: intersect;
+		mask-repeat: no-repeat;
+		animation: 1ms ease-in-out scroll-fade both;
+		animation-timeline: scroll(self y);
+		animation-range: calc(100% - calc(var(--spacing) * 24));
+	}
+
+	@keyframes scroll-fade {
+		from {
+			--scroll-fade: min(12%, calc(var(--spacing) * 10));
+		}
+
+		to {
+			--scroll-fade: 0;
+		}
+	}
+</style>

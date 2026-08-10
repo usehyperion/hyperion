@@ -331,6 +331,9 @@ export const searchSuggestionsQuery = gql(`
 							profileImageURL(width: 50)
 							user {
 								displayName
+								stream {
+									title
+								}
 							}
 						}
 					}
@@ -359,6 +362,15 @@ export const userQuery = gql(
 	}`,
 	[userDetailsFragment],
 );
+
+export const userAvatarsQuery = gql(`
+	query GetUserAvatars($ids: [ID!]!) {
+		users(ids: $ids) {
+			id
+			profileImageURL(width: 50)
+		}
+	}
+`);
 
 export const userBadgesQuery = gql(
 	`query GetUserBadges($user: String!, $channel: String!) {

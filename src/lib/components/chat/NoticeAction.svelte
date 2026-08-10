@@ -4,35 +4,35 @@
 
 <script lang="ts">
 	import type { Component } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
+	import { cn } from "tailwind-variants";
 	import CaretDown from "~icons/ph/caret-down";
 	import CaretUp from "~icons/ph/caret-up";
 	import X from "~icons/ph/x";
-	import { buttonVariants } from "../ui/button";
-	import * as Tooltip from "../ui/tooltip";
+	import { buttonVariants } from "../ui/button-variants";
+	import Tooltip from "../ui/Tooltip.svelte";
 	import NoticeAction from "./NoticeAction.svelte";
 
-	interface Props {
+	interface Props extends HTMLButtonAttributes {
 		icon: Component;
 		tooltip: string;
-		onclick: () => void;
 	}
 
-	const { icon: Icon, tooltip, onclick }: Props = $props();
+	const { icon: Icon, tooltip, ...rest }: Props = $props();
 </script>
 
-<Tooltip.Root>
-	<Tooltip.Trigger
-		class={buttonVariants({ class: "size-5", size: "icon-sm", variant: "ghost" })}
-		{onclick}
-		aria-label={tooltip}
-	>
-		<Icon class="size-3.5" />
-	</Tooltip.Trigger>
+<button
+	class={cn(buttonVariants({ size: "icon-sm", variant: "ghost" }), "size-5")}
+	aria-label={tooltip}
+	data-slot="tooltip-trigger"
+	{...rest}
+>
+	<Icon class="size-3.5" />
+</button>
 
-	<Tooltip.Content side="top">
-		{tooltip}
-	</Tooltip.Content>
-</Tooltip.Root>
+<Tooltip side="top">
+	{tooltip}
+</Tooltip>
 
 {#snippet details(expanded: boolean, onclick: () => void)}
 	<NoticeAction

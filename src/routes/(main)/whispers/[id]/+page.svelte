@@ -2,7 +2,7 @@
 	import { onMount, tick } from "svelte";
 	import type { KeyboardEventHandler } from "svelte/elements";
 	import Timestamp from "$lib/components/Timestamp.svelte";
-	import { Input } from "$lib/components/ui/input";
+	import Input from "$lib/components/ui/Input.svelte";
 
 	const { data } = $props();
 
@@ -40,7 +40,7 @@
 		{#each data.whisper.messages as message (message.id)}
 			<div class="flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-muted/50">
 				<img
-					class="rounded-full"
+					class="rounded-full ring-1 ring-black/10 dark:ring-white/10"
 					src={message.user.avatarUrl}
 					alt={message.user.displayName}
 					width="40"
@@ -65,7 +65,6 @@
 	<div class="p-2">
 		<Input
 			class="h-12"
-			type="text"
 			autocapitalize="off"
 			autocorrect="off"
 			placeholder="Send a message"

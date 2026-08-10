@@ -5,8 +5,8 @@
 	import LockSimple from "~icons/ph/lock-simple";
 	import Prohibit from "~icons/ph/prohibit";
 	import SealQuestion from "~icons/ph/seal-question";
-	import { Progress } from "../ui/progress";
-	import * as Tooltip from "../ui/tooltip";
+	import Progress from "../ui/Progress.svelte";
+	import Tooltip from "../ui/Tooltip.svelte";
 	import NoticeAction, { details, hide } from "./NoticeAction.svelte";
 
 	interface Props {
@@ -126,7 +126,7 @@
 						{/if}
 
 						<span
-							class="ml-auto shrink-0 text-xs whitespace-nowrap text-muted-foreground"
+							class="ml-auto shrink-0 text-xs whitespace-nowrap text-muted-foreground tabular-nums"
 						>
 							{pct}% ({outcome.points.toLocaleString()})
 						</span>
@@ -140,41 +140,38 @@
 						{/if}
 					</div>
 
-					<Tooltip.Root>
-						<Tooltip.Trigger>
-							<Progress
-								value={pct}
-								class={["h-1.5", lost && "opacity-25"]}
-								indicatorClass={colorFor(i)}
-							/>
-						</Tooltip.Trigger>
+					<Progress
+						class={["h-1.5", lost && "opacity-25"]}
+						value={pct}
+						indicatorClass={colorFor(i)}
+						data-slot="tooltip-trigger"
+					/>
 
-						<Tooltip.Content class="flex flex-col gap-0.5" side="top">
-							<span class="flex items-center gap-1 font-medium">
-								<span class={["size-2 shrink-0 rounded-full", colorFor(i)]}></span>
+					<Tooltip class="flex flex-col gap-0.5" side="top">
+						<span class="flex items-center gap-1 font-medium">
+							<span class={["size-2 shrink-0 rounded-full", colorFor(i)]}></span>
 
-								{outcome.title}
+							{outcome.title}
 
-								{#if won}
-									<Crown class="size-3 text-yellow-400" />
-								{/if}
-							</span>
+							{#if won}
+								<Crown class="size-3 text-yellow-400" />
+							{/if}
+						</span>
 
-							<span>{outcome.points.toLocaleString()} points ({pct}%)</span>
+						<span>{outcome.points.toLocaleString()} points ({pct}%)</span>
 
-							<span>
-								{outcome.users.toLocaleString()}
-								{outcome.users === 1 ? "predictor" : "predictors"}
-							</span>
+						<span>
+							{outcome.users.toLocaleString()}
+							{outcome.users === 1 ? "predictor" : "predictors"}
+						</span>
 
-							<span>Returns {ratio(outcome.points).toFixed(2)}&times;</span>
-						</Tooltip.Content>
-					</Tooltip.Root>
+						<span>Returns {ratio(outcome.points).toFixed(2)}&times;</span>
+					</Tooltip>
 				</li>
 			{/each}
 		</ul>
 
-		<p class="mt-1.5 text-xs text-muted-foreground">
+		<p class="mt-1.5 text-xs text-muted-foreground tabular-nums">
 			{prediction.totalPoints.toLocaleString()} points ·
 			{prediction.totalUsers.toLocaleString()}
 			{prediction.totalUsers === 1 ? "predictor" : "predictors"}

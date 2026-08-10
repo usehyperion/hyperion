@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Popover, Tabs } from "bits-ui";
+	import { Tabs } from "bits-ui";
 	import { app } from "$lib/app.svelte";
 	import { GLOBAL_PROVIDERS, toProviderSets } from "$lib/emotes";
 	import type { Emote, EmoteProvider, EmoteSet } from "$lib/emotes";
@@ -9,8 +9,9 @@
 	import FrankerFaceZ from "~icons/logos/ffz";
 	import Twitch from "~icons/logos/twitch";
 	import Smiley from "~icons/ph/smiley";
-	import { Input } from "../ui/input";
 	import * as InputGroup from "../ui/input-group";
+	import Input from "../ui/Input.svelte";
+	import Popover from "../ui/Popover.svelte";
 	import Browser from "./Browser.svelte";
 	import Results from "./Results.svelte";
 
@@ -82,58 +83,50 @@
 	}
 </script>
 
-<Popover.Root>
-	<Popover.Trigger disabled={app.user?.banned.has(channel.id)} aria-label="Open emote picker">
-		{#snippet child({ props })}
-			<InputGroup.Button class="size-9" size="icon-sm" {...props}>
-				<Smiley />
-			</InputGroup.Button>
-		{/snippet}
-	</Popover.Trigger>
+<InputGroup.Button
+	size="icon-sm"
+	popovertarget="emote-picker-{channel.id}"
+	disabled={app.user?.banned.has(channel.id)}
+	aria-label="Toggle emote picker"
+>
+	<Smiley />
+</InputGroup.Button>
 
-	<Popover.Portal>
-		<Popover.Content
-			class="flex h-100 w-120 flex-col overflow-hidden rounded-md border bg-sidebar"
-			side="top"
-			sideOffset={12}
-			collisionPadding={8}
-		>
-			<Tabs.Root class="flex min-h-0 flex-1 flex-col" bind:value={activeProvider}>
-				<Tabs.List class="flex shrink-0 border-b">
-					{#each TABS as tab (tab.provider)}
-						<Tabs.Trigger
-							class="group flex flex-1 justify-center py-2 transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-40 data-[state=active]:bg-accent"
-							value={tab.provider}
-							disabled={!providerSets[tab.provider]?.length}
-						>
-							<tab.icon
-								class="size-4 fill-muted-foreground group-hover:fill-foreground group-data-[state=active]:fill-foreground"
-							/>
-						</Tabs.Trigger>
-					{/each}
-				</Tabs.List>
+<Popover id="emote-picker-{channel.id}" class="h-100 w-120 flex-col overflow-hidden p-0 open:flex">
+	<Tabs.Root class="flex min-h-0 flex-1 flex-col" bind:value={activeProvider}>
+		<Tabs.List class="flex shrink-0 border-b">
+			{#each TABS as tab (tab.provider)}
+				<Tabs.Trigger
+					class="group flex flex-1 justify-center py-2 transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-40 data-[state=active]:bg-accent"
+					value={tab.provider}
+					disabled={!providerSets[tab.provider]?.length}
+				>
+					<tab.icon
+						class="size-4 fill-muted-foreground group-hover:fill-foreground group-data-[state=active]:fill-foreground"
+					/>
+				</Tabs.Trigger>
+			{/each}
+		</Tabs.List>
 
-				<Input
-					class="shrink-0 rounded-none border-0 border-b focus-visible:ring-0"
-					type="search"
-					placeholder="Search..."
-					bind:value={query}
-				/>
+		<Input
+			class="shrink-0 rounded-none border-0 border-b focus-visible:ring-0"
+			type="search"
+			placeholder="Search..."
+			bind:value={query}
+		/>
 
-				{#each TABS as tab (tab.provider)}
-					<Tabs.Content class="flex min-h-0 flex-1 flex-col" value={tab.provider}>
-						{#if query}
-							<Results emotes={results} onpick={appendEmote} />
-						{:else}
-							<Browser
-								sets={providerSets[tab.provider] ?? []}
-								channelId={channel.id}
-								onpick={appendEmote}
-							/>
-						{/if}
-					</Tabs.Content>
-				{/each}
-			</Tabs.Root>
-		</Popover.Content>
-	</Popover.Portal>
-</Popover.Root>
+		{#each TABS as tab (tab.provider)}
+			<Tabs.Content class="flex min-h-0 flex-1 flex-col" value={tab.provider}>
+				{#if query}
+					<Results emotes={results} onpick={appendEmote} />
+				{:else}
+					<Browser
+						sets={providerSets[tab.provider] ?? []}
+						channelId={channel.id}
+						onpick={appendEmote}
+					/>
+				{/if}
+			</Tabs.Content>
+		{/each}
+	</Tabs.Root>
+</Popover>

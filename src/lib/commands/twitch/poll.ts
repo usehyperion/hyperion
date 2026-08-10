@@ -1,5 +1,5 @@
-import { pollOpen } from "$lib/components/chat/PollDialog.svelte";
 import { CommandError } from "$lib/errors/command-error";
+import { openDialog } from "$lib/util";
 import { defineCommand } from "../util";
 
 export default defineCommand({
@@ -12,6 +12,6 @@ export default defineCommand({
 			throw new CommandError("A poll is already active.");
 		}
 
-		pollOpen.value = true;
+		openDialog(`poll-dialog-${channel.id}`);
 	},
 });

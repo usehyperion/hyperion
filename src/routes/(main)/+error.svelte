@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from "$app/state";
-	import { Button } from "$lib/components/ui/button";
 	import * as Empty from "$lib/components/ui/empty";
+	import Link from "$lib/components/ui/Link.svelte";
 	import { log } from "$lib/log";
 	import WarningCircle from "~icons/ph/warning-circle";
 
@@ -24,6 +24,6 @@
 	</Empty.Header>
 
 	<Empty.Content>
-		<Button href="https://github.com/usehyperion/hyperion/issues">File an issue</Button>
+		<Link href="https://github.com/usehyperion/hyperion/issues">File an issue</Link>
 	</Empty.Content>
 </Empty.Root>

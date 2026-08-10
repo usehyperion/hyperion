@@ -6,12 +6,10 @@
 	import { relaunch } from "@tauri-apps/plugin-process";
 	import { check } from "@tauri-apps/plugin-updater";
 	import { onMount } from "svelte";
-	import { goto } from "$app/navigation";
-	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
+	import { openSettings } from "$lib/components/settings/SettingsDialog.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
-	import StreamInfo from "$lib/components/StreamInfo.svelte";
-	import * as Tooltip from "$lib/components/ui/tooltip";
+	import StreamInfo from "$lib/components/stream/StreamInfo.svelte";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "$lib/splits/events";
 	import { storage } from "$lib/stores";
 
@@ -42,9 +40,7 @@
 		}
 	});
 
-	createHotkey("Mod+,", async () => {
-		await goto(resolve("/settings"));
-	});
+	createHotkey("Mod+,", () => openSettings());
 </script>
 
 <DragDropProvider
@@ -59,17 +55,15 @@
 	{onDragMove}
 	{onDragEnd}
 >
-	<Tooltip.Provider delayDuration={100}>
-		<div class="flex grow overflow-hidden">
-			{#if storage.state.user}
-				<Sidebar />
-			{/if}
+	<div class="flex grow overflow-hidden">
+		{#if storage.state.user}
+			<Sidebar />
+		{/if}
 
-			<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
-				{@render children()}
-			</main>
-		</div>
-	</Tooltip.Provider>
+		<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
+			{@render children()}
+		</main>
+	</div>
 
 	<DragOverlay>
 		{#snippet children(source)}
@@ -83,7 +77,7 @@
 					>
 						<img
 							class={[
-								"size-6 rounded-full object-cover",
+								"size-6 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10",
 								!channel.stream && "grayscale",
 							]}
 							src={channel.user.avatarUrl}
