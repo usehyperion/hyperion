@@ -17,7 +17,7 @@
 			return "channel";
 		},
 		get data() {
-			return { kind: "channel", id: channel.id };
+			return { kind: "channel", id: channel.id, ephemeral: channel.ephemeral };
 		},
 	});
 </script>

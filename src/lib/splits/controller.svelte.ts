@@ -12,6 +12,7 @@ import {
 	type SplitDirection,
 	type SplitDropPosition,
 	type SplitNode,
+	type Tab,
 } from "./types";
 
 type Point = { x: number; y: number } | undefined;
@@ -59,7 +60,9 @@ export class SplitController {
 	 * The pane containing the given channel tab, if any.
 	 */
 	public paneOf(tabId: string): Pane | null {
-		return this.root ? tree.findLeaf(this.root, (p) => p.tabs.includes(tabId)) : null;
+		return this.root
+			? tree.findLeaf(this.root, (p) => p.tabs.some((t) => t.id === tabId))
+			: null;
 	}
 
 	public registerPaneElement(paneId: string, el: HTMLElement) {
@@ -76,43 +79,43 @@ export class SplitController {
 	 * Ensures the given channel is open as a tab. Activates it if already in the
 	 * layout; otherwise opens it in the focused pane, or a new root pane.
 	 */
-	public ensure(channelId: string) {
-		const existing = this.paneOf(channelId);
+	public ensure(tab: Tab) {
+		const existing = this.paneOf(tab.id);
 
 		if (existing) {
-			this.#focus(existing, channelId);
+			this.#focus(existing, tab.id);
 			return;
 		}
 
 		if (!this.root) {
-			this.root = tree.createPane([channelId]);
+			this.root = tree.createPane([tab]);
 			return;
 		}
 
 		const pane = this.focused ?? tree.firstLeaf(this.root);
-		pane.tabs.push(channelId);
+		pane.tabs.push(tree.createTab(tab));
 
-		this.#focus(pane, channelId);
+		this.#focus(pane, tab.id);
 	}
 
 	/**
 	 * Opens the given channel as a tab of the given pane, moving it there if it
 	 * is already open elsewhere.
 	 */
-	public addTab(paneId: string, channelId: string, index?: number) {
+	public addTab(paneId: string, tab: Tab, index?: number) {
 		const pane = this.pane(paneId);
 		if (!pane) return;
 
-		const source = this.paneOf(channelId);
+		const source = this.paneOf(tab.id);
 		if (source === pane) {
-			this.#focus(pane, channelId);
+			this.#focus(pane, tab.id);
 			return;
 		}
 
-		pane.tabs.splice(index ?? pane.tabs.length, 0, channelId);
-		this.#focus(pane, channelId);
+		pane.tabs.splice(index ?? pane.tabs.length, 0, this.#take(source, tab));
+		this.#focus(pane, tab.id);
 
-		this.#detach(source, channelId);
+		this.#closeIfEmpty(source);
 	}
 
 	/**
@@ -130,14 +133,14 @@ export class SplitController {
 		const pane = this.pane(paneId);
 		if (!pane) return;
 
-		const from = pane.tabs.indexOf(id);
+		const from = pane.tabs.findIndex((t) => t.id === id);
 		if (from === -1) return;
 
-		pane.tabs.splice(from, 1);
+		const [tab] = pane.tabs.splice(from, 1);
 
 		const dest = Math.max(0, Math.min(index > from ? index - 1 : index, pane.tabs.length));
 
-		pane.tabs.splice(dest, 0, id);
+		pane.tabs.splice(dest, 0, tab);
 		this.#focus(pane, id);
 	}
 
@@ -145,20 +148,20 @@ export class SplitController {
 	 * Moves a tab to the given pane at an optional index, removing it from its
 	 * source pane.
 	 */
-	public moveTab(id: string, paneId: string, index?: number) {
-		const source = this.paneOf(id);
+	public moveTab(tab: Tab, paneId: string, index?: number) {
+		const source = this.paneOf(tab.id);
 		const target = this.pane(paneId);
 
 		if (!target) return;
 
 		if (target === source) {
-			return this.#focus(target, id);
+			return this.#focus(target, tab.id);
 		}
 
-		target.tabs.splice(index ?? target.tabs.length, 0, id);
+		target.tabs.splice(index ?? target.tabs.length, 0, this.#take(source, tab));
 
-		this.#focus(target, id);
-		this.#detach(source, id);
+		this.#focus(target, tab.id);
+		this.#closeIfEmpty(source);
 	}
 
 	/**
@@ -180,11 +183,10 @@ export class SplitController {
 	 * Splits the target pane in the given direction, placing the channel in the
 	 * new sibling and removing it from its current pane.
 	 */
-	public splitWithTab(paneId: string, direction: SplitDirection, channelId: string) {
-		const source = this.paneOf(channelId);
-		this.#removeTab(source, channelId);
+	public splitWithTab(paneId: string, direction: SplitDirection, tab: Tab) {
+		const source = this.paneOf(tab.id);
 
-		this.#insertPane(paneId, direction, tree.createPane([channelId]));
+		this.#insertPane(paneId, direction, tree.createPane([this.#take(source, tab)]));
 		this.#closeIfEmpty(source);
 	}
 
@@ -225,7 +227,11 @@ export class SplitController {
 	 * Begins tracking a tab or channel drag.
 	 */
 	public startDrag(data: DragData) {
-		this.drag = { channelId: data.id, sourcePaneId: data.paneId ?? null };
+		this.drag = {
+			channelId: data.id,
+			sourcePaneId: data.paneId ?? null,
+			ephemeral: data.ephemeral ?? false,
+		};
 	}
 
 	/**
@@ -259,13 +265,29 @@ export class SplitController {
 
 		if (!drag || !data || this.#isSelfNoop(data.paneId)) return;
 
+		const tab: Tab = { id: drag.channelId, ephemeral: drag.ephemeral };
+
 		if (data.kind === "pane") {
-			this.#dropIntoZone(drag.channelId, data.paneId, this.#zoneForPane(data.paneId, point));
+			this.#dropIntoZone(tab, data.paneId, this.#zoneForPane(data.paneId, point));
 		} else if (drag.sourcePaneId === data.paneId) {
 			const index = data.index ?? this.pane(data.paneId)?.tabs.length ?? 0;
 			this.reorderTab(drag.channelId, data.paneId, index);
 		} else {
-			this.moveTab(drag.channelId, data.paneId, data.index);
+			this.moveTab(tab, data.paneId, data.index);
+		}
+	}
+
+	/**
+	 * Closes any ephemeral tabs that are still open in the layout.
+	 */
+	public cleanup() {
+		const stale = tree
+			.leaves(this.root)
+			.flatMap((pane) => pane.tabs)
+			.filter((tab) => tab.ephemeral);
+
+		for (const tab of stale) {
+			this.closeTab(tab.id);
 		}
 	}
 
@@ -286,17 +308,28 @@ export class SplitController {
 		this.#closeIfEmpty(pane);
 	}
 
-	#removeTab(pane: Pane | null, tabId: string) {
-		if (!pane) return;
+	/**
+	 * The entry to insert for a tab being placed in a pane: the existing one
+	 * lifted out of `source` so its flags travel with it, or a new entry when the
+	 * tab isn't in the layout yet.
+	 */
+	#take(source: Pane | null, tab: Tab): Tab {
+		return this.#removeTab(source, tab.id) ?? tree.createTab(tab);
+	}
 
-		const index = pane.tabs.indexOf(tabId);
-		if (index === -1) return;
+	#removeTab(pane: Pane | null, tabId: string): Tab | null {
+		if (!pane) return null;
 
-		pane.tabs.splice(index, 1);
+		const index = pane.tabs.findIndex((t) => t.id === tabId);
+		if (index === -1) return null;
+
+		const [tab] = pane.tabs.splice(index, 1);
 
 		if (pane.active === tabId) {
-			pane.active = pane.tabs[index] ?? pane.tabs.at(-1) ?? null;
+			pane.active = (pane.tabs[index] ?? pane.tabs.at(-1))?.id ?? null;
 		}
+
+		return tab;
 	}
 
 	#closeIfEmpty(pane: Pane | null) {
@@ -353,11 +386,11 @@ export class SplitController {
 	 * `center` moves/opens the channel in the pane; an edge splits the pane and
 	 * places the channel in the new sibling.
 	 */
-	#dropIntoZone(channelId: string, paneId: string, zone: SplitDropPosition) {
+	#dropIntoZone(tab: Tab, paneId: string, zone: SplitDropPosition) {
 		if (zone === "center") {
-			this.addTab(paneId, channelId);
+			this.addTab(paneId, tab);
 		} else {
-			this.splitWithTab(paneId, tree.edgeToDirection(zone), channelId);
+			this.splitWithTab(paneId, tree.edgeToDirection(zone), tab);
 		}
 	}
 }

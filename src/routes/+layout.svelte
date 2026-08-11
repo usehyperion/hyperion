@@ -5,6 +5,7 @@
 	import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 	import { ModeWatcher } from "mode-watcher";
 	import { onDestroy, onMount } from "svelte";
+	import { app } from "$lib/app.svelte";
 	import TitleBar from "$lib/components/TitleBar.svelte";
 	import { log } from "$lib/log";
 	import { settings } from "$lib/settings";
@@ -16,6 +17,8 @@
 	let unlisten: () => void;
 
 	onMount(async () => {
+		app.splits.cleanup();
+
 		injectTheme(settings.state["appearance.theme"]);
 
 		unlisten = await onOpenUrl(async (urls) => {

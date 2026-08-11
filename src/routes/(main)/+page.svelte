@@ -82,15 +82,16 @@
 		const pane = app.splits.focused;
 		if (!pane?.active || pane.tabs.length < 2) return;
 
-		const index = pane.tabs.indexOf(pane.active);
+		const index = pane.tabs.findIndex((tab) => tab.id === pane.active);
 		const next = pane.tabs[(index + offset + pane.tabs.length) % pane.tabs.length];
+		if (!next) return;
 
-		const channel = app.channels.get(next);
+		const channel = app.channels.get(next.id);
 
 		if (channel) {
 			await app.open(channel);
 		} else {
-			app.splits.activate(next);
+			app.splits.activate(next.id);
 		}
 	}
 

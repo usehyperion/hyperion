@@ -40,7 +40,7 @@
 		app.refocus(channel);
 
 		if (settings.state["splits.leaveOnClose"]) {
-			await Promise.all(tabs.map((id) => app.channels.get(id)?.leave()));
+			await Promise.all(tabs.map((tab) => app.channels.get(tab.id)?.leave()));
 		}
 	}
 </script>
@@ -52,8 +52,8 @@
 		tabindex="-1"
 		{@attach droppable.attach}
 	>
-		{#each pane.tabs as tabId, index (tabId)}
-			<Tab id={tabId} {index} paneId={pane.id} active={pane.active === tabId} />
+		{#each pane.tabs as tab, index (tab.id)}
+			<Tab id={tab.id} {index} paneId={pane.id} active={pane.active === tab.id} />
 		{/each}
 
 		{#if showDropIndicator}

@@ -92,7 +92,7 @@ class App {
 			}
 		}
 
-		this.splits.ensure(channel.id);
+		this.splits.ensure({ id: channel.id, ephemeral: channel.ephemeral });
 
 		// The split view only lives at the root route, so return to it when
 		// opening a channel from elsewhere.

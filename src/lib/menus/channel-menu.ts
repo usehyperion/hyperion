@@ -23,7 +23,10 @@ async function splitItem(channel: Channel, direction: SplitDirection) {
 			const focused = app.splits.focused;
 			if (!focused) return;
 
-			app.splits.splitWithTab(focused.id, direction, channel.id);
+			app.splits.splitWithTab(focused.id, direction, {
+				id: channel.id,
+				ephemeral: channel.ephemeral,
+			});
 		},
 	});
 }

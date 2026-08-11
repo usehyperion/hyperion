@@ -16,18 +16,33 @@ interface Node {
 }
 
 /**
+ * A channel tab within a pane.
+ */
+export interface Tab {
+	/**
+	 * The id of the channel the tab shows.
+	 */
+	id: string;
+
+	/**
+	 * Whether the channel was joined ephemerally.
+	 */
+	ephemeral?: boolean;
+}
+
+/**
  * A leaf node holding an ordered stack of channel tabs.
  */
 export interface Pane extends Node {
 	readonly type: "pane";
 
 	/**
-	 * Channel ids in tab order.
+	 * The tabs in tab order.
 	 */
-	tabs: string[];
+	tabs: Tab[];
 
 	/**
-	 * The currently visible tab.
+	 * The id of the channel of the currently visible tab.
 	 */
 	active: string | null;
 }
@@ -44,7 +59,7 @@ export interface Split extends Node {
 
 export type SplitNode = Split | Pane;
 
-export const LAYOUT_VERSION = 1;
+export const LAYOUT_VERSION = 2;
 
 /**
  * The persisted split layout.
@@ -69,6 +84,7 @@ export interface Rect {
 export interface DragState {
 	channelId: string;
 	sourcePaneId: string | null;
+	ephemeral: boolean;
 }
 
 export interface DropTarget {
@@ -80,6 +96,12 @@ export interface DragData {
 	kind: "tab" | "channel";
 	id: string;
 	paneId?: string;
+
+	/**
+	 * Set by channel drags, which create a tab rather than move one. A tab drag
+	 * carries its flag on the tab itself.
+	 */
+	ephemeral?: boolean;
 }
 
 export interface DropData {

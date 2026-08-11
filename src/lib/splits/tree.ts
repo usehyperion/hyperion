@@ -1,4 +1,4 @@
-import type { Pane, SplitAxis, SplitDirection, SplitEdge, SplitNode } from "./types";
+import type { Pane, SplitAxis, SplitDirection, SplitEdge, SplitNode, Tab } from "./types";
 
 const EDGE_DIRECTION: Record<SplitEdge, SplitDirection> = {
 	top: "up",
@@ -15,13 +15,21 @@ export function isLeaf(node: SplitNode): node is Pane {
 	return node.type === "pane";
 }
 
-export function createPane(tabs: string[] = [], size = 100): Pane {
+/**
+ * Normalizes a tab into a plain entry of its own, leaving `ephemeral` off
+ * entirely when it doesn't apply so it stays out of the persisted layout.
+ */
+export function createTab({ id, ephemeral }: Tab): Tab {
+	return ephemeral ? { id, ephemeral: true } : { id };
+}
+
+export function createPane(tabs: Tab[] = [], size = 100): Pane {
 	return {
 		type: "pane",
 		id: uid("pane"),
 		size,
-		tabs,
-		active: tabs.at(-1) ?? null,
+		tabs: tabs.map(createTab),
+		active: tabs.at(-1)?.id ?? null,
 	};
 }
 
