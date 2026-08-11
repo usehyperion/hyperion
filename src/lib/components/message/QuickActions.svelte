@@ -1,13 +1,14 @@
 <script lang="ts">
-	import type { Component, ComponentProps } from "svelte";
+	import type { Component } from "svelte";
 	import type { UserMessage } from "$lib/models/message/user-message.svelte";
 	import ArrowBendUpLeft from "~icons/ph/arrow-bend-up-left";
+	import Check from "~icons/ph/check";
 	import Clipboard from "~icons/ph/clipboard";
 	import Clock from "~icons/ph/clock";
 	import Gavel from "~icons/ph/gavel";
 	import Trash from "~icons/ph/trash";
-	import * as ButtonGroup from "../ui/button-group";
 	import Button from "../ui/Button.svelte";
+	import Separator from "../ui/Separator.svelte";
 	import Tooltip from "../ui/Tooltip.svelte";
 
 	interface Props {
@@ -15,62 +16,103 @@
 		message: UserMessage;
 	}
 
+	interface Action {
+		icon: Component;
+		label: string;
+		danger?: boolean;
+		onclick?: () => void;
+		onclickwait?: () => Promise<unknown>;
+	}
+
 	const { class: className, message }: Props = $props();
+
+	let copied = $state(false);
+	let copyTimer: ReturnType<typeof setTimeout>;
+
+	function copy() {
+		navigator.clipboard.writeText(message.text);
+
+		copied = true;
+		clearTimeout(copyTimer);
+		copyTimer = setTimeout(() => (copied = false), 1500);
+	}
+
+	function reply() {
+		message.channel.chat.replyTarget = message;
+		message.channel.chat.input?.focus();
+	}
+
+	$effect(() => () => clearTimeout(copyTimer));
 </script>
 
-<ButtonGroup.Root class={className}>
-	{@render button({
-		tooltip: "Copy",
-		icon: Clipboard,
-		onclick: () => navigator.clipboard.writeText(message.text),
+<div
+	class={[
+		"flex items-center gap-px rounded-lg bg-popover p-1 smooth-shadow-ring-md",
+		"pointer-events-none opacity-0 transition-opacity duration-100 ease-out-quart",
+		"group-hover:pointer-events-auto group-hover:opacity-100",
+		"focus-within:pointer-events-auto focus-within:opacity-100",
+		className,
+	]}
+	role="group"
+	aria-label="Message actions"
+>
+	{@render action({
+		icon: copied ? Check : Clipboard,
+		label: copied ? "Copied" : "Copy",
+		onclick: copy,
 	})}
 
-	{@render button({
-		tooltip: "Reply",
+	{@render action({
 		icon: ArrowBendUpLeft,
-		onclick: () => {
-			message.channel.chat.replyTarget = message;
-			message.channel.chat.input?.focus();
-		},
+		label: "Reply",
+		onclick: reply,
 	})}
 
 	{#if message.actionable}
-		<ButtonGroup.Separator orientation="vertical" />
+		<div class="h-4">
+			<Separator orientation="vertical" class="mx-1 self-center" />
+		</div>
 
-		{@render button({
-			class: "text-red-400",
-			tooltip: "Delete",
+		{@render action({
 			icon: Trash,
-			onclick: () => message.delete(),
+			label: "Delete",
+			danger: true,
+			onclickwait: () => message.delete(),
 		})}
 
-		{@render button({
-			class: "text-red-400",
-			tooltip: "Timeout for 10 minutes",
+		{@render action({
 			icon: Clock,
-			onclick: () => message.viewer?.timeout({ duration: 600 }),
+			label: "Timeout (10 minutes)",
+			danger: true,
+			onclickwait: async () => await message.viewer?.timeout({ duration: 600 }),
 		})}
 
-		{@render button({
-			class: "text-red-400",
-			tooltip: "Ban",
+		{@render action({
 			icon: Gavel,
-			onclick: () => message.viewer?.ban(),
+			label: "Ban",
+			danger: true,
+			onclickwait: async () => await message.viewer?.ban(),
 		})}
 	{/if}
-</ButtonGroup.Root>
+</div>
 
-{#snippet button(props: ComponentProps<typeof Button> & { icon: Component; tooltip: string })}
+{#snippet action(config: Action)}
 	<Button
-		{...props}
+		class={[
+			"text-muted-foreground",
+			config.danger
+				? "hover:bg-destructive/10 hover:text-destructive"
+				: "hover:text-foreground",
+		]}
 		size="icon-sm"
-		variant="secondary"
+		variant="ghost"
+		aria-label={config.label}
 		data-slot="tooltip-trigger"
-		aria-label={props.tooltip}
-		onclick={props.onclick}
+		onclick={config.onclick}
+		onclickwait={config.onclickwait}
 	>
-		<props.icon />
+		<config.icon />
 	</Button>
 
-	<Tooltip side="top">{props.tooltip}</Tooltip>
+	<Tooltip side="top">{config.label}</Tooltip>
 {/snippet}

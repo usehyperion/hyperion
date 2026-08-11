@@ -79,10 +79,7 @@
 	oncontextmenu={(event) => openMenu(event, () => createMessageMenu(message))}
 >
 	{#if !message.deleted && !app.user?.banned.has(message.channel.id)}
-		<QuickActions
-			class="absolute top-0 right-2 -translate-y-1/2 not-group-hover:hidden"
-			{message}
-		/>
+		<QuickActions class="absolute top-0 right-2 z-10 -translate-y-1/2" {message} />
 	{/if}
 
 	{#if message.redemption}
