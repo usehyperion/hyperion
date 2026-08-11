@@ -83,6 +83,8 @@
 		if (!pane?.active || pane.tabs.length < 2) return;
 
 		const index = pane.tabs.findIndex((tab) => tab.id === pane.active);
+		if (index === -1) return;
+
 		const next = pane.tabs[(index + offset + pane.tabs.length) % pane.tabs.length];
 		if (!next) return;
 
