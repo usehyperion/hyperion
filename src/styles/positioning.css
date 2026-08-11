@@ -1,0 +1,157 @@
+@position-try --anchored-inline-center {
+	justify-self: anchor-center;
+	left: auto;
+	right: auto;
+}
+
+@position-try --anchored-inline-start {
+	justify-self: normal;
+	left: anchor(left);
+	right: auto;
+}
+
+@position-try --anchored-inline-end {
+	justify-self: normal;
+	right: anchor(right);
+	left: auto;
+}
+
+@position-try --anchored-block-center {
+	align-self: anchor-center;
+	top: auto;
+	bottom: auto;
+}
+
+@position-try --anchored-block-start {
+	align-self: normal;
+	top: anchor(top);
+	bottom: auto;
+}
+
+@position-try --anchored-block-end {
+	align-self: normal;
+	bottom: anchor(bottom);
+	top: auto;
+}
+
+@layer components {
+	[data-anchored] {
+		--anchor-gap: 0.5rem;
+
+		position: fixed;
+		position-anchor: var(--anchor);
+		anchor-name: var(--anchor-self);
+		inset: auto;
+		margin: 0;
+		max-inline-size: calc(100vw - 1rem);
+		max-block-size: calc(100vh - 1rem);
+		position-visibility: anchors-visible;
+	}
+
+	[data-anchored][data-side="top"] {
+		bottom: anchor(top);
+		margin-bottom: var(--anchor-gap);
+	}
+
+	[data-anchored][data-side="bottom"] {
+		top: anchor(bottom);
+		margin-top: var(--anchor-gap);
+	}
+
+	[data-anchored][data-side="left"] {
+		right: anchor(left);
+		margin-right: var(--anchor-gap);
+	}
+
+	[data-anchored][data-side="right"] {
+		left: anchor(right);
+		margin-left: var(--anchor-gap);
+	}
+
+	[data-anchored]:is([data-side="top"], [data-side="bottom"])[data-align="center"] {
+		justify-self: anchor-center;
+	}
+
+	[data-anchored]:is([data-side="top"], [data-side="bottom"])[data-align="start"] {
+		left: anchor(left);
+	}
+
+	[data-anchored]:is([data-side="top"], [data-side="bottom"])[data-align="end"] {
+		right: anchor(right);
+	}
+
+	[data-anchored]:is([data-side="left"], [data-side="right"])[data-align="center"] {
+		align-self: anchor-center;
+	}
+
+	[data-anchored]:is([data-side="left"], [data-side="right"])[data-align="start"] {
+		top: anchor(top);
+	}
+
+	[data-anchored]:is([data-side="left"], [data-side="right"])[data-align="end"] {
+		bottom: anchor(bottom);
+	}
+
+	[data-anchored]:is([data-side="top"], [data-side="bottom"]) {
+		position-try-fallbacks:
+			flip-block,
+			--anchored-inline-center,
+			--anchored-inline-start,
+			--anchored-inline-end,
+			--anchored-inline-center flip-block,
+			--anchored-inline-start flip-block,
+			--anchored-inline-end flip-block;
+	}
+
+	[data-anchored]:is([data-side="left"], [data-side="right"]) {
+		position-try-fallbacks:
+			flip-inline,
+			--anchored-block-center,
+			--anchored-block-start,
+			--anchored-block-end,
+			--anchored-block-center flip-inline,
+			--anchored-block-start flip-inline,
+			--anchored-block-end flip-inline;
+	}
+
+	[data-anchored][data-arrow]::before,
+	[data-anchored][data-arrow]::after {
+		content: "";
+		position: fixed;
+		position-anchor: var(--anchor);
+		background-color: inherit;
+		rotate: 45deg;
+	}
+
+	[data-anchored][data-arrow]:is([data-side="top"], [data-side="bottom"])::before,
+	[data-anchored][data-arrow]:is([data-side="top"], [data-side="bottom"])::after {
+		justify-self: anchor-center;
+		width: var(--anchor-gap);
+	}
+
+	[data-anchored][data-arrow]:is([data-side="top"], [data-side="bottom"])::before {
+		top: anchor(var(--anchor-self) bottom);
+		bottom: anchor(top);
+	}
+
+	[data-anchored][data-arrow]:is([data-side="top"], [data-side="bottom"])::after {
+		top: anchor(bottom);
+		bottom: anchor(var(--anchor-self) top);
+	}
+
+	[data-anchored][data-arrow]:is([data-side="left"], [data-side="right"])::before,
+	[data-anchored][data-arrow]:is([data-side="left"], [data-side="right"])::after {
+		align-self: anchor-center;
+		height: var(--anchor-gap);
+	}
+
+	[data-anchored][data-arrow]:is([data-side="left"], [data-side="right"])::before {
+		left: anchor(var(--anchor-self) right);
+		right: anchor(left);
+	}
+
+	[data-anchored][data-arrow]:is([data-side="left"], [data-side="right"])::after {
+		left: anchor(right);
+		right: anchor(var(--anchor-self) left);
+	}
+}
