@@ -14,7 +14,7 @@
 </script>
 
 <Select
-	class={cn("min-w-32", className)}
+	class={cn("h-8 min-w-32", className)}
 	options={styles}
 	aria-label="Highlight style"
 	bind:value={
