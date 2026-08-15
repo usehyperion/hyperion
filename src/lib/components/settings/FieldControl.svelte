@@ -2,10 +2,10 @@
 	import * as Field from "$lib/components/ui/field";
 	import Input from "$lib/components/ui/Input.svelte";
 	import * as RadioGroup from "$lib/components/ui/radio-group";
+	import Select from "$lib/components/ui/Select.svelte";
 	import Slider from "$lib/components/ui/Slider.svelte";
 	import Switch from "$lib/components/ui/Switch.svelte";
 	import { settings } from "$lib/settings";
-	import Select from "../ui/Select.svelte";
 	import FieldControl from "./FieldControl.svelte";
 	import type { BaseField, SettingsField } from "./types";
 
