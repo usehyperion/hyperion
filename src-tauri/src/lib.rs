@@ -78,9 +78,6 @@ impl Default for AppState {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let mut system = sysinfo::System::new_all();
-    system.refresh_all();
-
     let mut builder = tauri::Builder::default().plugin(tauri_plugin_http::init());
     let mut state = AppState::default();
 
@@ -126,7 +123,6 @@ pub fn run() {
             });
 
             app.manage(Mutex::new(state));
-            app.manage(system);
 
             Ok(())
         })
@@ -145,7 +141,7 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         api::refresh_token,
         commands::fetch_recent_messages,
         commands::get_cache_size,
-        commands::get_debug_info,
+        commands::get_about_info,
         eventsub::connect_eventsub,
         irc::connect_irc,
         log::log,

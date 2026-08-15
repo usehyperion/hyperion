@@ -1,6 +1,5 @@
-use serde::Deserialize;
-use sysinfo::System;
-use tauri::{AppHandle, Emitter, Manager, async_runtime};
+use serde::{Deserialize, Serialize};
+use tauri::{AppHandle, Emitter, async_runtime};
 use tauri_plugin_cache::CacheExt;
 use tracing::Instrument;
 
@@ -83,58 +82,37 @@ pub fn get_cache_size(app_handle: AppHandle) -> i64 {
     }
 }
 
-fn format_bytes(bytes: u64) -> String {
-    const UNITS: [&str; 5] = ["bytes", "KB", "MB", "GB", "TB"];
-
-    if bytes == 0 {
-        return "0 bytes".to_string();
-    }
-
-    let i = ((bytes as f64).log2() / 10.0).floor() as usize;
-    let i = i.min(UNITS.len() - 1);
-
-    if i == 0 {
-        return format!("{bytes} bytes");
-    }
-
-    let value = bytes as f64 / (1u64 << (i * 10)) as f64;
-
-    format!("{value:.2} {}", UNITS[i])
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AboutInfo {
+    name: String,
+    version: String,
+    commit: Option<&'static str>,
+    tauri_version: String,
+    os: String,
+    webview: String,
 }
 
 #[tauri::command]
-pub fn get_debug_info(app_handle: AppHandle) -> String {
+pub fn get_about_info(app_handle: AppHandle) -> AboutInfo {
     use tauri_plugin_os as os;
 
     let pkg_info = app_handle.package_info();
-    let system = app_handle.state::<sysinfo::System>();
-    let cpus = system.cpus();
 
-    let app_info = format!("{} v{}", pkg_info.name, pkg_info.version);
-    let os_info = format!("OS: {} {}", os::platform(), os::version());
-
-    let chip_info = format!(
-        "Chip: {}",
-        cpus.first().map(|cpu| cpu.brand()).unwrap_or("unknown")
-    );
-
-    let cpu_info = format!("CPU: {} cores ({})", cpus.len(), System::cpu_arch());
-
-    let mem_info = format!(
-        "Memory: {} / {}",
-        format_bytes(system.used_memory()),
-        format_bytes(system.total_memory())
-    );
-
-    let wv_info = format!(
-        "WebView: {} {}",
-        if std::env::consts::FAMILY == "windows" {
-            "WebView2"
-        } else {
-            "WebKit"
-        },
-        tauri::webview_version().unwrap_or_default()
-    );
-
-    format!("{app_info}\n{os_info}\n{chip_info}\n{cpu_info}\n{mem_info}\n{wv_info}")
+    AboutInfo {
+        name: pkg_info.name.clone(),
+        version: pkg_info.version.to_string(),
+        commit: option_env!("HYPERION_COMMIT"),
+        tauri_version: tauri::VERSION.to_string(),
+        os: format!("{} {}", os::platform(), os::version()),
+        webview: format!(
+            "{} {}",
+            if std::env::consts::FAMILY == "windows" {
+                "WebView2"
+            } else {
+                "WebKit"
+            },
+            tauri::webview_version().unwrap_or_default()
+        ),
+    }
 }
