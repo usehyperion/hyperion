@@ -46,9 +46,7 @@
 			{@render badges?.()}
 		</div>
 
-		<div
-			class="flex shrink-0 items-center gap-2 @max-[350px]:order-last @max-[350px]:w-full @max-[350px]:**:data-[slot=native-select-wrapper]:flex-1"
-		>
+		<div class="flex shrink-0 items-center gap-2 @max-[350px]:order-last @max-[350px]:w-full">
 			<Color {id} bind:value={config.color} />
 			<StyleSelect bind:config />
 		</div>

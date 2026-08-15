@@ -6,7 +6,7 @@
 	import Dialog from "../ui/Dialog.svelte";
 	import * as Field from "../ui/field";
 	import Input from "../ui/Input.svelte";
-	import { NativeSelect } from "../ui/native-select";
+	import Select from "../ui/Select.svelte";
 	import Switch from "../ui/Switch.svelte";
 
 	const TITLE_MAX = 60;
@@ -123,11 +123,7 @@
 	<Field.Field>
 		<Field.Label for="duration-{id}">Duration</Field.Label>
 
-		<NativeSelect id="duration-{id}" bind:value={duration}>
-			{#each DURATIONS as option (option.value)}
-				<option value={option.value}>{option.label}</option>
-			{/each}
-		</NativeSelect>
+		<Select id="duration-{id}" options={DURATIONS} bind:value={duration} />
 	</Field.Field>
 
 	<Field.Field orientation="horizontal">

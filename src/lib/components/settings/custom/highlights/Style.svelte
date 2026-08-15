@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn } from "tailwind-variants";
-	import * as NativeSelect from "$lib/components/ui/native-select";
+	import Select from "$lib/components/ui/Select.svelte";
 	import type { HighlightConfig } from "$lib/settings";
 
 	const styles = [
@@ -13,8 +13,9 @@
 	let { config = $bindable<HighlightConfig>(), class: className = undefined } = $props();
 </script>
 
-<NativeSelect.Root
+<Select
 	class={cn("min-w-32", className)}
+	options={styles}
 	aria-label="Highlight style"
 	bind:value={
 		() => (config.enabled ? config.style : "disabled"),
@@ -27,10 +28,4 @@
 			}
 		}
 	}
->
-	{#each styles as style}
-		<NativeSelect.Option value={style.value}>
-			{style.label}
-		</NativeSelect.Option>
-	{/each}
-</NativeSelect.Root>
+/>

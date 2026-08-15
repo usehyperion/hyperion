@@ -6,7 +6,7 @@
 	import Dialog from "../ui/Dialog.svelte";
 	import * as Field from "../ui/field";
 	import Input from "../ui/Input.svelte";
-	import { NativeSelect } from "../ui/native-select";
+	import Select from "../ui/Select.svelte";
 
 	const TITLE_MAX = 45;
 	const OUTCOME_MAX = 25;
@@ -116,11 +116,7 @@
 	<Field.Field>
 		<Field.Label for="window-{id}">Submission window</Field.Label>
 
-		<NativeSelect id="window-{id}" bind:value={window}>
-			{#each WINDOWS as option (option.value)}
-				<option value={option.value}>{option.label}</option>
-			{/each}
-		</NativeSelect>
+		<Select id="window-{id}" options={WINDOWS} bind:value={window} />
 	</Field.Field>
 
 	{#snippet footer()}

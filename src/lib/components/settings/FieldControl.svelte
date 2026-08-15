@@ -1,11 +1,11 @@
 <script lang="ts">
 	import * as Field from "$lib/components/ui/field";
 	import Input from "$lib/components/ui/Input.svelte";
-	import * as NativeSelect from "$lib/components/ui/native-select";
 	import * as RadioGroup from "$lib/components/ui/radio-group";
 	import Slider from "$lib/components/ui/Slider.svelte";
 	import Switch from "$lib/components/ui/Switch.svelte";
 	import { settings } from "$lib/settings";
+	import Select from "../ui/Select.svelte";
 	import FieldControl from "./FieldControl.svelte";
 	import type { BaseField, SettingsField } from "./types";
 
@@ -91,14 +91,8 @@
 	<Field.Field>
 		<Field.Label for={field.id}>{field.label}</Field.Label>
 
-		<div class="max-w-52 *:data-[slot=native-select-wrapper]:w-full">
-			<NativeSelect.Root bind:value={settings.state[field.id]}>
-				{#each field.items as item (item.value)}
-					<NativeSelect.Option value={item.value}>
-						{item.label}
-					</NativeSelect.Option>
-				{/each}
-			</NativeSelect.Root>
+		<div class="max-w-52">
+			<Select id={field.id} options={field.items} bind:value={settings.state[field.id]} />
 		</div>
 
 		{@render description(field.description)}
