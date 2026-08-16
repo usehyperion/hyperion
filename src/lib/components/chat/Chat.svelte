@@ -40,8 +40,17 @@
 		}
 	});
 
+	// scrollToIndex kicks off a measurement loop, so during a burst of
+	// messages the calls stack up faster than they resolve. Coalescing to one
+	// per frame keeps that to a single loop.
+	let pendingScroll = 0;
+
 	function scrollToEnd() {
-		list?.scrollToIndex(chat.messages.length - 1, { align: "end" });
+		cancelAnimationFrame(pendingScroll);
+
+		pendingScroll = requestAnimationFrame(() => {
+			list?.scrollToIndex(chat.messages.length - 1, { align: "end" });
+		});
 	}
 
 	function handleScroll(offset: number) {
@@ -74,7 +83,10 @@
 	{@attach (element) => {
 		observer.observe(element);
 
-		return () => observer.disconnect();
+		return () => {
+			observer.disconnect();
+			cancelAnimationFrame(pendingScroll);
+		};
 	}}
 >
 	{#if scrollingPaused}

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { Badge } from "$lib/models/badge";
-	import Tooltip from "../ui/Tooltip.svelte";
 
 	interface Props {
 		badges: Badge[];
@@ -16,11 +15,8 @@
 		alt={badge.description}
 		width="18"
 		height="18"
-		data-slot="tooltip-trigger"
+		data-tooltip={badge.title}
+		data-tooltip-compact
 		style:background-color={badge.color}
 	/>
-
-	<Tooltip class="p-1 text-xs" side="top">
-		{badge.title}
-	</Tooltip>
 {/each}

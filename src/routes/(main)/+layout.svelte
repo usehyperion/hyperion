@@ -9,6 +9,7 @@
 	import { app } from "$lib/app.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
 	import StreamInfo from "$lib/components/stream/StreamInfo.svelte";
+	import TooltipLayer from "$lib/components/ui/TooltipLayer.svelte";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "$lib/splits/events";
 	import { storage } from "$lib/stores";
 	import { openDialog } from "$lib/util";
@@ -64,6 +65,8 @@
 			{@render children()}
 		</main>
 	</div>
+
+	<TooltipLayer />
 
 	<DragOverlay>
 		{#snippet children(source)}

@@ -26,6 +26,7 @@
 
 	const id = $props.id();
 
+	let opened = $state(false);
 	let loading = $state(false);
 	let showAllBadges = $state(false);
 
@@ -67,6 +68,8 @@
 		popovertarget={popoverId}
 		disabled={nested}
 		style={getMentionStyle()}
+		onpointerdown={() => (opened = true)}
+		onfocus={() => (opened = true)}
 	>
 		@{mention.data.user?.displayName ?? mention.value.slice(1)}
 	</button>
@@ -76,12 +79,14 @@
 		popovertarget={popoverId}
 		disabled={nested}
 		style={message.author.style}
+		onpointerdown={() => (opened = true)}
+		onfocus={() => (opened = true)}
 	>
 		{message.author.displayName}
 	</button>{#if !message.action}:{/if}
 {/if}
 
-{#if !nested}
+{#if !nested && opened}
 	<Popover
 		id={popoverId}
 		class="w-sm overflow-hidden p-0"

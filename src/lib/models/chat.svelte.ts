@@ -45,6 +45,9 @@ export class Chat {
 	#bypassNext = false;
 	#lastRecentAt: number | null = null;
 
+	#ids = new Set<string>();
+	#staged: Message[] | null = null;
+
 	// Timestamps of last messages sent by normal/elevated users.
 	#lastMessage: number[] = [];
 	#lastMessageElevated: number[] = [];
@@ -102,21 +105,41 @@ export class Chat {
 		this.addCommands(commands);
 	}
 
+	public async batch<T>(fn: () => Promise<T>): Promise<T> {
+		if (this.#staged) return fn();
+
+		const staged = [...this.messages];
+		this.#staged = staged;
+
+		try {
+			return await fn();
+		} finally {
+			if (this.#staged === staged) {
+				this.#staged = null;
+				this.messages = staged;
+			}
+		}
+	}
+
 	public add(message: Message) {
-		if (this.messages.some((m) => m.id === message.id)) {
+		if (this.#ids.has(message.id)) {
 			return this;
 		}
 
+		this.#ids.add(message.id);
+
+		const messages = this.#staged ?? this.messages;
+
 		if (message instanceof TextualMessage && message.recent) {
 			if (this.#lastRecentAt === null) {
-				this.messages.unshift(message);
+				messages.unshift(message);
 				this.#lastRecentAt = 0;
 			} else {
-				this.messages.splice(this.#lastRecentAt + 1, 0, message);
+				messages.splice(this.#lastRecentAt + 1, 0, message);
 				this.#lastRecentAt++;
 			}
 		} else {
-			this.messages.push(message);
+			messages.push(message);
 		}
 
 		return this;
@@ -179,9 +202,12 @@ export class Chat {
 	public reset() {
 		this.#bypassNext = false;
 		this.#lastRecentAt = null;
+		this.#staged = null;
 		this.replyTarget = null;
 		this.messages = [];
 		this.history = [];
+
+		this.#ids.clear();
 
 		this.clearPin();
 

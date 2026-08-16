@@ -33,6 +33,16 @@ export interface Emote {
 	readonly height: number;
 
 	/**
+	 * The width the emote occupies inline in chat.
+	 */
+	readonly displayWidth: number;
+
+	/**
+	 * The height the emote occupies inline in chat.
+	 */
+	readonly displayHeight: number;
+
+	/**
 	 * The candidate urls to use at 1x, 2x, 3x, and optionally 4x pixel
 	 * densities.
 	 */
@@ -179,17 +189,24 @@ export function transformFfzEmote(emote: FfzEmote): Emote {
 		name: emote.name,
 		width: emote.width,
 		height: emote.height,
+		displayWidth: emote.width,
+		displayHeight: emote.height,
 		srcset: Object.entries(emote.urls).map(([n, url]) => `${url} ${n}x`),
 	};
 }
 
 export function transformBttvEmote(emote: BttvEmote): Emote {
+	const width = emote.width ?? 28;
+	const height = emote.height ?? 28;
+
 	return {
 		provider: "BetterTTV",
 		id: emote.id,
 		name: emote.code,
-		width: emote.width ?? 28,
-		height: emote.height ?? 28,
+		width,
+		height,
+		displayWidth: width,
+		displayHeight: height,
 		srcset: [1, 2, 3].map((n) => `https://cdn.betterttv.net/emote/${emote.id}/${n}x ${n}x`),
 	};
 }
@@ -204,6 +221,7 @@ export function transform7tvEmote(emote: SevenTvEmote, alias?: string): Emote {
 		.toSorted((a, b) => b.width - a.width);
 
 	const largest = images.at(0);
+	const scale = largest?.scale || 1;
 
 	return {
 		provider: "7TV",
@@ -211,6 +229,8 @@ export function transform7tvEmote(emote: SevenTvEmote, alias?: string): Emote {
 		name: alias ?? emote.defaultName,
 		width: largest?.width ?? 28,
 		height: largest?.height ?? 28,
+		displayWidth: (largest?.width ?? 28) / scale,
+		displayHeight: (largest?.height ?? 28) / scale,
 		srcset: images.map((img) => `${img.url} ${img.scale}x`),
 		zeroWidth: emote.flags.defaultZeroWidth,
 	};

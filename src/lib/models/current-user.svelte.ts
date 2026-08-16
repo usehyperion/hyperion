@@ -167,6 +167,8 @@ export class CurrentUser extends User {
 				name: emote.name,
 				width: 56,
 				height: 56,
+				displayWidth: 28,
+				displayHeight: 28,
 				srcset: emote.scale.map(
 					(d) =>
 						`https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark/${d} ${d}x`,

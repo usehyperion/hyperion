@@ -49,6 +49,8 @@
 					class="-my-2 inline-block align-middle"
 					srcset={srcset.join(", ")}
 					alt="{node.data.prefix} {node.data.bits}"
+					width="28"
+					height="28"
 				/>
 
 				<span class="font-semibold" style:color={node.data.tier.color}

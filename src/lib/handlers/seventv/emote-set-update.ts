@@ -19,6 +19,7 @@ function transform(emote: EmoteChange): Emote {
 		.toSorted((a, b) => b.width - a.width);
 
 	const largest = files.at(0);
+	const scale = Number(largest?.name[0]) || 1;
 
 	return {
 		provider: "7TV",
@@ -26,6 +27,8 @@ function transform(emote: EmoteChange): Emote {
 		name: emote.name,
 		width: (largest?.width ?? 28) / 2,
 		height: (largest?.height ?? 28) / 2,
+		displayWidth: (largest?.width ?? 28) / scale,
+		displayHeight: (largest?.height ?? 28) / scale,
 		srcset: files.map((file) => `https:${host.url}/${file.name} ${file.name[0]}x`),
 		zeroWidth: (emote.data.flags & 256) === 256,
 	};

@@ -9,7 +9,6 @@
 	import Trash from "~icons/ph/trash";
 	import Button from "../ui/Button.svelte";
 	import Separator from "../ui/Separator.svelte";
-	import Tooltip from "../ui/Tooltip.svelte";
 
 	interface Props {
 		class?: string;
@@ -107,12 +106,10 @@
 		size="icon-sm"
 		variant="ghost"
 		aria-label={config.label}
-		data-slot="tooltip-trigger"
+		data-tooltip={config.label}
 		onclick={config.onclick}
 		onclickwait={config.onclickwait}
 	>
 		<config.icon />
 	</Button>
-
-	<Tooltip side="top">{config.label}</Tooltip>
 {/snippet}
