@@ -41,8 +41,8 @@
 	)}
 	role="tooltip"
 	data-component="tooltip"
-	data-anchored=""
-	data-arrow=""
+	data-anchored
+	data-arrow
 	data-side={side}
 	data-align={align}
 	style:--tooltip-delay="{delay}ms"

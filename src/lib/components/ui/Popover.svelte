@@ -42,7 +42,7 @@
 	)}
 	popover="auto"
 	data-component="popover"
-	data-anchored=""
+	data-anchored
 	data-side={side}
 	data-align={align}
 	style:--anchor={anchorName}
