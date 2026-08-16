@@ -33,7 +33,6 @@ reqwest = { version = "0.12.15", features = ["json"] }
 rustls = { version = "0.23.25", features = ["ring"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
-sysinfo = "0.37.2"
 thiserror = "2.0.12"
 time = { version = "0.3", features = ["formatting", "local-offset"] }
 tauri = { version = "2", features = ["protocol-asset"] }
