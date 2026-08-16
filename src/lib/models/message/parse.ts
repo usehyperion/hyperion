@@ -153,6 +153,9 @@ function classify(
 					name: ircEmote.code,
 					width: 56,
 					height: 56,
+					// Twitch serves emotes at 28px for 1.0.
+					displayWidth: 28,
+					displayHeight: 28,
 					srcset: [1, 2, 3].map(
 						(density) =>
 							`${baseUrl}/${ircEmote.id}/default/dark/${density}.0 ${density}x`,

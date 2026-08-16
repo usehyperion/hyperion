@@ -27,11 +27,15 @@
 		await channel.join();
 
 		unlisten = await listen<IrcMessage[]>("recentmessages", async (event) => {
-			for (const message of event.payload) {
-				// Needs to be sequential
-				// oxlint-disable-next-line no-await-in-loop
-				await handlers.get(message.type)?.handle(message);
-			}
+			// Batched so the whole backlog lands in one render instead of one
+			// per message.
+			await chat.batch(async () => {
+				for (const message of event.payload) {
+					// Needs to be sequential
+					// oxlint-disable-next-line no-await-in-loop
+					await handlers.get(message.type)?.handle(message);
+				}
+			});
 		});
 	});
 

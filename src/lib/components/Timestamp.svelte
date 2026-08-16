@@ -1,3 +1,9 @@
+<script lang="ts" module>
+	const localeFormat = new Intl.Locale(navigator.language).getHourCycles().includes("h12")
+		? "h:mm A"
+		: "HH:mm";
+</script>
+
 <script lang="ts">
 	import dayjs from "dayjs";
 	import { settings } from "$lib/settings";
@@ -20,10 +26,7 @@
 		}
 
 		if (format === "auto") {
-			const locale = new Intl.Locale(navigator.language);
-			const cycles = locale.getHourCycles();
-
-			format = cycles.includes("h12") ? "12" : "24";
+			return localeFormat;
 		}
 
 		return format === "12" ? "h:mm A" : "HH:mm";
