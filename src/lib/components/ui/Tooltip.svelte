@@ -36,7 +36,7 @@
 
 <div
 	class={cn(
-		"pointer-events-none z-50 rounded-lg bg-neutral-800 px-3 py-1.5 text-xs text-primary opacity-0 smooth-shadow-ring-md transition-[opacity,scale] delay-0",
+		"pointer-events-none z-50 w-max rounded-lg bg-neutral-800 px-3 py-1.5 text-xs text-primary opacity-0 smooth-shadow-ring-md transition-[opacity,scale] delay-0",
 		className,
 	)}
 	role="tooltip"
