@@ -106,7 +106,8 @@
 		size="icon-sm"
 		variant="ghost"
 		aria-label={config.label}
-		data-tooltip={config.label}
+		data-tooltip
+		data-tooltip-text={config.label}
 		onclick={config.onclick}
 		onclickwait={config.onclickwait}
 	>
