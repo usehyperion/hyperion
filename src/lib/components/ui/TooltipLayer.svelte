@@ -9,12 +9,12 @@
 
 	let timer: ReturnType<typeof setTimeout>;
 
-	const text = $derived(trigger?.dataset.tooltip);
-	const compact = $derived(trigger?.dataset.tooltipCompact !== undefined);
+	const mode = $derived(trigger?.dataset.tooltip);
+	const text = $derived(trigger?.dataset.tooltipText);
 	const side = $derived(trigger?.dataset.tooltipSide ?? "top");
 
 	const emote = $derived.by(() => {
-		if (trigger?.dataset.tooltipEmote === undefined) return null;
+		if (!trigger || mode !== "emote") return null;
 
 		const image = trigger.querySelector("img");
 		if (!image) return null;
@@ -49,7 +49,7 @@
 		function pointerover(event: PointerEvent) {
 			if (!(event.target instanceof Element)) return;
 
-			const next = event.target.closest<HTMLElement>("[data-tooltip], [data-tooltip-emote]");
+			const next = event.target.closest<HTMLElement>("[data-tooltip]");
 
 			if (next) {
 				show(next);
@@ -75,7 +75,7 @@
 		class={[
 			"pointer-events-none z-50 w-max rounded-lg bg-neutral-800 text-xs text-primary",
 			"smooth-shadow-ring-md transition-opacity",
-			compact ? "p-1" : "px-3 py-1.5",
+			mode === "compact" ? "p-1" : "px-3 py-1.5",
 			open ? "opacity-100" : "opacity-0",
 		]}
 		role="tooltip"

@@ -15,7 +15,7 @@
 <button
 	class="-my-2 inline-grid align-middle"
 	type="button"
-	data-tooltip-emote
+	data-tooltip="emote"
 	data-tooltip-width={emote.width}
 	data-tooltip-height={emote.height}
 	style:padding="{settings.state['chat.emotes.padding']}px"

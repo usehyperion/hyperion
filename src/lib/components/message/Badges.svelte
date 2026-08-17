@@ -15,8 +15,8 @@
 		alt={badge.description}
 		width="18"
 		height="18"
-		data-tooltip={badge.title}
-		data-tooltip-compact
+		data-tooltip="compact"
+		data-tooltip-text={badge.title}
 		style:background-color={badge.color}
 	/>
 {/each}
