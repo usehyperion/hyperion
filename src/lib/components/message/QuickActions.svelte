@@ -2,13 +2,13 @@
 	import type { Component } from "svelte";
 	import type { UserMessage } from "$lib/models/message/user-message.svelte";
 	import ArrowBendUpLeft from "~icons/ph/arrow-bend-up-left";
-	import Check from "~icons/ph/check";
 	import Clipboard from "~icons/ph/clipboard";
 	import Clock from "~icons/ph/clock";
 	import Gavel from "~icons/ph/gavel";
 	import Trash from "~icons/ph/trash";
 	import Button from "../ui/Button.svelte";
 	import Separator from "../ui/Separator.svelte";
+	import Tooltip from "../ui/Tooltip.svelte";
 
 	interface Props {
 		class?: string;
@@ -25,23 +25,14 @@
 
 	const { class: className, message }: Props = $props();
 
-	let copied = $state(false);
-	let copyTimer: ReturnType<typeof setTimeout>;
-
 	function copy() {
 		navigator.clipboard.writeText(message.text);
-
-		copied = true;
-		clearTimeout(copyTimer);
-		copyTimer = setTimeout(() => (copied = false), 1500);
 	}
 
 	function reply() {
 		message.channel.chat.replyTarget = message;
 		message.channel.chat.input?.focus();
 	}
-
-	$effect(() => () => clearTimeout(copyTimer));
 </script>
 
 <div
@@ -55,17 +46,8 @@
 	role="group"
 	aria-label="Message actions"
 >
-	{@render action({
-		icon: copied ? Check : Clipboard,
-		label: copied ? "Copied" : "Copy",
-		onclick: copy,
-	})}
-
-	{@render action({
-		icon: ArrowBendUpLeft,
-		label: "Reply",
-		onclick: reply,
-	})}
+	{@render action({ icon: Clipboard, label: "Copy", onclick: copy })}
+	{@render action({ icon: ArrowBendUpLeft, label: "Reply", onclick: reply })}
 
 	{#if message.actionable}
 		<div class="h-4">
@@ -96,21 +78,26 @@
 </div>
 
 {#snippet action(config: Action)}
-	<Button
-		class={[
-			"text-muted-foreground",
-			config.danger
-				? "hover:bg-destructive/10 hover:text-destructive"
-				: "hover:text-foreground",
-		]}
-		size="icon-sm"
-		variant="ghost"
-		aria-label={config.label}
-		data-tooltip
-		data-tooltip-text={config.label}
-		onclick={config.onclick}
-		onclickwait={config.onclickwait}
-	>
-		<config.icon />
-	</Button>
+	<Tooltip>
+		{#snippet trigger(register)}
+			<Button
+				class={[
+					"text-muted-foreground",
+					config.danger
+						? "hover:bg-destructive/10 hover:text-destructive"
+						: "hover:text-foreground",
+				]}
+				size="icon-sm"
+				variant="ghost"
+				aria-label={config.label}
+				onclick={config.onclick}
+				onclickwait={config.onclickwait}
+				{@attach register}
+			>
+				<config.icon />
+			</Button>
+		{/snippet}
+
+		{config.label}
+	</Tooltip>
 {/snippet}

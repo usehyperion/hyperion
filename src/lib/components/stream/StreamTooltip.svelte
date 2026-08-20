@@ -21,6 +21,26 @@
 	const sidebar = useSidebar();
 </script>
 
+<Tooltip class="max-w-64" side="right" delay={0}>
+	{#snippet trigger(register)}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="relative flex cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-accent"
+			onclick={async () => {
+				await app.open(channel);
+				app.history.pushChannel(channel.id);
+			}}
+			oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}
+			{@attach register}
+		>
+			<StreamInfo {channel} />
+		</div>
+	{/snippet}
+
+	{@render details()}
+</Tooltip>
+
 {#snippet indicators()}
 	{#if channel.pinned}
 		<PushPin />
@@ -31,21 +51,7 @@
 	{/if}
 {/snippet}
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<div
-	class="relative flex cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-accent"
-	onclick={async () => {
-		await app.open(channel);
-		app.history.pushChannel(channel.id);
-	}}
-	oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}
-	data-slot="tooltip-trigger"
->
-	<StreamInfo {channel} />
-</div>
-
-<Tooltip class="max-w-64" side="right" delay={0}>
+{#snippet details()}
 	{#if channel.stream}
 		<div class="space-y-0.5">
 			{#if !sidebar.collapsed}
@@ -82,4 +88,4 @@
 			{channel.user.displayName}
 		</div>
 	{/if}
-</Tooltip>
+{/snippet}
