@@ -5,15 +5,17 @@
 
 	interface Props extends TooltipOptions {
 		children: Snippet;
-		trigger: Snippet<[register: Attachment]>;
+		trigger: Snippet<[register: Attachment<HTMLElement>]>;
 	}
 
 	const { children, trigger, ...rest }: Props = $props();
 
-	function register(node: Element) {
+	function register(node: HTMLElement) {
+		node.dataset.slot = "tooltip-trigger";
 		registry.set(node, { content: children, ...rest });
 
 		return () => {
+			node.removeAttribute("data-slot");
 			registry.delete(node);
 
 			for (const listener of detached) {
