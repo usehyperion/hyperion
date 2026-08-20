@@ -21,16 +21,18 @@
 	const { icon: Icon, tooltip, ...rest }: Props = $props();
 </script>
 
-<button
-	class={cn(buttonVariants({ size: "icon-sm", variant: "ghost" }), "size-5")}
-	aria-label={tooltip}
-	data-slot="tooltip-trigger"
-	{...rest}
->
-	<Icon class="size-3.5" />
-</button>
+<Tooltip>
+	{#snippet trigger(register)}
+		<button
+			class={cn(buttonVariants({ size: "icon-sm", variant: "ghost" }), "size-5")}
+			aria-label={tooltip}
+			{...rest}
+			{@attach register}
+		>
+			<Icon class="size-3.5" />
+		</button>
+	{/snippet}
 
-<Tooltip side="top">
 	{tooltip}
 </Tooltip>
 

@@ -1,63 +1,28 @@
 <script lang="ts">
-	import type { WithElementRef } from "bits-ui";
-	import type { HTMLAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
+	import type { Snippet } from "svelte";
+	import type { Attachment } from "svelte/attachments";
+	import { detached, registry, type TooltipOptions } from "./TooltipLayer.svelte";
 
-	interface Props extends WithElementRef<HTMLAttributes<HTMLDivElement>> {
-		side?: "top" | "right" | "bottom" | "left";
-		align?: "center" | "start" | "end";
-		delay?: number;
+	interface Props extends TooltipOptions {
+		children: Snippet;
+		trigger: Snippet<[register: Attachment<HTMLElement>]>;
 	}
 
-	let {
-		class: className,
-		side = "top",
-		align = "center",
-		delay = 300,
-		ref = $bindable(null),
-		children,
-		...rest
-	}: Props = $props();
+	const { children, trigger, ...rest }: Props = $props();
 
-	const id = $props.id();
+	function register(node: HTMLElement) {
+		node.dataset.slot = "tooltip-trigger";
+		registry.set(node, { content: children, ...rest });
 
-	const anchorName = `--tooltip-${id}`;
-	const selfAnchorName = `--tooltip-self-${id}`;
+		return () => {
+			node.removeAttribute("data-slot");
+			registry.delete(node);
 
-	$effect(() => {
-		const trigger = ref?.previousElementSibling;
-		if (!(trigger instanceof HTMLElement)) return;
-
-		trigger.style.setProperty("anchor-name", anchorName);
-
-		return () => trigger.style.removeProperty("anchor-name");
-	});
+			for (const listener of detached) {
+				listener(node);
+			}
+		};
+	}
 </script>
 
-<div
-	class={cn(
-		"pointer-events-none z-50 w-max rounded-lg bg-neutral-800 px-3 py-1.5 text-xs text-primary opacity-0 smooth-shadow-ring-md transition-[opacity,scale] delay-0",
-		className,
-	)}
-	role="tooltip"
-	data-component="tooltip"
-	data-anchored
-	data-arrow
-	data-side={side}
-	data-align={align}
-	style:--tooltip-delay="{delay}ms"
-	style:--anchor={anchorName}
-	style:--anchor-self={selfAnchorName}
-	{...rest}
-	bind:this={ref}
->
-	{@render children?.()}
-</div>
-
-<style>
-	:global([data-slot="tooltip-trigger"]:hover) + [data-component="tooltip"] {
-		opacity: 1;
-		pointer-events: auto;
-		transition-delay: var(--tooltip-delay);
-	}
-</style>
+{@render trigger(register)}

@@ -1,105 +1,161 @@
-<script lang="ts">
-	import { onMount } from "svelte";
+<script lang="ts" module>
+	export interface TooltipOptions {
+		class?: string;
+		side?: "top" | "right" | "bottom" | "left";
+		align?: "center" | "start" | "end";
+		delay?: number;
+	}
 
-	const DELAY = 300;
+	interface TooltipEntry extends TooltipOptions {
+		content: Snippet;
+	}
+
+	export const registry = new WeakMap<Element, TooltipEntry>();
+	export const detached = new Set<(node: Element) => void>();
+</script>
+
+<script lang="ts">
+	import { onMount, type Snippet } from "svelte";
+	import { cn } from "tailwind-variants";
+
+	interface ResolvedTooltip {
+		trigger: HTMLElement;
+		entry: TooltipEntry;
+	}
+
+	const DEFAULT_DELAY = 300;
 	const ANCHOR = "--tooltip-active";
 
+	const LIVENESS_INTERVAL = 200;
+
+	let element = $state<HTMLElement | null>(null);
 	let trigger = $state<HTMLElement | null>(null);
+	let entry = $state<TooltipEntry | null>(null);
 	let open = $state(false);
 
 	let timer: ReturnType<typeof setTimeout>;
-
-	const mode = $derived(trigger?.dataset.tooltip);
-	const text = $derived(trigger?.dataset.tooltipText);
-	const side = $derived(trigger?.dataset.tooltipSide ?? "top");
-
-	const emote = $derived.by(() => {
-		if (!trigger || mode !== "emote") return null;
-
-		const image = trigger.querySelector("img");
-		if (!image) return null;
-
-		return {
-			srcset: image.srcset,
-			name: image.alt,
-			width: Number(trigger.dataset.tooltipWidth) || null,
-			height: Number(trigger.dataset.tooltipHeight) || null,
-		};
-	});
-
-	function show(next: HTMLElement) {
-		if (next === trigger) return;
-
-		hide();
-		trigger = next;
-
-		next.style.setProperty("anchor-name", ANCHOR);
-		timer = setTimeout(() => (open = true), DELAY);
-	}
-
-	function hide() {
-		clearTimeout(timer);
-
-		open = false;
-		trigger?.style.removeProperty("anchor-name");
-		trigger = null;
-	}
+	let liveness: ReturnType<typeof setInterval>;
 
 	onMount(() => {
 		function pointerover(event: PointerEvent) {
 			if (!(event.target instanceof Element)) return;
 
-			const next = event.target.closest<HTMLElement>("[data-tooltip]");
+			const resolved = resolveTooltip(event.target);
 
-			if (next) {
-				show(next);
+			if (resolved) {
+				show(resolved.trigger, resolved.entry);
 			} else {
 				hide();
 			}
 		}
 
+		const unsubscribe = onTooltipDetach((node) => {
+			if (node === trigger) hide();
+		});
+
 		document.addEventListener("pointerover", pointerover);
 		document.addEventListener("pointerleave", hide);
 
 		return () => {
+			unsubscribe();
+
 			document.removeEventListener("pointerover", pointerover);
 			document.removeEventListener("pointerleave", hide);
 
 			clearTimeout(timer);
+			clearInterval(liveness);
 		};
 	});
+
+	$effect(() => {
+		if (!element) return;
+
+		const shown = element.matches(":popover-open");
+
+		if (open && entry) {
+			if (!shown) element.showPopover();
+		} else if (shown) {
+			element.hidePopover();
+		}
+	});
+
+	function show(node: HTMLElement, found: TooltipEntry) {
+		if (node === trigger) return;
+
+		hide();
+
+		trigger = node;
+		entry = found;
+
+		node.style.setProperty("anchor-name", ANCHOR);
+
+		liveness = setInterval(() => {
+			if (!trigger?.isConnected) hide();
+		}, LIVENESS_INTERVAL);
+
+		timer = setTimeout(() => (open = true), found.delay ?? DEFAULT_DELAY);
+	}
+
+	function hide() {
+		clearTimeout(timer);
+		clearInterval(liveness);
+
+		open = false;
+		trigger?.style.removeProperty("anchor-name");
+		trigger = null;
+		entry = null;
+	}
+
+	function resolveTooltip(node: Element): ResolvedTooltip | null {
+		for (let current: Element | null = node; current; current = current.parentElement) {
+			const entry = registry.get(current);
+
+			if (entry && current instanceof HTMLElement) {
+				return { trigger: current, entry };
+			}
+		}
+
+		return null;
+	}
+
+	function onTooltipDetach(listener: (node: Element) => void) {
+		detached.add(listener);
+		return () => detached.delete(listener);
+	}
 </script>
 
-{#if text || emote}
-	<div
-		class={[
-			"pointer-events-none z-50 w-max rounded-lg bg-neutral-800 text-xs text-primary",
-			"smooth-shadow-ring-md transition-opacity",
-			mode === "compact" ? "p-1" : "px-3 py-1.5",
-			open ? "opacity-100" : "opacity-0",
-		]}
-		role="tooltip"
-		data-anchored
-		data-arrow
-		data-side={side}
-		data-align="center"
-		style:--anchor={ANCHOR}
-		style:--anchor-self="--tooltip-active-self"
-	>
-		{#if emote}
-			<div class="flex flex-col items-center">
-				<img
-					srcset={emote.srcset}
-					alt={emote.name}
-					width={emote.width}
-					height={emote.height}
-					decoding="async"
-				/>
-
-				{emote.name}
-			</div>
+<div
+	class={cn(
+		"pointer-events-none z-50 w-max rounded-lg bg-neutral-800 px-3 py-1.5 text-xs text-primary",
+		"opacity-0 smooth-shadow-ring-md transition-[opacity,overlay,display] transition-discrete",
+		entry?.class,
+	)}
+	role="tooltip"
+	popover="manual"
+	data-component="tooltip-layer"
+	data-anchored
+	data-arrow
+	data-side={entry?.side ?? "top"}
+	data-align={entry?.align ?? "center"}
+	style:--anchor={ANCHOR}
+	style:--anchor-self="--tooltip-active-self"
+	bind:this={element}
+>
+	{#if entry}
+		{#if typeof entry.content === "string"}
+			{entry.content}
 		{:else}
-			{text}
+			{@render entry.content()}
 		{/if}
-	</div>
-{/if}
+	{/if}
+</div>
+
+<style>
+	[data-component="tooltip-layer"]:popover-open {
+		opacity: 1;
+
+		@starting-style {
+			opacity: 0;
+		}
+	}
+</style>
