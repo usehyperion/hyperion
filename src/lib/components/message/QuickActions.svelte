@@ -103,9 +103,9 @@
 				size="icon-sm"
 				variant="ghost"
 				aria-label={config.label}
+				{...props}
 				onclick={config.onclick}
 				onclickwait={config.onclickwait}
-				{...props}
 			>
 				<config.icon />
 			</Button>
