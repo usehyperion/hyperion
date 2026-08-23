@@ -13,13 +13,13 @@
 	const srcset = $derived(emote.srcset.join(", "));
 </script>
 
-<Tooltip>
-	{#snippet trigger(register)}
+<Tooltip class="flex flex-col items-center">
+	{#snippet trigger(props)}
 		<button
 			class="-my-2 inline-grid align-middle"
 			type="button"
 			style:padding="{settings.state['chat.emotes.padding']}px"
-			{@attach register}
+			{...props}
 		>
 			<img
 				class="col-start-1 row-start-1 object-contain"
@@ -43,8 +43,6 @@
 		</button>
 	{/snippet}
 
-	<div class="flex flex-col items-center">
-		<img {srcset} alt={emote.name} width={emote.width} height={emote.height} decoding="async" />
-		{emote.name}
-	</div>
+	<img {srcset} alt={emote.name} width={emote.width} height={emote.height} decoding="async" />
+	{emote.name}
 </Tooltip>

@@ -65,49 +65,4 @@
 			bottom: anchor(bottom);
 		}
 	}
-
-	[data-anchored][data-arrow]::before,
-	[data-anchored][data-arrow]::after {
-		content: "";
-		position: fixed;
-		position-anchor: var(--anchor);
-		background-color: inherit;
-		rotate: 45deg;
-	}
-
-	[data-anchored][data-arrow]:is([data-side="top"], [data-side="bottom"])::before,
-	[data-anchored][data-arrow]:is([data-side="top"], [data-side="bottom"])::after {
-		justify-self: anchor-center;
-		width: var(--anchor-gap);
-	}
-
-	[data-anchored][data-arrow]:is([data-side="top"], [data-side="bottom"])::before {
-		top: anchor(var(--anchor-self) bottom);
-		bottom: anchor(top);
-		translate: 0 -50%;
-	}
-
-	[data-anchored][data-arrow]:is([data-side="top"], [data-side="bottom"])::after {
-		top: anchor(bottom);
-		bottom: anchor(var(--anchor-self) top);
-		translate: 0 50%;
-	}
-
-	[data-anchored][data-arrow]:is([data-side="left"], [data-side="right"])::before,
-	[data-anchored][data-arrow]:is([data-side="left"], [data-side="right"])::after {
-		align-self: anchor-center;
-		height: var(--anchor-gap);
-	}
-
-	[data-anchored][data-arrow]:is([data-side="left"], [data-side="right"])::before {
-		left: anchor(var(--anchor-self) right);
-		right: anchor(left);
-		translate: -50% 0;
-	}
-
-	[data-anchored][data-arrow]:is([data-side="left"], [data-side="right"])::after {
-		left: anchor(right);
-		right: anchor(var(--anchor-self) left);
-		translate: 50% 0;
-	}
 }

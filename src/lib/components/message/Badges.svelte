@@ -11,7 +11,7 @@
 
 {#each badges as badge, i (badge.id)}
 	<Tooltip class="p-1">
-		{#snippet trigger(register)}
+		{#snippet trigger(props)}
 			<img
 				class={[
 					"inline-block align-middle",
@@ -23,7 +23,7 @@
 				width="18"
 				height="18"
 				style:background-color={badge.color}
-				{@attach register}
+				{...props}
 			/>
 		{/snippet}
 

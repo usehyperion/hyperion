@@ -21,8 +21,8 @@
 	const sidebar = useSidebar();
 </script>
 
-<Tooltip class="max-w-64" side="right" delay={0}>
-	{#snippet trigger(register)}
+<Tooltip class="max-w-64" delay={0} side="right">
+	{#snippet trigger(props)}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
@@ -32,7 +32,7 @@
 				app.history.pushChannel(channel.id);
 			}}
 			oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}
-			{@attach register}
+			{...props}
 		>
 			<StreamInfo {channel} />
 		</div>
