@@ -151,6 +151,7 @@ function classify(
 					provider: "Twitch",
 					id: ircEmote.id,
 					name: ircEmote.code,
+					displayName: ircEmote.code,
 					width: 56,
 					height: 56,
 					// Twitch serves emotes at 28px for 1.0.

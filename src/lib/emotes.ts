@@ -18,9 +18,21 @@ export interface Emote {
 	readonly id: string;
 
 	/**
-	 * The name of the emote.
+	 * The canonical name of the emote as given by its provider.
 	 */
-	name: string;
+	readonly name: string;
+
+	/**
+	 * The channel-specific name the emote has been renamed to if any.
+	 * 7TV only.
+	 */
+	alias?: string;
+
+	/**
+	 * The name the emote is shown and typed as i.e. its alias if it has one
+	 * and its canonical name otherwise.
+	 */
+	displayName: string;
 
 	/**
 	 * The width of the emote.
@@ -187,6 +199,7 @@ export function transformFfzEmote(emote: FfzEmote): Emote {
 		provider: "FrankerFaceZ",
 		id: emote.id.toString(),
 		name: emote.name,
+		displayName: emote.name,
 		width: emote.width,
 		height: emote.height,
 		displayWidth: emote.width,
@@ -203,6 +216,7 @@ export function transformBttvEmote(emote: BttvEmote): Emote {
 		provider: "BetterTTV",
 		id: emote.id,
 		name: emote.code,
+		displayName: emote.code,
 		width,
 		height,
 		displayWidth: width,
@@ -226,7 +240,9 @@ export function transform7tvEmote(emote: SevenTvEmote, alias?: string): Emote {
 	return {
 		provider: "7TV",
 		id: emote.id,
-		name: alias ?? emote.defaultName,
+		name: emote.defaultName,
+		alias: alias && alias !== emote.defaultName ? alias : undefined,
+		displayName: alias ?? emote.defaultName,
 		width: largest?.width ?? 28,
 		height: largest?.height ?? 28,
 		displayWidth: (largest?.width ?? 28) / scale,

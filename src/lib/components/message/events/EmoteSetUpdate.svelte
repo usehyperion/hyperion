@@ -18,10 +18,10 @@
 
 {#if action === "renamed"}
 	renamed <span class="font-medium text-foreground">{oldName}</span> to
-	<span class="font-medium text-foreground">{emote.name}</span>
+	<span class="font-medium text-foreground">{emote.displayName}</span>
 {:else}
 	{action} an emote:
-	<span class="font-medium text-foreground">{emote.name}</span>
+	<span class="font-medium text-foreground">{emote.displayName}</span>
 {/if}
 
 <Emote {emote} />
