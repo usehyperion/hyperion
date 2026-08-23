@@ -69,7 +69,7 @@
 
 		return activeSets
 			.flatMap((set) => set.emotes)
-			.filter((emote) => emote.name.toLowerCase().includes(needle));
+			.filter((emote) => emote.displayName.toLowerCase().includes(needle));
 	});
 
 	function appendEmote(name: string) {

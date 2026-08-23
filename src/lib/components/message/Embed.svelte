@@ -59,14 +59,14 @@
 						class="absolute inset-0 z-10"
 						href={url.href}
 						target="_blank"
-						aria-label={emote.name}
+						aria-label={emote.displayName}
 					></a>
 
 					<div class="relative h-full shrink-0">
 						<img
 							class="h-full w-auto p-1.5"
 							srcset={emote.srcset.join(", ")}
-							alt={emote.name}
+							alt={emote.displayName}
 							decoding="async"
 						/>
 
@@ -83,8 +83,8 @@
 
 					<div class="flex flex-col overflow-hidden py-1 pr-1">
 						<div class="flex items-center">
-							<span class="truncate" title={emote.name}>
-								{emote.name}
+							<span class="truncate" title={emote.displayName}>
+								{emote.displayName}
 							</span>
 
 							{#if !emote.listed}

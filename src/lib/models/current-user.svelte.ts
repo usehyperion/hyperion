@@ -165,6 +165,7 @@ export class CurrentUser extends User {
 				provider: "Twitch",
 				id: emote.id,
 				name: emote.name,
+				displayName: emote.name,
 				width: 56,
 				height: 56,
 				displayWidth: 28,

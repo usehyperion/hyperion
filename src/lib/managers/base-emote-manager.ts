@@ -32,7 +32,7 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 
 	public addAll(emotes: Iterable<Emote>) {
 		for (const emote of emotes) {
-			this.set(emote.name, emote);
+			this.set(emote.displayName, emote);
 		}
 
 		return this;
@@ -45,7 +45,7 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	public override clear(provider?: EmoteProvider) {
 		if (provider) {
 			for (const emote of this.values()) {
-				if (emote.provider === provider) this.delete(emote.name);
+				if (emote.provider === provider) this.delete(emote.displayName);
 			}
 		} else {
 			super.clear();

@@ -24,7 +24,9 @@ function transform(emote: EmoteChange): Emote {
 	return {
 		provider: "7TV",
 		id: emote.id,
-		name: emote.name,
+		name: emote.data.name,
+		alias: emote.name === emote.data.name ? undefined : emote.name,
+		displayName: emote.name,
 		width: (largest?.width ?? 28) / 2,
 		height: (largest?.height ?? 28) / 2,
 		displayWidth: (largest?.width ?? 28) / scale,
@@ -54,7 +56,7 @@ export default defineHandler({
 
 				last = { action: "added", emote, actor };
 
-				channel.emotes.set(emote.name, emote);
+				channel.emotes.set(emote.displayName, emote);
 			}
 
 			for (const change of data.pulled ?? []) {
@@ -70,9 +72,10 @@ export default defineHandler({
 				const emote = channel.emotes.get(change.old_value.name);
 				if (!emote) continue;
 
-				last = { action: "renamed", oldName: emote.name, emote, actor };
+				last = { action: "renamed", oldName: emote.displayName, emote, actor };
 
-				emote.name = change.value.name;
+				emote.alias = change.value.name === emote.name ? undefined : change.value.name;
+				emote.displayName = change.value.name;
 
 				channel.emotes.delete(change.old_value.name);
 				channel.emotes.set(change.value.name, emote);
@@ -104,7 +107,8 @@ export default defineHandler({
 				const emote = emoteSet.emotes.find((e) => e.id === change.value.id);
 				if (!emote) continue;
 
-				emote.name = change.value.name;
+				emote.alias = change.value.name === emote.name ? undefined : change.value.name;
+				emote.displayName = change.value.name;
 			}
 		}
 	},

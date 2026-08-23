@@ -20,8 +20,13 @@
 	}
 </script>
 
-{#each emotes as emote (`${emote.name}:${emote.id}`)}
-	<button class="w-full" title={emote.name} type="button" onclick={() => onpick(emote.name)}>
+{#each emotes as emote (`${emote.displayName}:${emote.id}`)}
+	<button
+		class="w-full"
+		title={emote.displayName}
+		type="button"
+		onclick={() => onpick(emote.displayName)}
+	>
 		<div
 			class="aspect-square w-full bg-contain bg-center bg-no-repeat"
 			style:background-image={toImageSet(emote.srcset)}

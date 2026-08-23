@@ -59,7 +59,7 @@
 			{/if}
 		{:else if node.type === "emote"}
 			{#if node.marked}
-				<mark class="wrap-anywhere">{node.data.emote.name}</mark>
+				<mark class="wrap-anywhere">{node.data.emote.displayName}</mark>
 			{:else}
 				<Emote emote={node.data.emote} layers={node.data.layers} />
 			{/if}
