@@ -33,8 +33,8 @@
 <Content {message} {nested} />
 
 {#if settings.state["chat.embeds"] && !nested && linkNodes.some(canEmbed)}
-	<div class="mt-2 flex gap-2">
-		{#each linkNodes as node}
+	<div class="mt-2 flex flex-wrap gap-2">
+		{#each linkNodes.filter(canEmbed) as node}
 			<Embed {...node.data} />
 		{/each}
 	</div>
