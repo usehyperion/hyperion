@@ -177,3 +177,23 @@
 		background-color: var(--color-muted);
 	}
 }
+
+@layer components {
+	[data-tooltip-content] {
+		@apply text-xs smooth-shadow-ring-md;
+
+		width: max-content;
+		border-radius: var(--radius-lg);
+		background-color: var(--color-neutral-800);
+		padding: 6px 12px;
+		color: var(--color-primary);
+
+		&[data-state*="open"] {
+			@apply animate-in zoom-in-95 fade-in;
+		}
+
+		&[data-state="closed"] {
+			@apply animate-out zoom-out-95 fade-out;
+		}
+	}
+}

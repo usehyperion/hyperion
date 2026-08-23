@@ -27,12 +27,12 @@
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="relative flex cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-accent"
+			{...props}
 			onclick={async () => {
 				await app.open(channel);
 				app.history.pushChannel(channel.id);
 			}}
 			oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}
-			{...props}
 		>
 			<StreamInfo {channel} />
 		</div>
