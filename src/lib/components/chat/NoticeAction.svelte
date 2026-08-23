@@ -22,12 +22,12 @@
 </script>
 
 <Tooltip>
-	{#snippet trigger(register)}
+	{#snippet trigger(props)}
 		<button
 			class={cn(buttonVariants({ size: "icon-sm", variant: "ghost" }), "size-5")}
 			aria-label={tooltip}
+			{...props}
 			{...rest}
-			{@attach register}
 		>
 			<Icon class="size-3.5" />
 		</button>

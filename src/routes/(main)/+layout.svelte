@@ -5,11 +5,11 @@
 	import { ask } from "@tauri-apps/plugin-dialog";
 	import { relaunch } from "@tauri-apps/plugin-process";
 	import { check } from "@tauri-apps/plugin-updater";
+	import { Tooltip } from "bits-ui";
 	import { onMount } from "svelte";
 	import { app } from "$lib/app.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
 	import StreamInfo from "$lib/components/stream/StreamInfo.svelte";
-	import TooltipLayer from "$lib/components/ui/TooltipLayer.svelte";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "$lib/splits/events";
 	import { storage } from "$lib/stores";
 	import { openDialog } from "$lib/util";
@@ -56,17 +56,17 @@
 	{onDragMove}
 	{onDragEnd}
 >
-	<div class="flex grow overflow-hidden">
-		{#if storage.state.user}
-			<Sidebar />
-		{/if}
+	<Tooltip.Provider delayDuration={300}>
+		<div class="flex grow overflow-hidden">
+			{#if storage.state.user}
+				<Sidebar />
+			{/if}
 
-		<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
-			{@render children()}
-		</main>
-	</div>
-
-	<TooltipLayer />
+			<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
+				{@render children()}
+			</main>
+		</div>
+	</Tooltip.Provider>
 
 	<DragOverlay>
 		{#snippet children(source)}

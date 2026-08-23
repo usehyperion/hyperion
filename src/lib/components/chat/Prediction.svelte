@@ -141,12 +141,12 @@
 					</div>
 
 					<Tooltip class="flex flex-col gap-0.5">
-						{#snippet trigger(register)}
+						{#snippet trigger(props)}
 							<Progress
 								class={["h-1.5", lost && "opacity-25"]}
 								value={pct}
 								indicatorClass={colorFor(i)}
-								{@attach register}
+								{...props}
 							/>
 						{/snippet}
 

@@ -1,28 +1,28 @@
 <script lang="ts">
+	import { Tooltip } from "bits-ui";
 	import type { Snippet } from "svelte";
-	import type { Attachment } from "svelte/attachments";
-	import { detached, registry, type TooltipOptions } from "./TooltipLayer.svelte";
 
-	interface Props extends TooltipOptions {
+	interface Props extends Tooltip.ContentProps {
+		delay?: number;
 		children: Snippet;
-		trigger: Snippet<[register: Attachment<HTMLElement>]>;
+		trigger: Snippet<[props: Record<string, unknown>]>;
 	}
 
-	const { children, trigger, ...rest }: Props = $props();
-
-	function register(node: HTMLElement) {
-		node.dataset.slot = "tooltip-trigger";
-		registry.set(node, { content: children, ...rest });
-
-		return () => {
-			node.removeAttribute("data-slot");
-			registry.delete(node);
-
-			for (const listener of detached) {
-				listener(node);
-			}
-		};
-	}
+	const { delay, children, trigger, ...rest }: Props = $props();
 </script>
 
-{@render trigger(register)}
+<Tooltip.Root delayDuration={delay}>
+	<Tooltip.Trigger>
+		{#snippet child({ props })}
+			{@render trigger(props)}
+		{/snippet}
+	</Tooltip.Trigger>
+
+	<Tooltip.Portal>
+		<Tooltip.Content sideOffset={6} {...rest}>
+			<Tooltip.Arrow class="text-neutral-800" />
+
+			{@render children()}
+		</Tooltip.Content>
+	</Tooltip.Portal>
+</Tooltip.Root>
