@@ -23,6 +23,13 @@
 		entry: TooltipEntry;
 	}
 
+	interface AnchorRect {
+		top: number;
+		left: number;
+		width: number;
+		height: number;
+	}
+
 	const DEFAULT_DELAY = 300;
 	const ANCHOR = "--tooltip-active";
 
@@ -31,36 +38,19 @@
 	let element = $state<HTMLElement | null>(null);
 	let trigger = $state<HTMLElement | null>(null);
 	let entry = $state<TooltipEntry | null>(null);
+	let rect = $state<AnchorRect | null>(null);
 	let open = $state(false);
 
 	let timer: ReturnType<typeof setTimeout>;
 	let liveness: ReturnType<typeof setInterval>;
 
 	onMount(() => {
-		function pointerover(event: PointerEvent) {
-			if (!(event.target instanceof Element)) return;
-
-			const resolved = resolveTooltip(event.target);
-
-			if (resolved) {
-				show(resolved.trigger, resolved.entry);
-			} else {
-				hide();
-			}
-		}
-
 		const unsubscribe = onTooltipDetach((node) => {
 			if (node === trigger) hide();
 		});
 
-		document.addEventListener("pointerover", pointerover);
-		document.addEventListener("pointerleave", hide);
-
 		return () => {
 			unsubscribe();
-
-			document.removeEventListener("pointerover", pointerover);
-			document.removeEventListener("pointerleave", hide);
 
 			clearTimeout(timer);
 			clearInterval(liveness);
@@ -79,6 +69,33 @@
 		}
 	});
 
+	function pointerover(event: PointerEvent) {
+		if (!(event.target instanceof Element)) return;
+
+		const resolved = resolveTooltip(event.target);
+
+		if (resolved) {
+			show(resolved.trigger, resolved.entry);
+		} else {
+			hide();
+		}
+	}
+
+	function measure(node: HTMLElement): AnchorRect {
+		const { top, left, width, height } = node.getBoundingClientRect();
+
+		return {
+			top,
+			left,
+			width,
+			height,
+		};
+	}
+
+	function changed(a: AnchorRect, b: AnchorRect) {
+		return a.top !== b.top || a.left !== b.left || a.width !== b.width || a.height !== b.height;
+	}
+
 	function show(node: HTMLElement, found: TooltipEntry) {
 		if (node === trigger) return;
 
@@ -86,14 +103,24 @@
 
 		trigger = node;
 		entry = found;
-
-		node.style.setProperty("anchor-name", ANCHOR);
+		rect = measure(node);
 
 		liveness = setInterval(() => {
-			if (!trigger?.isConnected) hide();
+			if (!trigger?.isConnected) {
+				hide();
+				return;
+			}
+
+			const next = measure(trigger);
+
+			if (!rect || changed(rect, next)) {
+				rect = next;
+			}
 		}, LIVENESS_INTERVAL);
 
-		timer = setTimeout(() => (open = true), found.delay ?? DEFAULT_DELAY);
+		timer = setTimeout(() => {
+			open = true;
+		}, found.delay ?? DEFAULT_DELAY);
 	}
 
 	function hide() {
@@ -101,9 +128,9 @@
 		clearInterval(liveness);
 
 		open = false;
-		trigger?.style.removeProperty("anchor-name");
 		trigger = null;
 		entry = null;
+		rect = null;
 	}
 
 	function resolveTooltip(node: Element): ResolvedTooltip | null {
@@ -123,6 +150,20 @@
 		return () => detached.delete(listener);
 	}
 </script>
+
+<svelte:document onpointerover={pointerover} onpointerleave={hide} />
+
+{#if rect}
+	<div
+		class="pointer-events-none fixed"
+		aria-hidden="true"
+		style:anchor-name={ANCHOR}
+		style:top="{rect.top}px"
+		style:left="{rect.left}px"
+		style:width="{rect.width}px"
+		style:height="{rect.height}px"
+	></div>
+{/if}
 
 <div
 	class={cn(
