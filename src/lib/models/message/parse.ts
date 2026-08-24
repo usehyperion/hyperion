@@ -189,8 +189,12 @@ function fold(nodes: Node[]): Node[] {
 
 	for (const node of nodes) {
 		if (node.type === "emote" && node.data.emote.zeroWidth) {
-			precedingEmote(merged)?.data.layers.push(node.data.emote);
-			continue;
+			const target = precedingEmote(merged);
+
+			if (target) {
+				target.data.layers.push(node.data.emote);
+				continue;
+			}
 		}
 
 		const prev = merged.at(-1);
