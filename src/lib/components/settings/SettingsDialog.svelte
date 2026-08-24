@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { platform as getPlatform } from "@tauri-apps/plugin-os";
 	import { Tabs } from "bits-ui";
 	import Button from "$lib/components/ui/Button.svelte";
 	import Dialog from "$lib/components/ui/Dialog.svelte";
@@ -19,6 +20,7 @@
 	});
 
 	const categories = Object.values(imports).toSorted((a, b) => a.order - b.order);
+	const isMac = getPlatform() === "macos";
 
 	let query = $state("");
 	let active = $state(categories[0].label);
@@ -74,7 +76,12 @@
 		orientation="vertical"
 		bind:value={active}
 	>
-		<div class="flex h-full w-52 shrink-0 flex-col gap-3 p-3">
+		<div
+			class={[
+				"flex h-full w-52 shrink-0 flex-col gap-3 p-3",
+				isMac && "pt-[calc(var(--spacing-title-bar)+4px)]",
+			]}
+		>
 			<InputGroup.Root class="h-9 bg-background">
 				<InputGroup.Addon>
 					<MagnifyingGlass />
