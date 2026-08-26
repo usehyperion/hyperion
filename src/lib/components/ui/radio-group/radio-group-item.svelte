@@ -28,9 +28,8 @@
 		{#if checked}
 			<div
 				class={cn(
-					"absolute -inset-px z-1 flex items-center justify-center rounded-full bg-orange-500 before:bg-background dark:before:bg-primary",
-					"transition-opacity duration-150 ease-out-expo",
-					"before:size-full before:origin-center before:scale-50 before:rounded-full before:content-['']",
+					"absolute -inset-px z-1 flex items-center justify-center rounded-full bg-orange-500",
+					"before:size-full before:origin-center before:scale-50 before:rounded-full before:bg-background before:content-[''] dark:before:bg-primary",
 				)}
 				data-slot="radio-group-indicator"
 				transition:scale={{ start: 0.8, duration: 250 }}
