@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { RadioGroup as RadioGroupPrimitive } from "bits-ui";
+	import { RadioGroup } from "bits-ui";
 	import { cn } from "tailwind-variants";
 
 	let {
-		ref = $bindable(null),
 		class: className,
 		value = $bindable(""),
-		...restProps
-	}: RadioGroupPrimitive.RootProps = $props();
+		ref = $bindable(null),
+		...rest
+	}: RadioGroup.RootProps = $props();
 </script>
 
-<RadioGroupPrimitive.Root
-	bind:ref
-	bind:value
-	data-slot="radio-group"
+<RadioGroup.Root
 	class={cn("grid gap-3", className)}
-	{...restProps}
+	data-component="radio-group"
+	bind:value
+	bind:ref
+	{...rest}
 />

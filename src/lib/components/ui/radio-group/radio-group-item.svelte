@@ -1,32 +1,40 @@
 <script lang="ts">
-	import { RadioGroup as RadioGroupPrimitive } from "bits-ui";
+	import { RadioGroup } from "bits-ui";
+	import { scale } from "svelte/transition";
 	import { cn } from "tailwind-variants";
 	import type { WithoutChildrenOrChild } from "$lib/util.js";
-	import CircleIcon from "~icons/ph/circle-fill";
 
 	let {
-		ref = $bindable(null),
 		class: className,
-		...restProps
-	}: WithoutChildrenOrChild<RadioGroupPrimitive.ItemProps> = $props();
+		ref = $bindable(null),
+		...rest
+	}: WithoutChildrenOrChild<RadioGroup.ItemProps> = $props();
 </script>
 
-<RadioGroupPrimitive.Item
-	bind:ref
-	data-slot="radio-group-item"
+<RadioGroup.Item
 	class={cn(
-		"aspect-square size-4 shrink-0 rounded-full border border-input text-primary shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:bg-input/30 dark:aria-invalid:ring-destructive/40",
+		"group relative inline-flex size-4 shrink-0 items-center justify-center rounded-full",
+		"outline-0 outline-offset-0 outline-transparent transition-[outline-width,outline-offset,outline-color] duration-150 ease-out-expo outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring/50",
+		"disabled:cursor-not-allowed disabled:opacity-60",
+		"aria-invalid:outline-2 aria-invalid:outline-offset-2 aria-invalid:outline-destructive/50 aria-invalid:outline-solid",
+		"border bg-input bg-clip-padding dark:bg-input/80",
 		className,
 	)}
-	{...restProps}
+	data-slot="radio-group-item"
+	bind:ref
+	{...rest}
 >
 	{#snippet children({ checked })}
-		<div data-slot="radio-group-indicator" class="relative flex items-center justify-center">
-			{#if checked}
-				<CircleIcon
-					class="absolute start-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 fill-primary"
-				/>
-			{/if}
-		</div>
+		{#if checked}
+			<div
+				class={cn(
+					"absolute -inset-px z-1 flex items-center justify-center rounded-full bg-orange-500 before:bg-background dark:before:bg-primary",
+					"transition-opacity duration-150 ease-out-expo",
+					"before:size-full before:origin-center before:scale-50 before:rounded-full before:content-['']",
+				)}
+				data-slot="radio-group-indicator"
+				transition:scale={{ start: 0.8, duration: 250 }}
+			></div>
+		{/if}
 	{/snippet}
-</RadioGroupPrimitive.Item>
+</RadioGroup.Item>
