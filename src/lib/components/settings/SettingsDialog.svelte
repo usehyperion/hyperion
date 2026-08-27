@@ -7,14 +7,14 @@
 	import Separator from "$lib/components/ui/Separator.svelte";
 	import { log } from "$lib/log";
 	import { settings } from "$lib/settings";
+	import { countFields, filterCategory } from "$lib/settings/search";
+	import type { SettingsCategory } from "$lib/settings/types";
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
 	import X from "~icons/ph/x";
 	import Category from "./Category.svelte";
-	import { countFields, filterCategory } from "./search";
 	import SidebarActions from "./SidebarActions.svelte";
-	import type { SettingsCategory } from "./types";
 
-	const imports = import.meta.glob<SettingsCategory>(["./categories/*.ts"], {
+	const imports = import.meta.glob<SettingsCategory>(["$lib/settings/categories/*.ts"], {
 		eager: true,
 		import: "default",
 	});

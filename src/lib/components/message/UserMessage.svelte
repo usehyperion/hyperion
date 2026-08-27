@@ -74,8 +74,9 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="group relative aria-disabled:opacity-50"
+	class="group relative"
 	aria-disabled={message.deleted}
+	data-deleted={message.deleted ? settings.state["moderation.deleted.appearance"] : undefined}
 	oncontextmenu={(event) => openMenu(event, () => createMessageMenu(message))}
 >
 	{#if !message.deleted && !app.user?.banned.has(message.channel.id)}

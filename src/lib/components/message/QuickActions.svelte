@@ -2,6 +2,8 @@
 	import { Tooltip } from "bits-ui";
 	import type { Component } from "svelte";
 	import type { UserMessage } from "$lib/models/message/user-message.svelte";
+	import { confirmBan, timeoutDuration, timeoutLabel } from "$lib/moderation";
+	import { settings } from "$lib/settings";
 	import ArrowBendUpLeft from "~icons/ph/arrow-bend-up-left";
 	import Clipboard from "~icons/ph/clipboard";
 	import Clock from "~icons/ph/clock";
@@ -35,6 +37,17 @@
 		message.channel.chat.replyTarget = message;
 		message.channel.chat.input?.focus();
 	}
+
+	async function timeout() {
+		await message.viewer?.timeout({ duration: timeoutDuration() });
+	}
+
+	async function ban() {
+		if (!message.viewer) return;
+		if (!(await confirmBan(message.viewer.displayName))) return;
+
+		await message.viewer.ban();
+	}
 </script>
 
 <Tooltip.Root tether={qaTether}>
@@ -53,7 +66,7 @@
 			{@render action({ icon: Clipboard, label: "Copy", onclick: copy })}
 			{@render action({ icon: ArrowBendUpLeft, label: "Reply", onclick: reply })}
 
-			{#if message.actionable}
+			{#if message.actionable && settings.state["moderation.quickActions.show"]}
 				<div class="h-4">
 					<Separator orientation="vertical" class="mx-1 self-center" />
 				</div>
@@ -67,16 +80,16 @@
 
 				{@render action({
 					icon: Clock,
-					label: "Timeout (10 minutes)",
+					label: `Timeout (${timeoutLabel()})`,
 					danger: true,
-					onclickwait: async () => await message.viewer?.timeout({ duration: 600 }),
+					onclickwait: timeout,
 				})}
 
 				{@render action({
 					icon: Gavel,
 					label: "Ban",
 					danger: true,
-					onclickwait: async () => await message.viewer?.ban(),
+					onclickwait: ban,
 				})}
 			{/if}
 		</div>

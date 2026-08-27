@@ -1,5 +1,5 @@
+import ClearCache from "$lib/components/settings/custom/ClearCache.svelte";
 import Toolbox from "~icons/ph/toolbox";
-import ClearCache from "../custom/ClearCache.svelte";
 import type { SettingsCategory } from "../types";
 
 export default {

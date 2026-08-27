@@ -23,6 +23,8 @@ export interface KeywordHighlightConfig extends HighlightConfig {
 	matchCase: boolean;
 }
 
+export type DeletedAppearance = "dim" | "strike" | "blur";
+
 export type Settings = {
 	"appearance.theme": string;
 
@@ -54,6 +56,13 @@ export type Settings = {
 	"highlights.enabled": boolean;
 	"highlights.viewers": Record<HighlightType, HighlightConfig>;
 	"highlights.keywords": KeywordHighlightConfig[];
+
+	"moderation.timeout.duration": string;
+	"moderation.ban.confirm": boolean;
+	"moderation.quickActions.show": boolean;
+	"moderation.deleted.appearance": DeletedAppearance;
+	"moderation.events.modes": boolean;
+	"moderation.events.terms": boolean;
 
 	"advanced.logs.level": "error" | "warn" | "info" | "debug" | "trace";
 };
@@ -97,6 +106,12 @@ export const defaults: Settings = {
 	"highlights.enabled": true,
 	"highlights.viewers": { ...defaultHighlightTypes },
 	"highlights.keywords": [],
+	"moderation.timeout.duration": "10m",
+	"moderation.ban.confirm": true,
+	"moderation.quickActions.show": true,
+	"moderation.deleted.appearance": "dim",
+	"moderation.events.modes": true,
+	"moderation.events.terms": true,
 	"advanced.logs.level": "info",
 };
 

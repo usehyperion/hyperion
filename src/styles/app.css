@@ -179,6 +179,27 @@
 }
 
 @layer components {
+	[data-deleted="dim"] {
+		opacity: 0.5;
+	}
+
+	[data-deleted="strike"] [data-slot="message-content"] {
+		text-decoration: line-through;
+		text-decoration-thickness: 1px;
+	}
+
+	[data-deleted="spoiler"] [data-slot="message-content"] {
+		@apply transition-[filter,opacity] duration-150 ease-out-quad;
+
+		filter: blur(4px);
+		opacity: 0.65;
+	}
+
+	[data-deleted="spoiler"]:is(:hover, :focus-within) [data-slot="message-content"] {
+		filter: none;
+		opacity: 1;
+	}
+
 	[data-tooltip-content] {
 		@apply text-xs smooth-shadow-ring-md;
 
