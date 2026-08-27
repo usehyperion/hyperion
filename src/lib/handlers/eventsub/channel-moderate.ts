@@ -10,7 +10,6 @@ import Timeout from "$lib/components/message/events/Timeout.svelte";
 import Unraid from "$lib/components/message/events/Unraid.svelte";
 import Untimeout from "$lib/components/message/events/Untimeout.svelte";
 import Warn from "$lib/components/message/events/Warn.svelte";
-import { settings } from "$lib/settings";
 import { defineHandler } from "../helper";
 
 export default defineHandler({
@@ -29,8 +28,6 @@ export default defineHandler({
 			case "subscribersoff":
 			case "uniquechat":
 			case "uniquechatoff": {
-				if (!settings.state["moderation.events.modes"]) break;
-
 				const mode = data.action.startsWith("emote")
 					? "emote-only"
 					: data.action.startsWith("unique")
@@ -49,8 +46,6 @@ export default defineHandler({
 
 			case "followers":
 			case "followersoff": {
-				if (!settings.state["moderation.events.modes"]) break;
-
 				chat.event(Mode, {
 					mode: "follower-only",
 					enabled: !data.action.includes("off"),
@@ -65,8 +60,6 @@ export default defineHandler({
 
 			case "slow":
 			case "slowoff": {
-				if (!settings.state["moderation.events.modes"]) break;
-
 				chat.event(Mode, {
 					mode: "slow",
 					enabled: data.slow !== null,
@@ -102,8 +95,6 @@ export default defineHandler({
 			case "add_permitted_term":
 			case "remove_blocked_term":
 			case "remove_permitted_term": {
-				if (!settings.state["moderation.events.terms"]) break;
-
 				chat.event(Term, { data: data.automod_terms, moderator });
 				break;
 			}
