@@ -68,27 +68,5 @@ export default {
 				},
 			],
 		},
-		{
-			type: "group",
-			label: "Moderator activity",
-			fields: [
-				{
-					id: "moderation.events.modes",
-					type: "switch",
-					label: "Show chat mode changes",
-					description:
-						"Show a notice when a moderator toggles emote-only, follower-only, subscriber-only, unique, or slow mode.",
-					keywords: ["emote only", "followers", "subscribers", "slow", "unique"],
-				},
-				{
-					id: "moderation.events.terms",
-					type: "switch",
-					label: "Show AutoMod term changes",
-					description:
-						"Show a notice when a moderator adds or removes a blocked or permitted term.",
-					keywords: ["blocked", "permitted", "automod"],
-				},
-			],
-		},
 	],
 } satisfies SettingsCategory;

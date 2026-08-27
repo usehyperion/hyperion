@@ -61,8 +61,6 @@ export type Settings = {
 	"moderation.ban.confirm": boolean;
 	"moderation.quickActions.show": boolean;
 	"moderation.deleted.appearance": DeletedAppearance;
-	"moderation.events.modes": boolean;
-	"moderation.events.terms": boolean;
 
 	"advanced.logs.level": "error" | "warn" | "info" | "debug" | "trace";
 };
@@ -110,8 +108,6 @@ export const defaults: Settings = {
 	"moderation.ban.confirm": true,
 	"moderation.quickActions.show": true,
 	"moderation.deleted.appearance": "dim",
-	"moderation.events.modes": true,
-	"moderation.events.terms": true,
 	"advanced.logs.level": "info",
 };
 
