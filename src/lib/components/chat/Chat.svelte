@@ -144,7 +144,7 @@
 				{/if}
 
 				{#if message.recent && !nextRecent && settings.state["chat.messages.history.separator"]}
-					<ChatSeparator class="text-red-400">Live messages</ChatSeparator>
+					<ChatSeparator class="text-live-foreground">Live messages</ChatSeparator>
 				{/if}
 			{:else if message.isComponent()}
 				<message.component {...message.props} />

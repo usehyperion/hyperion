@@ -62,7 +62,9 @@
 				<Sidebar />
 			{/if}
 
-			<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
+			<main
+				class={["grow overflow-hidden bg-surface-chrome", storage.state.user && "border-l"]}
+			>
 				{@render children()}
 			</main>
 		</div>
@@ -76,11 +78,11 @@
 			{#if channel}
 				{#if isTab}
 					<div
-						class="mx-auto flex max-w-max items-center gap-2 rounded bg-background px-2 py-1"
+						class="mx-auto flex max-w-max items-center gap-2 rounded bg-surface px-2 py-1"
 					>
 						<img
 							class={[
-								"size-6 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10",
+								"size-6 rounded-full object-cover ring-1 ring-hairline",
 								!channel.stream && "grayscale",
 							]}
 							src={channel.user.avatarUrl}

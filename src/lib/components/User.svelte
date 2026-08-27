@@ -118,17 +118,17 @@
 	<div class="relative border-t p-4">
 		<Avatar.Root class="-mt-14">
 			<div
-				class="flex size-20 items-center justify-center overflow-hidden rounded-full border-4 border-popover bg-primary"
+				class="flex size-20 items-center justify-center overflow-hidden rounded-full border-4 border-surface-overlay bg-surface-inverse"
 			>
 				<Avatar.Image src={user.avatarUrl} alt={user.displayName} />
 
 				<Avatar.Fallback>
-					<UserIcon class="size-10 text-primary-foreground" />
+					<UserIcon class="size-10 text-foreground-on-inverse" />
 				</Avatar.Fallback>
 			</div>
 		</Avatar.Root>
 
-		<div class="absolute top-2 right-2 space-y-1 text-xs text-muted-foreground">
+		<div class="absolute top-2 right-2 space-y-1 text-xs text-foreground-subtle">
 			<div class="flex items-center gap-1">
 				<Cake class="mr-1 size-3" />
 
@@ -212,7 +212,7 @@
 			{/if}
 
 			{#if user.bio}
-				<p class="text-xs text-muted-foreground">{user.bio}</p>
+				<p class="text-xs text-foreground-subtle">{user.bio}</p>
 			{/if}
 		</div>
 	</div>

@@ -44,7 +44,7 @@
 		>
 			{#snippet actions()}
 				<Button
-					class="text-muted-foreground hover:text-foreground"
+					class="text-foreground-subtle hover:text-foreground"
 					title="Reset to default"
 					size="icon-sm"
 					variant="ghost"

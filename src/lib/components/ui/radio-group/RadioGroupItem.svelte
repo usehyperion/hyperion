@@ -16,8 +16,8 @@
 		"group relative inline-flex size-4 shrink-0 items-center justify-center rounded-full",
 		"outline-0 outline-offset-0 outline-transparent transition-[outline-width,outline-offset,outline-color] duration-150 ease-out-expo outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring/50",
 		"disabled:cursor-not-allowed disabled:opacity-60",
-		"aria-invalid:outline-2 aria-invalid:outline-offset-2 aria-invalid:outline-destructive/50 aria-invalid:outline-solid",
-		"border bg-input bg-clip-padding dark:bg-input/80",
+		"aria-invalid:outline-2 aria-invalid:outline-offset-2 aria-invalid:outline-danger/50 aria-invalid:outline-solid",
+		"border bg-field bg-clip-padding",
 		className,
 	)}
 	data-slot="radio-group-item"
@@ -28,8 +28,8 @@
 		{#if checked}
 			<div
 				class={cn(
-					"absolute -inset-px z-1 flex items-center justify-center rounded-full bg-orange-500",
-					"before:size-full before:origin-center before:scale-50 before:rounded-full before:bg-background before:content-[''] dark:before:bg-primary",
+					"absolute -inset-px z-1 flex items-center justify-center rounded-full bg-brand",
+					"before:size-full before:origin-center before:scale-50 before:rounded-full before:bg-thumb before:content-['']",
 				)}
 				data-slot="radio-group-indicator"
 				transition:scale={{ start: 0.8, duration: 250 }}

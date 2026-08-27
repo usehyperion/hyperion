@@ -17,7 +17,7 @@
 </script>
 
 <Progress.Root
-	class={cn("relative h-2 w-full overflow-hidden rounded-full bg-primary/20", className)}
+	class={cn("relative h-2 w-full overflow-hidden rounded-full bg-track", className)}
 	{value}
 	{max}
 	data-component="progress"
@@ -25,7 +25,7 @@
 	bind:ref
 >
 	<div
-		class={cn("h-full w-full flex-1 bg-primary transition-transform", indicatorClass)}
+		class={cn("h-full w-full flex-1 bg-track-active transition-transform", indicatorClass)}
 		data-slot="progress-indicator"
 		style:transform="translateX(-{100 - (100 * (value ?? 0)) / (max ?? 1)}%)"
 	></div>

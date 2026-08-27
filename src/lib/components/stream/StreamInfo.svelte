@@ -27,7 +27,7 @@
 
 {#if !sidebar.collapsed && channel.stream?.guests.size}
 	<div
-		class="absolute right-1 bottom-1 flex items-center justify-center rounded-full bg-muted/70"
+		class="absolute right-1 bottom-1 flex items-center justify-center rounded-full bg-surface-overlay/70"
 	>
 		<DotsThreeCircle class="size-5" />
 	</div>

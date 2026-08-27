@@ -45,7 +45,7 @@
 	}
 </script>
 
-<div class="flex h-8 shrink-0 items-center border-b bg-sidebar" data-slot="tab-bar">
+<div class="flex h-8 shrink-0 items-center border-b bg-surface-chrome" data-slot="tab-bar">
 	<div
 		class="flex h-full min-w-0 grow scrollbar-none items-stretch overflow-x-auto"
 		role="tablist"
@@ -57,11 +57,11 @@
 		{/each}
 
 		{#if showDropIndicator}
-			<div class="w-0.5 shrink-0 self-stretch bg-primary" aria-hidden="true"></div>
+			<div class="w-0.5 shrink-0 self-stretch bg-indicator" aria-hidden="true"></div>
 		{/if}
 	</div>
 
-	<div class="flex shrink-0 items-center gap-x-1 px-1 text-muted-foreground">
+	<div class="flex shrink-0 items-center gap-x-1 px-1 text-foreground-subtle">
 		{#if channel?.stream?.guests.size}
 			<GuestList {channel} />
 		{/if}

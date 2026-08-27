@@ -36,7 +36,7 @@
 </script>
 
 <div class="p-2 text-sm">
-	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
+	<div class="mb-1 flex items-center gap-1 text-xs text-foreground-subtle">
 		<ChartBar class="size-3 shrink-0" />
 
 		<span class="truncate">
@@ -68,23 +68,20 @@
 					<div class="mb-0.5 flex items-center justify-between gap-2">
 						<span class="truncate">{choice.title}</span>
 
-						<span class="text-xs whitespace-nowrap text-muted-foreground tabular-nums">
+						<span class="text-xs whitespace-nowrap text-foreground-subtle tabular-nums">
 							{pct}% ({choice.votes})
 						</span>
 					</div>
 
 					<Progress
 						value={pct}
-						class={[
-							"h-1.5",
-							winner && "**:data-[slot=progress-indicator]:bg-green-500",
-						]}
+						class={["h-1.5", winner && "**:data-[slot=progress-indicator]:bg-success"]}
 					/>
 				</li>
 			{/each}
 		</ul>
 
-		<p class="mt-1.5 text-xs text-muted-foreground tabular-nums">
+		<p class="mt-1.5 text-xs text-foreground-subtle tabular-nums">
 			{poll.totalVotes.toLocaleString()}
 			{poll.totalVotes === 1 ? "vote" : "votes"}
 		</p>

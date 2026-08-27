@@ -15,7 +15,10 @@
 </script>
 
 {#if reward}
-	<div class="my-0.5 border-l-4 bg-muted/50 p-2" style:border-color={reward.background_color}>
+	<div
+		class="my-0.5 border-l-4 bg-surface-sunken p-2"
+		style:border-color={reward.background_color}
+	>
 		{#if viewer}
 			<p>
 				{@html colorizeName(viewer.user)}

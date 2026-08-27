@@ -19,7 +19,7 @@
 			"transition-[background-color,color,box-shadow] duration-100 ease-out-quart",
 
 			"focus:ring-ring/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-			"aria-invalid:ring-2 aria-invalid:ring-destructive",
+			"aria-invalid:ring-2 aria-invalid:ring-danger",
 
 			"disabled:cursor-not-allowed disabled:opacity-50",
 			"aria-disabled:pointer-events-none aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
@@ -35,19 +35,19 @@
 				"icon-lg": "size-10 items-center justify-center rounded-lg p-0",
 			},
 			variant: {
-				default: [...emphasis, "[--btn-token:var(--color-orange-500)]"],
-				destructive: [...emphasis, "[--btn-token:var(--color-destructive)]"],
+				default: [...emphasis, "[--btn-token:var(--color-brand)]"],
+				destructive: [...emphasis, "[--btn-token:var(--color-danger)]"],
 				secondary: [
-					"bg-background text-foreground ring ring-border",
-					"not-disabled:hover:bg-muted",
-					"disabled:bg-background/50 disabled:text-foreground/70",
-					"data-[state=open]:bg-background",
+					"bg-surface text-foreground ring ring-border",
+					"not-disabled:hover:bg-hover",
+					"disabled:bg-surface/50 disabled:text-foreground/70",
+					"data-[state=open]:bg-surface",
 				],
 				outline: [
-					"bg-muted/40 text-muted-foreground ring ring-border",
+					"bg-surface-sunken text-foreground-subtle ring ring-border",
 					"not-disabled:hover:text-foreground not-disabled:hover:ring-ring/25",
 				],
-				ghost: "bg-inherit text-foreground shadow-none hover:bg-primary/10",
+				ghost: "bg-inherit text-foreground shadow-none hover:bg-hover",
 				inline: [
 					"h-auto rounded-xs px-0 py-0 align-baseline font-semibold shadow-none",
 					"underline decoration-dotted decoration-from-font underline-offset-[3px]",

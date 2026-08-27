@@ -22,7 +22,7 @@
 
 <div class="@container">
 	<div
-		class="group flex flex-wrap items-center gap-2 rounded-xl border bg-background/50 px-3 py-2.5 transition-[border-color] duration-200"
+		class="group flex flex-wrap items-center gap-2 rounded-xl border bg-surface/50 px-3 py-2.5 transition-[border-color] duration-200"
 		data-enabled={config.enabled}
 		style:border-color={config.enabled ? config.color : undefined}
 	>
@@ -30,14 +30,14 @@
 			class="flex min-w-0 flex-1 items-center gap-2.5 transition-opacity duration-200 group-data-[enabled=false]:opacity-45"
 		>
 			<span
-				class="shrink-0 group-data-[enabled=false]:text-muted-foreground"
+				class="shrink-0 group-data-[enabled=false]:text-foreground-subtle"
 				style:color={config.enabled ? config.color : undefined}
 			>
 				<decoration.icon class="size-4" />
 			</span>
 
 			<span
-				class="truncate text-sm font-medium group-data-[enabled=false]:text-muted-foreground"
+				class="truncate text-sm font-medium group-data-[enabled=false]:text-foreground-subtle"
 				{title}
 			>
 				{title}

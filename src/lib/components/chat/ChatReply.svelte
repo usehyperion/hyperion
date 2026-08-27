@@ -12,14 +12,14 @@
 </script>
 
 <div
-	class="rounded-t-md border border-b-0 border-muted bg-muted/50 px-3 pt-1.5 pb-2.5 text-sm transition-colors duration-200 has-[+div>input:focus-visible]:border-input"
+	class="rounded-t-md border border-b-0 border-border bg-surface-sunken px-3 pt-1.5 pb-2.5 text-sm transition-colors duration-200 has-[+div>input:focus-visible]:border-border-strong"
 >
 	<div class="flex items-center justify-between">
-		<span class="text-muted-foreground">Replying to:</span>
+		<span class="text-foreground-subtle">Replying to:</span>
 
 		<button type="button" aria-label="Cancel reply" onclick={oncancel}>
 			<XCircle
-				class="block text-muted-foreground transition-colors duration-150 hover:text-foreground"
+				class="block text-foreground-subtle transition-colors duration-150 hover:text-foreground"
 			/>
 		</button>
 	</div>

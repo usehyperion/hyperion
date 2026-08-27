@@ -15,19 +15,19 @@
 
 	const { prediction }: Props = $props();
 
-	const DUO = ["bg-blue-500", "bg-pink-500"];
+	const DUO = ["bg-cat-1", "bg-cat-2"];
 
 	const RAINBOW = [
-		"bg-red-500",
-		"bg-orange-500",
-		"bg-yellow-500",
-		"bg-green-500",
-		"bg-teal-500",
-		"bg-cyan-500",
-		"bg-blue-500",
-		"bg-indigo-500",
-		"bg-violet-500",
-		"bg-fuchsia-500",
+		"bg-cat-7",
+		"bg-cat-4",
+		"bg-cat-8",
+		"bg-cat-3",
+		"bg-cat-6",
+		"bg-cat-6",
+		"bg-cat-1",
+		"bg-cat-1",
+		"bg-cat-5",
+		"bg-cat-2",
 	];
 
 	let expanded = $state(true);
@@ -73,7 +73,7 @@
 </script>
 
 <div class="p-2 text-sm">
-	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
+	<div class="mb-1 flex items-center gap-1 text-xs text-foreground-subtle">
 		<SealQuestion class="size-3 shrink-0" />
 
 		<span class="truncate">
@@ -122,11 +122,11 @@
 						<span class="truncate">{outcome.title}</span>
 
 						{#if won}
-							<Crown class="size-3 shrink-0 text-yellow-400" />
+							<Crown class="size-3 shrink-0 text-warning" />
 						{/if}
 
 						<span
-							class="ml-auto shrink-0 text-xs whitespace-nowrap text-muted-foreground tabular-nums"
+							class="ml-auto shrink-0 text-xs whitespace-nowrap text-foreground-subtle tabular-nums"
 						>
 							{pct}% ({outcome.points.toLocaleString()})
 						</span>
@@ -156,7 +156,7 @@
 							{outcome.title}
 
 							{#if won}
-								<Crown class="size-3 text-yellow-400" />
+								<Crown class="size-3 text-warning" />
 							{/if}
 						</span>
 
@@ -177,7 +177,7 @@
 							{outcome.title}
 
 							{#if won}
-								<Crown class="size-3 text-yellow-400" />
+								<Crown class="size-3 text-warning" />
 							{/if}
 						</span>
 
@@ -194,7 +194,7 @@
 			{/each}
 		</ul>
 
-		<p class="mt-1.5 text-xs text-muted-foreground tabular-nums">
+		<p class="mt-1.5 text-xs text-foreground-subtle tabular-nums">
 			{prediction.totalPoints.toLocaleString()} points ·
 			{prediction.totalUsers.toLocaleString()}
 			{prediction.totalUsers === 1 ? "predictor" : "predictors"}

@@ -54,10 +54,12 @@
 
 {#if notices.length}
 	<div
-		class="absolute inset-x-2 top-2 z-10 overflow-hidden rounded-lg bg-popover smooth-shadow-ring-md"
+		class="absolute inset-x-2 top-2 z-10 overflow-hidden rounded-lg bg-surface-overlay smooth-shadow-ring-md"
 	>
 		{#if notices.length > 1}
-			<div class="flex items-center gap-1 border-b px-1 py-0.5 text-xs text-muted-foreground">
+			<div
+				class="flex items-center gap-1 border-b px-1 py-0.5 text-xs text-foreground-subtle"
+			>
 				<Button
 					class="size-5"
 					size="icon-sm"
@@ -75,7 +77,7 @@
 						<button
 							class={[
 								"size-1.5 rounded-full transition-colors",
-								i === index ? "bg-primary" : "bg-muted-foreground opacity-40",
+								i === index ? "bg-indicator" : "bg-foreground-faint opacity-40",
 							]}
 							type="button"
 							aria-label="Show {notice.label}"

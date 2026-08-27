@@ -70,11 +70,11 @@
 				value={set.id}
 				{@attach observe}
 			>
-				<Accordion.Header class="sticky top-0 z-10 bg-sidebar p-2">
+				<Accordion.Header class="sticky top-0 z-10 bg-surface-chrome p-2">
 					<Accordion.Trigger class="group flex w-full items-center justify-between">
 						<div class="flex items-center">
 							<img
-								class="mr-2 size-5 rounded-full object-contain ring-1 ring-black/10 dark:ring-white/10"
+								class="mr-2 size-5 rounded-full object-contain ring-1 ring-hairline"
 								src={set.owner.avatarUrl}
 								alt={set.owner.displayName}
 								decoding="async"
@@ -85,7 +85,7 @@
 						</div>
 
 						<CaretRight
-							class="text-muted-foreground group-data-[state=open]:rotate-90"
+							class="text-foreground-subtle group-data-[state=open]:rotate-90"
 						/>
 					</Accordion.Trigger>
 				</Accordion.Header>

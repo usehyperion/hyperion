@@ -30,7 +30,7 @@
 </script>
 
 <div class="relative p-2 text-sm">
-	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
+	<div class="mb-1 flex items-center gap-1 text-xs text-foreground-subtle">
 		<PushPin class="size-3" />
 
 		<span>Pinned by {@html colorizeName(pin.pinner)}</span>
@@ -58,12 +58,12 @@
 
 	{#if pin.duration !== null}
 		<div
-			class="absolute inset-x-0 bottom-0 h-0.5 bg-muted"
+			class="absolute inset-x-0 bottom-0 h-0.5 bg-track"
 			role="timer"
 			aria-label="{formatDuration(Math.ceil(remaining / 1000))} remaining"
 		>
 			<div
-				class="h-full bg-primary transition-[width] duration-1000 ease-linear"
+				class="h-full bg-track-active transition-[width] duration-1000 ease-linear"
 				style:width="{fraction * 100}%"
 			></div>
 		</div>

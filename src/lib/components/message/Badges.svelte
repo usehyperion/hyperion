@@ -38,7 +38,7 @@
 
 		<Tooltip.Portal>
 			<Tooltip.Content class="p-1" sideOffset={6}>
-				<Tooltip.Arrow class="text-neutral-800" />
+				<Tooltip.Arrow class="text-surface-tooltip" />
 				{payload?.title}
 			</Tooltip.Content>
 		</Tooltip.Portal>

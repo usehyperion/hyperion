@@ -14,13 +14,13 @@
 </script>
 
 <div class="space-y-0.5 *:w-full *:justify-start">
-	<Button class="text-muted-foreground" variant="ghost" onclick={openLogDir}>
+	<Button class="text-foreground-subtle" variant="ghost" onclick={openLogDir}>
 		<FolderOpen />
 		<span class="text-sm">Open logs</span>
 	</Button>
 
 	<Button
-		class="text-muted-foreground"
+		class="text-foreground-subtle"
 		command="show-modal"
 		commandfor="about-dialog"
 		variant="ghost"
@@ -29,7 +29,7 @@
 		<span class="text-sm">About</span>
 	</Button>
 
-	<Button class="text-muted-foreground" variant="ghost" onclick={logOut}>
+	<Button class="text-foreground-subtle" variant="ghost" onclick={logOut}>
 		<SignOut />
 		<span class="text-sm">Log out</span>
 	</Button>

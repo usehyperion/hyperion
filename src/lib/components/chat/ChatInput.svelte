@@ -180,7 +180,7 @@
 	</InputGroup.Root>
 
 	<div class="flex items-center justify-between px-1">
-		<div class="text-xs text-muted-foreground tabular-nums">
+		<div class="text-xs text-foreground-subtle tabular-nums">
 			<span class:text-foreground={chat.value.length === 500}>{chat.value.length}</span>
 			/ 500
 		</div>

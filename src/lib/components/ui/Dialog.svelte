@@ -26,7 +26,7 @@
 <dialog
 	{id}
 	class={cn(
-		"fixed inset-0 m-auto w-full max-w-[calc(100%-2rem)] space-y-4 rounded-3xl bg-popover p-6 text-popover-foreground smooth-shadow-ring-lg sm:max-w-lg",
+		"fixed inset-0 m-auto w-full max-w-[calc(100%-2rem)] space-y-4 rounded-3xl bg-surface-overlay p-6 text-foreground smooth-shadow-ring-lg sm:max-w-lg",
 		"scale-95 opacity-0 transition-[opacity,scale,overlay,display] transition-discrete ease-out",
 		className,
 	)}
@@ -37,7 +37,7 @@
 >
 	{#if header}
 		<header
-			class="flex flex-col gap-2 *:heading:text-xl *:heading:font-semibold *:[p]:text-sm *:[p]:text-muted-foreground"
+			class="flex flex-col gap-2 *:heading:text-xl *:heading:font-semibold *:[p]:text-sm *:[p]:text-foreground-subtle"
 			data-slot="dialog-header"
 		>
 			{@render header()}

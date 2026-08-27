@@ -52,7 +52,7 @@
 			bind:config={keywords[i]}
 		>
 			{#snippet badges()}
-				<div class="flex shrink-0 items-center gap-1.5 text-muted-foreground">
+				<div class="flex shrink-0 items-center gap-1.5 text-foreground-subtle">
 					{#if config.matchCase}
 						<span title="Match case"><CaseSensitive class="size-4" /></span>
 					{/if}
@@ -71,7 +71,7 @@
 				<Edit bind:config={keywords[i]} />
 
 				<Button
-					class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+					class="text-foreground-subtle hover:bg-danger/10 hover:text-danger-foreground"
 					title="Delete"
 					size="icon-sm"
 					variant="ghost"

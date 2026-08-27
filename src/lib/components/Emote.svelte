@@ -83,12 +83,14 @@
 		<p class="text-xs leading-tight font-semibold wrap-anywhere">{emote.displayName}</p>
 
 		{#if emote.alias}
-			<p class="text-xs wrap-anywhere text-neutral-400">
+			<p class="text-xs wrap-anywhere text-foreground-on-tooltip-subtle">
 				Alias of <span class="font-medium">{emote.name}</span>
 			</p>
 		{/if}
 
-		<div class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-neutral-400">
+		<div
+			class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-foreground-on-tooltip-subtle"
+		>
 			<span class="flex items-center gap-1">
 				<ProviderIcon class="size-3" />
 				{emote.provider}
@@ -97,7 +99,9 @@
 			<span class="tabular-nums">&bullet; {emote.width}&times;{emote.height}</span>
 
 			{#if emote.zeroWidth}
-				<span class="rounded bg-white/10 px-1 py-px text-[10px] text-neutral-300">
+				<span
+					class="rounded bg-surface-tooltip-raised px-1 py-px text-[10px] text-foreground-on-tooltip"
+				>
 					Zero-width
 				</span>
 			{/if}
@@ -105,8 +109,8 @@
 	</div>
 
 	{#if layers.length}
-		<div class="space-y-1 border-t border-white/10 px-3 py-2">
-			<p class="text-[10px] tracking-wide text-neutral-400 uppercase">
+		<div class="space-y-1 border-t border-border-tooltip px-3 py-2">
+			<p class="text-[10px] tracking-wide text-foreground-on-tooltip-subtle uppercase">
 				{layers.length === 1 ? "Modifier" : "Modifiers"}
 			</p>
 

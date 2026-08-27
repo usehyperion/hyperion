@@ -16,7 +16,7 @@
 	>
 		{#each themes as theme (theme.value)}
 			<RadioGroup.Item
-				class="cursor-pointer overflow-hidden rounded-xl border text-left transition-[border-color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 data-[state=checked]:ring-1 data-[state=checked]:ring-primary"
+				class="cursor-pointer overflow-hidden rounded-xl border text-left transition-[border-color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 data-[state=checked]:ring-1 data-[state=checked]:ring-brand"
 				value={theme.value}
 			>
 				{#snippet children({ checked })}
@@ -39,12 +39,12 @@
 					<div class="flex items-center gap-2 px-3 py-2.5">
 						<span
 							class={[
-								"flex size-4 shrink-0 items-center justify-center rounded-full border border-input shadow-xs",
-								checked && "border-primary",
+								"flex size-4 shrink-0 items-center justify-center rounded-full border border-border-strong shadow-xs",
+								checked && "border-brand",
 							]}
 						>
 							{#if checked}
-								<span class="size-2 rounded-full bg-primary"></span>
+								<span class="size-2 rounded-full bg-brand"></span>
 							{/if}
 						</span>
 
@@ -57,10 +57,10 @@
 </div>
 
 {#snippet shell(dark: boolean)}
-	{@const surface = dark ? "bg-neutral-950" : "bg-white"}
-	{@const chrome = dark ? "bg-neutral-900" : "bg-neutral-100"}
-	{@const bar = dark ? "bg-neutral-700" : "bg-neutral-300"}
-	{@const dot = dark ? "bg-neutral-800" : "bg-neutral-200"}
+	{@const surface = dark ? "bg-[var(--n-950)]" : "bg-[var(--n-0)]"}
+	{@const chrome = dark ? "bg-[var(--n-925)]" : "bg-[var(--n-50)]"}
+	{@const bar = dark ? "bg-[var(--n-750)]" : "bg-[var(--n-300)]"}
+	{@const dot = dark ? "bg-[var(--n-850)]" : "bg-[var(--n-200)]"}
 
 	<div class="flex size-full flex-col {surface}">
 		<div class="flex shrink-0 items-center gap-1 px-1.5 py-1.5 {chrome}">

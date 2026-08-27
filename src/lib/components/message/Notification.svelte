@@ -42,11 +42,11 @@
 			class="my-1 border-x-4 [border-image-slice:1]"
 			style:border-image-source="linear-gradient({stops[0]}, {stops[1]})"
 		>
-			<div class="flex items-center bg-muted px-2.5 py-1.5 text-xs font-medium">
+			<div class="flex items-center bg-surface-header px-2.5 py-1.5 text-xs font-medium">
 				<Megaphone class="mr-2 -scale-x-100" /> Announcement
 			</div>
 
-			<div class="bg-muted/50 p-2">
+			<div class="bg-surface-sunken p-2">
 				<Message {message} />
 			</div>
 		</div>
@@ -54,7 +54,7 @@
 		<Sub {message} sub={message.event} />
 	{:else}
 		<div
-			class="my-0.5 border-l-4 bg-muted/50 p-2"
+			class="my-0.5 border-l-4 bg-surface-sunken p-2"
 			style:border-color={message.source.user.color}
 		>
 			{#if type === "bits_badge_tier"}

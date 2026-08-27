@@ -61,7 +61,7 @@
 >
 	<div
 		class={[
-			"flex items-center text-muted-foreground",
+			"flex items-center text-foreground-subtle",
 			platform === "macos" && (fullscreen ? "pl-3" : "pl-20"),
 			["windows", "linux"].includes(platform) && "pl-3",
 		]}
@@ -92,7 +92,7 @@
 		</Button>
 
 		<button
-			class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-[background-color,scale] hover:bg-accent active:scale-[0.96]"
+			class="flex w-64 items-center justify-center gap-2 rounded-md bg-surface-overlay px-2 py-1 text-xs text-foreground-subtle ring-1 ring-border transition-[background-color,scale] hover:bg-hover active:scale-[0.96]"
 			command="show-modal"
 			commandfor="join-dialog"
 		>
@@ -105,7 +105,7 @@
 
 		{#if app.user}
 			<Link
-				class="size-min p-1 text-muted-foreground"
+				class="size-min p-1 text-foreground-subtle"
 				href={resolve("/whispers")}
 				size="icon"
 				variant="ghost"
@@ -119,7 +119,7 @@
 	<div class="flex items-center justify-end" data-tauri-drag-region>
 		<div class="pr-3">
 			<Button
-				class="size-min p-1 text-muted-foreground"
+				class="size-min p-1 text-foreground-subtle"
 				command="show-modal"
 				commandfor="settings-dialog"
 				size="icon"

@@ -8,7 +8,7 @@
 
 <div class="rails fixed inset-0 top-title-bar z-0 flex justify-center" aria-hidden="true">
 	<main
-		class="relative flex size-full h-full items-center justify-center overflow-hidden border-x bg-background"
+		class="relative flex size-full h-full items-center justify-center overflow-hidden border-x bg-surface"
 	>
 		<div class="flex flex-col items-center gap-y-8 px-6 text-center">
 			{@render children()}

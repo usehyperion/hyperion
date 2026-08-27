@@ -74,7 +74,7 @@
 <Combobox.Root type="single" onValueChange={select} bind:open>
 	<Combobox.Portal>
 		<Combobox.Content
-			class="flex max-h-72 w-(--bits-combobox-anchor-width) flex-col gap-0.5 overflow-y-auto rounded-2xl bg-popover p-1 text-popover-foreground smooth-shadow-ring-md"
+			class="flex max-h-72 w-(--bits-combobox-anchor-width) flex-col gap-0.5 overflow-y-auto rounded-2xl bg-surface-overlay p-1 text-foreground smooth-shadow-ring-md"
 			customAnchor={anchor}
 			side="top"
 			sideOffset={8}
@@ -83,7 +83,7 @@
 				<Combobox.Item
 					class={[
 						"relative flex cursor-pointer items-center gap-2 rounded-xl px-2 py-1.5 text-sm outline-hidden transition-colors select-none",
-						"data-current:bg-accent data-current:text-accent-foreground",
+						"data-current:bg-selected data-current:text-selected-foreground",
 					]}
 					title={suggestion.display}
 					value={suggestion.value}
@@ -98,19 +98,19 @@
 
 								{#each suggestion.args as arg (arg)}
 									<span
-										class="rounded border border-primary/20 bg-background px-1 py-0.5 text-xs text-muted-foreground"
+										class="rounded border border-border bg-surface-sunken px-1 py-0.5 text-xs text-foreground-subtle"
 									>
 										{arg}
 									</span>
 								{/each}
 							</div>
 
-							<p class="truncate text-xs text-muted-foreground">
+							<p class="truncate text-xs text-foreground-subtle">
 								{suggestion.description}
 							</p>
 						</div>
 
-						<span class="shrink-0 text-xs text-muted-foreground">
+						<span class="shrink-0 text-xs text-foreground-subtle">
 							{suggestion.provider}
 						</span>
 					{:else if suggestion.type === "emote"}
@@ -124,13 +124,13 @@
 					{:else}
 						{#if suggestion.user.avatarUrl}
 							<img
-								class="size-6 shrink-0 rounded-full bg-muted object-cover"
+								class="size-6 shrink-0 rounded-full bg-skeleton object-cover"
 								src={suggestion.user.avatarUrl}
 								alt={suggestion.display}
 							/>
 						{:else}
 							<!-- Placeholder until the avatar is backfilled in the background. -->
-							<div class="size-6 shrink-0 rounded-full bg-muted"></div>
+							<div class="size-6 shrink-0 rounded-full bg-skeleton"></div>
 						{/if}
 
 						<span class="truncate font-semibold" style={suggestion.style}>
@@ -139,7 +139,7 @@
 
 						{#if suggestion.role}
 							<span
-								class="ml-auto shrink-0 rounded bg-background px-1 py-0.5 text-xs text-muted-foreground"
+								class="ml-auto shrink-0 rounded bg-surface-sunken px-1 py-0.5 text-xs text-foreground-subtle"
 							>
 								{roleLabels[suggestion.role]}
 							</span>

@@ -43,7 +43,7 @@
 						{theme.description}
 					</Field.Description>
 
-					<div class="flex h-5 items-center gap-x-2 text-xs text-muted-foreground">
+					<div class="flex h-5 items-center gap-x-2 text-xs text-foreground-subtle">
 						{theme.author}
 
 						{#if theme.repository}

@@ -41,7 +41,7 @@
 	{#snippet children({ payload })}
 		<div
 			class={[
-				"flex items-center gap-px rounded-lg bg-popover p-1 smooth-shadow-ring-md",
+				"flex items-center gap-px rounded-lg bg-surface-overlay p-1 smooth-shadow-ring-md",
 				"pointer-events-none scale-95 opacity-0 transition-[opacity,scale] duration-150 ease-out-quart",
 				"group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100",
 				"focus-within:pointer-events-auto focus-within:scale-100 focus-within:opacity-100",
@@ -83,7 +83,7 @@
 
 		<Tooltip.Portal>
 			<Tooltip.Content collisionPadding={6} sideOffset={8}>
-				<Tooltip.Arrow class="text-neutral-800" />
+				<Tooltip.Arrow class="text-surface-tooltip" />
 				{payload?.label}
 			</Tooltip.Content>
 		</Tooltip.Portal>
@@ -95,9 +95,9 @@
 		{#snippet child({ props })}
 			<Button
 				class={[
-					"text-muted-foreground",
+					"text-foreground-subtle",
 					config.danger
-						? "hover:bg-destructive/10 hover:text-destructive"
+						? "hover:bg-danger/10 hover:text-danger-foreground"
 						: "hover:text-foreground",
 				]}
 				size="icon-sm"

@@ -12,7 +12,12 @@
 	const { message, metadata }: Props = $props();
 </script>
 
-<div class={["my-0.5 border-l-4 border-red-500 bg-muted/50 p-2", message.deleted && "opacity-50"]}>
+<div
+	class={[
+		"my-0.5 border-l-4 border-danger bg-surface-sunken p-2",
+		message.deleted && "opacity-50",
+	]}
+>
 	<div class="mb-2 flex w-full items-start justify-between gap-x-4">
 		<div>
 			<img
@@ -36,7 +41,7 @@
 		{#if metadata.category !== "msg_hold"}
 			<div class="flex gap-x-4">
 				<Button
-					class="text-green-400"
+					class="text-success-foreground"
 					variant="inline"
 					disabled={message.deleted}
 					onclick={() => message.allow()}
@@ -45,7 +50,7 @@
 				</Button>
 
 				<Button
-					class="text-destructive"
+					class="text-danger-foreground"
 					variant="inline"
 					disabled={message.deleted}
 					onclick={() => message.deny()}

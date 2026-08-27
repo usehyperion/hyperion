@@ -184,7 +184,7 @@
 		<div class="flex items-center gap-3 border-b px-5 py-4">
 			<!-- svelte-ignore a11y_autofocus -- palette should be typeable on open -->
 			<input
-				class="w-full bg-transparent text-lg outline-none placeholder:text-muted-foreground"
+				class="w-full bg-transparent text-lg outline-none placeholder:text-foreground-placeholder"
 				autocapitalize="off"
 				autocomplete="off"
 				autocorrect="off"
@@ -197,11 +197,11 @@
 			/>
 
 			{#if searching}
-				<Spinner class="size-5 shrink-0 animate-spin text-muted-foreground" />
+				<Spinner class="size-5 shrink-0 animate-spin text-foreground-subtle" />
 			{/if}
 
 			<button
-				class="flex size-10 shrink-0 items-center justify-center text-muted-foreground transition-[color,scale] hover:text-foreground active:scale-[0.96]"
+				class="flex size-10 shrink-0 items-center justify-center text-foreground-subtle transition-[color,scale] hover:text-foreground active:scale-[0.96]"
 				type="button"
 				aria-label="Close"
 				onclick={handleClose}
@@ -217,7 +217,7 @@
 						"-mb-px border-b-2 py-3 font-medium transition-colors",
 						filter === key
 							? "border-foreground text-foreground"
-							: "border-transparent text-muted-foreground hover:text-foreground",
+							: "border-transparent text-foreground-subtle hover:text-foreground",
 					)}
 					type="button"
 					onclick={() => (filter = key)}
@@ -229,12 +229,12 @@
 
 		<div class="max-h-96 min-h-32 overflow-y-auto p-2">
 			{#if error}
-				<p class="px-3 py-2 text-sm text-destructive">{error}</p>
+				<p class="px-3 py-2 text-sm text-danger-foreground">{error}</p>
 			{/if}
 
 			{#if rows.length}
 				<div
-					class="flex items-center gap-2 px-3 pt-1 pb-2 text-xs font-medium text-muted-foreground"
+					class="flex items-center gap-2 px-3 pt-1 pb-2 text-xs font-medium text-foreground-subtle"
 				>
 					{#if isSearch}
 						<Broadcast class="size-4" />
@@ -250,7 +250,7 @@
 					<div
 						class={cn(
 							"group flex items-center rounded-2xl transition-colors",
-							active === index ? "bg-accent" : "hover:bg-accent/60",
+							active === index ? "bg-selected" : "hover:bg-hover",
 						)}
 						onmouseenter={() => (active = index)}
 					>
@@ -260,7 +260,7 @@
 							onclick={() => join(item.login, item)}
 						>
 							<img
-								class="size-9 shrink-0 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10"
+								class="size-9 shrink-0 rounded-full object-cover ring-1 ring-hairline"
 								src={item.profileImageURL}
 								alt={item.displayName}
 							/>
@@ -276,7 +276,7 @@
 							</div>
 
 							{#if isSearch && item.isLive}
-								<span class="flex items-center gap-1.5 text-red-500">
+								<span class="flex items-center gap-1.5 text-danger-foreground">
 									<span class="size-2 animate-pulse rounded-full bg-current"
 									></span>
 									<span class="text-sm font-medium">Live</span>
@@ -285,10 +285,10 @@
 						</button>
 
 						{#if isSearch}
-							<CaretRight class="mr-3 size-4 shrink-0 text-muted-foreground" />
+							<CaretRight class="mr-3 size-4 shrink-0 text-foreground-subtle" />
 						{:else}
 							<button
-								class="mr-1.5 flex size-10 shrink-0 items-center justify-center text-muted-foreground opacity-0 transition-[opacity,color,scale] group-hover:opacity-100 hover:text-foreground active:scale-[0.96]"
+								class="mr-1.5 flex size-10 shrink-0 items-center justify-center text-foreground-subtle opacity-0 transition-[opacity,color,scale] group-hover:opacity-100 hover:text-foreground active:scale-[0.96]"
 								type="button"
 								aria-label="Remove from recent searches"
 								onclick={(event) => removeRecent(event, item.id)}
@@ -299,16 +299,16 @@
 					</div>
 				{/each}
 			{:else if searching}
-				<p class="flex items-center gap-2 px-3 py-8 text-sm text-muted-foreground">
+				<p class="flex items-center gap-2 px-3 py-8 text-sm text-foreground-subtle">
 					<Spinner class="animate-spin" />
 					Searching&hellip;
 				</p>
 			{:else if isSearch}
-				<p class="px-3 py-8 text-center text-sm text-muted-foreground">
+				<p class="px-3 py-8 text-center text-sm text-foreground-subtle">
 					No channels found.
 				</p>
 			{:else}
-				<p class="px-3 py-8 text-center text-sm text-muted-foreground">
+				<p class="px-3 py-8 text-center text-sm text-foreground-subtle">
 					Search for a channel to join.
 				</p>
 			{/if}

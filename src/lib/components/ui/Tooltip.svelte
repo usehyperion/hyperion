@@ -20,7 +20,7 @@
 
 	<Tooltip.Portal>
 		<Tooltip.Content sideOffset={6} {...rest}>
-			<Tooltip.Arrow class="text-neutral-800" />
+			<Tooltip.Arrow class="text-surface-tooltip" />
 
 			{@render children()}
 		</Tooltip.Content>

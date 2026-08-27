@@ -10,7 +10,7 @@
 </script>
 
 <div
-	class="px-3 py-2 text-muted-foreground aria-disabled:opacity-50"
+	class="px-3 py-2 text-foreground-subtle aria-disabled:opacity-50"
 	aria-disabled={message.deleted}
 >
 	<Timestamp date={message.timestamp} />

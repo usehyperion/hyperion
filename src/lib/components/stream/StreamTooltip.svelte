@@ -26,7 +26,7 @@
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="relative flex cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-accent"
+			class="relative flex cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-hover"
 			{...props}
 			onclick={async () => {
 				await app.open(channel);
@@ -69,7 +69,7 @@
 			<p class="line-clamp-2">{channel.stream.title}</p>
 
 			{#if !sidebar.collapsed}
-				<div class="flex items-center text-red-500 dark:text-red-400">
+				<div class="flex items-center text-live-foreground">
 					<Users class="mr-1 size-3" />
 
 					<p class="text-xs">

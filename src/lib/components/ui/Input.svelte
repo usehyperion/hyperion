@@ -16,9 +16,9 @@
 
 <input
 	class={cn(
-		"flex h-9 w-full min-w-0 rounded-lg border border-input bg-background px-3 py-1 text-sm shadow-xs ring-offset-background transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
+		"flex h-9 w-full min-w-0 rounded-lg border border-border-strong bg-field px-3 py-1 text-sm shadow-xs ring-offset-surface transition-[color,box-shadow] outline-none selection:bg-selection placeholder:text-foreground-placeholder disabled:cursor-not-allowed disabled:opacity-50",
 		"focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
-		"aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
+		"aria-invalid:border-danger aria-invalid:ring-danger/20 dark:aria-invalid:ring-danger/40",
 		className,
 	)}
 	{type}

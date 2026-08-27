@@ -2,106 +2,164 @@
 @import "tw-animate-css";
 @import "shadow-plugin";
 
+@import "./tokens.css";
 @import "./positioning.css";
 
 @layer {
 	:root {
+		/* Base radius. The --radius-* scale below is derived from this, so this
+		   one value controls the roundness of the whole app. */
 		--radius: 0.625rem;
-
-		--background: oklch(1 0 0);
-		--foreground: oklch(0.145 0 0);
-		--card: oklch(1 0 0);
-		--card-foreground: oklch(0.145 0 0);
-		--popover: oklch(1 0 0);
-		--popover-foreground: oklch(0.145 0 0);
-		--primary: oklch(0.205 0 0);
-		--primary-foreground: oklch(0.985 0 0);
-		--secondary: oklch(0.97 0 0);
-		--secondary-foreground: oklch(0.205 0 0);
-		--muted: oklch(0.97 0 0);
-		--muted-foreground: oklch(0.556 0 0);
-		--accent: oklch(0.97 0 0);
-		--accent-foreground: oklch(0.205 0 0);
-
-		--destructive: oklch(0.577 0.245 27.325);
-		--border: oklch(0.922 0 0);
-		--input: oklch(0.922 0 0);
-		--ring: oklch(0.708 0 0);
-
-		--sidebar: oklch(0.985 0 0);
-		--sidebar-foreground: oklch(0.145 0 0);
-		--sidebar-primary: oklch(0.205 0 0);
-		--sidebar-primary-foreground: oklch(0.985 0 0);
-		--sidebar-accent: oklch(0.97 0 0);
-		--sidebar-accent-foreground: oklch(0.205 0 0);
-		--sidebar-border: oklch(0.922 0 0);
-		--sidebar-ring: oklch(0.708 0 0);
-	}
-
-	.dark {
-		--background: oklch(0.145 0 0);
-		--foreground: oklch(0.985 0 0);
-		--card: oklch(0.205 0 0);
-		--card-foreground: oklch(0.985 0 0);
-		--popover: oklch(0.205 0 0);
-		--popover-foreground: oklch(0.985 0 0);
-		--primary: oklch(0.922 0 0);
-		--primary-foreground: oklch(0.205 0 0);
-		--secondary: oklch(0.269 0 0);
-		--secondary-foreground: oklch(0.985 0 0);
-		--muted: oklch(0.269 0 0);
-		--muted-foreground: oklch(0.708 0 0);
-		--accent: oklch(0.269 0 0);
-		--accent-foreground: oklch(0.985 0 0);
-
-		--destructive: oklch(0.704 0.191 22.216);
-		--border: oklch(1 0 0 / 10%);
-		--input: oklch(1 0 0 / 15%);
-		--ring: oklch(0.556 0 0);
-
-		--sidebar: oklch(0.205 0 0);
-		--sidebar-foreground: oklch(0.985 0 0);
-		--sidebar-primary: oklch(0.488 0.243 264.376);
-		--sidebar-primary-foreground: oklch(0.985 0 0);
-		--sidebar-accent: oklch(0.269 0 0);
-		--sidebar-accent-foreground: oklch(0.985 0 0);
-		--sidebar-border: oklch(1 0 0 / 10%);
-		--sidebar-ring: oklch(0.556 0 0);
 	}
 }
 
+/* Semantic colours -> Tailwind utilities. See tokens.css for what each means. */
 @theme inline {
-	--color-background: var(--background);
+	/* Surfaces */
+	--color-surface: var(--surface);
+	--color-surface-sunken: var(--surface-sunken);
+	--color-surface-chrome: var(--surface-chrome);
+	--color-surface-raised: var(--surface-raised);
+	--color-surface-overlay: var(--surface-overlay);
+	--color-surface-inverse: var(--surface-inverse);
+	--color-surface-scrim: var(--surface-scrim);
+	--color-surface-media: var(--surface-media);
+	--color-surface-header: var(--surface-header);
+	--color-surface-tooltip: var(--surface-tooltip);
+	--color-surface-tooltip-raised: var(--surface-tooltip-raised);
+
+	/* Content */
 	--color-foreground: var(--foreground);
-	--color-card: var(--card);
-	--color-card-foreground: var(--card-foreground);
-	--color-popover: var(--popover);
-	--color-popover-foreground: var(--popover-foreground);
-	--color-primary: var(--primary);
-	--color-primary-foreground: var(--primary-foreground);
-	--color-secondary: var(--secondary);
-	--color-secondary-foreground: var(--secondary-foreground);
-	--color-muted: var(--muted);
-	--color-muted-foreground: var(--muted-foreground);
-	--color-accent: var(--accent);
-	--color-accent-foreground: var(--accent-foreground);
+	--color-foreground-muted: var(--foreground-muted);
+	--color-foreground-subtle: var(--foreground-subtle);
+	--color-foreground-faint: var(--foreground-faint);
+	--color-foreground-placeholder: var(--foreground-placeholder);
+	--color-foreground-on-brand: var(--foreground-on-brand);
+	--color-foreground-on-inverse: var(--foreground-on-inverse);
+	--color-foreground-on-tooltip: var(--foreground-on-tooltip);
+	--color-foreground-on-tooltip-subtle: var(--foreground-on-tooltip-subtle);
+	--color-foreground-link: var(--foreground-link);
 
-	--color-destructive: var(--destructive);
+	/* Borders */
 	--color-border: var(--border);
-	--color-input: var(--input);
-	--color-ring: var(--ring);
+	--color-border-subtle: var(--border-subtle);
+	--color-border-strong: var(--border-strong);
+	--color-border-focus: var(--border-focus);
+	--color-border-tooltip: var(--border-tooltip);
+	--color-hairline: var(--hairline);
 
-	--color-sidebar: var(--sidebar);
-	--color-sidebar-foreground: var(--sidebar-foreground);
-	--color-sidebar-primary: var(--sidebar-primary);
-	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-	--color-sidebar-accent: var(--sidebar-accent);
-	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-	--color-sidebar-border: var(--sidebar-border);
-	--color-sidebar-ring: var(--sidebar-ring);
+	/* Interaction states */
+	--color-hover: var(--hover);
+	--color-hover-strong: var(--hover-strong);
+	--color-active: var(--active);
+	--color-selected: var(--selected);
+	--color-selected-strong: var(--selected-strong);
+	--color-selected-foreground: var(--selected-foreground);
+	--color-indicator: var(--indicator);
+	--color-ring: var(--ring);
+	--color-selection: var(--selection);
+
+	/* Controls */
+	--color-field: var(--field);
+	--color-field-hover: var(--field-hover);
+	--color-field-disabled: var(--field-disabled);
+	--color-track: var(--track);
+	--color-track-active: var(--track-active);
+	--color-thumb: var(--thumb);
+	--color-thumb-inverse: var(--thumb-inverse);
+	--color-skeleton: var(--skeleton);
+	--color-divider: var(--divider);
+	--color-scrollbar: var(--scrollbar);
+	--color-scrollbar-hover: var(--scrollbar-hover);
+	--color-drop-target: var(--drop-target);
+	--color-drop-target-border: var(--drop-target-border);
+
+	/* Brand */
+	--color-brand: var(--brand);
+	--color-brand-hover: var(--brand-hover);
+	--color-brand-active: var(--brand-active);
+	--color-brand-subtle: var(--brand-subtle);
+	--color-brand-border: var(--brand-border);
+	--color-brand-foreground: var(--brand-foreground);
+
+	/* Status */
+	--color-danger: var(--danger);
+	--color-danger-hover: var(--danger-hover);
+	--color-danger-subtle: var(--danger-subtle);
+	--color-danger-border: var(--danger-border);
+	--color-danger-foreground: var(--danger-foreground);
+	--color-danger-on: var(--danger-on);
+
+	--color-warning: var(--warning);
+	--color-warning-subtle: var(--warning-subtle);
+	--color-warning-border: var(--warning-border);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-warning-on: var(--warning-on);
+
+	--color-success: var(--success);
+	--color-success-subtle: var(--success-subtle);
+	--color-success-border: var(--success-border);
+	--color-success-foreground: var(--success-foreground);
+	--color-success-on: var(--success-on);
+
+	--color-info: var(--info);
+	--color-info-subtle: var(--info-subtle);
+	--color-info-border: var(--info-border);
+	--color-info-foreground: var(--info-foreground);
+	--color-info-on: var(--info-on);
+
+	--color-live: var(--live);
+	--color-live-subtle: var(--live-subtle);
+	--color-live-foreground: var(--live-foreground);
+
+	/* Categorical */
+	--color-cat-1: var(--cat-1);
+	--color-cat-2: var(--cat-2);
+	--color-cat-3: var(--cat-3);
+	--color-cat-4: var(--cat-4);
+	--color-cat-5: var(--cat-5);
+	--color-cat-6: var(--cat-6);
+	--color-cat-7: var(--cat-7);
+	--color-cat-8: var(--cat-8);
+
+	/* Legacy shadcn names, for vendored components. See tokens.css. */
+	--color-background: var(--surface);
+	--color-card: var(--surface-raised);
+	--color-card-foreground: var(--foreground);
+	--color-popover: var(--surface-overlay);
+	--color-popover-foreground: var(--foreground);
+	--color-primary: var(--track-active);
+	--color-primary-foreground: var(--foreground-on-inverse);
+	--color-secondary: var(--surface-sunken);
+	--color-secondary-foreground: var(--foreground);
+	--color-muted: var(--surface-sunken);
+	--color-muted-foreground: var(--foreground-subtle);
+	--color-accent: var(--hover);
+	--color-accent-foreground: var(--foreground);
+	--color-input: var(--border-strong);
+	--color-destructive: var(--danger);
+	--color-sidebar: var(--surface-chrome);
+	--color-sidebar-foreground: var(--foreground);
+	--color-sidebar-accent: var(--hover);
+	--color-sidebar-accent-foreground: var(--foreground);
+	--color-sidebar-border: var(--border);
+	--color-sidebar-ring: var(--ring);
 }
 
 @theme {
+	/* Radius scale, derived from --radius. Previously only --radius existed, so
+	   rounded-sm/md/lg/xl silently fell through to Tailwind's defaults and the
+	   base radius affected almost nothing. */
+	--radius-xs: calc(var(--radius) - 6px);
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+	--radius-2xl: calc(var(--radius) + 8px);
+	--radius-3xl: calc(var(--radius) + 14px);
+
+	/* Twitch brand palette. Product-identity colour, distinct from --brand
+	   (which is this app's own accent). */
 	--color-twitch: oklch(0.59 0.2535 296);
 	--color-twitch-link: oklch(0.75 0.1549 301.29);
 
@@ -151,10 +209,14 @@
 	}
 
 	body {
-		background-color: var(--color-background);
+		background-color: var(--color-surface);
 		color: var(--color-foreground);
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
+	}
+
+	::selection {
+		background-color: var(--color-selection);
 	}
 
 	button:hover {
@@ -165,7 +227,7 @@
 		@apply transition-colors;
 
 		cursor: pointer;
-		color: var(--color-blue-400);
+		color: var(--color-foreground-link);
 		text-decoration: underline;
 	}
 
@@ -173,8 +235,8 @@
 		padding: 0.2rem 0.3rem;
 		font-size: 85%;
 		font-family: var(--font-mono);
-		border-radius: var(--radius-md);
-		background-color: var(--color-muted);
+		border-radius: var(--radius-sm);
+		background-color: var(--color-surface-sunken);
 	}
 }
 
@@ -184,9 +246,9 @@
 
 		width: max-content;
 		border-radius: var(--radius-lg);
-		background-color: var(--color-neutral-800);
+		background-color: var(--color-surface-tooltip);
 		padding: 6px 12px;
-		color: var(--color-primary);
+		color: var(--color-foreground-on-tooltip);
 
 		&[data-state*="open"] {
 			@apply animate-in zoom-in-95 fade-in;

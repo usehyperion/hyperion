@@ -54,8 +54,8 @@
 {#snippet card(href: string, label: string, media: Snippet, body: Snippet)}
 	<div
 		class={[
-			"group relative flex h-19 w-full max-w-100 gap-3 overflow-hidden rounded-lg border bg-card",
-			"transition-[background-color,border-color] hover:border-ring/40 hover:bg-accent/40",
+			"group relative flex h-19 w-full max-w-100 gap-3 overflow-hidden rounded-lg border bg-surface-raised",
+			"transition-[background-color,border-color] hover:border-ring/40 hover:bg-hover",
 		]}
 	>
 		<a class="absolute inset-0 z-10 rounded-lg" {href} target="_blank" aria-label={label}></a>
@@ -71,7 +71,7 @@
 {/snippet}
 
 {#snippet meta(children: Snippet)}
-	<div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+	<div class="flex items-center gap-1.5 text-xs text-foreground-subtle">
 		{@render children()}
 	</div>
 {/snippet}
@@ -80,7 +80,7 @@
 	{#await fetchEmote() then emote}
 		{#if emote}
 			{#snippet emoteMedia()}
-				<div class="flex h-full w-19 items-center justify-center bg-muted/40 p-1.5">
+				<div class="flex h-full w-19 items-center justify-center bg-surface-sunken p-1.5">
 					<img
 						class="max-h-full w-auto"
 						srcset={emote.srcset.join(", ")}
@@ -92,11 +92,11 @@
 				{#if !emote.listed && blurred}
 					<button
 						class="absolute inset-0 z-20 grid place-items-center backdrop-blur-lg
-							transition-colors hover:bg-background/20"
+							transition-colors hover:bg-surface/20"
 						aria-label="Click to reveal unlisted emote"
 						onclick={() => (blurred = false)}
 					>
-						<EyeSlash class="size-5 text-muted-foreground" />
+						<EyeSlash class="size-5 text-foreground-subtle" />
 					</button>
 				{/if}
 			{/snippet}
@@ -109,8 +109,8 @@
 
 					{#if !emote.listed}
 						<span
-							class="shrink-0 rounded-sm bg-red-500/15 px-1 py-px text-[10px]
-								font-medium tracking-wide text-red-400 uppercase"
+							class="shrink-0 rounded-sm bg-live-subtle px-1 py-px text-[10px]
+								font-medium tracking-wide text-live-foreground uppercase"
 						>
 							unlisted
 						</span>
@@ -130,7 +130,7 @@
 		{/if}
 	{/await}
 {:else if tld.hostname === "open.spotify.com"}
-	<div class="w-full max-w-100 overflow-hidden rounded-lg border bg-card">
+	<div class="w-full max-w-100 overflow-hidden rounded-lg border bg-surface-raised">
 		<iframe
 			class="block"
 			title="Spotify Web Player"
@@ -153,7 +153,7 @@
 				/>
 
 				<div
-					class="absolute right-1.5 bottom-1.5 rounded bg-black/75 px-1 py-0.5
+					class="absolute right-1.5 bottom-1.5 rounded bg-surface-scrim px-1 py-0.5
 						text-[10px] font-medium text-white tabular-nums"
 				>
 					{formatDuration(clip.durationSeconds)}

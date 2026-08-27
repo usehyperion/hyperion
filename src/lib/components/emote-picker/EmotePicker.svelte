@@ -97,12 +97,12 @@
 		<Tabs.List class="flex shrink-0 border-b">
 			{#each TABS as tab (tab.provider)}
 				<Tabs.Trigger
-					class="group flex flex-1 justify-center py-2 transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-40 data-[state=active]:bg-accent"
+					class="group flex flex-1 justify-center py-2 transition-colors hover:bg-hover disabled:pointer-events-none disabled:opacity-40 data-[state=active]:bg-selected"
 					value={tab.provider}
 					disabled={!providerSets[tab.provider]?.length}
 				>
 					<tab.icon
-						class="size-4 fill-muted-foreground group-hover:fill-foreground group-data-[state=active]:fill-foreground"
+						class="size-4 fill-foreground-subtle group-hover:fill-foreground group-data-[state=active]:fill-foreground"
 					/>
 				</Tabs.Trigger>
 			{/each}

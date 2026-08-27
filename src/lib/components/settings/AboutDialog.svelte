@@ -59,7 +59,7 @@
 			<div>
 				<h2 class="text-lg/tight font-semibold">Hyperion</h2>
 
-				<p class="text-sm text-muted-foreground tabular-nums">
+				<p class="text-sm text-foreground-subtle tabular-nums">
 					{info ? `v${info.version}` : " "}
 				</p>
 			</div>
@@ -69,7 +69,7 @@
 	<dl class="divide-y text-sm">
 		{#each rows as row (row.label)}
 			<div class="flex items-baseline justify-between gap-4 px-3 py-2">
-				<dt class="shrink-0 text-muted-foreground">{row.label}</dt>
+				<dt class="shrink-0 text-foreground-subtle">{row.label}</dt>
 				<dd class="truncate text-right tabular-nums">{row.value}</dd>
 			</div>
 		{/each}

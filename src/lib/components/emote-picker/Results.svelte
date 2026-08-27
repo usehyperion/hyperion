@@ -17,7 +17,7 @@
 	</div>
 {:else}
 	<div
-		class="flex h-full flex-col items-center justify-center p-4 text-center text-sm text-muted-foreground"
+		class="flex h-full flex-col items-center justify-center p-4 text-center text-sm text-foreground-subtle"
 	>
 		<SmileySad class="mb-2 size-6" />
 		No emotes found.

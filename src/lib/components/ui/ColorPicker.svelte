@@ -69,7 +69,7 @@
 
 <div class={cn("grid w-full gap-4", className)} data-component="color-picker" {...rest}>
 	<div
-		class="relative aspect-4/3 w-full cursor-crosshair rounded-md border border-muted"
+		class="relative aspect-4/3 w-full cursor-crosshair rounded-md border border-border"
 		role="group"
 		data-slot="color-picker-well"
 		onpointerdown={(event) => {
@@ -101,7 +101,7 @@
 		</div>
 
 		<Slider.Thumb
-			class="block h-4 w-2 cursor-ew-resize rounded-sm border bg-primary shadow transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none active:cursor-ew-resize"
+			class="block h-4 w-2 cursor-ew-resize rounded-sm border bg-thumb-inverse shadow transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none active:cursor-ew-resize"
 			index={0}
 		/>
 	</Slider.Root>

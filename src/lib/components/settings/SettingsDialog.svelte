@@ -82,7 +82,7 @@
 				isMac && "pt-[calc(var(--spacing-title-bar)+4px)]",
 			]}
 		>
-			<InputGroup.Root class="h-9 bg-background">
+			<InputGroup.Root class="h-9 bg-field">
 				<InputGroup.Addon>
 					<MagnifyingGlass />
 				</InputGroup.Addon>
@@ -124,7 +124,7 @@
 					<Tabs.Trigger value={category.label} disabled={searching && count === 0}>
 						{#snippet child({ props })}
 							<Button
-								class="w-full justify-start text-muted-foreground hover:bg-primary/10 data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+								class="w-full justify-start text-foreground-subtle hover:bg-hover data-[state=active]:bg-selected data-[state=active]:text-foreground data-[state=active]:shadow-xs"
 								variant="ghost"
 								{...props}
 							>
@@ -134,7 +134,7 @@
 
 								{#if searching}
 									<span
-										class="ml-auto rounded-full bg-primary/20 px-1.5 text-xs tabular-nums"
+										class="ml-auto rounded-full bg-surface-sunken px-1.5 text-xs tabular-nums"
 									>
 										{count}
 									</span>
@@ -150,9 +150,9 @@
 			<SidebarActions />
 		</div>
 
-		<div class="relative flex min-w-0 grow flex-col border-l bg-accent/15">
+		<div class="relative flex min-w-0 grow flex-col border-l bg-surface-chrome">
 			<div
-				class="flex items-center justify-end gap-2 px-4 pt-3 text-sm text-muted-foreground"
+				class="flex items-center justify-end gap-2 px-4 pt-3 text-sm text-foreground-subtle"
 			>
 				<div class="mr-auto">
 					Settings

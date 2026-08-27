@@ -9,11 +9,11 @@
 </script>
 
 <div
-	class="rounded-t-md border border-b-0 border-muted bg-muted/50 px-3 py-2.5 text-sm transition-colors duration-200 has-[+div>input:focus-visible]:border-input"
+	class="rounded-t-md border border-b-0 border-border bg-surface-sunken px-3 py-2.5 text-sm transition-colors duration-200 has-[+div>input:focus-visible]:border-border-strong"
 >
 	<div class="flex gap-1">
-		<Warning class="mt-px shrink-0 text-yellow-400" />
+		<Warning class="mt-px shrink-0 text-warning" />
 
-		<p class="text-muted-foreground">{message}</p>
+		<p class="text-foreground-subtle">{message}</p>
 	</div>
 </div>

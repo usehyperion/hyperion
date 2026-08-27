@@ -38,7 +38,7 @@
 
 	{#if message}
 		<div
-			class="relative flex items-center border-b py-4 pr-6 pl-5 transition-colors hover:bg-muted/80"
+			class="relative flex items-center border-b py-4 pr-6 pl-5 transition-colors hover:bg-hover"
 		>
 			<a
 				class="absolute inset-0 z-1"
@@ -48,7 +48,7 @@
 			></a>
 
 			<img
-				class="mr-3 rounded-full ring-1 ring-black/10 dark:ring-white/10"
+				class="mr-3 rounded-full ring-1 ring-hairline"
 				src={whisper.sender.avatarUrl}
 				alt={whisper.sender.displayName}
 				width="56"
@@ -62,7 +62,7 @@
 					</span>
 
 					<time
-						class="text-sm text-muted-foreground"
+						class="text-sm text-foreground-subtle"
 						datetime={message.createdAt.toISOString()}
 						{@attach relative(message.createdAt)}
 					>
@@ -71,13 +71,13 @@
 				</div>
 
 				<div class="flex justify-between">
-					<p class={["text-sm", !whisper.unread && "text-muted-foreground"]}>
+					<p class={["text-sm", !whisper.unread && "text-foreground-subtle"]}>
 						{message.text}
 					</p>
 
 					{#if whisper.unread}
 						<div
-							class="mt-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-medium text-foreground"
+							class="mt-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-xs font-medium text-danger-on"
 						>
 							{whisper.unread > 9 ? "9+" : whisper.unread}
 						</div>

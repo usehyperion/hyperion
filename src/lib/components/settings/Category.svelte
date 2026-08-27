@@ -15,7 +15,7 @@
 <div class="space-y-6">
 	<header class="flex items-center gap-3">
 		<div
-			class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"
+			class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-sunken text-foreground-subtle"
 		>
 			<category.icon />
 		</div>
@@ -24,7 +24,7 @@
 			<h2 class="text-lg leading-tight font-semibold">{category.label}</h2>
 
 			{#if query}
-				<p class="text-sm text-muted-foreground">Matching "{query}"</p>
+				<p class="text-sm text-foreground-subtle">Matching "{query}"</p>
 			{/if}
 		</div>
 	</header>

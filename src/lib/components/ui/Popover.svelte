@@ -36,7 +36,7 @@
 <div
 	{id}
 	class={cn(
-		"w-max rounded-xl bg-popover p-4 text-popover-foreground smooth-shadow-ring-md",
+		"w-max rounded-xl bg-surface-overlay p-4 text-foreground smooth-shadow-ring-md",
 		"scale-95 opacity-0 transition-[opacity,scale,overlay,display] transition-discrete",
 		className,
 	)}

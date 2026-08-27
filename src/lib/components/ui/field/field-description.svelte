@@ -15,9 +15,9 @@
 	bind:this={ref}
 	data-slot="field-description"
 	class={cn(
-		"text-sm leading-normal font-normal text-muted-foreground",
+		"text-sm leading-normal font-normal text-foreground-subtle",
 		"last:mt-0 nth-last-2:-mt-1 [[data-variant=legend]+&]:-mt-1.5",
-		"[&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
+		"[&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-foreground",
 		className,
 	)}
 	{...restProps}

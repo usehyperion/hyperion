@@ -41,7 +41,7 @@
 
 	<span
 		class={[
-			"mb-1 inline-block text-xs font-medium text-muted-foreground uppercase",
+			"mb-1 inline-block text-xs font-medium text-foreground-subtle uppercase",
 			tooltip ? "mt-2" : "mt-4",
 		]}
 	>
@@ -63,24 +63,21 @@
 			<img
 				src={guest.avatarUrl}
 				alt={guest.displayName}
-				class={[
-					"rounded-full ring-1 ring-black/10 dark:ring-white/10",
-					tooltip ? "size-5" : "size-6",
-				]}
+				class={["rounded-full ring-1 ring-hairline", tooltip ? "size-5" : "size-6"]}
 				width="50"
 				height="50"
 			/>
 
 			<span
 				class="font-medium"
-				style:color={tooltip ? "var(--color-text-primary-foreground)" : guest.color}
+				style:color={tooltip ? "var(--color-foreground-on-tooltip)" : guest.color}
 			>
 				{guest.displayName}
 			</span>
 		</div>
 
 		{#if viewers != null}
-			<div class="flex items-center text-xs text-red-500 tabular-nums dark:text-red-400">
+			<div class="flex items-center text-xs text-live-foreground tabular-nums">
 				<Users class="mr-1" />
 				{viewers}
 			</div>

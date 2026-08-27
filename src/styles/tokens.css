@@ -1,0 +1,310 @@
+/*
+ * Design tokens.
+ *
+ * Three layers, in order:
+ *   1. RAMPS      - raw, theme-independent scales. Never used directly in markup.
+ *   2. SEMANTICS  - role-named tokens that pick ramp steps per theme. Use these.
+ *   3. THEME      - app.css exposes the semantic layer to Tailwind as utilities.
+ *
+ * Rule of thumb: a token is named for the JOB it does, not for how it looks or
+ * for the component that happened to need it first. If you reach for a token
+ * whose name does not describe your use case, add a token instead of borrowing.
+ */
+
+/* ==========================================================================
+   1. RAMPS
+   ========================================================================== */
+
+/*  */
+@layer {
+	:root {
+		/* Neutral ramp. Very low chroma at hue 270 so greys read cool rather
+		   than dead flat. Retune the whole app from these 21 values. */
+		--n-0: oklch(1 0 0);
+		--n-25: oklch(0.993 0.002 270);
+		--n-50: oklch(0.985 0.003 270);
+		--n-100: oklch(0.972 0.004 270);
+		--n-150: oklch(0.958 0.005 270);
+		--n-200: oklch(0.938 0.006 270);
+		--n-300: oklch(0.905 0.008 270);
+		--n-400: oklch(0.84 0.01 270);
+		--n-500: oklch(0.708 0.012 270);
+		--n-600: oklch(0.6 0.014 270);
+		--n-650: oklch(0.556 0.014 270);
+		--n-700: oklch(0.47 0.014 270);
+		--n-750: oklch(0.4 0.013 270);
+		--n-800: oklch(0.325 0.012 270);
+		--n-850: oklch(0.269 0.011 270);
+		--n-875: oklch(0.235 0.01 270);
+		--n-900: oklch(0.205 0.009 270);
+		--n-925: oklch(0.178 0.008 270);
+		--n-950: oklch(0.145 0.007 270);
+		--n-975: oklch(0.115 0.006 270);
+
+		/* Hue anchors for brand + status, so a hue can be retuned in one place. */
+		--hue-brand: 50;
+		--hue-warning: 75;
+		--hue-success: 152;
+		--hue-info: 250;
+	}
+}
+
+/* ==========================================================================
+   2. SEMANTICS - light
+   ========================================================================== */
+
+@layer {
+	:root {
+		/* --- Surfaces -------------------------------------------------------
+		   An elevation ladder. Pick by where the element sits in the stack,
+		   not by what the element is called. */
+		--surface: var(--background, var(--n-0)); /* app canvas */
+		--surface-sunken: var(--muted, var(--n-100)); /* wells: quoted msgs, inset panels */
+		--surface-chrome: var(--sidebar, var(--n-50)); /* title bar, tab bar, rails, sidebar */
+		--surface-raised: var(--card, var(--n-0)); /* cards, embeds - lifted off canvas */
+		--surface-overlay: var(--popover, var(--n-0)); /* popover, dialog, menu */
+		--surface-inverse: var(--n-850); /* flips against the theme */
+		--surface-scrim: oklch(0 0 0 / 45%); /* behind modals */
+		--surface-media: var(--n-150); /* letterbox behind images/video */
+		--surface-header: var(--n-200); /* label/banner band inside a panel */
+		/* Tooltips read as dark in BOTH themes, so they do not follow the
+		   elevation ladder above and need their own on-surface content tokens. */
+		--surface-tooltip: var(--n-850);
+		--surface-tooltip-raised: oklch(1 0 0 / 12%); /* chip on a tooltip */
+
+		/* --- Content --------------------------------------------------------
+		   Four tiers. Most UI needs three; `faint` is for metadata that should
+		   recede almost entirely. */
+		--foreground: var(--n-950);
+		--foreground-muted: var(--n-700); /* secondary copy, labels */
+		--foreground-subtle: var(--muted-foreground, var(--n-650)); /* tertiary, help text, icons */
+		--foreground-faint: var(--n-500); /* timestamps, counts, watermarks */
+		--foreground-placeholder: var(--n-500);
+		--foreground-on-brand: var(--n-0);
+		--foreground-on-inverse: var(--primary-foreground, var(--n-50));
+		--foreground-on-tooltip: var(--n-50);
+		--foreground-on-tooltip-subtle: var(--n-400);
+		--foreground-link: oklch(0.52 0.19 250);
+
+		/* --- Borders --------------------------------------------------------
+		   Deliberately separate from surfaces: a border and a fill at the same
+		   lightness is almost never what you want. */
+		--border: var(--n-200);
+		--border-subtle: var(--n-150); /* row dividers, internal rules */
+		--border-strong: var(--input, var(--n-300)); /* form field outlines */
+		--border-focus: var(--n-500);
+		--border-tooltip: oklch(1 0 0 / 15%);
+		--hairline: oklch(0 0 0 / 10%); /* 1px ring on avatars, thumbnails */
+
+		/* --- Interaction states ---------------------------------------------
+		   `hover`/`active` are transient, `selected` is persistent. Keeping
+		   them distinct is what lets a hovered row and the current row read
+		   differently. */
+		--hover: var(--accent, var(--n-100));
+		--hover-strong: var(--n-150);
+		--active: var(--n-200); /* pressed */
+		--selected: var(--n-150);
+		--selected-strong: var(--n-200);
+		--selected-foreground: var(--n-950);
+		--indicator: var(--n-950); /* active-tab bar, carousel dot */
+		--ring: var(--n-500); /* focus ring */
+		--selection: oklch(0.52 0.19 250 / 30%); /* ::selection */
+
+		/* --- Controls -------------------------------------------------------- */
+		--field: var(--n-0); /* input/textarea/select fill */
+		--field-hover: var(--n-50);
+		--field-disabled: var(--n-100);
+		--track: var(--n-200); /* switch off, slider rail, progress bg */
+		--track-active: var(--primary, var(--n-900)); /* progress fill, slider range */
+		--thumb: var(--n-0); /* switch knob, slider handle */
+		--thumb-inverse: var(--n-950);
+		--skeleton: var(--n-150); /* loading placeholder, avatar fallback */
+		--divider: var(--n-200); /* split-pane handle, toolbar rule */
+		--scrollbar: var(--n-400); /* scrollbar thumb */
+		--scrollbar-hover: var(--n-500);
+		--drop-target: oklch(0.73 0.18 var(--hue-brand) / 22%); /* drag preview fill */
+		--drop-target-border: oklch(0.73 0.18 var(--hue-brand) / 60%);
+
+		/* --- Brand ----------------------------------------------------------- */
+		--brand: oklch(0.73 0.18 var(--hue-brand));
+		--brand-hover: oklch(0.66 0.218 var(--hue-brand));
+		--brand-active: oklch(0.62 0.2 var(--hue-brand));
+		--brand-subtle: oklch(0.73 0.18 var(--hue-brand) / 12%);
+		--brand-border: oklch(0.73 0.18 var(--hue-brand) / 35%);
+		--brand-foreground: oklch(1 0 0);
+
+		/* --- Status ---------------------------------------------------------
+		   Each has: base (icons, solid fills), subtle (tinted backgrounds),
+		   border, foreground (text that must pass contrast on the canvas),
+		   and `-on` (text that sits on the solid fill). */
+		--danger: var(--destructive, oklch(0.577 0.245 27.325));
+		--danger-hover: oklch(0.53 0.245 27.325);
+		--danger-subtle: oklch(0.577 0.245 27.325 / 12%);
+		--danger-border: oklch(0.577 0.245 27.325 / 35%);
+		--danger-foreground: oklch(0.51 0.22 27.325);
+		--danger-on: oklch(1 0 0);
+
+		--warning: oklch(0.75 0.16 var(--hue-warning));
+		--warning-subtle: oklch(0.75 0.16 var(--hue-warning) / 15%);
+		--warning-border: oklch(0.75 0.16 var(--hue-warning) / 35%);
+		--warning-foreground: oklch(0.52 0.12 var(--hue-warning));
+		--warning-on: var(--n-950);
+
+		--success: oklch(0.62 0.16 var(--hue-success));
+		--success-subtle: oklch(0.62 0.16 var(--hue-success) / 14%);
+		--success-border: oklch(0.62 0.16 var(--hue-success) / 35%);
+		--success-foreground: oklch(0.52 0.14 var(--hue-success));
+		--success-on: oklch(1 0 0);
+
+		--info: oklch(0.6 0.18 var(--hue-info));
+		--info-subtle: oklch(0.6 0.18 var(--hue-info) / 14%);
+		--info-border: oklch(0.6 0.18 var(--hue-info) / 35%);
+		--info-foreground: oklch(0.52 0.19 var(--hue-info));
+		--info-on: oklch(1 0 0);
+
+		/* Live/on-air. Its own token on purpose: it is a state badge, not an
+		   error, and it must not move if --danger is retuned. */
+		--live: oklch(0.62 0.23 25);
+		--live-subtle: oklch(0.62 0.23 25 / 15%);
+		--live-foreground: oklch(0.55 0.22 25);
+
+		/* --- Categorical ----------------------------------------------------
+		   For predictions, polls, and anything colouring N series with no
+		   inherent good/bad meaning. Ordered for adjacent separation. */
+		--cat-1: oklch(0.62 0.19 250);
+		--cat-2: oklch(0.68 0.21 350);
+		--cat-3: oklch(0.68 0.17 145);
+		--cat-4: oklch(0.72 0.18 60);
+		--cat-5: oklch(0.6 0.22 300);
+		--cat-6: oklch(0.7 0.14 195);
+		--cat-7: oklch(0.62 0.24 20);
+		--cat-8: oklch(0.75 0.15 105);
+	}
+}
+
+/* ==========================================================================
+   2. SEMANTICS - dark
+   ========================================================================== */
+
+@layer {
+	.dark {
+		/* Dark surfaces climb in lightness as they rise off the canvas. */
+		--surface: var(--background, var(--n-950));
+		--surface-sunken: var(--muted, var(--n-975));
+		--surface-chrome: var(--sidebar, var(--n-925));
+		--surface-raised: var(--card, var(--n-900));
+		--surface-overlay: var(--popover, var(--n-875));
+		--surface-inverse: var(--n-100);
+		--surface-scrim: oklch(0 0 0 / 65%);
+		--surface-media: var(--n-950);
+		--surface-header: var(--n-850);
+		--surface-tooltip: var(--n-850);
+		--surface-tooltip-raised: oklch(1 0 0 / 12%);
+
+		--foreground: var(--n-50);
+		--foreground-muted: var(--n-400);
+		--foreground-subtle: var(--muted-foreground, var(--n-500));
+		--foreground-faint: var(--n-600);
+		--foreground-placeholder: var(--n-650);
+		--foreground-on-brand: var(--n-0);
+		--foreground-on-inverse: var(--primary-foreground, var(--n-950));
+		--foreground-on-tooltip: var(--n-50);
+		--foreground-on-tooltip-subtle: var(--n-400);
+		--foreground-link: oklch(0.72 0.15 250);
+
+		--border: oklch(1 0 0 / 10%);
+		--border-subtle: oklch(1 0 0 / 6%);
+		--border-strong: var(--input, oklch(1 0 0 / 18%));
+		--border-focus: var(--n-500);
+		--border-tooltip: oklch(1 0 0 / 15%);
+		--hairline: oklch(1 0 0 / 10%);
+
+		--hover: var(--accent, oklch(1 0 0 / 6%));
+		--hover-strong: oklch(1 0 0 / 10%);
+		--active: oklch(1 0 0 / 14%);
+		--selected: oklch(1 0 0 / 10%);
+		--selected-strong: oklch(1 0 0 / 16%);
+		--selected-foreground: var(--n-50);
+		--indicator: var(--n-100);
+		--ring: var(--n-650);
+		--selection: oklch(0.72 0.15 250 / 35%);
+
+		--field: oklch(1 0 0 / 6%);
+		--field-hover: oklch(1 0 0 / 10%);
+		--field-disabled: oklch(1 0 0 / 4%);
+		--track: oklch(1 0 0 / 15%);
+		--track-active: var(--primary, var(--n-100));
+		--thumb: var(--n-50);
+		--thumb-inverse: var(--n-50);
+		--skeleton: oklch(1 0 0 / 8%);
+		--divider: var(--n-850);
+		--scrollbar: var(--n-750);
+		--scrollbar-hover: var(--n-700);
+		--drop-target: oklch(0.705 0.213 var(--hue-brand) / 25%);
+		--drop-target-border: oklch(0.705 0.213 var(--hue-brand) / 65%);
+
+		--brand: oklch(0.705 0.213 var(--hue-brand));
+		--brand-hover: oklch(0.75 0.2 var(--hue-brand));
+		--brand-active: oklch(0.78 0.18 var(--hue-brand));
+		--brand-subtle: oklch(0.705 0.213 var(--hue-brand) / 18%);
+		--brand-border: oklch(0.705 0.213 var(--hue-brand) / 40%);
+		--brand-foreground: oklch(1 0 0);
+
+		--danger: var(--destructive, oklch(0.704 0.191 22.216));
+		--danger-hover: oklch(0.75 0.18 22.216);
+		--danger-subtle: oklch(0.704 0.191 22.216 / 18%);
+		--danger-border: oklch(0.704 0.191 22.216 / 40%);
+		--danger-foreground: oklch(0.76 0.16 22.216);
+		--danger-on: var(--n-975);
+
+		--warning: oklch(0.82 0.15 var(--hue-warning));
+		--warning-subtle: oklch(0.82 0.15 var(--hue-warning) / 18%);
+		--warning-border: oklch(0.82 0.15 var(--hue-warning) / 40%);
+		--warning-foreground: oklch(0.85 0.13 var(--hue-warning));
+		--warning-on: var(--n-975);
+
+		--success: oklch(0.76 0.16 var(--hue-success));
+		--success-subtle: oklch(0.76 0.16 var(--hue-success) / 18%);
+		--success-border: oklch(0.76 0.16 var(--hue-success) / 40%);
+		--success-foreground: oklch(0.8 0.15 var(--hue-success));
+		--success-on: var(--n-975);
+
+		--info: oklch(0.72 0.16 var(--hue-info));
+		--info-subtle: oklch(0.72 0.16 var(--hue-info) / 18%);
+		--info-border: oklch(0.72 0.16 var(--hue-info) / 40%);
+		--info-foreground: oklch(0.77 0.14 var(--hue-info));
+		--info-on: var(--n-975);
+
+		--live: oklch(0.7 0.2 22);
+		--live-subtle: oklch(0.7 0.2 22 / 18%);
+		--live-foreground: oklch(0.75 0.18 22);
+
+		--cat-1: oklch(0.7 0.17 250);
+		--cat-2: oklch(0.74 0.18 350);
+		--cat-3: oklch(0.76 0.16 145);
+		--cat-4: oklch(0.79 0.16 60);
+		--cat-5: oklch(0.7 0.19 300);
+		--cat-6: oklch(0.78 0.13 195);
+		--cat-7: oklch(0.7 0.21 20);
+		--cat-8: oklch(0.82 0.14 105);
+	}
+}
+
+/* ==========================================================================
+   LEGACY SHADCN NAMES
+
+   The semantic tokens above read their old shadcn counterpart first, e.g.
+       --surface-sunken: var(--muted, var(--n-100));
+
+   Two things fall out of that:
+
+   1. A user theme (src/lib/themes.ts loads main.css unlayered via <link>, so it
+      outranks these layers) can still set --background, --muted, --card,
+      --popover, --sidebar, --accent, --input, --primary, --primary-foreground,
+      --muted-foreground, --destructive, --foreground, --border or --ring and
+      have it take effect.
+   2. Vendored shadcn components keep working: app.css maps --color-muted and
+      friends onto the semantic tokens, so `bg-muted` still resolves.
+
+   Do not use the legacy names in new first-party code.
+   ========================================================================== */

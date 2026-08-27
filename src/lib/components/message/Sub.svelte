@@ -26,7 +26,7 @@
 	const { message, sub }: Props = $props();
 </script>
 
-<div class="my-0.5 border-l-4 bg-muted/50 p-2" style:border-color={message.source.user.color}>
+<div class="my-0.5 border-l-4 bg-surface-sunken p-2" style:border-color={message.source.user.color}>
 	<div class="flex gap-1">
 		{#if sub.type === "sub_or_resub" || sub.type === "prime_paid_upgrade" || sub.type === "gift_paid_upgrade"}
 			{#if sub.type === "sub_or_resub" && sub.sub_plan === "Prime"}

@@ -15,7 +15,7 @@
 </script>
 
 <Button
-	class="text-muted-foreground hover:text-foreground"
+	class="text-foreground-subtle hover:text-foreground"
 	title="Edit"
 	command="show-modal"
 	commandfor={dialogId}

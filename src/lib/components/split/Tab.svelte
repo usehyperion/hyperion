@@ -61,10 +61,10 @@
 	class={[
 		"group flex h-full max-w-48 shrink-0 items-center gap-x-1.5 border-r px-2 text-sm select-none",
 		active
-			? "bg-background text-foreground"
-			: "text-muted-foreground hover:bg-background/50 hover:text-foreground",
+			? "bg-surface text-foreground"
+			: "text-foreground-subtle hover:bg-surface/50 hover:text-foreground",
 		draggable.isDragging && "opacity-50",
-		droppable.isDropTarget && "shadow-[inset_2px_0_0_var(--color-primary)]",
+		droppable.isDropTarget && "shadow-[inset_2px_0_0_var(--color-drop-target-border)]",
 	]}
 	role="tab"
 	tabindex="-1"
@@ -91,7 +91,7 @@
 
 	<button
 		class={[
-			"ml-auto shrink-0 rounded-sm p-0.5 hover:bg-muted",
+			"ml-auto shrink-0 rounded-sm p-0.5 hover:bg-hover",
 			!active && "opacity-0 group-hover:opacity-100",
 		]}
 		aria-label="Close tab"

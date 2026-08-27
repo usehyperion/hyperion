@@ -205,7 +205,7 @@
 		{#snippet children({ tickItems, thumbItems })}
 			<span
 				class={cn(
-					"pointer-events-none absolute overflow-hidden rounded-full border border-input",
+					"pointer-events-none absolute overflow-hidden rounded-full border border-border-strong",
 					isHorizontal ? "inset-x-px h-4.5" : "inset-y-px w-4.5",
 					trackClass,
 				)}
@@ -242,7 +242,7 @@
 				{#each tickItems as tick (tick.index)}
 					<Slider.Tick
 						class={cn(
-							"z-1 size-1 rounded-full bg-muted-foreground/40 transition-[scale,opacity] duration-200 data-bounded:opacity-0",
+							"z-1 size-1 rounded-full bg-foreground-faint/40 transition-[scale,opacity] duration-200 data-bounded:opacity-0",
 							isHorizontal ? "top-[calc(50%-2px)]" : "left-[calc(50%-2px)]",
 							hovered && "scale-125",
 						)}
@@ -262,12 +262,7 @@
 					aria-label={thumbLabel(thumb.index)}
 					data-slot="slider-thumb"
 				>
-					<span
-						class={cn(
-							"size-4 rounded-full bg-background shadow-sm dark:bg-foreground",
-							thumbClass,
-						)}
-					></span>
+					<span class={cn("size-4 rounded-full bg-thumb shadow-sm", thumbClass)}></span>
 				</Slider.Thumb>
 
 				{#if showValue && valuePosition === "tooltip"}
@@ -305,7 +300,7 @@
 {#snippet valueDisplay()}
 	<span
 		class={cn(
-			"inline-grid shrink-0 text-xs leading-none text-muted-foreground tabular-nums",
+			"inline-grid shrink-0 text-xs leading-none text-foreground-subtle tabular-nums",
 			interacting && "font-medium",
 		)}
 		data-slot="slider-value"

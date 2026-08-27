@@ -29,6 +29,6 @@
 		]}
 		orientation="vertical"
 	>
-		<ScrollArea.Thumb class="rounded-full bg-muted-foreground/80" />
+		<ScrollArea.Thumb class="rounded-full bg-scrollbar hover:bg-scrollbar-hover" />
 	</ScrollArea.Scrollbar>
 </ScrollArea.Root>

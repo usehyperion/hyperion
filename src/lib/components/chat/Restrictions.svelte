@@ -35,7 +35,7 @@
 </script>
 
 <button
-	class={["flex items-center", topMostActive && "text-green-500"]}
+	class={["flex items-center", topMostActive && "text-success-foreground"]}
 	popovertarget="restrictions-{chat.channel.id}"
 >
 	<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
@@ -51,7 +51,7 @@
 			<li
 				class={[
 					"flex items-center",
-					mode.active ? "text-green-500" : "text-muted-foreground",
+					mode.active ? "text-success-foreground" : "text-foreground-subtle",
 				]}
 			>
 				<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
