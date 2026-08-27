@@ -1,10 +1,4 @@
-import Item from "./radio-group-item.svelte";
-import Root from "./radio-group.svelte";
+import Root from "./RadioGroup.svelte";
+import Item from "./RadioGroupItem.svelte";
 
-export {
-	Item,
-	//
-	Root as RadioGroup,
-	Item as RadioGroupItem,
-	Root,
-};
+export { Root, Item };
