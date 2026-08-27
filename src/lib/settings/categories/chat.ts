@@ -38,22 +38,19 @@ export default {
 					id: "chat.badges.ffz",
 					type: "switch",
 					label: "Enable FrankerFaceZ badges",
-					description:
-						'Show badges from <a href="https://www.frankerfacez.com/" target="_blank">FrankerFaceZ</a>.',
+					description: "Show badges from [FrankerFaceZ](https://www.frankerfacez.com/).",
 				},
 				{
 					id: "chat.badges.bttv",
 					type: "switch",
 					label: "Enable BetterTTV badges",
-					description:
-						'Show badges from <a href="https://betterttv.com/" target="_blank">BetterTTV</a>.',
+					description: "Show badges from [BetterTTV](https://betterttv.com/).",
 				},
 				{
 					id: "chat.badges.seventv",
 					type: "switch",
 					label: "Enable 7TV badges",
-					description:
-						'Show badges from <a href="https://7tv.app/" target="_blank">7TV</a>.',
+					description: "Show badges from [7TV](https://7tv.app/).",
 				},
 			],
 		},
@@ -111,21 +108,20 @@ export default {
 					type: "switch",
 					label: "Enable FrankerFaceZ emotes",
 					description:
-						'Show and autocomplete emotes from <a href="https://www.frankerfacez.com/" target="_blank">FrankerFaceZ</a>.',
+						"Show and autocomplete emotes from [FrankerFaceZ](https://www.frankerfacez.com/).",
 				},
 				{
 					id: "chat.emotes.bttv",
 					type: "switch",
 					label: "Enable BetterTTV emotes",
 					description:
-						'Show and autocomplete emotes from <a href="https://betterttv.com/" target="_blank">BetterTTV</a>.',
+						"Show and autocomplete emotes from [BetterTTV](https://betterttv.com/).",
 				},
 				{
 					id: "chat.emotes.seventv",
 					type: "switch",
 					label: "Enable 7TV emotes",
-					description:
-						'Show and autocomplete emotes from <a href="https://7tv.app/" target="_blank">7TV</a>.',
+					description: "Show and autocomplete emotes from [7TV](https://7tv.app/).",
 				},
 				{
 					id: "chat.emotes.padding",
@@ -160,7 +156,7 @@ export default {
 							type: "switch",
 							label: "Fetch recent messages upon joining a channel",
 							description:
-								'This feature uses a <a href="https://recent-messages.robotty.de/" target="_blank">third-party API</a> that temporarily stores the messages sent in joined channels. To opt-out, disable this setting.',
+								"This feature uses a [third-party API](https://recent-messages.robotty.de/) that temporarily stores the messages sent in joined channels. To opt-out, disable this setting.",
 						},
 						{
 							id: "chat.messages.history.limit",
@@ -207,7 +203,7 @@ export default {
 							type: "input",
 							label: "Custom format",
 							description:
-								'Formats use the same <a href="https://day.js.org/docs/en/display/format" target="_blank">tokens</a> as <a href="https://day.js.org/en" target="_blank">Day.js</a>. Localized formats are also enabled.',
+								"Formats use the same [tokens](https://day.js.org/docs/en/display/format) as [Day.js](https://day.js.org/en). Localized formats are also enabled.",
 							placeholder: "e.g. HH:mm:ss",
 							disabled: () =>
 								settings.state["chat.messages.timestamps.format"] !== "custom",
