@@ -16,6 +16,7 @@
 		"deep-link:default",
 		"dialog:default",
 		"fs:allow-exists",
+		"fs:allow-lstat",
 		"fs:allow-mkdir",
 		"fs:allow-read-dir",
 		"fs:allow-read-text-file",

@@ -20,8 +20,6 @@
 	onMount(async () => {
 		app.splits.cleanup();
 
-		injectTheme(settings.state["appearance.theme"]);
-
 		unlisten = await onOpenUrl(async (urls) => {
 			await handleDeepLink(new URL(urls[0]));
 		});
@@ -37,6 +35,10 @@
 
 	$effect(() => {
 		invoke("update_log_level", { level: settings.state["advanced.logs.level"] });
+	});
+
+	$effect(() => {
+		injectTheme(settings.state["appearance.theme"]);
 	});
 
 	addEventListener("error", (event) => {
