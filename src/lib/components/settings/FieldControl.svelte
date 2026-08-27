@@ -146,7 +146,7 @@
 {#snippet description(description?: string)}
 	{#if description}
 		<Field.Description>
-			{parseDescription(description)}
+			{@html parseDescription(description)}
 		</Field.Description>
 	{/if}
 {/snippet}
