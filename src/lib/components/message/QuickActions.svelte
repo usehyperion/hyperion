@@ -2,7 +2,7 @@
 	import { Tooltip } from "bits-ui";
 	import type { Component } from "svelte";
 	import type { UserMessage } from "$lib/models/message/user-message.svelte";
-	import { confirmBan, timeoutDuration, timeoutLabel } from "$lib/moderation";
+	import { timeoutDuration, timeoutLabel } from "$lib/moderation";
 	import { settings } from "$lib/settings";
 	import ArrowBendUpLeft from "~icons/ph/arrow-bend-up-left";
 	import Clipboard from "~icons/ph/clipboard";
@@ -43,10 +43,7 @@
 	}
 
 	async function ban() {
-		if (!message.viewer) return;
-		if (!(await confirmBan(message.viewer.displayName))) return;
-
-		await message.viewer.ban();
+		await message.viewer?.ban();
 	}
 </script>
 

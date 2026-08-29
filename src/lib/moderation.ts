@@ -1,4 +1,3 @@
-import { ask } from "@tauri-apps/plugin-dialog";
 import { parseDuration } from "./commands/util";
 import { settings } from "./settings";
 import { formatDuration } from "./util";
@@ -33,18 +32,4 @@ export function timeoutLabel() {
 	const preset = timeoutPresets.find((option) => option.value === value);
 
 	return preset?.label ?? formatDuration(timeoutDuration());
-}
-
-/**
- * Asks for confirmation before banning unless the user has opted out.
- */
-export async function confirmBan(displayName: string) {
-	if (!settings.state["moderation.ban.confirm"]) return true;
-
-	return await ask(`Permanently ban ${displayName} from this channel?`, {
-		title: "Ban user",
-		kind: "warning",
-		okLabel: "Ban",
-		cancelLabel: "Cancel",
-	});
 }

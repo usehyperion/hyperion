@@ -28,14 +28,6 @@ export default {
 						"Show the delete, timeout, and ban buttons when hovering over a message.",
 					keywords: ["hover", "toolbar", "buttons"],
 				},
-				{
-					id: "moderation.ban.confirm",
-					type: "switch",
-					label: "Confirm before banning",
-					description:
-						"Ask for confirmation before permanently banning a viewer. Timeouts and deletions are never confirmed.",
-					keywords: ["prompt", "accidental"],
-				},
 			],
 		},
 		{

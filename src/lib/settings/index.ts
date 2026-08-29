@@ -58,7 +58,6 @@ export type Settings = {
 	"highlights.keywords": KeywordHighlightConfig[];
 
 	"moderation.timeout.duration": string;
-	"moderation.ban.confirm": boolean;
 	"moderation.quickActions.show": boolean;
 	"moderation.deleted.appearance": DeletedAppearance;
 
@@ -105,7 +104,6 @@ export const defaults: Settings = {
 	"highlights.viewers": { ...defaultHighlightTypes },
 	"highlights.keywords": [],
 	"moderation.timeout.duration": "10m",
-	"moderation.ban.confirm": false,
 	"moderation.quickActions.show": true,
 	"moderation.deleted.appearance": "dim",
 	"advanced.logs.level": "info",
