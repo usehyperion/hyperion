@@ -1,7 +1,6 @@
 import { page } from "$app/state";
 import { app } from "$lib/app.svelte";
 import { Whisper } from "$lib/models/whisper.svelte";
-import { getOrInsertComputed } from "$lib/util";
 import { defineHandler } from "../helper";
 
 export default defineHandler({
@@ -11,8 +10,7 @@ export default defineHandler({
 
 		const sender = await app.twitch.users.fetch(data.sender.id);
 
-		const whisper = getOrInsertComputed(
-			app.user.whispers,
+		const whisper = app.user.whispers.getOrInsertComputed(
 			sender.id,
 			() => new Whisper(app.twitch, sender),
 		);

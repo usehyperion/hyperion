@@ -1,5 +1,4 @@
 import { app } from "$lib/app.svelte";
-import { getOrInsert } from "$lib/util";
 import { defineHandler } from "../helper";
 
 export default defineHandler({
@@ -15,7 +14,7 @@ export default defineHandler({
 				const badge = app.badges.get(data.ref_id);
 				if (!badge) return;
 
-				const badges = getOrInsert(app.badges.users, user.id, []);
+				const badges = app.badges.users.getOrInsert(user.id, []);
 
 				if (!badges.some((b) => b.id === badge.id)) {
 					badges.push(badge);
