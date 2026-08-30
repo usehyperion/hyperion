@@ -11,6 +11,11 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig({
 	build: {
 		target: "esnext",
+		rolldownOptions: {
+			experimental: {
+				lazyBarrel: true,
+			},
+		},
 	},
 	clearScreen: false,
 	plugins: [
