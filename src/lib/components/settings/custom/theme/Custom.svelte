@@ -7,14 +7,16 @@
 	import * as RadioGroup from "$lib/components/ui/radio-group";
 	import Separator from "$lib/components/ui/Separator.svelte";
 	import { settings } from "$lib/settings";
-	import { getThemesDir, injectTheme, loadThemes } from "$lib/themes";
+	import { getThemesDir, reloadThemes } from "$lib/themes";
 
-	$effect(() => {
-		injectTheme(settings.state["appearance.theme"]);
-	});
+	const selected = $derived(settings.state["appearance.theme"]);
 
 	async function openThemeDir() {
 		await openPath(await getThemesDir());
+	}
+
+	async function reload() {
+		await reloadThemes(settings.state["appearance.theme"]);
 	}
 </script>
 
@@ -24,42 +26,55 @@
 	<Button
 		size="sm"
 		variant="outline"
-		disabled={!app.themes.size}
+		disabled={!selected}
 		onclick={() => (settings.state["appearance.theme"] = "")}
 	>
 		Clear selection
 	</Button>
 
-	<Button size="sm" variant="outline" onclick={() => loadThemes()}>Reload themes</Button>
+	<Button size="sm" variant="outline" onclickwait={reload}>Reload themes</Button>
 </div>
 
-<RadioGroup.Root bind:value={settings.state["appearance.theme"]}>
-	{#each app.themes as [id, theme] (id)}
-		<Field.Label for={id}>
-			<Field.Field orientation="horizontal">
-				<Field.Content>
-					<Field.Title>{theme.name}</Field.Title>
+{#if app.themes.size}
+	<RadioGroup.Root bind:value={settings.state["appearance.theme"]}>
+		{#each app.themes as [id, theme] (id)}
+			<Field.Label for={id}>
+				<Field.Field orientation="horizontal">
+					<Field.Content>
+						<Field.Title>{theme.name}</Field.Title>
 
-					<Field.Description>
-						{theme.description}
-					</Field.Description>
-
-					<div class="flex h-5 items-center gap-x-2 text-xs text-muted-foreground">
-						{theme.author}
-
-						{#if theme.repository}
-							<Separator orientation="vertical" />
-							<a href={theme.repository} target="_blank">Repository</a>
+						{#if theme.description}
+							<Field.Description>
+								{theme.description}
+							</Field.Description>
 						{/if}
 
-						<Separator orientation="vertical" />
+						<div class="flex h-5 items-center gap-x-2 text-xs text-muted-foreground">
+							{theme.author}
 
-						v{theme.version}
-					</div>
-				</Field.Content>
+							{#if theme.repository}
+								<Separator orientation="vertical" />
 
-				<RadioGroup.Item {id} value={id} />
-			</Field.Field>
-		</Field.Label>
-	{/each}
-</RadioGroup.Root>
+								<a
+									href={theme.repository}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									Repository
+								</a>
+							{/if}
+
+							<Separator orientation="vertical" />
+
+							v{theme.version}
+						</div>
+					</Field.Content>
+
+					<RadioGroup.Item {id} value={id} />
+				</Field.Field>
+			</Field.Label>
+		{/each}
+	</RadioGroup.Root>
+{:else}
+	<p class="text-sm text-muted-foreground">No themes installed.</p>
+{/if}

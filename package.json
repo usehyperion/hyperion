@@ -46,7 +46,8 @@
 		"shadow-plugin": "^2.1.0",
 		"tailwindcss": "^4.3.3",
 		"tauri-plugin-cache-api": "^0.1.6",
-		"tldts": "^7.4.11",
+		"tldts": "^7.4.0",
+		"valibot": "^1.4.2",
 		"virtua": "^0.50.6"
 	},
 	"devDependencies": {
