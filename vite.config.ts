@@ -44,9 +44,6 @@ export default defineConfig({
 		host: host || false,
 		port: 1420,
 		strictPort: true,
-		warmup: {
-			clientFiles: ["./src/lib/components/ui/**/*.{ts,svelte}", "./src/lib/models/**/*.ts"],
-		},
 		watch: {
 			ignored: ["**/src-tauri/**"],
 		},
