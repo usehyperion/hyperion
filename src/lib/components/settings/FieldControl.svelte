@@ -14,6 +14,24 @@
 	}
 
 	const { field }: Props = $props();
+
+	// Lightweight Markdown parser
+	function parseDescription(description: string) {
+		return (
+			description
+				// Inline Code
+				.replace(/`([^`]+)`/g, "<code>$1</code>")
+				// Links
+				.replace(
+					/\[([^\]]+)\]\(([^)]+)\)/g,
+					'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>',
+				)
+				// Bold
+				.replace(/(\*\*)(.*?)\1/g, "<strong>$2</strong>")
+				// Italics
+				.replace(/(\*)(.*?)\1/g, "<em>$2</em>")
+		);
+	}
 </script>
 
 {#if field.type === "group"}
@@ -128,7 +146,7 @@
 {#snippet description(description?: string)}
 	{#if description}
 		<Field.Description>
-			{@html description}
+			{@html parseDescription(description)}
 		</Field.Description>
 	{/if}
 {/snippet}
