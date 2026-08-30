@@ -10,9 +10,9 @@
 	import { app } from "$lib/app.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
 	import StreamInfo from "$lib/components/stream/StreamInfo.svelte";
+	import { openDialog } from "$lib/components/ui/Dialog.svelte";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "$lib/splits/events";
 	import { storage } from "$lib/stores";
-	import { openDialog } from "$lib/util";
 
 	const { children } = $props();
 
