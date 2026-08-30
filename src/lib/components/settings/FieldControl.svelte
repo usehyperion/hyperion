@@ -6,8 +6,8 @@
 	import Slider from "$lib/components/ui/Slider.svelte";
 	import Switch from "$lib/components/ui/Switch.svelte";
 	import { settings } from "$lib/settings";
+	import type { BaseField, SettingsField } from "$lib/settings/types";
 	import FieldControl from "./FieldControl.svelte";
-	import type { BaseField, SettingsField } from "./types";
 
 	interface Props {
 		field: SettingsField;

@@ -1,5 +1,6 @@
 import { Menu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/menu";
 import type { UserMessage } from "$lib/models/message/user-message.svelte";
+import { timeoutDuration, timeoutLabel } from "$lib/moderation";
 
 export async function createMessageMenu(message: UserMessage) {
 	const items: (MenuItem | PredefinedMenuItem)[] = [];
@@ -50,9 +51,9 @@ export async function createMessageMenu(message: UserMessage) {
 
 		const timeout = await MenuItem.new({
 			id: "timeout",
-			text: "Timeout (10 minutes)",
+			text: `Timeout (${timeoutLabel()})`,
 			enabled: message.actionable,
-			action: () => message.viewer?.timeout({ duration: 600 }),
+			action: () => message.viewer?.timeout({ duration: timeoutDuration() }),
 		});
 
 		const ban = await MenuItem.new({
