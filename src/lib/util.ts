@@ -187,27 +187,6 @@ export async function openMenu(event: MouseEvent, menufn: () => Promise<Menu>) {
 	await menu.popup();
 }
 
-// https://github.com/tc39/proposal-upsert
-export function getOrInsert<K, V>(map: Map<K, V>, key: K, defaultValue: V): V {
-	if (map.has(key)) {
-		return map.get(key)!;
-	}
-
-	map.set(key, defaultValue);
-	return defaultValue;
-}
-
-export function getOrInsertComputed<K, V>(map: Map<K, V>, key: K, defaultValue: () => V): V {
-	if (map.has(key)) {
-		return map.get(key)!;
-	}
-
-	const value = defaultValue();
-	map.set(key, value);
-
-	return value;
-}
-
 export function openDialog(id: string) {
 	document.querySelector<HTMLDialogElement>(`#${id}`)?.showModal();
 }

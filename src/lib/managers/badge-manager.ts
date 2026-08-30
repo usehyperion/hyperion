@@ -6,7 +6,6 @@ import { sendTwitch } from "$lib/graphql";
 import { globalBadgesQuery } from "$lib/graphql/twitch";
 import { Badge } from "$lib/models/badge";
 import type { BttvBadge, FfzBadge } from "$lib/models/badge";
-import { getOrInsert, getOrInsertComputed } from "$lib/util";
 
 interface BttvUser {
 	providerId: string;
@@ -66,7 +65,7 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		for (const user of response) {
 			const id = `bttv:${user.badge.type}`;
 
-			const badge = getOrInsertComputed(this, id, () => {
+			const badge = this.getOrInsertComputed(id, () => {
 				return new Badge({
 					setId: "bttv",
 					version: user.badge.type.toString(),
@@ -124,7 +123,7 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 	}
 
 	#insert(id: string, badge: Badge) {
-		const badges = getOrInsert(this.users, id, []);
+		const badges = this.users.getOrInsert(id, []);
 		const idx = badges.findIndex((b) => b.id === badge.id);
 
 		if (idx === -1) {
