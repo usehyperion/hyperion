@@ -183,7 +183,6 @@ export async function loadThemes(id?: string) {
 		log.trace(`Loaded theme "${theme.id}" (${theme.name} v${theme.version})`);
 	}
 
-	// Keep the settings list stable regardless of the order readDir hands back.
 	const sorted = [...app.themes.values()].toSorted((a, b) => a.name.localeCompare(b.name));
 
 	app.themes.clear();
@@ -207,11 +206,6 @@ function clearTheme(link: HTMLLinkElement) {
 	link.dataset.themeId = "";
 }
 
-/**
- * Applies the theme with the given id, or removes the current one when the id
- * is empty. Pass `force` to re-fetch a stylesheet whose id has not changed,
- * which is what makes an edit on disk visible without restarting.
- */
 export async function injectTheme(id: string, force = false) {
 	const element = document.getElementById("hyperion-custom-theme");
 
