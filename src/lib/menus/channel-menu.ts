@@ -62,7 +62,7 @@ export async function createChannelMenu(channel: Channel) {
 		id: "pin",
 		text: "Pin",
 		accelerator: "CmdOrCtrl+P",
-		enabled: !channel.ephemeral,
+		enabled: !channel.ephemeral && channel.id !== app.user?.id,
 		checked: channel.pinned,
 		async action() {
 			if (channel.pinned) {
