@@ -92,7 +92,7 @@ jobs:
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: nightly-2026-05-01
+          toolchain: nightly-2026-08-23
           targets: ${{ matrix.target }}
 
       - name: Rust cache
