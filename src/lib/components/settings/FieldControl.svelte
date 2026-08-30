@@ -7,6 +7,7 @@
 	import Switch from "$lib/components/ui/Switch.svelte";
 	import { settings } from "$lib/settings";
 	import type { BaseField, SettingsField } from "$lib/settings/types";
+
 	import FieldControl from "./FieldControl.svelte";
 
 	interface Props {

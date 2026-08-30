@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { createHotkeys } from "@tanstack/svelte-hotkeys";
 	import { ScrollArea } from "bits-ui";
+
 	import { useSidebar } from "$lib/hooks/use-sidebar.svelte";
+
 	import ChannelList from "./channel/ChannelList.svelte";
 	const sidebar = useSidebar();
 

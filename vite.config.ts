@@ -63,8 +63,27 @@ export default defineConfig({
 			stylesheet: "./src/styles/app.css",
 		},
 		sortImports: {
-			internalPattern: ["~", "$"],
-			newlinesBetween: false,
+			groups: [
+				["value-builtin", "type-builtin"],
+				["value-external", "type-external"],
+				"sveltekit",
+				"icons",
+				"type-internal",
+				"value-internal",
+				["type-parent", "type-sibling", "type-index"],
+				["value-parent", "value-sibling", "value-index"],
+				"unknown",
+			],
+			customGroups: [
+				{
+					groupName: "icons",
+					elementNamePattern: ["~icons/**"],
+				},
+				{
+					groupName: "sveltekit",
+					elementNamePattern: ["$*/**"],
+				},
+			],
 		},
 		ignorePatterns: [".claude/**", "skills-lock.json", "src/assets/**"],
 		overrides: [

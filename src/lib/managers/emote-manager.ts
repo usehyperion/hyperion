@@ -1,10 +1,12 @@
 import { ofetch } from "ofetch";
 import * as cache from "tauri-plugin-cache-api";
-import { transform7tvEmote, transformBttvEmote, transformFfzEmote } from "$lib/emotes";
+
 import type { BttvEmote, Emote, GlobalSet } from "$lib/emotes";
+import { transform7tvEmote, transformBttvEmote, transformFfzEmote } from "$lib/emotes";
 import { ApiError } from "$lib/errors/api-error";
 import { send7tv } from "$lib/graphql";
 import { globalEmoteSetQuery } from "$lib/graphql/7tv";
+
 import { BaseEmoteManager } from "./base-emote-manager";
 
 export class EmoteManager extends BaseEmoteManager {

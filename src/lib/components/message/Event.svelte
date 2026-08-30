@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { EventMessage } from "$lib/models/message/event-message";
+
 	import Timestamp from "../Timestamp.svelte";
 
 	interface Props {

@@ -8,9 +8,11 @@
 		SubOrResubEvent,
 	} from "$lib/twitch/irc";
 	import { colorizeName } from "$lib/util";
+
 	import PrimeCrown from "~icons/local/prime-crown";
 	import Gift from "~icons/ph/gift";
 	import Star from "~icons/ph/star-fill";
+
 	import Message from "./Message.svelte";
 
 	interface Props {

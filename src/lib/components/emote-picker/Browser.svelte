@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { Accordion } from "bits-ui";
 	import { onDestroy, tick } from "svelte";
+
 	import type { EmoteSet } from "$lib/emotes";
+
 	import CaretRight from "~icons/ph/caret-right";
+
 	import EmoteGrid from "./EmoteGrid.svelte";
 	import ProviderRail from "./ProviderRail.svelte";
 

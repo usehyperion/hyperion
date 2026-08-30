@@ -1,5 +1,6 @@
-import { isLeaf } from "./tree";
 import type { Rect, SplitDirection, SplitNode } from "./types";
+
+import { isLeaf } from "./tree";
 
 /**
  * Computes the normalized bounds of every pane in the tree.

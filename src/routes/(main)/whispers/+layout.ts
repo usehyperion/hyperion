@@ -1,4 +1,5 @@
 import { error } from "@sveltejs/kit";
+
 import { app } from "$lib/app.svelte";
 
 export function load() {

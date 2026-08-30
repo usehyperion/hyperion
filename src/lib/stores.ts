@@ -1,5 +1,7 @@
 import { RuneStore } from "@tauri-store/svelte";
+
 import type { User } from "./graphql/twitch";
+
 import { LAYOUT_VERSION, type Layout } from "./splits/types";
 
 export interface RecentSearch {

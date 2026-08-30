@@ -1,5 +1,6 @@
 import { app } from "$lib/app.svelte";
 import { Badge } from "$lib/models/badge";
+
 import { defineHandler } from "../helper";
 
 function toRgb(decimal: number) {

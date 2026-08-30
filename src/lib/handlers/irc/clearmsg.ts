@@ -1,6 +1,7 @@
 import { app } from "$lib/app.svelte";
 import Delete from "$lib/components/message/events/Delete.svelte";
 import type { UserMessage } from "$lib/models/message/user-message.svelte";
+
 import { defineHandler } from "../helper";
 
 export default defineHandler({

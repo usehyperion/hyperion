@@ -5,7 +5,9 @@
 	import type { Viewer } from "$lib/models/viewer.svelte";
 	import { settings } from "$lib/settings";
 	import { openMenu } from "$lib/util";
+
 	import ArrowBendUpRight from "~icons/ph/arrow-bend-up-right";
+
 	import Highlight from "./Highlight.svelte";
 	import Message from "./Message.svelte";
 	import QuickActions from "./QuickActions.svelte";

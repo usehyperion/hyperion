@@ -4,14 +4,17 @@
 	import { platform as getPlatform } from "@tauri-apps/plugin-os";
 	import { onDestroy, onMount } from "svelte";
 	import type { HTMLButtonAttributes } from "svelte/elements";
+
 	import { afterNavigate } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { app } from "$lib/app.svelte";
+
 	import ArrowLeft from "~icons/ph/arrow-left";
 	import ArrowRight from "~icons/ph/arrow-right";
 	import Chats from "~icons/ph/chats";
 	import Gear from "~icons/ph/gear";
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
+
 	import JoinDialog from "./JoinDialog.svelte";
 	import SettingsDialog from "./settings/SettingsDialog.svelte";
 	import Button from "./ui/Button.svelte";

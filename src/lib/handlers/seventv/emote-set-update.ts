@@ -1,8 +1,10 @@
 import * as cache from "tauri-plugin-cache-api";
+
 import { app } from "$lib/app.svelte";
 import EmoteSetUpdate from "$lib/components/message/events/EmoteSetUpdate.svelte";
 import type { Emote } from "$lib/emotes";
 import type { EmoteChange } from "$lib/seventv";
+
 import { defineHandler } from "../helper";
 
 type EmoteSetUpdateProps = import("svelte").ComponentProps<typeof EmoteSetUpdate>;

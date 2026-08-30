@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { UserMessage } from "$lib/models/message/user-message.svelte";
 	import { colorizeName } from "$lib/util";
+
 	import Confetti from "~icons/ph/confetti";
 	import Fire from "~icons/ph/fire";
 	import HandHeart from "~icons/ph/hand-heart";
 	import Megaphone from "~icons/ph/megaphone";
+
 	import Message from "./Message.svelte";
 	import Sub from "./Sub.svelte";
 

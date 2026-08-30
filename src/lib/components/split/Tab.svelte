@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { createDraggable, createDroppable } from "@dnd-kit/svelte";
+
 	import { app } from "$lib/app.svelte";
 	import { settings } from "$lib/settings";
+
 	import X from "~icons/ph/x";
 
 	interface Props {

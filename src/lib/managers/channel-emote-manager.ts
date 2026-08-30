@@ -1,12 +1,14 @@
 import { ofetch } from "ofetch";
 import * as cache from "tauri-plugin-cache-api";
-import { transform7tvEmote, transformBttvEmote, transformFfzEmote } from "$lib/emotes";
+
 import type { BttvEmote, Emote, FfzEmoteSet } from "$lib/emotes";
+import { transform7tvEmote, transformBttvEmote, transformFfzEmote } from "$lib/emotes";
 import { ApiError } from "$lib/errors/api-error";
 import { send7tv as send } from "$lib/graphql";
-import { activeEmoteSetQuery } from "$lib/graphql/7tv";
 import type { ActiveEmoteSet } from "$lib/graphql/7tv";
+import { activeEmoteSetQuery } from "$lib/graphql/7tv";
 import type { Channel } from "$lib/models/channel.svelte";
+
 import { BaseEmoteManager } from "./base-emote-manager";
 
 interface Room {

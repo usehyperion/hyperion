@@ -1,4 +1,5 @@
 import Layout from "~icons/ph/layout";
+
 import type { SettingsCategory } from "../types";
 
 export default {

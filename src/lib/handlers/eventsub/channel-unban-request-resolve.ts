@@ -1,6 +1,7 @@
 import { app } from "$lib/app.svelte";
 import UnbanRequest from "$lib/components/message/events/UnbanRequest.svelte";
 import type { Viewer } from "$lib/models/viewer.svelte";
+
 import { defineHandler } from "../helper";
 
 export default defineHandler({

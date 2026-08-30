@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { Emote } from "$lib/emotes";
+
 	import SmileySad from "~icons/ph/smiley-sad";
+
 	import EmoteGrid from "./EmoteGrid.svelte";
 
 	interface Props {

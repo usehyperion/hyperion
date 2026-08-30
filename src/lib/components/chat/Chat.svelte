@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { fly } from "svelte/transition";
 	import { VList } from "virtua/svelte";
+
 	import { Chat } from "$lib/models/chat.svelte";
 	import type { Message } from "$lib/models/message/message";
 	import { settings } from "$lib/settings";
+
 	import ArrowDown from "~icons/ph/arrow-down";
+
 	import AutoMod from "../message/AutoMod.svelte";
 	import Event from "../message/Event.svelte";
 	import Notification from "../message/Notification.svelte";

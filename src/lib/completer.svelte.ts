@@ -1,11 +1,12 @@
-import { app } from "./app.svelte";
-import { commands } from "./commands";
 import type { Command } from "./commands";
 import type { Suggestion } from "./components/Suggestions.svelte";
 import type { Emote } from "./emotes";
 import type { Chat } from "./models/chat.svelte";
 import type { User } from "./models/user.svelte";
 import type { Viewer } from "./models/viewer.svelte";
+
+import { app } from "./app.svelte";
+import { commands } from "./commands";
 import { debounce } from "./util";
 
 interface SearchOptions<T> {

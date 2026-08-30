@@ -12,12 +12,14 @@ import type {
 } from "$lib/twitch/irc";
 import type { ChannelPointReward } from "$lib/twitch/pubsub";
 import { extractEmotes, type Prefix } from "$lib/util";
-import { Badge } from "../badge";
+
 import type { Channel } from "../channel.svelte";
+import type { Node } from "./parse";
+
+import { Badge } from "../badge";
 import { User } from "../user.svelte";
 import { Viewer } from "../viewer.svelte";
 import { parse } from "./parse";
-import type { Node } from "./parse";
 import { TextualMessage } from "./textual-message.svelte";
 
 function createPartialUser(channel: Channel, sender: BasicUser, color: string) {

@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { Pane, PaneGroup, PaneResizer } from "paneforge";
+
 	import { app } from "$lib/app.svelte";
 	import { isLeaf } from "$lib/splits/tree";
 	import type { SplitNode } from "$lib/splits/types";
+
 	import Self from "./SplitNode.svelte";
 	import SplitView from "./SplitView.svelte";
 

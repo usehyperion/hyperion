@@ -1,5 +1,6 @@
 import { settings } from "$lib/settings";
 import { injectTheme, loadThemes } from "$lib/themes";
+
 import { defineCommand } from "../util";
 
 export default defineCommand({

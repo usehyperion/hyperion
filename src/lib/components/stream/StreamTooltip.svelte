@@ -1,13 +1,16 @@
 <script lang="ts">
 	import NumberFlow from "@number-flow/svelte";
+
 	import { app } from "$lib/app.svelte";
 	import { useSidebar } from "$lib/hooks/use-sidebar.svelte";
 	import { createChannelMenu } from "$lib/menus/channel-menu";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import { openMenu } from "$lib/util";
+
 	import ClockCountdown from "~icons/ph/clock-countdown";
 	import PushPin from "~icons/ph/push-pin";
 	import Users from "~icons/ph/users-bold";
+
 	import Tooltip from "../ui/Tooltip.svelte";
 	import GuestList from "./GuestList.svelte";
 	import StreamInfo from "./StreamInfo.svelte";

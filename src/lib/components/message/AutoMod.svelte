@@ -2,6 +2,7 @@
 	import { UserMessage } from "$lib/models/message/user-message.svelte";
 	import { settings } from "$lib/settings";
 	import type { AutoModMetadata } from "$lib/twitch/eventsub";
+
 	import Button from "../ui/Button.svelte";
 	import Message from "./Message.svelte";
 

@@ -1,4 +1,5 @@
 import { log } from "$lib/log";
+
 import type { Handler } from "./helper";
 
 export const handlers = new Map<string, Handler<any>>();

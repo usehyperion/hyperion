@@ -2,15 +2,18 @@
 	import { Avatar } from "bits-ui";
 	import dayjs from "dayjs";
 	import localizedFormat from "dayjs/plugin/localizedFormat";
+
 	import type { MentionNode } from "$lib/models/message/parse";
 	import { UserMessage } from "$lib/models/message/user-message.svelte";
 	import { User } from "$lib/models/user.svelte";
 	import { settings } from "$lib/settings";
+
 	import Cake from "~icons/ph/cake-fill";
 	import Heart from "~icons/ph/heart-fill";
 	import StarOutline from "~icons/ph/star";
 	import Star from "~icons/ph/star-fill";
 	import UserIcon from "~icons/ph/user-bold";
+
 	import Message from "./message/Message.svelte";
 	import Popover from "./ui/Popover.svelte";
 

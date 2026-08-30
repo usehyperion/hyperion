@@ -7,6 +7,7 @@
 	import { check } from "@tauri-apps/plugin-updater";
 	import { Tooltip } from "bits-ui";
 	import { onMount } from "svelte";
+
 	import { app } from "$lib/app.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
 	import StreamInfo from "$lib/components/stream/StreamInfo.svelte";

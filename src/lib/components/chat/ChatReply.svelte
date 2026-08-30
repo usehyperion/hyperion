@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { UserMessage } from "$lib/models/message/user-message.svelte";
+
 	import XCircle from "~icons/ph/x-circle";
+
 	import Message from "../message/Message.svelte";
 
 	interface Props {

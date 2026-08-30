@@ -1,4 +1,5 @@
 import { stats } from "tauri-plugin-cache-api";
+
 import { log } from "$lib/log";
 import { loadThemes } from "$lib/themes";
 

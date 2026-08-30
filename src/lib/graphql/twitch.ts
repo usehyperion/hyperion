@@ -1,7 +1,9 @@
 import { initGraphQLTada } from "gql.tada";
 import type { FragmentOf, ResultOf } from "gql.tada";
+
 import type { Fragment, StructuredMessage } from "$lib/twitch/api";
 import type { Poll as ApiPoll, Prediction as ApiPrediction } from "$lib/twitch/pubsub";
+
 import type { NonNullableDeep } from ".";
 
 const gql = initGraphQLTada<{

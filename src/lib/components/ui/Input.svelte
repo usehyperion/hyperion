@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { HTMLInputAttributes } from "svelte/elements";
 	import { cn } from "tailwind-variants";
+
 	import type { WithElementRef } from "$lib/util";
 
 	type Props = WithElementRef<HTMLInputAttributes>;

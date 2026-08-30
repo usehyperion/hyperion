@@ -1,11 +1,13 @@
 <script lang="ts">
 	import dayjs from "dayjs";
 	import type { Snippet } from "svelte";
+
 	import { app } from "$lib/app.svelte";
 	import { transform7tvEmote } from "$lib/emotes";
 	import { send7tv as send } from "$lib/graphql";
 	import { emoteQuery } from "$lib/graphql/7tv";
 	import { clipQuery } from "$lib/graphql/twitch";
+
 	import Eye from "~icons/ph/eye";
 	import EyeSlash from "~icons/ph/eye-slash";
 

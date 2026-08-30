@@ -1,7 +1,9 @@
 <script lang="ts">
 	import * as Empty from "$lib/components/ui/empty";
 	import type { SettingsCategory } from "$lib/settings/types";
+
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
+
 	import FieldControl from "./FieldControl.svelte";
 
 	interface Props {

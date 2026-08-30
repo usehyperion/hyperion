@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { HTMLSelectAttributes } from "svelte/elements";
 	import { cn } from "tailwind-variants";
+
 	import CaretDown from "~icons/ph/caret-down";
 
 	interface Option {

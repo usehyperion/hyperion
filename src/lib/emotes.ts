@@ -1,8 +1,9 @@
+import type { Emote as SevenTvEmote } from "./graphql/7tv";
+import type { User } from "./models/user.svelte";
+
 import stv from "../assets/logos/7tv.svg";
 import bttv from "../assets/logos/bttv.svg";
 import ffz from "../assets/logos/ffz.svg";
-import type { Emote as SevenTvEmote } from "./graphql/7tv";
-import type { User } from "./models/user.svelte";
 
 export type EmoteProvider = "Twitch" | "FrankerFaceZ" | "BetterTTV" | "7TV";
 

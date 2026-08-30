@@ -6,9 +6,11 @@
 	import type { Component } from "svelte";
 	import type { HTMLButtonAttributes } from "svelte/elements";
 	import { cn } from "tailwind-variants";
+
 	import CaretDown from "~icons/ph/caret-down";
 	import CaretUp from "~icons/ph/caret-up";
 	import X from "~icons/ph/x";
+
 	import { buttonVariants } from "../ui/Button.svelte";
 	import Tooltip from "../ui/Tooltip.svelte";
 	import NoticeAction from "./NoticeAction.svelte";

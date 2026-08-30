@@ -1,19 +1,22 @@
 import type { Component, ComponentProps } from "svelte";
+
 import { app } from "$lib/app.svelte";
 import type { Command } from "$lib/commands";
 import { log } from "$lib/log";
 import { settings } from "$lib/settings";
 import { sendPresence } from "$lib/seventv";
 import type { SentMessage } from "$lib/twitch/api";
+
+import type { Channel } from "./channel.svelte";
+import type { Message } from "./message/message";
+import type { UserMessage } from "./message/user-message.svelte";
+
 import { commands } from "../commands";
 import Notice from "../components/message/events/Notice.svelte";
 import { RedemptionManager } from "../managers/redemption-manager";
-import type { Channel } from "./channel.svelte";
 import { ComponentMessage } from "./message/component-message";
 import { EventMessage, type EventMessageData } from "./message/event-message";
-import type { Message } from "./message/message";
 import { TextualMessage } from "./message/textual-message.svelte";
-import type { UserMessage } from "./message/user-message.svelte";
 import { Pin } from "./pin.svelte";
 import { Viewer } from "./viewer.svelte";
 

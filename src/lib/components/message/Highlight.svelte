@@ -25,7 +25,9 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import { cn } from "tailwind-variants";
+
 	import type { HighlightConfig, HighlightType, KeywordHighlightConfig } from "$lib/settings";
+
 	import CaseSensitive from "~icons/local/case-sensitive";
 	import Regex from "~icons/local/regex";
 	import WholeWord from "~icons/local/whole-word";

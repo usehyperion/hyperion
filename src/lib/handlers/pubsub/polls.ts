@@ -1,5 +1,6 @@
 import { app } from "$lib/app.svelte";
 import { Poll } from "$lib/models/poll.svelte";
+
 import { defineHandler } from "../helper";
 
 export default defineHandler({

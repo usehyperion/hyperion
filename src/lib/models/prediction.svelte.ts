@@ -1,4 +1,5 @@
 import type { Prediction as ApiPrediction, PredictionStatus } from "$lib/twitch/pubsub";
+
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";
 

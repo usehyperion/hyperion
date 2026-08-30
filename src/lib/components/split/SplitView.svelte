@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { createDroppable } from "@dnd-kit/svelte";
+
 	import { app } from "$lib/app.svelte";
 	import * as Empty from "$lib/components/ui/empty";
 	import type { Pane } from "$lib/splits/types";
+
 	import Layout from "~icons/ph/layout";
+
 	import Channel from "../channel/Channel.svelte";
 	import TabBar from "./TabBar.svelte";
 

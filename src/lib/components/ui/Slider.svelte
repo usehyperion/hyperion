@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Slider } from "bits-ui";
 	import { cn } from "tailwind-variants";
+
 	import { clamp, type WithoutChildrenOrChild } from "$lib/util";
 
 	const THUMB_SIZE = 20;

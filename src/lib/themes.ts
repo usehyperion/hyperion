@@ -1,6 +1,7 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { appConfigDir, join } from "@tauri-apps/api/path";
 import * as fs from "@tauri-apps/plugin-fs";
+
 import { app } from "./app.svelte";
 import { log } from "./log";
 

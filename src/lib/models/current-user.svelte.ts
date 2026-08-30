@@ -1,17 +1,20 @@
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
+
 import { app } from "$lib/app.svelte";
-import { transform7tvEmote } from "$lib/emotes";
 import type { EmoteSet } from "$lib/emotes";
+import { transform7tvEmote } from "$lib/emotes";
 import { send7tv } from "$lib/graphql";
 import { userEmoteSetsQuery } from "$lib/graphql/7tv";
 import { followedChannelsQuery } from "$lib/graphql/twitch";
 import { log } from "$lib/log";
 import type { FollowedChannel, UserEmote } from "$lib/twitch/api";
 import { chunk, mapPool } from "$lib/util";
+
+import type { Whisper } from "./whisper.svelte";
+
 import { Channel } from "./channel.svelte";
 import { Stream } from "./stream.svelte";
 import { User } from "./user.svelte";
-import type { Whisper } from "./whisper.svelte";
 
 const FOLLOWING_BATCH_SIZE = 100;
 const FETCH_CONCURRENCY = 4;

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Tooltip } from "bits-ui";
+
 	import type { Badge } from "$lib/models/badge";
 
 	interface Props {

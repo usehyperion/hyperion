@@ -1,14 +1,17 @@
 <script lang="ts">
 	import { Tabs } from "bits-ui";
+
 	import { app } from "$lib/app.svelte";
-	import { GLOBAL_PROVIDERS, toProviderSets } from "$lib/emotes";
 	import type { Emote, EmoteProvider, EmoteSet } from "$lib/emotes";
+	import { GLOBAL_PROVIDERS, toProviderSets } from "$lib/emotes";
 	import type { Channel } from "$lib/models/channel.svelte";
+
 	import SevenTV from "~icons/logos/7tv";
 	import BetterTTV from "~icons/logos/bttv";
 	import FrankerFaceZ from "~icons/logos/ffz";
 	import Twitch from "~icons/logos/twitch";
 	import Smiley from "~icons/ph/smiley";
+
 	import * as InputGroup from "../ui/input-group";
 	import Input from "../ui/Input.svelte";
 	import Popover from "../ui/Popover.svelte";

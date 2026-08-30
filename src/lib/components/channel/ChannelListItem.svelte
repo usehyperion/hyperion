@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { Attachment } from "svelte/attachments";
+
 	import type { Channel } from "$lib/models/channel.svelte";
+
 	import StreamInfo from "../stream/StreamInfo.svelte";
 	import StreamTooltip from "../stream/StreamTooltip.svelte";
 

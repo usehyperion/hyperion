@@ -3,6 +3,7 @@
 	import * as Empty from "$lib/components/ui/empty";
 	import Link from "$lib/components/ui/Link.svelte";
 	import { log } from "$lib/log";
+
 	import WarningCircle from "~icons/ph/warning-circle";
 
 	if (page.error) {

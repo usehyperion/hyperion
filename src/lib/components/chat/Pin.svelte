@@ -1,9 +1,11 @@
 <script lang="ts">
 	import type { Pin } from "$lib/models/pin.svelte";
 	import { clamp, colorizeName, formatDuration } from "$lib/util";
+
 	import Clock from "~icons/ph/clock";
 	import PushPin from "~icons/ph/push-pin";
 	import PushPinSlash from "~icons/ph/push-pin-slash";
+
 	import Message from "../message/Message.svelte";
 	import NoticeAction, { details, hide } from "./NoticeAction.svelte";
 	import PinDurationDialog from "./PinDurationDialog.svelte";

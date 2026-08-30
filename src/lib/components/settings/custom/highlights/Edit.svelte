@@ -5,6 +5,7 @@
 	import * as Field from "$lib/components/ui/field";
 	import Input from "$lib/components/ui/Input.svelte";
 	import type { KeywordHighlightConfig } from "$lib/settings";
+
 	import Pencil from "~icons/ph/pencil";
 
 	let { config = $bindable<KeywordHighlightConfig>() } = $props();

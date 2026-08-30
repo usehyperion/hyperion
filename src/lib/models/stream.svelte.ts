@@ -1,6 +1,7 @@
 import { SvelteMap } from "svelte/reactivity";
-import { guestsQuery } from "$lib/graphql/twitch";
+
 import type { Stream as ApiStream } from "$lib/graphql/twitch";
+import { guestsQuery } from "$lib/graphql/twitch";
 import type { TwitchClient } from "$lib/twitch/client";
 
 export interface Guest {

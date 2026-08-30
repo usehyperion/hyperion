@@ -1,5 +1,6 @@
 import { app } from "$lib/app.svelte";
 import SuspicionStatus from "$lib/components/message/events/SuspicionStatus.svelte";
+
 import { defineHandler } from "../helper";
 
 export default defineHandler({

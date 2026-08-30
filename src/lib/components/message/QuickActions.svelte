@@ -1,14 +1,17 @@
 <script lang="ts">
 	import { Tooltip } from "bits-ui";
 	import type { Component } from "svelte";
+
 	import type { UserMessage } from "$lib/models/message/user-message.svelte";
 	import { timeoutDuration, timeoutLabel } from "$lib/moderation";
 	import { settings } from "$lib/settings";
+
 	import ArrowBendUpLeft from "~icons/ph/arrow-bend-up-left";
 	import Clipboard from "~icons/ph/clipboard";
 	import Clock from "~icons/ph/clock";
 	import Gavel from "~icons/ph/gavel";
 	import Trash from "~icons/ph/trash";
+
 	import Button from "../ui/Button.svelte";
 	import Separator from "../ui/Separator.svelte";
 

@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { flip } from "svelte/animate";
+
 	import { app } from "$lib/app.svelte";
 	import type { Channel } from "$lib/models/channel.svelte";
 	import { storage } from "$lib/stores";
+
 	import Draggable from "../Draggable.svelte";
 	import Sortable from "../Sortable.svelte";
 	import Separator from "../ui/Separator.svelte";

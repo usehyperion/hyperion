@@ -1,23 +1,26 @@
 import { invoke, Channel as IpcChannel } from "@tauri-apps/api/core";
 import { SvelteMap } from "svelte/reactivity";
+
 import { goto } from "$app/navigation";
 import { page } from "$app/state";
+
 import type { EmoteSet } from "./emotes";
+import type { Channel } from "./models/channel.svelte";
+import type { CurrentUser } from "./models/current-user.svelte";
+import type { DispatchPayload, Paint } from "./seventv";
+import type { Theme } from "./themes";
+import type { NotificationPayload } from "./twitch/eventsub";
+import type { IrcMessage } from "./twitch/irc";
+import type { PubSubTopic } from "./twitch/pubsub";
+
 import { handlers } from "./handlers";
 import { History } from "./history.svelte";
 import { log } from "./log";
 import { BadgeManager } from "./managers/badge-manager";
 import { ChannelManager } from "./managers/channel-manager";
 import { EmoteManager } from "./managers/emote-manager";
-import type { Channel } from "./models/channel.svelte";
-import type { CurrentUser } from "./models/current-user.svelte";
-import type { DispatchPayload, Paint } from "./seventv";
 import { SplitController } from "./splits/controller.svelte";
-import type { Theme } from "./themes";
 import { TwitchClient } from "./twitch/client";
-import type { NotificationPayload } from "./twitch/eventsub";
-import type { IrcMessage } from "./twitch/irc";
-import type { PubSubTopic } from "./twitch/pubsub";
 
 class App {
 	public readonly twitch = new TwitchClient();

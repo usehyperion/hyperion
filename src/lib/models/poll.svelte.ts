@@ -1,4 +1,5 @@
 import type { Poll as ApiPoll, PollStatus } from "$lib/twitch/pubsub";
+
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";
 

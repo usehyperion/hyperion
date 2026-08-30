@@ -1,4 +1,5 @@
 import { log } from "$lib/log";
+
 import { defineHandler } from "../helper";
 
 export default defineHandler({

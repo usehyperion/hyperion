@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { createDraggable } from "@dnd-kit/svelte";
+
 	import type { Channel } from "$lib/models/channel.svelte";
+
 	import ChannelListItem from "./channel/ChannelListItem.svelte";
 
 	interface Props {

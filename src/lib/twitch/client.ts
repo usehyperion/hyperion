@@ -3,12 +3,14 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import { FetchError, ofetch } from "ofetch";
+
 import { ApiError } from "$lib/errors/api-error";
 import { sendTwitch } from "$lib/graphql";
 import { log } from "$lib/log";
 import { UserManager } from "$lib/managers/user-manager";
 import { Stream } from "$lib/models/stream.svelte";
 import { dedupe } from "$lib/util";
+
 import type { Stream as HelixStream } from "./api";
 
 type QueryValue = string | number | boolean | null | undefined;

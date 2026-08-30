@@ -1,6 +1,8 @@
 import Keyword from "$lib/components/settings/custom/highlights/Keyword.svelte";
 import Viewer from "$lib/components/settings/custom/highlights/Viewer.svelte";
+
 import Highlighter from "~icons/ph/highlighter";
+
 import type { SettingsCategory } from "../types";
 
 export default {

@@ -1,10 +1,12 @@
 <script lang="ts">
 	import type { Emote } from "$lib/emotes";
 	import { settings } from "$lib/settings";
+
 	import SevenTV from "~icons/logos/7tv";
 	import BetterTTV from "~icons/logos/bttv";
 	import FrankerFaceZ from "~icons/logos/ffz";
 	import Twitch from "~icons/logos/twitch";
+
 	import Tooltip from "./ui/Tooltip.svelte";
 
 	interface Props {

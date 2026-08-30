@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cn } from "tailwind-variants";
+
 	import Select from "$lib/components/ui/Select.svelte";
 	import type { HighlightConfig } from "$lib/settings";
 

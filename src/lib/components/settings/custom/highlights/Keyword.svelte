@@ -1,14 +1,16 @@
 <script lang="ts">
 	import Button from "$lib/components/ui/Button.svelte";
 	import * as Empty from "$lib/components/ui/empty";
-	import { settings } from "$lib/settings";
 	import type { KeywordHighlightConfig } from "$lib/settings";
+	import { settings } from "$lib/settings";
+
 	import CaseSensitive from "~icons/local/case-sensitive";
 	import Regex from "~icons/local/regex";
 	import WholeWord from "~icons/local/whole-word";
 	import Highlighter from "~icons/ph/highlighter";
 	import Plus from "~icons/ph/plus";
 	import Trash from "~icons/ph/trash";
+
 	import Edit from "./Edit.svelte";
 	import Row from "./Row.svelte";
 

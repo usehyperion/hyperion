@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createHotkey, createHotkeys } from "@tanstack/svelte-hotkeys";
 	import { onMount } from "svelte";
+
 	import { app } from "$lib/app.svelte";
 	import JoinDialog from "$lib/components/JoinDialog.svelte";
 	import SplitNode from "$lib/components/split/SplitNode.svelte";
@@ -9,6 +10,7 @@
 	import { settings } from "$lib/settings";
 	import { createPane, firstLeaf } from "$lib/splits/tree";
 	import type { SplitDirection } from "$lib/splits/types";
+
 	import ChatDots from "~icons/ph/chat-dots";
 	import Spinner from "~icons/ph/spinner";
 

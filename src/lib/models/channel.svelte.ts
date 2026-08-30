@@ -1,5 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import * as cache from "tauri-plugin-cache-api";
+
+import type { Cheermote } from "$lib/graphql/twitch";
 import {
 	channelBadgesQuery,
 	cheermoteQuery,
@@ -9,21 +11,22 @@ import {
 	toPubSubPoll,
 	toPubSubPrediction,
 } from "$lib/graphql/twitch";
-import type { Cheermote } from "$lib/graphql/twitch";
 import { ChannelEmoteManager } from "$lib/managers/channel-emote-manager";
 import { fetch7tvId } from "$lib/seventv";
 import { storage } from "$lib/stores";
+
+import type { StreamMarker } from "../twitch/api";
+import type { TwitchClient } from "../twitch/client";
+import type { User } from "./user.svelte";
+
 import { app } from "../app.svelte";
 import { ViewerManager } from "../managers/viewer-manager";
 import { settings } from "../settings";
-import type { StreamMarker } from "../twitch/api";
-import type { TwitchClient } from "../twitch/client";
 import { Badge } from "./badge";
 import { Chat } from "./chat.svelte";
 import { Poll } from "./poll.svelte";
 import { Prediction } from "./prediction.svelte";
 import { Stream } from "./stream.svelte";
-import type { User } from "./user.svelte";
 import { Viewer } from "./viewer.svelte";
 
 export interface PollOptions {

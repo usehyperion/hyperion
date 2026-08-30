@@ -1,5 +1,7 @@
 import { timeoutPresets } from "$lib/moderation";
+
 import Shield from "~icons/ph/shield";
+
 import type { SettingsCategory } from "../types";
 
 export default {

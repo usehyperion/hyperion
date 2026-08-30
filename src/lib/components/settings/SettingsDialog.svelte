@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { platform as getPlatform } from "@tauri-apps/plugin-os";
 	import { Tabs } from "bits-ui";
+
 	import Button from "$lib/components/ui/Button.svelte";
 	import Dialog from "$lib/components/ui/Dialog.svelte";
 	import * as InputGroup from "$lib/components/ui/input-group";
@@ -9,8 +10,10 @@
 	import { settings } from "$lib/settings";
 	import { countFields, filterCategory } from "$lib/settings/search";
 	import type { SettingsCategory } from "$lib/settings/types";
+
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
 	import X from "~icons/ph/x";
+
 	import Category from "./Category.svelte";
 	import SidebarActions from "./SidebarActions.svelte";
 

@@ -1,6 +1,7 @@
 import { app } from "$lib/app.svelte";
 import { CommandError } from "$lib/errors/command-error";
 import { ErrorMessage } from "$lib/errors/messages";
+
 import { defineCommand, parseBool } from "../util";
 
 export default defineCommand({

@@ -5,6 +5,7 @@
 	import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 	import { ModeWatcher } from "mode-watcher";
 	import { onDestroy, onMount } from "svelte";
+
 	import { app } from "$lib/app.svelte";
 	import TitleBar from "$lib/components/TitleBar.svelte";
 	import { log } from "$lib/log";

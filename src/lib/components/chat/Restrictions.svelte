@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Chat } from "$lib/models/chat.svelte";
 	import { formatDuration } from "$lib/util";
+
 	import Popover from "../ui/Popover.svelte";
 
 	interface Props {

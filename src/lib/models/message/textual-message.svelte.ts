@@ -1,6 +1,8 @@
 import type { BaseUserMessage } from "$lib/twitch/irc";
+
 import type { Channel } from "../channel.svelte";
 import type { EventMessageData } from "./event-message";
+
 import { Message } from "./message";
 
 export type MessageData = BaseUserMessage | EventMessageData;

@@ -1,4 +1,5 @@
 import { CommandError } from "$lib/errors/command-error";
+
 import { defineCommand } from "../util";
 
 export default defineCommand({

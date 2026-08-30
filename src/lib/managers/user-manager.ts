@@ -1,4 +1,5 @@
 import { SvelteMap } from "svelte/reactivity";
+
 import { ApiError } from "$lib/errors/api-error";
 import { ErrorMessage } from "$lib/errors/messages";
 import { userAvatarsQuery, userQuery } from "$lib/graphql/twitch";

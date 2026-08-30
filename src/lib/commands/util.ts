@@ -4,6 +4,7 @@ import { CommandError } from "$lib/errors/command-error";
 import { ErrorMessage } from "$lib/errors/messages";
 import type { Channel } from "$lib/models/channel.svelte";
 import { Viewer } from "$lib/models/viewer.svelte";
+
 import type { Command } from ".";
 
 export function defineCommand<const T extends Command>(command: T) {

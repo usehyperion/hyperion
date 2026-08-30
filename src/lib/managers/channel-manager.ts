@@ -1,4 +1,5 @@
 import { SvelteMap } from "svelte/reactivity";
+
 import { Channel } from "$lib/models/channel.svelte";
 import type { TwitchClient } from "$lib/twitch/client";
 

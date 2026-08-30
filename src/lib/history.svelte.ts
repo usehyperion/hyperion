@@ -1,4 +1,5 @@
 import { goto } from "$app/navigation";
+
 import { app } from "./app.svelte";
 
 type HistoryEntry = { kind: "route"; path: string } | { kind: "channel"; id: string };

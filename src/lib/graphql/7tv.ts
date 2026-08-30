@@ -1,5 +1,6 @@
 import { initGraphQLTada } from "gql.tada";
 import type { FragmentOf, ResultOf } from "gql.tada";
+
 import type { NonNullableDeep } from ".";
 
 const gql = initGraphQLTada<{

@@ -3,6 +3,7 @@
 	import type { Viewer } from "$lib/models/viewer.svelte";
 	import type { ChannelPointReward } from "$lib/twitch/pubsub";
 	import { colorizeName } from "$lib/util";
+
 	import Message from "./Message.svelte";
 
 	interface Props {

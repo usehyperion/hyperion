@@ -1,4 +1,5 @@
 import { SvelteMap } from "svelte/reactivity";
+
 import type { Emote, EmoteProvider } from "$lib/emotes";
 import { settings } from "$lib/settings";
 

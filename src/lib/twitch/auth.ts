@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { fetch } from "@tauri-apps/plugin-http";
 import { tick } from "svelte";
+
 import { goto } from "$app/navigation";
 import { app } from "$lib/app.svelte";
 import { log } from "$lib/log";

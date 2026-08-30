@@ -1,6 +1,7 @@
 import { app } from "$lib/app.svelte";
 import AutoMod from "$lib/components/message/events/AutoMod.svelte";
 import type { UserMessage } from "$lib/models/message/user-message.svelte";
+
 import { defineHandler } from "../helper";
 
 export default defineHandler({

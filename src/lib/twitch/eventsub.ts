@@ -1,4 +1,5 @@
 import type { Nullable, Prefix } from "$lib/util";
+
 import type { StructuredMessage } from "./api";
 import type { BasicUser } from "./irc";
 

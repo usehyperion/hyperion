@@ -1,6 +1,7 @@
 import { app } from "$lib/app.svelte";
 import { UserMessage } from "$lib/models/message/user-message.svelte";
 import type { Boundary } from "$lib/twitch/eventsub";
+
 import { defineHandler } from "../helper";
 
 export default defineHandler({

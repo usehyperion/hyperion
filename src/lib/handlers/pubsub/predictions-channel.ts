@@ -1,5 +1,6 @@
 import { app } from "$lib/app.svelte";
 import { Prediction } from "$lib/models/prediction.svelte";
+
 import { defineHandler } from "../helper";
 
 export default defineHandler({

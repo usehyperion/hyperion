@@ -6,6 +6,7 @@
 
 <script lang="ts">
 	import dayjs from "dayjs";
+
 	import { settings } from "$lib/settings";
 
 	interface Props {

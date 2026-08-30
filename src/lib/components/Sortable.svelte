@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { createSortable } from "@dnd-kit/svelte/sortable";
+
 	import type { Channel } from "$lib/models/channel.svelte";
+
 	import ChannelListItem from "./channel/ChannelListItem.svelte";
 
 	interface Props {

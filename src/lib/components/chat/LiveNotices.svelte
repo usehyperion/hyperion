@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { Chat } from "$lib/models/chat.svelte";
+
 	import CaretLeft from "~icons/ph/caret-left";
 	import CaretRight from "~icons/ph/caret-right";
+
 	import Button from "../ui/Button.svelte";
 	import Pin from "./Pin.svelte";
 	import Poll from "./Poll.svelte";

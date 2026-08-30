@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { openPath } from "@tauri-apps/plugin-opener";
+
 	import { app } from "$lib/app.svelte";
 	import Button from "$lib/components/ui/Button.svelte";
 	import * as Field from "$lib/components/ui/field";

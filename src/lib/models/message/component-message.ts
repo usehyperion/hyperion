@@ -1,4 +1,5 @@
 import type { Component, ComponentProps } from "svelte";
+
 import { Message } from "./message";
 
 export class ComponentMessage<C extends Component<any>> extends Message {

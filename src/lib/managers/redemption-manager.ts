@@ -1,4 +1,5 @@
 import type { ChannelPointReward } from "$lib/twitch/pubsub";
+
 import type { UserMessage } from "../models/message/user-message.svelte";
 
 const TTL = 15 * 1000;

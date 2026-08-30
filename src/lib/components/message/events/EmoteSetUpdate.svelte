@@ -2,6 +2,7 @@
 	import type { Emote as EmoteType } from "$lib/emotes";
 	import type { Viewer } from "$lib/models/viewer.svelte";
 	import { colorizeName } from "$lib/util";
+
 	import Emote from "../../Emote.svelte";
 
 	interface Props {
