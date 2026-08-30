@@ -16,8 +16,8 @@ body:
     id: debug-info
     attributes:
       label: Debug Info
-      description: Go to the settings page and click `Copy debug info` to copy relevant platform information and paste it here.
-      render: block
+      description: Go to the settings page, open the `ⓘ About` dialog, and click `Copy info` and paste the output here.
+      render: text
     validations:
       required: true
   - type: textarea
