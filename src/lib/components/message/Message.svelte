@@ -4,7 +4,7 @@
 	import { settings } from "$lib/settings";
 
 	import Timestamp from "../Timestamp.svelte";
-	import User from "../User.svelte";
+	import User from "../user/User.svelte";
 	import Badges from "./Badges.svelte";
 	import Content from "./Content.svelte";
 	import Embed from "./Embed.svelte";

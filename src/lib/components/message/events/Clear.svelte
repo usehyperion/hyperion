@@ -1,6 +1,6 @@
 <script lang="ts">
+	import Username from "$lib/components/user/Username.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
-	import { colorizeName } from "$lib/util";
 
 	interface Props {
 		moderator?: Viewer;
@@ -10,7 +10,7 @@
 </script>
 
 {#if moderator}
-	{@html colorizeName(moderator)} cleared the chat
+	<Username user={moderator.user} /> cleared the chat
 {:else}
 	The chat has been cleared
 {/if}

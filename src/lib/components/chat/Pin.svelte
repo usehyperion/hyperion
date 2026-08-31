@@ -1,12 +1,13 @@
 <script lang="ts">
 	import type { Pin } from "$lib/models/pin.svelte";
-	import { clamp, colorizeName, formatDuration } from "$lib/util";
+	import { clamp, formatDuration } from "$lib/util";
 
 	import Clock from "~icons/ph/clock";
 	import PushPin from "~icons/ph/push-pin";
 	import PushPinSlash from "~icons/ph/push-pin-slash";
 
 	import Message from "../message/Message.svelte";
+	import Username from "../user/Username.svelte";
 	import NoticeAction, { details, hide } from "./NoticeAction.svelte";
 	import PinDurationDialog from "./PinDurationDialog.svelte";
 
@@ -35,7 +36,7 @@
 	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
 		<PushPin class="size-3" />
 
-		<span>Pinned by {@html colorizeName(pin.pinner)}</span>
+		<span>Pinned by <Username user={pin.pinner} /></span>
 
 		<div class="ml-auto flex items-center gap-0.5">
 			{#if pin.message.channel.isMod}

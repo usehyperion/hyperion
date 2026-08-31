@@ -1,6 +1,7 @@
 <script lang="ts">
+	import Username from "$lib/components/user/Username.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
-	import { colorizeName, formatDuration } from "$lib/util";
+	import { formatDuration } from "$lib/util";
 
 	interface Props {
 		mode: string;
@@ -12,7 +13,7 @@
 	const { mode, enabled, seconds, moderator }: Props = $props();
 </script>
 
-{@html colorizeName(moderator)}
+<Username user={moderator.user} />
 {enabled ? "enabled" : "disabled"}
 {Number.isNaN(seconds) ? "" : formatDuration(seconds)}
 {mode === "slow" ? "slow mode." : `${mode} chat.`}

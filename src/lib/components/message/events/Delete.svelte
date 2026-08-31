@@ -1,7 +1,7 @@
 <script lang="ts">
+	import Username from "$lib/components/user/Username.svelte";
 	import type { User } from "$lib/models/user.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
-	import { colorizeName } from "$lib/util";
 
 	interface Props {
 		text: string;
@@ -10,12 +10,10 @@
 	}
 
 	const { text, user, moderator }: Props = $props();
-
-	const target = $derived(colorizeName(user));
 </script>
 
 {#if moderator}
-	{@html colorizeName(moderator)} deleted {@html target}'s message: {text}
+	<Username user={moderator.user} /> deleted <Username {user} />'s message: {text}
 {:else}
-	{@html target}'s message was deleted: {text}
+	<Username {user} />'s message was deleted: {text}
 {/if}

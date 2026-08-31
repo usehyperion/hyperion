@@ -1,6 +1,6 @@
 <script lang="ts">
+	import Username from "$lib/components/user/Username.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
-	import { colorizeName } from "$lib/util";
 
 	interface Props {
 		name?: string;
@@ -10,7 +10,7 @@
 	const { name, actor }: Props = $props();
 </script>
 
-{@html colorizeName(actor)}
+<Username user={actor.user} />
 
 {#if name}
 	changed the active emote set to

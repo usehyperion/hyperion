@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { UserMessage } from "$lib/models/message/user-message.svelte";
-	import { colorizeName } from "$lib/util";
 
 	import Confetti from "~icons/ph/confetti";
 	import Fire from "~icons/ph/fire";
 	import HandHeart from "~icons/ph/hand-heart";
 	import Megaphone from "~icons/ph/megaphone";
 
+	import Username from "../user/Username.svelte";
 	import Message from "./Message.svelte";
 	import Sub from "./Sub.svelte";
 
@@ -64,7 +64,7 @@
 					<Confetti class="mt-0.5 shrink-0" />
 
 					<p>
-						{@html colorizeName(message.author)}
+						<Username user={message.author} />
 						unlocked the {message.event.threshold} bits badge!
 					</p>
 				</div>
@@ -81,7 +81,7 @@
 					<HandHeart class="mt-0.5 shrink-0" />
 
 					<div class="flex flex-col gap-0.5">
-						{@html colorizeName(message.author)}
+						<Username user={message.author} />
 
 						<p>
 							Donated <span class="font-medium"
@@ -96,19 +96,19 @@
 				{@const recipient = message.channel.viewers.get(message.event.recipient.id)}
 
 				<p>
-					{@html colorizeName(message.author)}
+					<Username user={message.author} />
 					is paying forward the gifted sub they received from
 
 					{#if message.event.is_prior_gifter_anonymous}
 						an anonymous gifter
 					{:else if gifter}
-						{@html colorizeName(gifter)}
+						<Username user={message.author} />
 					{:else}
 						<span class="font-semibold">{message.event.prior_gifter.name}</span>
 					{/if} to
 
 					{#if recipient}
-						{@html colorizeName(recipient)}
+						<Username user={message.author} />
 					{:else}
 						<span class="font-semibold">{message.event.recipient.name}</span>
 					{/if}!
@@ -117,28 +117,28 @@
 				{@const gifter = message.channel.viewers.get(message.event.gifter.id)}
 
 				<p>
-					{@html colorizeName(message.author)}
+					<Username user={message.author} />
 					is paying forward the gifted sub they received from
 
 					{#if gifter}
-						{@html colorizeName(gifter)}
+						<Username user={gifter.user} />
 					{:else}
 						<span class="font-semibold">{message.event.gifter.name}</span>
 					{/if}!
 				</p>
 			{:else if type === "raid"}
 				<p class="inline">
-					{@html colorizeName(message.author)}
+					<Username user={message.author} />
 					is raiding with {message.event.viewer_count}
 					{message.event.viewer_count > 1 ? "viewers" : "viewer"}!
 				</p>
 			{:else if type === "unraid"}
 				<p class="inline">
-					{@html colorizeName(message.author)} canceled the raid.
+					<Username user={message.author} /> canceled the raid.
 				</p>
 			{:else if type === "one_tap_gift_redeemed"}
 				<p>
-					{@html colorizeName(message.author)} redeemed
+					<Username user={message.author} /> redeemed
 					<img
 						class="mx-1 inline"
 						title={message.event.gift_id}
@@ -157,7 +157,7 @@
 					<Fire class="mt-0.5 shrink-0" />
 
 					<p>
-						{@html colorizeName(message.author)}
+						<Username user={message.author} />
 						reached a <span class="font-medium">{message.event.streak}-stream</span> watch
 						streak!
 					</p>

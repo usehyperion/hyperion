@@ -1,7 +1,7 @@
 <script lang="ts">
+	import Username from "$lib/components/user/Username.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
 	import type { AutoModTermsMetadata } from "$lib/twitch/eventsub";
-	import { colorizeName } from "$lib/util";
 
 	interface Props {
 		data: AutoModTermsMetadata;
@@ -13,7 +13,7 @@
 	const via = $derived(data.from_automod ? " (via AutoMod)" : "");
 </script>
 
-{@html colorizeName(moderator)}
+<Username user={moderator.user} />
 {data.action === "add" ? "added" : "removed"}
 
 {#if data.terms.length === 1}

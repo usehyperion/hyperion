@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Prediction } from "$lib/models/prediction.svelte";
-	import { colorizeName, formatDuration } from "$lib/util";
+	import { formatDuration } from "$lib/util";
 
 	import Crown from "~icons/ph/crown-simple-fill";
 	import LockSimple from "~icons/ph/lock-simple";
@@ -9,6 +9,7 @@
 
 	import Progress from "../ui/Progress.svelte";
 	import Tooltip from "../ui/Tooltip.svelte";
+	import Username from "../user/Username.svelte";
 	import NoticeAction, { details, hide } from "./NoticeAction.svelte";
 
 	interface Props {
@@ -79,7 +80,7 @@
 		<SealQuestion class="size-3 shrink-0" />
 
 		<span class="truncate">
-			Prediction {#if prediction.creator}by {@html colorizeName(prediction.creator)}{/if}
+			Prediction {#if prediction.creator}by <Username user={prediction.creator} />{/if}
 		</span>
 
 		<span class="ml-auto shrink-0 whitespace-nowrap">{status}</span>

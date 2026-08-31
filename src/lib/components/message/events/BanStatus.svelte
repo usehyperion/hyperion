@@ -1,6 +1,6 @@
 <script lang="ts">
+	import Username from "$lib/components/user/Username.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
-	import { colorizeName } from "$lib/util";
 
 	interface Props {
 		banned: boolean;
@@ -11,12 +11,11 @@
 
 	const { banned, reason, viewer, moderator }: Props = $props();
 
-	const target = $derived(colorizeName(viewer));
 	const action = $derived(banned ? "banned" : "unbanned");
 </script>
 
 {#if moderator}
-	{@html colorizeName(moderator)} {action} {@html target}
+	<Username user={moderator.user} /> {action} <Username user={viewer.user} />
 {:else}
-	{@html target} has been {action}
+	<Username user={viewer.user} /> has been {action}
 {/if}{reason ? `: ${reason}` : "."}

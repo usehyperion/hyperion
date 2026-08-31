@@ -1,9 +1,8 @@
 <script lang="ts">
+	import Emote from "$lib/components/Emote.svelte";
+	import Username from "$lib/components/user/Username.svelte";
 	import type { Emote as EmoteType } from "$lib/emotes";
 	import type { Viewer } from "$lib/models/viewer.svelte";
-	import { colorizeName } from "$lib/util";
-
-	import Emote from "../../Emote.svelte";
 
 	interface Props {
 		action: "added" | "removed" | "renamed";
@@ -15,7 +14,7 @@
 	const { action, oldName, emote, actor }: Props = $props();
 </script>
 
-{@html colorizeName(actor)}
+<Username user={actor.user} />
 
 {#if action === "renamed"}
 	renamed <span class="font-medium text-foreground">{oldName}</span> to
