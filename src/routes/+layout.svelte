@@ -3,9 +3,11 @@
 	import { setHotkeysContext } from "@tanstack/svelte-hotkeys";
 	import { invoke } from "@tauri-apps/api/core";
 	import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
+	import { Tooltip } from "bits-ui";
 	import { ModeWatcher } from "mode-watcher";
 	import { onDestroy, onMount } from "svelte";
 
+	import { page } from "$app/state";
 	import { app } from "$lib/app.svelte";
 	import TitleBar from "$lib/components/TitleBar.svelte";
 	import { log } from "$lib/log";
@@ -15,9 +17,18 @@
 
 	const { children } = $props();
 
+	// Popouts are standalone windows and supply their own chrome, so the app
+	// title bar (search, history, whispers, settings) is skipped for them.
+	const popout = $derived(page.route.id?.startsWith("/(popout)") ?? false);
+
 	let unlisten: () => void;
 
 	onMount(async () => {
+		// The split layout and deep links are owned by the main window. Running
+		// either from a popout would clobber shared layout state or handle the
+		// same deep link once per open window.
+		if (popout) return;
+
 		app.splits.cleanup();
 
 		unlisten = await onOpenUrl(async (urls) => {
@@ -64,7 +75,11 @@
 <ModeWatcher />
 
 <div class="flex h-screen flex-col overflow-hidden">
-	<TitleBar />
+	{#if !popout}
+		<TitleBar />
+	{/if}
 
-	{@render children()}
+	<Tooltip.Provider delayDuration={300}>
+		{@render children()}
+	</Tooltip.Provider>
 </div>

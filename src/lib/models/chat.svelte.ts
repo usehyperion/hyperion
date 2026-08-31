@@ -6,6 +6,7 @@ import { log } from "$lib/log";
 import { settings } from "$lib/settings";
 import { sendPresence } from "$lib/seventv";
 import type { SentMessage } from "$lib/twitch/api";
+import { publishUserCardMessage } from "$lib/user-cards";
 
 import type { Channel } from "./channel.svelte";
 import type { Message } from "./message/message";
@@ -125,6 +126,8 @@ export class Chat {
 		} else {
 			this.messages.push(message);
 		}
+
+		publishUserCardMessage(message);
 
 		return this;
 	}

@@ -5,8 +5,7 @@
 	import { ask } from "@tauri-apps/plugin-dialog";
 	import { relaunch } from "@tauri-apps/plugin-process";
 	import { check } from "@tauri-apps/plugin-updater";
-	import { Tooltip } from "bits-ui";
-	import { onMount } from "svelte";
+	import { onDestroy, onMount } from "svelte";
 
 	import { app } from "$lib/app.svelte";
 	import Sidebar from "$lib/components/Sidebar.svelte";
@@ -14,10 +13,17 @@
 	import { openDialog } from "$lib/components/ui/Dialog.svelte";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "$lib/splits/events";
 	import { storage } from "$lib/stores";
+	import { serveUserCards } from "$lib/user-cards";
 
 	const { children } = $props();
 
+	let stopServingUserCards: (() => void) | undefined;
+
 	onMount(async () => {
+		// The main window owns the chat connections, so it is the only source
+		// popouts can pull message history from.
+		stopServingUserCards = await serveUserCards();
+
 		await app.connect();
 
 		const update = await check();
@@ -42,6 +48,8 @@
 		}
 	});
 
+	onDestroy(() => stopServingUserCards?.());
+
 	createHotkey("Mod+,", () => openDialog("settings-dialog"));
 </script>
 
@@ -57,17 +65,15 @@
 	{onDragMove}
 	{onDragEnd}
 >
-	<Tooltip.Provider delayDuration={300}>
-		<div class="flex grow overflow-hidden">
-			{#if storage.state.user}
-				<Sidebar />
-			{/if}
+	<div class="flex grow overflow-hidden">
+		{#if storage.state.user}
+			<Sidebar />
+		{/if}
 
-			<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
-				{@render children()}
-			</main>
-		</div>
-	</Tooltip.Provider>
+		<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
+			{@render children()}
+		</main>
+	</div>
 
 	<DragOverlay>
 		{#snippet children(source)}
