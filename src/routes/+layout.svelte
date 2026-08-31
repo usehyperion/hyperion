@@ -2,8 +2,11 @@
 	import "../styles/app.css";
 	import { setHotkeysContext } from "@tanstack/svelte-hotkeys";
 	import { invoke } from "@tauri-apps/api/core";
+	import { Tooltip } from "bits-ui";
 	import { ModeWatcher } from "mode-watcher";
 	import { onMount } from "svelte";
+
+	import { page } from "$app/state";
 
 	import { app } from "#lib/app.svelte.js";
 	import TitleBar from "#lib/components/TitleBar.svelte";
@@ -13,8 +16,14 @@
 
 	const { children } = $props();
 
+	// Popouts are standalone windows and supply their own chrome, so the app
+	// title bar (search, history, whispers, settings) is skipped for them.
+	const popout = $derived(page.route.id?.startsWith("/(popout)") ?? false);
+
 	onMount(() => {
-		app.splits.cleanup();
+		// The split layout is owned by the main window. Cleaning it up from a
+		// popout would clobber shared layout state.
+		if (!popout) app.splits.cleanup();
 
 		// The root load has resolved by the time this mounts, so the splash can
 		// be removed
@@ -66,7 +75,11 @@
 <ModeWatcher />
 
 <div class="flex h-screen flex-col overflow-hidden">
-	<TitleBar />
+	{#if !popout}
+		<TitleBar />
+	{/if}
 
-	{@render children()}
+	<Tooltip.Provider delayDuration={300}>
+		{@render children()}
+	</Tooltip.Provider>
 </div>
