@@ -1,6 +1,6 @@
 <script lang="ts">
+	import Username from "$lib/components/user/Username.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
-	import { colorizeName } from "$lib/util";
 
 	interface Props {
 		role: string;
@@ -12,6 +12,6 @@
 	const { role, added, viewer, moderator }: Props = $props();
 </script>
 
-{@html colorizeName(moderator)}
+<Username user={moderator.user} />
 {added ? "added" : "removed"}
-{@html colorizeName(viewer)} as a {role}.
+<Username user={viewer.user} /> as a {role}.

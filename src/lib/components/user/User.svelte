@@ -14,8 +14,8 @@
 	import Star from "~icons/ph/star-fill";
 	import UserIcon from "~icons/ph/user-bold";
 
-	import Message from "./message/Message.svelte";
-	import Popover from "./ui/Popover.svelte";
+	import Message from "../message/Message.svelte";
+	import Popover from "../ui/Popover.svelte";
 
 	dayjs.extend(localizedFormat);
 

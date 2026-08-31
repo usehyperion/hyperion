@@ -1,11 +1,8 @@
 import type { Menu } from "@tauri-apps/api/menu";
 import chroma from "chroma-js";
 
-import type { User } from "./models/user.svelte";
 import type { Fragment } from "./twitch/api";
 import type { Emote } from "./twitch/irc";
-
-import { Viewer } from "./models/viewer.svelte";
 
 export type {
 	WithElementRef,
@@ -19,9 +16,6 @@ export type Nullable<T> = { [K in keyof T]: T[K] | null };
 export type Prefix<T, P extends string> = {
 	[K in keyof T as `${P}_${K & string}`]: T[K];
 };
-
-// Only for syntax highlighting
-export const html = String.raw;
 
 export function clamp(min: number, value: number, max: number) {
 	return Math.min(Math.max(min, value), max);
@@ -55,12 +49,6 @@ export function formatDuration(seconds: number) {
 	}
 
 	return parts.join(" ");
-}
-
-export function colorizeName(data: Viewer | User) {
-	const color = data instanceof Viewer ? data.user.color : data.color;
-
-	return html`<span class="font-semibold" style="color: ${color};">${data.displayName}</span>`;
 }
 
 export function extractEmotes(fragments: Fragment[]): Emote[] {

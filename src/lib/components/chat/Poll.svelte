@@ -1,11 +1,12 @@
 <script lang="ts">
 	import type { Poll } from "$lib/models/poll.svelte";
-	import { colorizeName, formatDuration } from "$lib/util";
+	import { formatDuration } from "$lib/util";
 
 	import ChartBar from "~icons/ph/chart-bar";
 	import Stop from "~icons/ph/stop-fill";
 
 	import Progress from "../ui/Progress.svelte";
+	import Username from "../user/Username.svelte";
 	import NoticeAction, { details, hide } from "./NoticeAction.svelte";
 
 	interface Props {
@@ -42,7 +43,7 @@
 		<ChartBar class="size-3 shrink-0" />
 
 		<span class="truncate">
-			Poll by {@html colorizeName(poll.creator)}
+			Poll by <Username user={poll.creator} />
 		</span>
 
 		<span class="ml-auto shrink-0 whitespace-nowrap">{status}</span>

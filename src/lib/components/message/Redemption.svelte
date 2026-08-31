@@ -2,8 +2,8 @@
 	import type { UserMessage } from "$lib/models/message/user-message.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
 	import type { ChannelPointReward } from "$lib/twitch/pubsub";
-	import { colorizeName } from "$lib/util";
 
+	import Username from "../user/Username.svelte";
 	import Message from "./Message.svelte";
 
 	interface Props {
@@ -19,7 +19,7 @@
 	<div class="my-0.5 border-l-4 bg-muted/50 p-2" style:border-color={reward.background_color}>
 		{#if viewer}
 			<p>
-				{@html colorizeName(viewer.user)}
+				<Username user={viewer.user} />
 				used <span class="font-medium">{reward.cost}</span> channel points to redeem
 				<span class="font-medium">{reward.title}</span>
 			</p>

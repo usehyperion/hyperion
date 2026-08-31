@@ -2,7 +2,7 @@
 	import { UserMessage } from "$lib/models/message/user-message.svelte";
 
 	import Emote from "../Emote.svelte";
-	import User from "../User.svelte";
+	import User from "../user/User.svelte";
 
 	interface Props {
 		message: UserMessage;

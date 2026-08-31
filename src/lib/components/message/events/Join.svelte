@@ -1,6 +1,6 @@
 <script lang="ts">
+	import Username from "$lib/components/user/Username.svelte";
 	import type { Channel } from "$lib/models/channel.svelte";
-	import { colorizeName } from "$lib/util";
 
 	interface Props {
 		channel: Channel;
@@ -9,4 +9,4 @@
 	const { channel }: Props = $props();
 </script>
 
-Joined {@html colorizeName(channel.user)}
+Joined <Username user={channel.user} />

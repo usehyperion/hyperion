@@ -1,6 +1,6 @@
 <script lang="ts">
+	import Username from "$lib/components/user/Username.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
-	import { colorizeName } from "$lib/util";
 
 	interface Props {
 		active: boolean;
@@ -15,7 +15,7 @@
 	const restricted = $derived(viewer.restricted);
 </script>
 
-{@html colorizeName(moderator)}
+<Username user={moderator.user} />
 {active ? "started" : "stopped"}
 {monitored ? "monitoring" : restricted ? "restricting" : previous}
-{@html colorizeName(viewer)}'s messages.
+<Username user={viewer.user} />'s messages.

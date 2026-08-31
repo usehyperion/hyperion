@@ -1,10 +1,10 @@
 <script lang="ts">
+	import Username from "$lib/components/user/Username.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
 	import type {
 		ChannelUnbanRequestCreate,
 		ChannelUnbanRequestResolve,
 	} from "$lib/twitch/eventsub";
-	import { colorizeName } from "$lib/util";
 
 	interface Props {
 		request: ChannelUnbanRequestCreate | ChannelUnbanRequestResolve;
@@ -13,20 +13,18 @@
 	}
 
 	const { request, viewer, moderator }: Props = $props();
-
-	const target = $derived(colorizeName(viewer));
 </script>
 
 {#if "status" in request}
 	{#if !moderator}
-		{@html target}'s unban request was {request.status}.
+		<Username user={viewer.user} />'s unban request was {request.status}.
 	{:else}
-		{@html colorizeName(moderator)}
+		<Username user={moderator.user} />
 		{request.status}
-		{@html target}'s unban request{request.resolution_text
+		<Username user={viewer.user} />'s unban request{request.resolution_text
 			? `: ${request.resolution_text}`
 			: "."}
 	{/if}
 {:else}
-	{@html target} submitted an unban request: {request.text}
+	<Username user={viewer.user} /> submitted an unban request: {request.text}
 {/if}

@@ -1,7 +1,7 @@
 <script lang="ts">
+	import Username from "$lib/components/user/Username.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
 	import type { WarnMetadata } from "$lib/twitch/eventsub";
-	import { colorizeName } from "$lib/util";
 
 	interface Props {
 		warning: WarnMetadata;
@@ -16,4 +16,4 @@
 	);
 </script>
 
-{@html colorizeName(moderator)} warned {@html colorizeName(viewer)}: {reasons}
+<Username user={moderator.user} /> warned <Username user={viewer.user} />: {reasons}

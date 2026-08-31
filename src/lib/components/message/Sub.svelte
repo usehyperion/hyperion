@@ -7,12 +7,12 @@
 		SubMysteryGiftEvent,
 		SubOrResubEvent,
 	} from "$lib/twitch/irc";
-	import { colorizeName } from "$lib/util";
 
 	import PrimeCrown from "~icons/local/prime-crown";
 	import Gift from "~icons/ph/gift";
 	import Star from "~icons/ph/star-fill";
 
+	import Username from "../user/Username.svelte";
 	import Message from "./Message.svelte";
 
 	interface Props {
@@ -47,7 +47,7 @@
 				sub.multimonth_duration > 1}
 
 			<div class="flex flex-col gap-0.5">
-				{@html colorizeName(message.author)}
+				<Username user={message.author} />
 
 				<p>
 					Subscribed with
@@ -67,7 +67,7 @@
 					{/if}
 
 					{#if message.shared}
-						to {@html colorizeName(message.source.user)}.
+						to <Username user={message.source.user} />.
 					{/if}
 
 					{#if sub.cumulative_months > 1}
@@ -85,7 +85,7 @@
 			{@const singular = sub.mass_gift_count === 1}
 
 			<div class="flex flex-col gap-0.5">
-				{@html colorizeName(message.author)}
+				<Username user={message.author} />
 
 				<p>
 					Gifted
@@ -94,7 +94,7 @@
 					sub{singular ? null : "s"}{#if !message.shared}!{/if}
 
 					{#if message.shared}
-						to {@html colorizeName(message.source.user)}'s community!
+						to <Username user={message.source.user} />'s community!
 					{/if}
 
 					{#if sub.sender_total_gifts && sub.sender_total_gifts > sub.mass_gift_count}
@@ -105,7 +105,7 @@
 			</div>
 		{:else if sub.type === "prime_paid_upgrade"}
 			<div class="flex flex-col gap-0.5">
-				{@html colorizeName(message.author)}
+				<Username user={message.author} />
 
 				<p>
 					Converted their <a href="https://gaming.amazon.com/home" target="_blank">
@@ -121,11 +121,11 @@
 				.find((v) => v.username === sub.gifter_login)}
 
 			<div class="flex flex-col gap-0.5">
-				{@html colorizeName(message.author)}
+				<Username user={message.author} />
 
 				<p>
 					Continued the gifted sub they got from {#if gifter}
-						{@html colorizeName(gifter)}
+						<Username user={gifter.user} />
 					{:else}
 						<span class="font-semibold">{sub.gifter_name}</span>
 					{/if}
@@ -142,7 +142,7 @@
 				{#if sub.is_sender_anonymous}
 					<span class="font-semibold">An anonymous viewer</span>
 				{:else}
-					{@html colorizeName(message.author)}
+					<Username user={message.author} />
 				{/if}
 
 				gifted {#if sub.num_gifted_months > 1}
@@ -152,13 +152,13 @@
 				{/if}
 
 				to {#if recipient}
-					{@html colorizeName(recipient)}
+					<Username user={recipient.user} />
 				{:else}
 					<span class="font-semibold">{sub.recipient.name}</span>
 				{/if}{#if !message.shared}!{/if}
 
 				{#if message.shared}
-					in {@html colorizeName(message.source.user)}'s channel!
+					in <Username user={message.source.user} />'s channel!
 				{/if}
 
 				{#if sub.sender_total_months > sub.num_gifted_months}

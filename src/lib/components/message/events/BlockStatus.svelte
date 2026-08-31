@@ -1,6 +1,6 @@
 <script lang="ts">
+	import Username from "$lib/components/user/Username.svelte";
 	import type { User } from "$lib/models/user.svelte";
-	import { colorizeName } from "$lib/util";
 
 	interface Props {
 		blocked: boolean;
@@ -11,4 +11,4 @@
 </script>
 
 {blocked ? "Blocked" : "Unblocked"}
-{@html colorizeName(user)}
+<Username {user} />
