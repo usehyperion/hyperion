@@ -102,13 +102,13 @@
 					{#if message.event.is_prior_gifter_anonymous}
 						an anonymous gifter
 					{:else if gifter}
-						<Username user={message.author} />
+						<Username user={gifter.user} />
 					{:else}
 						<span class="font-semibold">{message.event.prior_gifter.name}</span>
 					{/if} to
 
 					{#if recipient}
-						<Username user={message.author} />
+						<Username user={recipient.user} />
 					{:else}
 						<span class="font-semibold">{message.event.recipient.name}</span>
 					{/if}!

@@ -17,9 +17,6 @@ export type Prefix<T, P extends string> = {
 	[K in keyof T as `${P}_${K & string}`]: T[K];
 };
 
-// Only for syntax highlighting
-export const html = String.raw;
-
 export function clamp(min: number, value: number, max: number) {
 	return Math.min(Math.max(min, value), max);
 }
