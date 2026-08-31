@@ -18,6 +18,7 @@ pub struct ClearChatMessage {
     pub action: ClearChatAction,
     pub is_recent: bool,
     pub server_timestamp: u64,
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
@@ -102,6 +103,7 @@ pub struct ClearMsgMessage {
     pub is_action: bool,
     pub is_recent: bool,
     pub server_timestamp: u64,
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
@@ -143,6 +145,7 @@ pub struct GlobalUserStateMessage {
     pub badges: Vec<Badge>,
     pub emote_sets: HashSet<String>,
     pub name_color: String,
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
@@ -176,6 +179,7 @@ impl From<GlobalUserStateMessage> for IrcMessage {
 pub struct JoinMessage {
     pub channel_login: String,
     pub user_login: String,
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
@@ -209,6 +213,7 @@ pub struct NoticeMessage {
     pub deleted: bool,
     pub is_recent: bool,
     pub recent_timestamp: Option<u64>,
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
@@ -244,6 +249,7 @@ impl From<NoticeMessage> for IrcMessage {
 pub struct PartMessage {
     pub channel_login: String,
     pub user_login: String,
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
@@ -271,6 +277,7 @@ impl From<PartMessage> for IrcMessage {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PingMessage {
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
@@ -294,6 +301,7 @@ impl From<PingMessage> for IrcMessage {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PongMessage {
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
@@ -340,6 +348,7 @@ pub struct PrivmsgMessage {
     pub source_only: Option<bool>,
     pub source: Option<Source>,
     pub server_timestamp: u64,
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
@@ -400,6 +409,7 @@ impl From<PrivmsgMessage> for IrcMessage {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ReconnectMessage {
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
@@ -431,6 +441,7 @@ pub struct RoomStateMessage {
     pub slow_mode: Option<u64>,
     pub subscribers_only: Option<bool>,
     pub is_recent: bool,
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
@@ -481,6 +492,7 @@ pub struct UserNoticeMessage {
     pub source_only: Option<bool>,
     pub source: Option<Source>,
     pub server_timestamp: u64,
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
@@ -836,6 +848,7 @@ pub struct UserStateMessage {
     pub badges: Vec<Badge>,
     pub emote_sets: HashSet<String>,
     pub name_color: String,
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
@@ -874,6 +887,7 @@ pub struct WhisperMessage {
     pub name_color: String,
     pub badges: Vec<Badge>,
     pub emotes: Vec<Emote>,
+    #[serde(skip_serializing)]
     pub raw: IrcMessage,
 }
 
