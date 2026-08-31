@@ -2,6 +2,7 @@ import { ofetch } from "ofetch";
 import { SvelteMap } from "svelte/reactivity";
 
 import { app } from "$lib/app.svelte";
+import { makeReadable } from "$lib/contrast.svelte";
 import type { Emote } from "$lib/emotes";
 import { ApiError } from "$lib/errors/api-error";
 import type { User as ApiUser } from "$lib/graphql/twitch";
@@ -11,7 +12,7 @@ import type { Paint } from "$lib/seventv";
 import { COLORS } from "$lib/twitch";
 import type { SubscriptionAge } from "$lib/twitch/api";
 import type { TwitchClient } from "$lib/twitch/client";
-import { dedupe, makeReadable } from "$lib/util";
+import { dedupe } from "$lib/util";
 
 import { Badge } from "./badge";
 
