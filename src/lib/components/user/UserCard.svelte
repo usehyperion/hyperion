@@ -3,6 +3,7 @@
 	import dayjs from "dayjs";
 	import localizedFormat from "dayjs/plugin/localizedFormat";
 
+	import ArrowSquareOut from "~icons/ph/arrow-square-out";
 	import Cake from "~icons/ph/cake-fill";
 	import Heart from "~icons/ph/heart-fill";
 	import StarOutline from "~icons/ph/star";
@@ -10,36 +11,67 @@
 	import UserIcon from "~icons/ph/user-bold";
 
 	import type { Channel } from "#lib/models/channel.svelte.js";
-	import type { User } from "#lib/models/user.svelte.js";
+	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
+	import type { Relationship, User } from "#lib/models/user.svelte.js";
 
+	import { app } from "#lib/app.svelte.js";
 	import { log } from "#lib/log.js";
 	import { MessageHistory } from "#lib/models/message-history.svelte.js";
+	import { timeoutDuration, timeoutLabel } from "#lib/moderation.js";
 	import { deletedAppearance } from "#lib/settings/index.js";
 
 	import Message from "../message/Message.svelte";
 	import ReverseScroll from "../ReverseScroll.svelte";
+	import Button from "../ui/Button.svelte";
 	import Popover from "../ui/Popover.svelte";
 
 	dayjs.extend(localizedFormat);
 
 	interface Props {
-		id: string;
+		/**
+		 * The id of the popover the card is rendered in. Omitted when the card
+		 * is rendered inside a popout.
+		 */
+		id?: string;
 		user: User;
 		channel: Channel;
+
+		/**
+		 * Overrides the user's relationship in the channel, e.g. when it was
+		 * fetched ahead of time by a popout.
+		 */
+		relationship?: Relationship;
+
+		/**
+		 * Overrides the user's message history, e.g. when it is streamed from
+		 * the main window to a popout.
+		 */
+		messages?: UserMessage[];
 		onclose?: () => void;
+
+		/**
+		 * Opens this card in its own window. Omitted when the card is already
+		 * rendered inside a popout.
+		 */
+		onpopout?: () => void;
 	}
 
-	const { id, user, channel, onclose }: Props = $props();
+	const { id, user, channel, onclose, onpopout, ...props }: Props = $props();
 
 	let loading = $state(false);
 	let loadingHistory = $state(false);
+	let pending = $state(false);
 	let showAllBadges = $state(false);
 
-	const relationship = $derived(user.relationships.get(channel.id));
+	const relationship = $derived(props.relationship ?? user.relationships.get(channel.id));
 	const viewer = $derived(channel.viewers.get(user.id));
 
-	const history = $derived(viewer && new MessageHistory(viewer));
-	const messages = $derived(history?.messages ?? []);
+	const history = $derived(!props.messages && viewer ? new MessageHistory(viewer) : null);
+	const messages = $derived(props.messages ?? history?.messages ?? []);
+
+	// Mirrors `UserMessage.actionable`: mods may act on themselves or on any
+	// viewer who is not themselves a moderator.
+	const canModerate = $derived(channel.isMod && (app.user?.id === user.id || !viewer?.moderator));
 
 	async function fetchInfo() {
 		try {
@@ -69,28 +101,62 @@
 			loadingHistory = false;
 		}
 	}
+
+	async function moderate(label: string, action: () => Promise<void>) {
+		if (pending) return;
+
+		try {
+			pending = true;
+			await action();
+		} catch (error) {
+			void log.error(`Failed to ${label} ${user.username}: ${String(error)}`).catch(() => {});
+		} finally {
+			pending = false;
+		}
+	}
 </script>
 
-<Popover
-	{id}
-	class="w-sm overflow-hidden p-0"
-	onbeforetoggle={(event) => {
-		if (event.newState !== "open") return;
+{#if id}
+	<Popover
+		{id}
+		class="w-sm overflow-hidden p-0"
+		onbeforetoggle={(event) => {
+			if (event.newState !== "open") return;
 
-		void fetchInfo();
-		void loadHistory();
-	}}
-	ontoggle={async (event) => {
-		if (event.newState !== "closed") return;
+			void fetchInfo();
+			void loadHistory();
+		}}
+		ontoggle={async (event) => {
+			if (event.newState !== "closed") return;
 
-		const popover = event.currentTarget;
+			const popover = event.currentTarget;
 
-		await Promise.allSettled(popover.getAnimations().map((animation) => animation.finished));
+			await Promise.allSettled(
+				popover.getAnimations().map((animation) => animation.finished),
+			);
 
-		if (!popover.matches(":popover-open")) onclose?.();
-	}}
->
-	<div class="h-18 bg-twitch" style:background-color={user.color}>
+			if (!popover.matches(":popover-open")) onclose?.();
+		}}
+	>
+		{@render card()}
+	</Popover>
+{:else}
+	{@render card()}
+{/if}
+
+{#snippet card()}
+	<div class="relative h-18 bg-twitch" style:background-color={user.color}>
+		{#if onpopout}
+			<button
+				class="absolute top-2 left-2 z-10 rounded bg-black/40 p-1 text-white/80 transition-colors hover:bg-black/60 hover:text-white"
+				type="button"
+				onclick={onpopout}
+				aria-label="Open {user.displayName} in a new window"
+			>
+				<ArrowSquareOut class="size-4" />
+			</button>
+		{/if}
+
 		{#if user.bannerUrl}
 			<img
 				class="size-full object-cover"
@@ -200,18 +266,52 @@
 			{#if user.bio}
 				<p class="text-xs text-muted-foreground">{user.bio}</p>
 			{/if}
+
+			{#if canModerate}
+				<div class="flex flex-wrap items-center gap-1.5 pt-1">
+					<Button
+						size="sm"
+						variant="secondary"
+						disabled={pending}
+						onclick={() =>
+							moderate("time out", () =>
+								channel.viewers.timeout(user.id, { duration: timeoutDuration() }),
+							)}
+					>
+						Timeout {timeoutLabel()}
+					</Button>
+
+					<Button
+						size="sm"
+						variant="destructive"
+						disabled={pending}
+						onclick={() => moderate("ban", () => channel.viewers.ban(user.id))}
+					>
+						Ban
+					</Button>
+
+					<Button
+						size="sm"
+						variant="outline"
+						disabled={pending}
+						onclick={() => moderate("unban", () => channel.viewers.unban(user.id))}
+					>
+						Unban
+					</Button>
+				</div>
+			{/if}
 		</div>
 	</div>
 
-	{#if history && messages.length}
+	{#if messages.length}
 		<div class="h-24 border-t">
 			<ReverseScroll
 				class="px-4"
 				data={messages}
 				showJumpButton={false}
 				getKey={(message) => message.id}
-				lazy={history.hasOlder}
-				onloadmore={() => history.loadOlder()}
+				lazy={history?.hasOlder ?? false}
+				onloadmore={async () => history?.loadOlder()}
 			>
 				{#snippet children(message)}
 					<div class="origin-left scale-80" data-deleted={deletedAppearance(message)}>
@@ -223,4 +323,4 @@
 	{:else if loadingHistory}
 		<p class="border-t px-4 py-2 text-xs text-muted-foreground">Loading message history...</p>
 	{/if}
-</Popover>
+{/snippet}
