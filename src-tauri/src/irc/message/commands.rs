@@ -8,7 +8,7 @@ use thiserror::Error;
 
 use super::prefix::IrcPrefix;
 use super::{
-    AsRawIrc, Badge, BasicUser, Emote, IrcMessage, Reply, ReplyParent, ReplyThread, Source,
+    AsRawIrc, Badge, BasicUser, Emote, Gif, IrcMessage, Reply, ReplyParent, ReplyThread, Source,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -342,6 +342,7 @@ pub struct PrivmsgMessage {
     pub bits: Option<u64>,
     pub name_color: String,
     pub emotes: Vec<Emote>,
+    pub gif: Option<Gif>,
     pub message_id: String,
     pub deleted: bool,
     pub is_recent: bool,
@@ -377,6 +378,7 @@ impl TryFrom<IrcMessage> for PrivmsgMessage {
             bits: raw.try_get_optional_number("bits")?,
             name_color: raw.try_get_color("color")?.to_owned(),
             emotes: raw.try_get_emotes("emotes", message_text)?,
+            gif: raw.try_get_optional_gif("gifs")?,
             server_timestamp: raw.try_get_timestamp("tmi-sent-ts")?,
             message_id: raw.try_get_nonempty_tag_value("id")?.to_owned(),
             message_text: message_text.to_owned(),
@@ -987,6 +989,10 @@ trait IrcMessageParseExt {
         tag_key: &'static str,
         message_text: &str,
     ) -> Result<Vec<Emote>, ServerMessageParseError>;
+    fn try_get_optional_gif(
+        &self,
+        tag_key: &'static str,
+    ) -> Result<Option<Gif>, ServerMessageParseError>;
     fn try_get_emote_sets(
         &self,
         tag_key: &'static str,
@@ -1139,6 +1145,32 @@ impl IrcMessageParseExt for IrcMessage {
         emotes.sort_unstable_by_key(|e| e.range.start);
 
         Ok(emotes)
+    }
+
+    fn try_get_optional_gif(
+        &self,
+        tag_key: &'static str,
+    ) -> Result<Option<Gif>, ServerMessageParseError> {
+        let Some(tag_value) = self.try_get_optional_nonempty_tag_value(tag_key)? else {
+            return Ok(None);
+        };
+
+        let make_error = || MalformedTagValue(self.to_owned(), tag_key, tag_value.to_owned());
+
+        let mut parts = tag_value.splitn(3, '|');
+
+        let _offset = parts.next().ok_or_else(make_error)?;
+        let id = parts.next().ok_or_else(make_error)?;
+        let url = parts.next().ok_or_else(make_error)?;
+
+        if id.is_empty() || url.is_empty() {
+            return Err(make_error());
+        }
+
+        Ok(Some(Gif {
+            id: id.to_owned(),
+            url: url.to_owned(),
+        }))
     }
 
     fn try_get_emote_sets(

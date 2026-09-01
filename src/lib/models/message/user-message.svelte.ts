@@ -4,6 +4,7 @@ import type { StructuredMessage } from "$lib/twitch/api";
 import type { AutoModMetadata } from "$lib/twitch/eventsub";
 import type {
 	BasicUser,
+	Gif,
 	PrivmsgMessage,
 	Reply,
 	Source,
@@ -94,6 +95,12 @@ export class UserMessage extends TextualMessage {
 	public readonly bits: number;
 
 	/**
+	 * The GIF sent with the message, if any. The message text is the alt text
+	 * for the GIF.
+	 */
+	public readonly gif: Gif | null;
+
+	/**
 	 * The event associated with the message if it's a `USERNOTICE` message.
 	 */
 	public readonly event: UserNoticeEvent | null;
@@ -142,6 +149,7 @@ export class UserMessage extends TextualMessage {
 		this.shared = data.source != null;
 
 		this.bits = "bits" in data ? (data.bits ?? 0) : 0;
+		this.gif = "gif" in data ? data.gif : null;
 		this.event = "event" in data ? data.event : null;
 		this.reply = "reply" in data ? data.reply : null;
 		this.source = this.channel;
@@ -176,6 +184,7 @@ export class UserMessage extends TextualMessage {
 			is_mod: false,
 			is_subscriber: false,
 			custom_reward_id: null,
+			gif: null,
 			is_recent: false,
 			is_returning_chatter: false,
 			reply: null,
