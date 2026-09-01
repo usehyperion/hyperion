@@ -17,6 +17,12 @@ pub struct Emote {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Gif {
+    pub id: String,
+    pub url: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Badge {
     pub name: String,
     pub version: String,

@@ -30,6 +30,13 @@ export default {
 					label: "Enable embeds",
 					description: "Show embedded content for supported links.",
 				},
+				{
+					id: "chat.gifs",
+					type: "switch",
+					label: "Enable GIFs",
+					description:
+						"Show GIFs sent in chat. When disabled, only their alt text is shown.",
+				},
 			],
 		},
 		{

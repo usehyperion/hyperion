@@ -8,6 +8,7 @@
 	import Badges from "./Badges.svelte";
 	import Content from "./Content.svelte";
 	import Embed from "./Embed.svelte";
+	import Gif from "./Gif.svelte";
 
 	interface Props {
 		message: UserMessage;
@@ -17,6 +18,10 @@
 	const { message, nested = false }: Props = $props();
 
 	const linkNodes = $derived(message.nodes.filter((n) => n.type === "link"));
+
+	// The message text of a GIF message is its alt text, which is shown instead
+	// of the GIF itself when rendering them is disabled.
+	const gif = $derived(settings.state["chat.gifs"] && !nested ? message.gif : null);
 
 	function canEmbed(node: LinkNode) {
 		return (
@@ -31,7 +36,12 @@
 <Timestamp date={message.timestamp} />
 <Badges badges={message.badges} />
 <User {message} {nested} />
-<Content {message} {nested} />
+
+{#if gif}
+	<Gif {gif} alt={message.text} />
+{:else}
+	<Content {message} {nested} />
+{/if}
 
 {#if settings.state["chat.embeds"] && !nested && linkNodes.some(canEmbed)}
 	<div class="mt-2 flex flex-wrap gap-2">

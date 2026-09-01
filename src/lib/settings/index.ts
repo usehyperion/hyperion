@@ -33,6 +33,7 @@ export type Settings = {
 	"chat.hideScrollbar": boolean;
 	"chat.newSeparator": boolean;
 	"chat.embeds": boolean;
+	"chat.gifs": boolean;
 	"chat.badges.ffz": boolean;
 	"chat.badges.bttv": boolean;
 	"chat.badges.seventv": boolean;
@@ -81,6 +82,7 @@ export const defaults: Settings = {
 	"chat.hideScrollbar": false,
 	"chat.newSeparator": false,
 	"chat.embeds": true,
+	"chat.gifs": true,
 	"chat.badges.ffz": true,
 	"chat.badges.bttv": true,
 	"chat.badges.seventv": true,
