@@ -9,6 +9,7 @@ import type {
 	BasicUser,
 	Badge as IrcBadge,
 	Emote,
+	Gif,
 	PrivmsgMessage,
 	Reply,
 	Source,
@@ -55,6 +56,7 @@ interface UserMessageInit extends TextualMessageInit {
 	badges: IrcBadge[];
 	emotes: Emote[];
 	bits: number;
+	gif: Gif | null;
 	action: boolean;
 	highlighted: boolean;
 	shared: boolean;
@@ -136,6 +138,12 @@ export class UserMessage extends TextualMessage {
 	public readonly emotes: Emote[];
 
 	/**
+	 * The GIF sent with the message, if any. The message text is the alt text
+	 * for the GIF.
+	 */
+	public readonly gif: Gif | null;
+
+	/**
 	 * The event associated with the message if it's a `USERNOTICE` message.
 	 */
 	public readonly event: UserNoticeEvent | null;
@@ -179,6 +187,7 @@ export class UserMessage extends TextualMessage {
 
 		this.bits = init.bits;
 		this.emotes = init.emotes;
+		this.gif = init.gif;
 		this.event = init.event;
 		this.reply = init.reply;
 		this.source = this.channel;
@@ -202,6 +211,7 @@ export class UserMessage extends TextualMessage {
 			badges: tags.badges,
 			emotes: data.emotes,
 			bits: (notice ? null : data.bits) ?? 0,
+			gif: notice ? null : data.gif,
 			action: !notice && data.is_action,
 			highlighted: !notice && data.is_highlighted,
 			shared: data.source != null,
@@ -228,6 +238,7 @@ export class UserMessage extends TextualMessage {
 			action,
 			highlighted: false,
 			shared: false,
+			gif: null,
 			event: null,
 			reply: null,
 			deleted: false,

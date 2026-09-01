@@ -116,6 +116,11 @@ export interface Emote {
 	code: string;
 }
 
+export interface Gif {
+	id: string;
+	url: string;
+}
+
 export interface BaseMessage {
 	message_id: string;
 	sender: BasicUser;
@@ -171,6 +176,7 @@ export interface PrivmsgMessage extends BaseUserMessage {
 	is_subscriber: boolean;
 	bits: number | null;
 	custom_reward_id: string | null;
+	gif: Gif | null;
 }
 
 export interface RoomStateMessage {
