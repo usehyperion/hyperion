@@ -19,9 +19,8 @@ use twitch_api::HelixClient;
 use twitch_api::twitch_oauth2::UserToken;
 use ws::ChannelSink;
 
-use crate::api::refresh_access_token;
-
 mod api;
+mod auth;
 mod commands;
 mod error;
 mod eventsub;
@@ -118,8 +117,11 @@ pub fn run() {
 
             app_handle.plugin(svelte)?;
 
+            // Validate any stored token before the frontend's first layout load
+            // asks for it; an invalid one resolves to `None` and the frontend
+            // redirects to the login screen.
             async_runtime::block_on(async {
-                state.token = refresh_access_token(&state.helix).await.ok();
+                state.token = auth::restore_token(&state.helix).await;
             });
 
             app.manage(Mutex::new(state));
@@ -136,9 +138,10 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         api::join,
         api::leave,
         api::rejoin,
-        api::store_tokens,
-        api::get_token,
-        api::refresh_token,
+        auth::clear_token,
+        auth::get_token,
+        auth::open_twitch_login,
+        auth::store_token,
         commands::fetch_recent_messages,
         commands::get_cache_size,
         commands::get_about_info,

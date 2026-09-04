@@ -2,30 +2,20 @@
 	import "../styles/app.css";
 	import { setHotkeysContext } from "@tanstack/svelte-hotkeys";
 	import { invoke } from "@tauri-apps/api/core";
-	import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 	import { ModeWatcher } from "mode-watcher";
-	import { onDestroy, onMount } from "svelte";
+	import { onMount } from "svelte";
 
 	import { app } from "$lib/app.svelte";
 	import TitleBar from "$lib/components/TitleBar.svelte";
 	import { log } from "$lib/log";
 	import { settings } from "$lib/settings";
 	import { injectTheme } from "$lib/themes";
-	import { handleDeepLink } from "$lib/twitch/auth";
 
 	const { children } = $props();
 
-	let unlisten: () => void;
-
-	onMount(async () => {
+	onMount(() => {
 		app.splits.cleanup();
-
-		unlisten = await onOpenUrl(async (urls) => {
-			await handleDeepLink(new URL(urls[0]));
-		});
 	});
-
-	onDestroy(() => unlisten?.());
 
 	setHotkeysContext({
 		hotkey: {
