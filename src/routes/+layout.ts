@@ -2,13 +2,12 @@ import { redirect } from "@sveltejs/kit";
 import { invoke } from "@tauri-apps/api/core";
 
 import { app } from "$lib/app.svelte";
+import { moderatesQuery } from "$lib/graphql/twitch.js";
 import { log } from "$lib/log";
 import { Channel } from "$lib/models/channel.svelte";
 import { CurrentUser } from "$lib/models/current-user.svelte";
 import { User } from "$lib/models/user.svelte";
 import { storage } from "$lib/stores";
-import type { BasicUser } from "$lib/twitch/irc";
-import type { Prefix } from "$lib/util";
 
 export const ssr = false;
 
@@ -39,13 +38,14 @@ export async function load({ url }) {
 	if (!app.user.moderating.size) {
 		app.user.moderating.add(app.user.id);
 
-		const { data } = await app.twitch.get<Prefix<BasicUser, "broadcaster">[]>(
-			"/moderation/channels",
-			{ user_id: app.user.id, first: 100 },
+		const moderates = await app.twitch.paginate(
+			moderatesQuery,
+			{},
+			(data) => data.moderatedChannels,
 		);
 
-		for (const channel of data) {
-			app.user.moderating.add(channel.broadcaster_id);
+		for (const { id } of moderates) {
+			app.user.moderating.add(id);
 		}
 	}
 
@@ -53,7 +53,7 @@ export async function load({ url }) {
 		const self = new Channel(app.twitch, app.user);
 		app.channels.set(self.id, self);
 
-		void app.user.loadFollowing().catch(() => {});
+		await app.user.loadFollowing();
 	}
 
 	if (!app.emotes.size) {

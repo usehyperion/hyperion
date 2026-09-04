@@ -1,6 +1,7 @@
 import { SvelteMap } from "svelte/reactivity";
 
 import { app } from "$lib/app.svelte";
+import { banUserMutation, unbanUserMutation } from "$lib/graphql/twitch";
 import type { Channel } from "$lib/models/channel.svelte";
 import type { TimeoutOptions } from "$lib/models/viewer.svelte";
 import { Viewer } from "$lib/models/viewer.svelte";
@@ -90,30 +91,22 @@ export class ViewerManager extends SvelteMap<string, Viewer> {
 		});
 	}
 
-	public async ban(id: string, reason?: string) {
+	public async ban(login: string, reason?: string) {
 		if (!app.user) return;
 
-		await this.channel.client.post("/moderation/bans", {
-			params: {
-				broadcaster_id: this.channel.user.id,
-				moderator_id: app.user.id,
-			},
-			body: {
-				data: {
-					user_id: id,
-					reason,
-				},
-			},
+		await this.channel.client.gql(banUserMutation, {
+			channel: this.channel.user.id,
+			target: login,
+			reason,
 		});
 	}
 
-	public async unban(id: string) {
+	public async unban(login: string) {
 		if (!app.user) return;
 
-		await this.channel.client.delete("/moderation/bans", {
-			broadcaster_id: this.channel.user.id,
-			moderator_id: app.user.id,
-			user_id: id,
+		await this.channel.client.gql(unbanUserMutation, {
+			channel: this.channel.user.id,
+			target: login,
 		});
 	}
 }

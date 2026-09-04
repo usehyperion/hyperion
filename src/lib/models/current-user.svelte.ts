@@ -5,10 +5,9 @@ import type { EmoteSet } from "$lib/emotes";
 import { transform7tvEmote } from "$lib/emotes";
 import { send7tv } from "$lib/graphql";
 import { userEmoteSetsQuery } from "$lib/graphql/7tv";
-import { followedChannelsQuery } from "$lib/graphql/twitch";
-import { log } from "$lib/log";
-import type { FollowedChannel, UserEmote } from "$lib/twitch/api";
-import { chunk, mapPool } from "$lib/util";
+import { followsQuery } from "$lib/graphql/twitch";
+import type { UserEmote } from "$lib/twitch/api";
+import { mapPool } from "$lib/util";
 
 import type { Whisper } from "./whisper.svelte";
 
@@ -16,7 +15,6 @@ import { Channel } from "./channel.svelte";
 import { Stream } from "./stream.svelte";
 import { User } from "./user.svelte";
 
-const FOLLOWING_BATCH_SIZE = 100;
 const FETCH_CONCURRENCY = 4;
 
 export class CurrentUser extends User {
@@ -72,50 +70,37 @@ export class CurrentUser extends User {
 	}
 
 	/**
-	 * Loads the channels the current user follows.
+	 * Loads the channels the current user follows, paging through the full
+	 * follow list.
 	 */
 	public async loadFollowing() {
-		const followed = await this.client.getAll<FollowedChannel>("/channels/followed", {
-			user_id: this.id,
-			first: 100,
-		});
-
-		const batches = chunk(
-			followed.map((channel) => channel.broadcaster_id),
-			FOLLOWING_BATCH_SIZE,
+		const follows = await this.client.paginate(
+			followsQuery,
+			{ id: this.id },
+			(data) => data.user?.follows,
 		);
 
-		await mapPool(batches, FETCH_CONCURRENCY, (ids) => this.#loadChannels(ids));
-	}
+		for (const followed of follows) {
+			if (app.channels.has(followed.id)) continue;
 
-	async #loadChannels(ids: string[]) {
-		try {
-			const { users } = await this.client.gql(followedChannelsQuery, { ids });
+			let stream: Stream | null = null;
 
-			for (const user of users ?? []) {
-				if (!user || app.channels.has(user.id)) continue;
+			if (followed.stream) {
+				stream = new Stream(this.client, followed.id, followed.stream);
 
-				let stream: Stream | null = null;
-
-				if (user.stream) {
-					stream = new Stream(this.client, user.id, user.stream);
-
-					for (const { user: guest } of user.channel?.guestStarSessionCall?.guests ??
-						[]) {
-						stream.addGuest({
-							...guest,
-							viewers: guest.stream?.viewersCount ?? null,
-						});
-					}
+				for (const { user: guest } of followed.channel?.guestStarSessionCall?.guests ??
+					[]) {
+					stream.addGuest({
+						...guest,
+						viewers: guest.stream?.viewersCount ?? null,
+					});
 				}
-
-				const model = new User(this.client, user);
-				this.client.users.set(model.id, model);
-
-				app.channels.set(model.id, new Channel(this.client, model, stream));
 			}
-		} catch (error) {
-			void log.error(`Failed to load followed channels: ${String(error)}`).catch(() => {});
+
+			const model = new User(this.client, followed);
+			this.client.users.set(model.id, model);
+
+			app.channels.set(model.id, new Channel(this.client, model, stream));
 		}
 	}
 

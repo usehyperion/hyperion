@@ -11,6 +11,7 @@ const gql = initGraphQLTada<{
 	introspection: import("./twitch-env").introspection;
 	scalars: {
 		Time: string;
+		Cursor: string;
 	};
 }>();
 
@@ -174,6 +175,31 @@ export const clipQuery = gql(`
 	}
 `);
 
+export const followsQuery = gql(
+	`query GetFollows($id: ID!, $after: Cursor) {
+		user(id: $id) {
+			follows(first: 100, after: $after) {
+				edges {
+					node {
+						...UserDetails
+						channel {
+							...GuestStarDetails
+						}
+						stream {
+							...StreamDetails
+						}
+					}
+					cursor
+				}
+				pageInfo {
+					hasNextPage
+				}
+			}
+		}
+	}`,
+	[userDetailsFragment, guestStarDetailsFragment, streamDetailsFragment],
+);
+
 export const foundersQuery = gql(`
 	query GetFounders($id: ID!) {
 		user(id: $id) {
@@ -205,6 +231,18 @@ export const guestsQuery = gql(
 	}`,
 	[guestStarDetailsFragment],
 );
+
+export const moderatesQuery = gql(`
+	query GetModerates($after: Cursor) {
+		moderatedChannels(first: 100, after: $after) {
+			edges {
+				node {
+					id
+				}
+			}
+		}
+	}
+`);
 
 export const modsQuery = gql(`
 	query GetMods($id: ID!) {
@@ -304,8 +342,7 @@ export const pollQuery = gql(`
 `);
 
 export const predictionQuery = gql(
-	`
-	query GetPrediction($id: ID!) {
+	`query GetPrediction($id: ID!) {
 		channel(id: $id) {
 			active: activePredictionEvents {
 				...PredictionDetails
@@ -314,8 +351,7 @@ export const predictionQuery = gql(
 				...PredictionDetails
 			}
 		}
-	}
-`,
+	}`,
 	[predictionDetailsFragment],
 );
 
@@ -348,6 +384,18 @@ export const searchSuggestionsQuery = gql(`
 export const streamQuery = gql(
 	`query GetStream($id: ID!) {
 		user(id: $id) {
+			stream {
+				...StreamDetails
+			}
+		}
+	}`,
+	[streamDetailsFragment],
+);
+
+export const streamsQuery = gql(
+	`query GetStreams($ids: [ID!]!) {
+		users(ids: $ids) {
+			id
 			stream {
 				...StreamDetails
 			}
@@ -413,6 +461,38 @@ export const vipsQuery = gql(`
 		}
 	}
 `);
+
+// Mutations
+
+export const banUserMutation = gql(`
+	mutation BanUser($channel: ID!, $target: String!, $reason: String) {
+		banUserFromChatRoom(input: {
+			channelID: $channel,
+			bannedUserLogin: $target,
+			expiresIn: null,
+			reason: $reason
+		}) {
+			__typename
+		}
+	}
+`);
+
+export const unbanUserMutation = gql(`
+	mutation UnbanUser($channel: ID!, $target: String!) {
+		unbanUserFromChatRoom(input: {
+			channelID: $channel,
+			bannedUserLogin: $target
+		}) {
+			__typename
+		}
+	}
+`);
+
+// export const pinMessageMutation = gql(`
+// 	mutation PinMessage {
+// 		pinChatMessage
+// 	}
+// `)
 
 // Types
 

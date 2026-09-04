@@ -1,17 +1,23 @@
 // oxlint-disable typescript/no-unsafe-type-assertion
 // oxlint-disable no-await-in-loop
 
-import { invoke } from "@tauri-apps/api/core";
+import type { TadaDocumentNode } from "gql.tada";
+import { print } from "graphql-web-lite";
 import { FetchError, ofetch } from "ofetch";
 
 import { ApiError } from "$lib/errors/api-error";
-import { sendTwitch } from "$lib/graphql";
+import {
+	type Connection,
+	type GqlResponse,
+	nodes,
+	TWITCH_CLIENT_ID,
+	TWITCH_GQL_URL,
+} from "$lib/graphql";
+import { streamsQuery } from "$lib/graphql/twitch";
 import { log } from "$lib/log";
 import { UserManager } from "$lib/managers/user-manager";
 import { Stream } from "$lib/models/stream.svelte";
 import { dedupe } from "$lib/util";
-
-import type { Stream as HelixStream } from "./api";
 
 type QueryValue = string | number | boolean | null | undefined;
 type QueryParams = Record<string, QueryValue | QueryValue[]>;
@@ -24,6 +30,10 @@ interface FetchOptions {
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
+interface PageVariables {
+	after?: string | null;
+}
+
 export interface HelixResponse<T> {
 	data: T;
 	pagination?: {
@@ -32,7 +42,7 @@ export interface HelixResponse<T> {
 	total?: number;
 }
 
-const BASE_URL = "https://api.twitch.tv/helix";
+const HELIX_URL = "https://api.twitch.tv/helix";
 
 const MAX_RETRIES = 2;
 const MAX_RATE_LIMIT_WAIT = 10_000;
@@ -61,8 +71,6 @@ function cleanQuery(params: QueryParams): QueryParams {
 export class TwitchClient {
 	public static readonly DEFAULT_TIMEOUT = 15_000;
 
-	#refreshing: Promise<string | null> | null = null;
-
 	// This should only be null between the time of app start up and settings
 	// synchronization because of browser restrictions; however, any subsequent
 	// API calls SHOULD have a valid token as it's set at first layout load.
@@ -70,7 +78,72 @@ export class TwitchClient {
 
 	public readonly users = new UserManager(this);
 
-	public gql = sendTwitch;
+	public async gql<T, U>(query: TadaDocumentNode<T, U>, variables?: U): Promise<T> {
+		if (!this.token) {
+			throw new ApiError(401, "OAuth token is not set");
+		}
+
+		// @ts-expect-error - outdated types
+		const queryStr = print(query);
+		const varStr = JSON.stringify(variables ?? {});
+
+		return dedupe(`twitch:${queryStr}:${varStr}`, async () => {
+			let response: GqlResponse<T>;
+
+			try {
+				response = await ofetch<GqlResponse<T>>(TWITCH_GQL_URL, {
+					method: "POST",
+					headers: {
+						Authorization: `OAuth ${this.token}`,
+						"Client-Id": TWITCH_CLIENT_ID,
+					},
+					body: {
+						query: queryStr,
+						variables,
+					},
+					signal: AbortSignal.timeout(TwitchClient.DEFAULT_TIMEOUT),
+				});
+			} catch (error) {
+				const apiError = ApiError.from(error);
+				// if (apiError.status === 401) this.#handleRevoked();
+				throw apiError;
+			}
+
+			if (response.errors) {
+				throw new AggregateError(
+					response.errors.map((err) => new ApiError(400, err.message)),
+					"GraphQL request failed",
+				);
+			}
+
+			return response.data;
+		});
+	}
+
+	public async paginate<T, U extends PageVariables, N>(
+		query: TadaDocumentNode<T, U>,
+		variables: Omit<U, "after">,
+		select: (data: T) => Connection<N> | null | undefined,
+	): Promise<N[]> {
+		const results: N[] = [];
+		let after: string | null = null;
+
+		do {
+			const data = await this.gql(query, { ...variables, after } as U);
+			const connection = select(data);
+
+			results.push(...nodes(connection));
+
+			const edges = connection?.edges;
+
+			after =
+				connection?.pageInfo?.hasNextPage && edges?.length
+					? (edges.at(-1)?.cursor ?? null)
+					: null;
+		} while (after);
+
+		return results;
+	}
 
 	/**
 	 * Retrieves the streams of the specified channels if they're live.
@@ -78,28 +151,27 @@ export class TwitchClient {
 	public async fetchStreams(ids: string[]) {
 		if (!ids.length) return [];
 
-		const { data } = await this.get<HelixStream[]>("/streams", { user_id: ids });
-		const streams = data.map(
-			(stream) =>
-				new Stream(this, stream.user_id, {
-					title: stream.title,
-					game: {
-						displayName: stream.game_name,
-					},
-					viewersCount: stream.viewer_count,
-					createdAt: stream.started_at,
-				}),
-		);
+		const { users } = await this.gql(streamsQuery, { ids });
+		const streams: Stream[] = [];
+
+		for (const user of users ?? []) {
+			const stream = user?.stream;
+			if (!stream) continue;
+
+			streams.push(new Stream(this, user.id, stream));
+		}
 
 		await Promise.all(streams.map((s) => s.fetchGuests()));
 
 		return streams;
 	}
 
+	/** @deprecated REST call — migrate to GraphQL. */
 	public get<T>(path: `/${string}`, params?: QueryParams) {
 		return this.#request<T>("GET", path, { params });
 	}
 
+	/** @deprecated REST call — migrate to GraphQL (see {@link paginate}). */
 	public async getAll<T>(path: `/${string}`, params?: QueryParams): Promise<T[]> {
 		const results: T[] = [];
 		let after: string | undefined;
@@ -114,18 +186,22 @@ export class TwitchClient {
 		return results;
 	}
 
+	/** @deprecated REST call — migrate to a GraphQL mutation. */
 	public post<T>(path: `/${string}`, options?: FetchOptions) {
 		return this.#request<T>("POST", path, options);
 	}
 
+	/** @deprecated REST call — migrate to a GraphQL mutation. */
 	public put<T>(path: `/${string}`, options?: FetchOptions) {
 		return this.#request<T>("PUT", path, options);
 	}
 
+	/** @deprecated REST call — migrate to a GraphQL mutation. */
 	public patch<T>(path: `/${string}`, options?: FetchOptions) {
 		return this.#request<T>("PATCH", path, options);
 	}
 
+	/** @deprecated REST call — migrate to a GraphQL mutation. */
 	public delete<T = null>(path: `/${string}`, params?: QueryParams) {
 		return this.#request<T>("DELETE", path, { params });
 	}
@@ -158,17 +234,15 @@ export class TwitchClient {
 		body: Record<string, unknown> | undefined,
 		timeout: number,
 	): Promise<HelixResponse<T>> {
-		let refreshed = false;
-
 		for (let attempt = 0; ; attempt++) {
 			try {
 				const response = await ofetch.raw<HelixResponse<T>>(path, {
-					baseURL: BASE_URL,
+					baseURL: HELIX_URL,
 					method,
 					query,
 					headers: {
 						Authorization: `Bearer ${this.token}`,
-						"Client-Id": "kimne78kx3ncx6brgo4mv6wki5h1ko",
+						"Client-Id": TWITCH_CLIENT_ID,
 					},
 					body,
 					signal: AbortSignal.timeout(timeout),
@@ -180,15 +254,12 @@ export class TwitchClient {
 			} catch (error) {
 				const status = error instanceof FetchError ? error.status : undefined;
 
-				if (status === 401 && !refreshed) {
-					refreshed = true;
-					const token = await this.#refresh();
-
-					if (token) {
-						attempt--;
-						continue;
-					}
-				}
+				// The token can't be refreshed, so a rejection means it was
+				// revoked or expired; re-authenticate and surface the failure.
+				// if (status === 401) {
+				// 	this.#handleRevoked();
+				// 	throw ApiError.from(error);
+				// }
 
 				const wait =
 					status !== undefined && RETRYABLE_STATUSES.has(status) && attempt < MAX_RETRIES
@@ -234,21 +305,18 @@ export class TwitchClient {
 		return 300 * 2 ** attempt;
 	}
 
-	async #refresh(): Promise<string | null> {
-		this.#refreshing ??= invoke<string | null>("refresh_token")
-			.then((token) => {
-				this.token = token;
-				return token;
-			})
-			.catch((error: unknown) => {
-				void log.error(`Failed to refresh Twitch token: ${String(error)}`).catch(() => {});
-				return null;
-			});
-
-		try {
-			return await this.#refreshing;
-		} finally {
-			this.#refreshing = null;
-		}
-	}
+	/**
+	 * Kicks off re-authentication after Twitch rejects the token. Fire-and-forget
+	 * so the triggering request can still reject; {@link reauthenticate} guards
+	 * against the concurrent calls a burst of failed requests would produce.
+	 *
+	 * Imported lazily to avoid a static import cycle with the auth module.
+	 */
+	// #handleRevoked() {
+	// 	void import("./auth")
+	// 		.then(({ reauthenticate }) => reauthenticate())
+	// 		.catch((error: unknown) => {
+	// 			void log.error(`Failed to re-authenticate: ${String(error)}`).catch(() => {});
+	// 		});
+	// }
 }
