@@ -1,3 +1,4 @@
+import { terminatePollMutation } from "$lib/graphql/twitch";
 import type { Poll as ApiPoll, PollStatus } from "$lib/twitch/pubsub";
 
 import type { Channel } from "./channel.svelte";
@@ -108,12 +109,8 @@ export class Poll {
 	public async end() {
 		if (!this.channel.isMod) return;
 
-		await this.channel.client.patch("/polls", {
-			body: {
-				broadcaster_id: this.channel.id,
-				id: this.id,
-				status: "TERMINATED",
-			},
+		await this.channel.client.gql(terminatePollMutation, {
+			poll: this.id,
 		});
 	}
 

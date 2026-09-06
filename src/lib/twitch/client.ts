@@ -192,16 +192,6 @@ export class TwitchClient {
 	}
 
 	/** @deprecated REST call — migrate to a GraphQL mutation. */
-	public put<T>(path: `/${string}`, options?: FetchOptions) {
-		return this.#request<T>("PUT", path, options);
-	}
-
-	/** @deprecated REST call — migrate to a GraphQL mutation. */
-	public patch<T>(path: `/${string}`, options?: FetchOptions) {
-		return this.#request<T>("PATCH", path, options);
-	}
-
-	/** @deprecated REST call — migrate to a GraphQL mutation. */
 	public delete<T = null>(path: `/${string}`, params?: QueryParams) {
 		return this.#request<T>("DELETE", path, { params });
 	}

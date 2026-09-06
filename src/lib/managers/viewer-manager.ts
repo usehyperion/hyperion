@@ -1,7 +1,15 @@
 import { SvelteMap } from "svelte/reactivity";
 
 import { app } from "$lib/app.svelte";
-import { banUserMutation, unbanUserMutation } from "$lib/graphql/twitch";
+import {
+	banUserMutation,
+	grantVipMutation,
+	modUserMutation,
+	revokeVipMutation,
+	unbanUserMutation,
+	unmodUserMutation,
+	warnUserMutation,
+} from "$lib/graphql/twitch";
 import type { Channel } from "$lib/models/channel.svelte";
 import type { TimeoutOptions } from "$lib/models/viewer.svelte";
 import { Viewer } from "$lib/models/viewer.svelte";
@@ -25,69 +33,51 @@ export class ViewerManager extends SvelteMap<string, Viewer> {
 	}
 
 	public async vip(id: string) {
-		await this.channel.client.post("/channels/vips", {
-			params: {
-				broadcaster_id: this.channel.user.id,
-				user_id: id,
-			},
+		await this.channel.client.gql(grantVipMutation, {
+			channel: this.channel.user.id,
+			target: id,
 		});
 	}
 
 	public async unvip(id: string) {
-		await this.channel.client.delete("/channels/vips", {
-			broadcaster_id: this.channel.user.id,
-			user_id: id,
+		await this.channel.client.gql(revokeVipMutation, {
+			channel: this.channel.user.id,
+			target: id,
 		});
 	}
 
 	public async mod(id: string) {
-		await this.channel.client.post("/moderation/moderators", {
-			params: {
-				broadcaster_id: this.channel.user.id,
-				user_id: id,
-			},
+		await this.channel.client.gql(modUserMutation, {
+			channel: this.channel.user.id,
+			target: id,
 		});
 	}
 
 	public async unmod(id: string) {
-		await this.channel.client.delete("/moderation/moderators", {
-			broadcaster_id: this.channel.user.id,
-			user_id: id,
+		await this.channel.client.gql(unmodUserMutation, {
+			channel: this.channel.user.id,
+			target: id,
 		});
 	}
 
 	public async warn(id: string, reason: string) {
 		if (!app.user) return;
 
-		await this.channel.client.post("/moderation/warnings", {
-			params: {
-				broadcaster_id: this.channel.user.id,
-				moderator_id: app.user.id,
-			},
-			body: {
-				data: {
-					user_id: id,
-					reason,
-				},
-			},
+		await this.channel.client.gql(warnUserMutation, {
+			channel: this.channel.user.id,
+			target: id,
+			reason,
 		});
 	}
 
 	public async timeout(id: string, options: TimeoutOptions) {
 		if (!app.user) return;
 
-		await this.channel.client.post("/moderation/bans", {
-			params: {
-				broadcaster_id: this.channel.user.id,
-				moderator_id: app.user.id,
-			},
-			body: {
-				data: {
-					user_id: id,
-					duration: options.duration,
-					reason: options.reason,
-				},
-			},
+		await this.channel.client.gql(banUserMutation, {
+			channel: this.channel.user.id,
+			target: id,
+			duration: `${options.duration}s`,
+			reason: options.reason,
 		});
 	}
 

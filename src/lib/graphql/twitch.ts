@@ -465,13 +465,176 @@ export const vipsQuery = gql(`
 // Mutations
 
 export const banUserMutation = gql(`
-	mutation BanUser($channel: ID!, $target: String!, $reason: String) {
+	mutation BanUser($channel: ID!, $target: String!, $duration: String, $reason: String) {
 		banUserFromChatRoom(input: {
 			channelID: $channel,
 			bannedUserLogin: $target,
-			expiresIn: null,
+			expiresIn: $duration,
 			reason: $reason
 		}) {
+			__typename
+		}
+	}
+`);
+
+export const blockTermMutation = gql(`
+	mutation BlockTerm($channel: ID!, $term: String!) {
+		addChannelBlockedTerm(input: {
+			channelID: $channel,
+			phrase: $term,
+			phrases: [$term],
+			isModEditable: true
+		}) {
+			__typename
+		}
+	}
+`);
+
+export const blockUserMutation = gql(`
+	mutation BlockUser($target: ID!) {
+		blockUser(input: { targetUserID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const cancelPredictionMutation = gql(`
+	mutation CancelPrediction($prediction: ID!) {
+		cancelPredictionEvent(input: { id: $prediction }) {
+			__typename
+		}
+	}
+`);
+
+export const cancelRaidMutation = gql(`
+	mutation CancelRaid($channel: ID!) {
+		cancelRaid(input: { sourceID: $channel }) {
+			__typename
+		}
+	}
+`);
+
+// export const clearChatMutation = gql(`
+// 	mutation ClearChat($channel: ID!) {
+// 		clearChat(input: { channelID: $channel }) {
+// 			__typename
+// 		}
+// 	}
+// `);
+
+export const deleteMessageMutation = gql(`
+	mutation DeleteMessage($channel: ID!, $message: ID!) {
+		deleteChatMessage(input: { channelID: $channel, messageID: $message }) {
+			__typename
+		}
+	}
+`);
+
+export const grantVipMutation = gql(`
+	mutation GrantVIP($channel: ID!, $target: ID!) {
+		grantVIP(input: { channelID: $channel, granteeID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const lockPredictionMutation = gql(`
+	mutation LockPrediction($prediction: ID!) {
+		lockPredictionEvent(input: { id: $prediction }) {
+			__typename
+		}
+	}
+`);
+
+export const modUserMutation = gql(`
+	mutation ModUser($channel: ID!, $target: ID!) {
+		modUser(input: { channelID: $channel, targetID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const pinMessageMutation = gql(`
+	mutation PinMessage($channel: ID!, $message: ID!, $duration: Int = 1200) {
+		pinChatMessage(input: { channelID: $channel, messageID: $message, durationSeconds: $duration, type: MOD }) {
+			__typename
+		}
+	}
+`);
+
+export const resolvePredictionMutation = gql(`
+	mutation ResolvePrediction($prediction: ID!, $outcome: ID!) {
+		resolvePredictionEvent(input: { eventID: $prediction, outcomeID: $outcome }) {
+			__typename
+		}
+	}
+`);
+
+export const revokeVipMutation = gql(`
+	mutation RevokeVIP($channel: ID!, $target: ID!) {
+		revokeVIP(input: { channelID: $channel, revokeeID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const sendAnnouncementMutation = gql(`
+	mutation SendAnnouncement($channel: ID!, $message: String!) {
+		sendAnnouncementMessage(input: { channelID: $channel, message: $message, color: PRIMARY }) {
+			__typename
+		}
+	}
+`);
+
+// export const sendMessageMutation = gql(`
+// 	mutation SendMessage() {
+// 		send
+// 	}
+// `)
+
+export const sendWhisperMutation = gql(`
+	mutation SendWhisper($input: SendWhisperInput!) {
+		sendWhisper(input: $input) {
+			__typename
+		}
+	}
+`);
+
+export const shieldModeMutation = gql(`
+	mutation SetShieldMode($channel: ID!, $mode: ShieldModeStatus!) {
+		setChannelShieldModeStatus(input: { channelID: $channel, shieldModeStatus: $mode }) {
+			__typename
+		}
+	}
+`);
+
+export const startPollMutation = gql(`
+	mutation StartPoll($input: CreatePollInput!) {
+		createPoll(input: $input) {
+			__typename
+		}
+	}
+`);
+
+export const startPredictionMutation = gql(`
+	mutation StartPrediction($input: CreatePredictionEventInput!) {
+		createPredictionEvent(input: $input) {
+			__typename
+		}
+	}
+`);
+
+export const startRaidMutation = gql(`
+	mutation StartRaid($source: ID!, $target: ID!) {
+		createRaid(input: { sourceID: $source, targetID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const terminatePollMutation = gql(`
+	mutation TerminatePoll($poll: ID!) {
+		terminatePoll(input: { pollID: $poll }) {
 			__typename
 		}
 	}
@@ -488,11 +651,61 @@ export const unbanUserMutation = gql(`
 	}
 `);
 
-// export const pinMessageMutation = gql(`
-// 	mutation PinMessage {
-// 		pinChatMessage
-// 	}
-// `)
+export const unblockUserMutation = gql(`
+	mutation UnblockUser($target: ID!) {
+		unblockUser(input: { targetUserID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const unmodUserMutation = gql(`
+	mutation UnmodUser($channel: ID!, $target: ID!) {
+		unmodUser(input: { channelID: $channel, targetID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const unpinMessageMutation = gql(`
+	mutation UnpinMessage($message: ID!) {
+		unpinChatMessage(input: { id: $message, reason: UNPIN }) {
+			__typename
+		}
+	}
+`);
+
+export const updateChatSettingsMutation = gql(`
+	mutation UpdateChatSettings($input: UpdateChatSettingsInput!) {
+		updateChatSettings(input: $input) {
+			__typename
+		}
+	}
+`);
+
+export const updateChatSubOnlyMode = gql(`
+	mutation UpdateChatSubOnlyMode($channel: ID!, $subOnly: Boolean!) {
+		updateSubscriptionProduct(input: { id: $channel, targetUserID: $channel, hasSubOnlyChat: $subOnly }) {
+			__typename
+		}
+	}
+`);
+
+export const updatePinnedMessageMutation = gql(`
+	mutation UpdatePinnedMessage($message: ID!, $duration: Int) {
+		updatePinnedChatMessage(input: { id: $message, durationSeconds: $duration }) {
+			__typename
+		}
+	}
+`);
+
+export const warnUserMutation = gql(`
+	mutation WarnUser($channel: ID!, $target: ID!, $reason: String!) {
+		warnUserInChatRoom(input: { channelID: $channel, targetUserID: $target, reason: $reason, chatRulesCited: [""] }) {
+			__typename
+		}
+	}
+`);
 
 // Types
 

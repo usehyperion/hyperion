@@ -17,7 +17,7 @@ export default defineCommand({
 		}
 
 		await mapErrors(
-			() => channel.raid(target.id),
+			() => channel.startRaid(target.id),
 			[
 				{
 					status: 400,

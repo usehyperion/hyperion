@@ -10,6 +10,11 @@ import {
 	streamQuery,
 	toPubSubPoll,
 	toPubSubPrediction,
+	cancelRaidMutation,
+	startRaidMutation,
+	startPollMutation,
+	startPredictionMutation,
+	blockTermMutation,
 } from "$lib/graphql/twitch";
 import { ChannelEmoteManager } from "$lib/managers/channel-emote-manager";
 import { fetch7tvId } from "$lib/seventv";
@@ -336,37 +341,40 @@ export class Channel {
 	}
 
 	/**
-	 * Creates a new poll in the channel.
+	 * Starts a new poll in the channel.
 	 */
-	public async createPoll(options: PollOptions) {
+	public async startPoll(options: PollOptions) {
 		if (!this.isMod) return;
 
-		await this.client.post("/polls", {
-			body: {
-				broadcaster_id: this.id,
+		await this.client.gql(startPollMutation, {
+			input: {
+				ownedBy: this.id,
 				title: options.title,
 				choices: options.choices.map((title) => ({ title })),
-				duration: options.duration,
+				durationSeconds: options.duration,
 				...(options.channelPointsPerVote && {
-					channel_points_voting_enabled: true,
-					channel_points_per_vote: options.channelPointsPerVote,
+					channelPointsVotingEnabled: true,
+					channelPointsPerVote: options.channelPointsPerVote,
 				}),
 			},
 		});
 	}
 
 	/**
-	 * Creates a new prediction in the channel.
+	 * Starts a new prediction in the channel.
 	 */
-	public async createPrediction(options: PredictionOptions) {
+	public async startPrediction(options: PredictionOptions) {
 		if (!this.isMod) return;
 
-		await this.client.post("/predictions", {
-			body: {
-				broadcaster_id: this.id,
+		await this.client.gql(startPredictionMutation, {
+			input: {
+				channelID: this.id,
 				title: options.title,
-				outcomes: options.outcomes.map((title) => ({ title })),
-				prediction_window: options.window,
+				outcomes: options.outcomes.map((title) => ({
+					title,
+					color: "BLUE" as const,
+				})),
+				predictionWindowSeconds: options.window,
 			},
 		});
 	}
@@ -374,32 +382,25 @@ export class Channel {
 	public async blockTerm(term: string) {
 		if (!app.user || !this.isMod) return;
 
-		await this.client.post("/moderation/blocked_terms", {
-			params: {
-				broadcaster_id: this.id,
-				moderator_id: app.user.id,
-			},
-			body: {
-				text: term,
-			},
+		await this.client.gql(blockTermMutation, {
+			channel: this.id,
+			term,
 		});
 	}
 
-	public async raid(to: string) {
+	public async startRaid(to: string) {
 		if (!this.isMod) return;
 
-		await this.client.post("/raids", {
-			params: {
-				from_broadcaster_id: this.id,
-				to_broadcaster_id: to,
-			},
+		await this.client.gql(startRaidMutation, {
+			source: this.id,
+			target: to,
 		});
 	}
 
-	public async unraid() {
+	public async cancelRaid() {
 		if (!this.isMod) return;
 
-		await this.client.delete("/raids", { broadcaster_id: this.id });
+		await this.client.gql(cancelRaidMutation, { channel: this.id });
 	}
 
 	public async shoutout(to: string) {

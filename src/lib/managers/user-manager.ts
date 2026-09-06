@@ -2,7 +2,12 @@ import { SvelteMap } from "svelte/reactivity";
 
 import { ApiError } from "$lib/errors/api-error";
 import { ErrorMessage } from "$lib/errors/messages";
-import { userAvatarsQuery, userQuery } from "$lib/graphql/twitch";
+import {
+	blockUserMutation,
+	unblockUserMutation,
+	userAvatarsQuery,
+	userQuery,
+} from "$lib/graphql/twitch";
 import { User } from "$lib/models/user.svelte";
 import type { TwitchClient } from "$lib/twitch/client";
 import { chunk } from "$lib/util";
@@ -84,16 +89,10 @@ export class UserManager extends SvelteMap<string, User> {
 	}
 
 	public async block(id: string) {
-		await this.client.put("/users/blocks", {
-			params: {
-				target_user_id: id,
-			},
-		});
+		await this.client.gql(blockUserMutation, { target: id });
 	}
 
 	public async unblock(id: string) {
-		await this.client.delete("/users/blocks", {
-			target_user_id: id,
-		});
+		await this.client.gql(unblockUserMutation, { target: id });
 	}
 }
