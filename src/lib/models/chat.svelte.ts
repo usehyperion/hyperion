@@ -269,8 +269,8 @@ export class Chat {
 				channelID: this.channel.id,
 				followersOnlyDurationMinutes: settings.followerOnly
 					? (settings.followerOnlyDuration ?? followDuration)
-					: null,
-				slowModeDurationSeconds: isSlow ? slowDuration : null,
+					: -1,
+				slowModeDurationSeconds: isSlow ? slowDuration : 0,
 				isEmoteOnlyModeEnabled: settings.emoteOnly ?? this.mode.emoteOnly,
 				isUniqueChatModeEnabled: settings.unique ?? this.mode.unique,
 			},
