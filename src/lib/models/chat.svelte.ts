@@ -249,7 +249,7 @@ export class Chat {
 	public async updateSettings(settings: ChatSettings) {
 		if (!app.user || !this.channel.isMod) return;
 
-		if (settings.subOnly) {
+		if (typeof settings.subOnly === "boolean") {
 			await this.channel.client.gql(updateChatSubOnlyMode, {
 				channel: this.channel.id,
 				subOnly: settings.subOnly,
@@ -267,7 +267,9 @@ export class Chat {
 		await this.channel.client.gql(updateChatSettingsMutation, {
 			input: {
 				channelID: this.channel.id,
-				followersOnlyDurationMinutes: settings.followerOnlyDuration ?? followDuration,
+				followersOnlyDurationMinutes: settings.followerOnly
+					? (settings.followerOnlyDuration ?? followDuration)
+					: null,
 				slowModeDurationSeconds: isSlow ? slowDuration : null,
 				isEmoteOnlyModeEnabled: settings.emoteOnly ?? this.mode.emoteOnly,
 				isUniqueChatModeEnabled: settings.unique ?? this.mode.unique,
