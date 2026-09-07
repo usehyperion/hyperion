@@ -3,8 +3,6 @@
 use std::sync::{Arc, LazyLock};
 
 use auth::Integrity;
-use eventsub::EventSubClient;
-use eventsub::client::NotificationPayload;
 use irc::IrcClient;
 use irc::message::ServerMessage;
 use pubsub::PubSubClient;
@@ -24,7 +22,6 @@ mod api;
 mod auth;
 mod commands;
 mod error;
-mod eventsub;
 mod irc;
 mod log;
 mod pubsub;
@@ -52,13 +49,11 @@ pub struct AppState {
     // one webview instead of each opening their own.
     integrity_refresh: Arc<Mutex<()>>,
     irc: Option<IrcClient>,
-    eventsub: Option<Arc<EventSubClient>>,
     seventv: Option<Arc<SeventTvClient>>,
     pubsub: Option<Arc<PubSubClient>>,
     // Channel sinks are retained so a hot-reloaded frontend can swap in its new
     // channel without tearing down the live websocket connection.
     irc_channel: Option<ChannelSink<ServerMessage>>,
-    eventsub_channel: Option<ChannelSink<NotificationPayload>>,
     seventv_channel: Option<ChannelSink<serde_json::Value>>,
     pubsub_channel: Option<ChannelSink<PubSubMessage>>,
 }
@@ -71,11 +66,9 @@ impl Default for AppState {
             integrity: None,
             integrity_refresh: Arc::new(Mutex::new(())),
             irc: None,
-            eventsub: None,
             seventv: None,
             pubsub: None,
             irc_channel: None,
-            eventsub_channel: None,
             seventv_channel: None,
             pubsub_channel: None,
         }
@@ -159,7 +152,6 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         commands::fetch_recent_messages,
         commands::get_cache_size,
         commands::get_about_info,
-        eventsub::connect_eventsub,
         irc::connect_irc,
         log::log,
         log::update_log_level,
