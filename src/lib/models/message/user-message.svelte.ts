@@ -1,5 +1,9 @@
 import { app } from "$lib/app.svelte";
-import { deleteMessageMutation } from "$lib/graphql/twitch";
+import {
+	allowHeldMessageMutation,
+	deleteMessageMutation,
+	denyHeldMessageMutation,
+} from "$lib/graphql/twitch";
 import { settings } from "$lib/settings";
 import type { StructuredMessage } from "$lib/twitch/api";
 import type { AutoModMetadata } from "$lib/twitch/eventsub";
@@ -326,13 +330,11 @@ export class UserMessage extends TextualMessage {
 	async #updateHeldMessage(allow: boolean) {
 		if (!app.user || !this.channel.isMod) return;
 
+		const mutation = allow ? allowHeldMessageMutation : denyHeldMessageMutation;
+
 		try {
-			await this.channel.client.post("/moderation/automod/message", {
-				body: {
-					user_id: app.user.id,
-					msg_id: this.id,
-					action: allow ? "ALLOW" : "DENY",
-				},
+			await this.channel.client.gql(mutation, {
+				message: this.id,
 			});
 		} finally {
 			this.deleted = true;

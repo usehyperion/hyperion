@@ -15,6 +15,7 @@ import {
 	startPollMutation,
 	startPredictionMutation,
 	blockTermMutation,
+	shoutoutMutation,
 } from "$lib/graphql/twitch";
 import { ChannelEmoteManager } from "$lib/managers/channel-emote-manager";
 import { fetch7tvId } from "$lib/seventv";
@@ -406,12 +407,9 @@ export class Channel {
 	public async shoutout(to: string) {
 		if (!app.user || !this.isMod) return;
 
-		await this.client.post("/chat/shoutouts", {
-			params: {
-				from_broadcaster_id: this.id,
-				to_broadcaster_id: to,
-				moderator_id: app.user.id,
-			},
+		await this.client.gql(shoutoutMutation, {
+			source: this.user.username,
+			target: to,
 		});
 	}
 }

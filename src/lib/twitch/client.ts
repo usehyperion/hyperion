@@ -166,26 +166,6 @@ export class TwitchClient {
 		return streams;
 	}
 
-	/** @deprecated REST call — migrate to GraphQL. */
-	public get<T>(path: `/${string}`, params?: QueryParams) {
-		return this.#request<T>("GET", path, { params });
-	}
-
-	/** @deprecated REST call — migrate to GraphQL (see {@link paginate}). */
-	public async getAll<T>(path: `/${string}`, params?: QueryParams): Promise<T[]> {
-		const results: T[] = [];
-		let after: string | undefined;
-
-		do {
-			const { data, pagination } = await this.get<T[]>(path, { ...params, after });
-
-			results.push(...data);
-			after = pagination?.cursor || undefined;
-		} while (after);
-
-		return results;
-	}
-
 	/** @deprecated REST call — migrate to a GraphQL mutation. */
 	public post<T>(path: `/${string}`, options?: FetchOptions) {
 		return this.#request<T>("POST", path, options);

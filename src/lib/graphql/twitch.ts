@@ -175,6 +175,25 @@ export const clipQuery = gql(`
 	}
 `);
 
+export const emoteSetsQuery = gql(`
+	query GetEmoteSets($id: ID!) {
+		user(id: $id) {
+			emoteSets {
+				id
+				owner {
+					id
+					displayName
+					avatarUrl: profileImageURL(width: 300)
+				}
+				emotes {
+					id
+					text
+				}
+			}
+		}
+	}
+`);
+
 export const followsQuery = gql(
 	`query GetFollows($id: ID!, $after: Cursor) {
 		user(id: $id) {
@@ -464,6 +483,16 @@ export const vipsQuery = gql(`
 
 // Mutations
 
+export const allowHeldMessageMutation = gql(`
+	mutation AllowHeldMessage($message: ID!) {
+		heldMessage: allowRejectedChatMessage(input: { id: $message }) {
+			message {
+				id
+			}
+		}
+	}
+`);
+
 export const banUserMutation = gql(`
 	mutation BanUser($channel: ID!, $target: String!, $duration: String, $reason: String) {
 		banUserFromChatRoom(input: {
@@ -530,6 +559,16 @@ export const deleteMessageMutation = gql(`
 	}
 `);
 
+export const denyHeldMessageMutation = gql(`
+	mutation DenyHeldMessage($message: ID!) {
+		heldMessage: denyRejectedChatMessage(input: { id: $message }) {
+			message {
+				id
+			}
+		}
+	}
+`);
+
 export const grantVipMutation = gql(`
 	mutation GrantVIP($channel: ID!, $target: ID!) {
 		grantVIP(input: { channelID: $channel, granteeID: $target }) {
@@ -586,11 +625,24 @@ export const sendAnnouncementMutation = gql(`
 	}
 `);
 
-// export const sendMessageMutation = gql(`
-// 	mutation SendMessage() {
-// 		send
-// 	}
-// `)
+export const sendMessageMutation = gql(`
+	mutation SendMessage($input: SendChatMessageInput!) {
+		sent: sendChatMessage(input: $input) {
+			dropReason
+			message {
+				id
+			}
+		}
+	}
+`);
+
+export const sendPinnedMessageMutation = gql(`
+	mutation SendPinnedMessage($channel: ID!, $message: String!) {
+		sendPinnedChatMessage(input: { channelID: $channel, messageText: $message }) {
+			__typename
+		}
+	}
+`);
 
 export const sendWhisperMutation = gql(`
 	mutation SendWhisper($input: SendWhisperInput!) {
@@ -603,6 +655,14 @@ export const sendWhisperMutation = gql(`
 export const shieldModeMutation = gql(`
 	mutation SetShieldMode($channel: ID!, $mode: ShieldModeStatus!) {
 		setChannelShieldModeStatus(input: { channelID: $channel, shieldModeStatus: $mode }) {
+			__typename
+		}
+	}
+`);
+
+export const shoutoutMutation = gql(`
+	mutation Shoutout($source: String!, $target: String!) {
+		createShoutout(input: { channelLogin: $source, callerLogin: $source, targetLogin: $target }) {
 			__typename
 		}
 	}

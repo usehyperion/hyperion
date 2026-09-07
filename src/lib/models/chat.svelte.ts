@@ -5,6 +5,8 @@ import type { Command } from "$lib/commands";
 import {
 	pinMessageMutation,
 	sendAnnouncementMutation,
+	sendMessageMutation,
+	sendPinnedMessageMutation,
 	shieldModeMutation,
 	updateChatSettingsMutation,
 	updateChatSubOnlyMode,
@@ -12,7 +14,6 @@ import {
 import { log } from "$lib/log";
 import { settings } from "$lib/settings";
 import { sendPresence } from "$lib/seventv";
-import type { SentMessage } from "$lib/twitch/api";
 
 import type { Channel } from "./channel.svelte";
 import type { Message } from "./message/message";
@@ -324,23 +325,30 @@ export class Chat {
 		const replyId = this.replyTarget?.id;
 		this.replyTarget = null;
 
-		const {
-			data: [data],
-		} = await this.channel.client.post<[SentMessage]>("/chat/messages", {
-			body: {
-				broadcaster_id: this.channel.id,
-				sender_id: viewer.id,
-				reply_parent_message_id: replyId,
+		if (options?.pin) {
+			await this.channel.client.gql(sendPinnedMessageMutation, {
+				channel: this.channel.id,
 				message,
-				pin: options?.pin ?? false,
+			});
+
+			await sendPresence(this.channel.id);
+			return;
+		}
+
+		const { sent } = await this.channel.client.gql(sendMessageMutation, {
+			input: {
+				channelID: this.channel.id,
+				replyParentMessageID: replyId,
+				message,
+				nonce: crypto.randomUUID(),
 			},
 		});
 
-		if (data.is_sent) {
+		if (sent?.message) {
 			log.info("Message sent");
 			await sendPresence(this.channel.id);
-		} else if (data.drop_reason) {
-			const reason = data.drop_reason.message;
+		} else if (sent?.dropReason) {
+			const reason = sent.dropReason;
 
 			log.warn(`Message dropped: ${reason}`);
 			this.notice(reason);
