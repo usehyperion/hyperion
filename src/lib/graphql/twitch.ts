@@ -794,6 +794,10 @@ type Poll = NonNullableDeep<ResultOf<typeof pollQuery>, "user.viewablePoll">;
 
 type Prediction = FragmentOf<typeof predictionDetailsFragment>;
 
+export type PredictionOutcome = ReturnType<
+	typeof gql.scalar<"CreatePredictionEventInput">
+>["outcomes"][number];
+
 // Transformers
 
 export function toPubSubPoll(channel: string, poll: Poll): ApiPoll {

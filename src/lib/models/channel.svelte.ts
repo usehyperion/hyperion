@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import * as cache from "tauri-plugin-cache-api";
 
-import type { Cheermote } from "$lib/graphql/twitch";
+import type { Cheermote, PredictionOutcome } from "$lib/graphql/twitch";
 import {
 	channelBadgesQuery,
 	cheermoteQuery,
@@ -367,14 +367,23 @@ export class Channel {
 	public async startPrediction(options: PredictionOptions) {
 		if (!this.isMod) return;
 
+		let outcomes: PredictionOutcome[] = [];
+
+		if (options.outcomes.length === 2) {
+			// GraphQL requires the two outcomes have the correct colors
+			outcomes = [
+				{ title: options.outcomes[0], color: "BLUE" },
+				{ title: options.outcomes[1], color: "PINK" },
+			];
+		} else {
+			outcomes = options.outcomes.map((title) => ({ title, color: "BLUE" }));
+		}
+
 		await this.client.gql(startPredictionMutation, {
 			input: {
 				channelID: this.id,
 				title: options.title,
-				outcomes: options.outcomes.map((title) => ({
-					title,
-					color: "BLUE" as const,
-				})),
+				outcomes,
 				predictionWindowSeconds: options.window,
 			},
 		});
