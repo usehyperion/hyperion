@@ -1,5 +1,4 @@
 import { redirect } from "@sveltejs/kit";
-import { invoke } from "@tauri-apps/api/core";
 
 import { app } from "$lib/app.svelte";
 import { moderatesQuery } from "$lib/graphql/twitch.js";
@@ -8,13 +7,17 @@ import { Channel } from "$lib/models/channel.svelte";
 import { CurrentUser } from "$lib/models/current-user.svelte";
 import { User } from "$lib/models/user.svelte";
 import { storage } from "$lib/stores";
+import { Session, getCredentials } from "$lib/twitch/session";
 
 export const ssr = false;
 
 export async function load({ url }) {
-	app.twitch.token ??= await invoke<string | null>("get_token");
+	if (!app.twitch.session) {
+		const credentials = await getCredentials();
+		app.twitch.session = credentials && new Session(credentials);
+	}
 
-	if (!app.twitch.token) {
+	if (!app.twitch.session) {
 		log.info("Stored token expired, clearing user");
 		storage.state.user = null;
 	}
