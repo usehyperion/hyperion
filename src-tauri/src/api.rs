@@ -69,12 +69,29 @@ pub async fn join(
             }
 
             if let Some(pubsub) = pubsub {
-                let topics = vec![
+                let base_topics = vec![
+                    format!("broadcast-settings-update.{id}"),
                     format!("community-points-channel-v1.{id}"),
                     format!("pinned-chat-updates-v1.{id}"),
                     format!("predictions-channel-v1.{id}"),
                     format!("polls.{id}"),
+                    format!("video-playback-by-id.{id}"),
                 ];
+
+                let mut topics = base_topics;
+
+                if is_mod {
+                    let user_id = token.user_id;
+
+                    let mod_topics = vec![
+                        format!("channel-unban-requests.{}.{id}", user_id),
+                        format!("chat_moderator_actions.{}.{id}", user_id),
+                        format!("low-trust-users.{}.{id}", user_id),
+                    ];
+
+                    topics.reserve(mod_topics.len());
+                    topics.extend(mod_topics);
+                }
 
                 pubsub.listen(&login_clone, &topics).await;
             }

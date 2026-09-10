@@ -111,9 +111,12 @@ class App {
 		});
 
 		const pubsubChannel = new IpcChannel<PubSubTopic>(async (message) => {
-			const [topic, id] = message.topic.split(".");
+			const segments = message.topic.split(".");
 
-			await this.#handle(topic, { ...message.message, target_id: id });
+			await this.#handle(segments[0].replaceAll("_", "-"), {
+				...message.message,
+				target_id: segments.at(-1),
+			});
 		});
 
 		const seventvChannel = new IpcChannel<DispatchPayload>(async (message) => {

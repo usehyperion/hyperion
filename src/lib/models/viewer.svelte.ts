@@ -57,19 +57,19 @@ export class Viewer {
 	 * Whether the viewer's messages are being monitored. This is mutually
 	 * exclusive with `restricted`.
 	 */
-	public monitored = false;
+	public monitored = $state(false);
 
 	/**
 	 * Whether the viewer's messages are being restricted. This is mutually
 	 * exclusive with `monitored`.
 	 */
-	public restricted = false;
+	public restricted = $state(false);
 
 	/**
 	 * The likelihood that the viewer is ban evading if they are considered
 	 * {@link suspicious}.
 	 */
-	public banEvasion: BanEvasionEvaluation = "unknown";
+	public banEvasion = $state<BanEvasionEvaluation>("unknown");
 
 	public constructor(
 		/**
