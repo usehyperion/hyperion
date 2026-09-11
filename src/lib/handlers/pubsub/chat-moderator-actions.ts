@@ -20,7 +20,6 @@ export default defineHandler({
 		const { chat } = channel;
 		const moderator = await channel.viewers.fetch(payload.data.created_by_user_id);
 
-		// Roles granted are their own message types; only their removal is a moderation action
 		if (payload.type === "moderator_added" || payload.type === "vip_added") {
 			const viewer = await channel.viewers.fetch(payload.data.target_user_id);
 
@@ -39,12 +38,16 @@ export default defineHandler({
 		switch (action.moderation_action) {
 			case "emoteonly":
 			case "emoteonlyoff":
+			case "r9kbeta":
+			case "r9kbetaoff":
 			case "subscribers":
 			case "subscribersoff": {
 				chat.event(Mode, {
 					mode: action.moderation_action.startsWith("emote")
 						? "emote-only"
-						: "subscriber-only",
+						: action.moderation_action.startsWith("r9k")
+							? "unique-mode"
+							: "subscriber-only",
 					enabled: !action.moderation_action.includes("off"),
 					seconds: Number.NaN,
 					moderator,
