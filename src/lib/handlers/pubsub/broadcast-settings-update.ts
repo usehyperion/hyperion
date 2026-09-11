@@ -8,9 +8,12 @@ export default defineHandler({
 		const channel = app.channels.get(data.channel_id);
 		if (!channel) return;
 
-		if (channel.stream && data.old_status !== data.status) {
-			channel.stream.title = data.status;
+		if (data.old_status !== data.status) {
 			channel.chat.notice(`The stream title has been updated to "${data.status}"`);
+
+			if (channel.stream) {
+				channel.stream.title = data.status;
+			}
 		}
 	},
 });
