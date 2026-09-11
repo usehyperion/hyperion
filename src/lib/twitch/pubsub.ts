@@ -122,6 +122,32 @@ export interface CommunityPointsChannel {
 	};
 }
 
+export interface UnbanRequestCreate {
+	id: string;
+	channel_id: string;
+	created_at: string;
+	requester_id: string;
+	requester_login: string;
+	requester_message: string;
+	requester_profile_image: string;
+}
+
+export type UnbanRequestStatus = "APPROVED" | "DENIED";
+
+export interface UnbanRequestUpdate {
+	id: string;
+	requester_id: string;
+	requester_login: string;
+	resolver_id: string;
+	resolver_login: string;
+	resolver_message: string;
+	status: UnbanRequestStatus;
+}
+
+export type ChannelUnbanRequests =
+	| { type: "create_unban_request"; data: UnbanRequestCreate }
+	| { type: "update_unban_request"; data: UnbanRequestUpdate };
+
 export interface ModerationActionBase {
 	created_at: string;
 	created_by: string;
@@ -394,6 +420,7 @@ export interface VideoPlaybackById {
 export interface PubSubTopicMap {
 	"automod-queue": AutoModQueue;
 	"broadcast-settings-update": BroadcastSettingsUpdate;
+	"channel-unban-requests": ChannelUnbanRequests;
 	"chat-moderator-actions": ChatModeratorActions;
 	"community-points-channel-v1": CommunityPointsChannel;
 	"low-trust-users": LowTrustUsers;
