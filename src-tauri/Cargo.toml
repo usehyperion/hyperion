@@ -52,7 +52,7 @@ tokio-tungstenite = { version = "0.26.2", features = ["rustls-tls-native-roots"]
 tracing = "0.1"
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "time"] }
-twitch_api = { version = "0.7.2", features = ["beta", "client", "helix", "eventsub", "reqwest"] }
+twitch_api = { version = "0.7.2", features = ["beta", "client", "helix", "reqwest"] }
 keyring = "4.1.1"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]

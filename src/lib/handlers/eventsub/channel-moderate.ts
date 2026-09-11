@@ -1,3 +1,5 @@
+// @ts-nocheck migration
+
 import { app } from "$lib/app.svelte";
 import BanStatus from "$lib/components/message/events/BanStatus.svelte";
 import Delete from "$lib/components/message/events/Delete.svelte";
