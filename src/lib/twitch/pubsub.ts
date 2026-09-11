@@ -169,6 +169,8 @@ export interface ChatModeAction extends ModerationActionBase {
 		| "emoteonly"
 		| "emoteonlyoff"
 		| "followersoff"
+		| "r9kbeta"
+		| "r9kbetaoff"
 		| "slowoff"
 		| "subscribers"
 		| "subscribersoff";

@@ -1,8 +1,6 @@
 import { app } from "$lib/app.svelte";
 import BanStatus from "$lib/components/message/events/BanStatus.svelte";
-import Clear from "$lib/components/message/events/Clear.svelte";
 import Delete from "$lib/components/message/events/Delete.svelte";
-import Mode from "$lib/components/message/events/Mode.svelte";
 import Raid from "$lib/components/message/events/Raid.svelte";
 import RoleStatus from "$lib/components/message/events/RoleStatus.svelte";
 import Term from "$lib/components/message/events/Term.svelte";
@@ -22,35 +20,6 @@ export default defineHandler({
 		const moderator = await channel.viewers.fetch(data.moderator_user_id);
 
 		switch (data.action) {
-			case "emoteonly":
-			case "emoteonlyoff":
-			case "subscribers":
-			case "subscribersoff":
-			case "uniquechat":
-			case "uniquechatoff": {
-				const mode = data.action.startsWith("emote")
-					? "emote-only"
-					: data.action.startsWith("unique")
-						? "unique-mode"
-						: "subscriber-only";
-
-				chat.event(Mode, {
-					mode,
-					enabled: !data.action.includes("off"),
-					seconds: Number.NaN,
-					moderator,
-				});
-
-				break;
-			}
-
-			case "clear": {
-				chat.deleteMessages();
-				chat.event(Clear, { moderator });
-
-				break;
-			}
-
 			case "delete":
 			case "shared_chat_delete": {
 				const metadata = data.action === "delete" ? data.delete : data.shared_chat_delete;
