@@ -69,7 +69,10 @@ pub async fn join(
             }
 
             if let Some(pubsub) = pubsub {
+                let user_id = token.user_id;
+
                 let base_topics = vec![
+                    format!("automod-queue.{}.{id}", user_id),
                     format!("broadcast-settings-update.{id}"),
                     format!("community-points-channel-v1.{id}"),
                     format!("pinned-chat-updates-v1.{id}"),
@@ -81,8 +84,6 @@ pub async fn join(
                 let mut topics = base_topics;
 
                 if is_mod {
-                    let user_id = token.user_id;
-
                     let mod_topics = vec![
                         format!("channel-unban-requests.{}.{id}", user_id),
                         format!("chat_moderator_actions.{}.{id}", user_id),
