@@ -1,3 +1,90 @@
+export interface AutoModPosition {
+	start_pos: number;
+	end_pos: number;
+}
+
+export interface AutoModFailure {
+	category: string;
+	level: number;
+	positions_in_message: AutoModPosition[] | null;
+}
+
+export interface BlockedTermFound {
+	is_private: boolean;
+	owner_channel_id: string;
+	positions_in_message: AutoModPosition;
+	term_id: string;
+	text: string;
+}
+
+export interface BlockedTermFailure {
+	contains_private_term: boolean;
+	terms_found: BlockedTermFound[];
+}
+
+export type CaughtMessageReason = "AutoModCaughtMessageReason" | "BlockedTermCaughtMessageReason";
+
+export interface AutoModFragment {
+	text: string;
+	automod?: {
+		is_channel_blocked_term: boolean;
+	};
+	emoticon?: {
+		emoticonID: string;
+		emoticonSetID: string;
+	};
+}
+
+export interface AutoModSender {
+	user_id: string;
+	login: string;
+	display_name: string;
+	chat_color: string;
+	badges: { id: string; version: string }[];
+}
+
+export interface CaughtMessage {
+	id: string;
+	channel_id: string;
+	channel_login: string;
+	content: {
+		text: string;
+		fragments: AutoModFragment[];
+	};
+	sender: AutoModSender;
+	sent_at: string;
+}
+
+export type CaughtMessageStatus = "PENDING" | "ALLOWED" | "DENIED";
+
+export interface AutoModCaughtMessage {
+	id: string;
+	caught_message_reason: {
+		automod_failure: AutoModFailure;
+		blocked_term_failure: BlockedTermFailure;
+		reason: CaughtMessageReason;
+	};
+	content_classification: {
+		category: string;
+		level: number;
+	};
+	message: CaughtMessage;
+	reason_code: CaughtMessageReason;
+	resolver_id: string;
+	resolver_login: string;
+	status: CaughtMessageStatus;
+}
+
+export interface CaughtMessageUpdate {
+	message_id: string;
+	status: CaughtMessageStatus;
+}
+
+export interface AutoModQueue {
+	type: "automod_caught_message";
+	data: AutoModCaughtMessage | CaughtMessageUpdate;
+}
+
 export interface BroadcastSettingsUpdate {
 	channel: string;
 	channel_id: string;
@@ -305,6 +392,7 @@ export interface VideoPlaybackById {
 }
 
 export interface PubSubTopicMap {
+	"automod-queue": AutoModQueue;
 	"broadcast-settings-update": BroadcastSettingsUpdate;
 	"chat-moderator-actions": ChatModeratorActions;
 	"community-points-channel-v1": CommunityPointsChannel;
