@@ -9,7 +9,6 @@ import Term from "$lib/components/message/events/Term.svelte";
 import Timeout from "$lib/components/message/events/Timeout.svelte";
 import Unraid from "$lib/components/message/events/Unraid.svelte";
 import Untimeout from "$lib/components/message/events/Untimeout.svelte";
-import Warn from "$lib/components/message/events/Warn.svelte";
 
 import { defineHandler } from "../helper";
 
@@ -45,32 +44,6 @@ export default defineHandler({
 				break;
 			}
 
-			case "followers":
-			case "followersoff": {
-				chat.event(Mode, {
-					mode: "follower-only",
-					enabled: !data.action.includes("off"),
-					seconds: data.followers
-						? data.followers.follow_duration_minutes * 60
-						: Number.NaN,
-					moderator,
-				});
-
-				break;
-			}
-
-			case "slow":
-			case "slowoff": {
-				chat.event(Mode, {
-					mode: "slow",
-					enabled: data.slow !== null,
-					seconds: data.slow?.wait_time_seconds ?? Number.NaN,
-					moderator,
-				});
-
-				break;
-			}
-
 			case "clear": {
 				chat.deleteMessages();
 				chat.event(Clear, { moderator });
@@ -97,14 +70,6 @@ export default defineHandler({
 			case "remove_blocked_term":
 			case "remove_permitted_term": {
 				chat.event(Term, { data: data.automod_terms, moderator });
-				break;
-			}
-
-			case "warn": {
-				const viewer = await channel.viewers.fetch(data.warn.user_id);
-
-				chat.event(Warn, { warning: data.warn, viewer, moderator });
-
 				break;
 			}
 

@@ -224,6 +224,19 @@ export interface ChatDeleteAction extends ModerationActionBase {
 	args: [login: string, text: string, message_id: string];
 }
 
+export interface ChatWarnAction extends ModerationActionBase {
+	type: "chat_login_moderation";
+	moderation_action: "warn";
+	args: [login: string, reason: string];
+}
+
+/** Sent by the warned viewer themselves rather than a moderator. */
+export interface ChatWarnAcknowledgeAction extends ModerationActionBase {
+	type: "chat_login_moderation";
+	moderation_action: "acknowledge_warning";
+	args: null;
+}
+
 export type ModerationAction =
 	| ChatModeAction
 	| ChatSlowAction
@@ -233,7 +246,9 @@ export type ModerationAction =
 	| ChatBanAction
 	| ChatUnbanAction
 	| ChatUnmodAction
-	| ChatDeleteAction;
+	| ChatDeleteAction
+	| ChatWarnAction
+	| ChatWarnAcknowledgeAction;
 
 export interface ModeratorAdded {
 	channel_id: string;

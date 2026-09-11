@@ -6,6 +6,8 @@ import Mode from "$lib/components/message/events/Mode.svelte";
 import RoleStatus from "$lib/components/message/events/RoleStatus.svelte";
 import Timeout from "$lib/components/message/events/Timeout.svelte";
 import Untimeout from "$lib/components/message/events/Untimeout.svelte";
+import Warn from "$lib/components/message/events/Warn.svelte";
+import WarnAck from "$lib/components/message/events/WarnAck.svelte";
 
 import { defineHandler } from "../helper";
 
@@ -132,6 +134,26 @@ export default defineHandler({
 					viewer,
 					moderator,
 				});
+
+				break;
+			}
+
+			case "warn": {
+				const viewer = await channel.viewers.fetch(action.target_user_id);
+
+				chat.event(Warn, {
+					reasons: action.args.slice(1),
+					viewer,
+					moderator,
+				});
+
+				break;
+			}
+
+			case "acknowledge_warning": {
+				const viewer = await channel.viewers.fetch(action.target_user_id);
+
+				chat.event(WarnAck, { viewer });
 
 				break;
 			}
