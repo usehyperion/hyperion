@@ -3,11 +3,9 @@
 import { app } from "$lib/app.svelte";
 import BanStatus from "$lib/components/message/events/BanStatus.svelte";
 import Delete from "$lib/components/message/events/Delete.svelte";
-import Raid from "$lib/components/message/events/Raid.svelte";
 import RoleStatus from "$lib/components/message/events/RoleStatus.svelte";
 import Term from "$lib/components/message/events/Term.svelte";
 import Timeout from "$lib/components/message/events/Timeout.svelte";
-import Unraid from "$lib/components/message/events/Unraid.svelte";
 import Untimeout from "$lib/components/message/events/Untimeout.svelte";
 
 import { defineHandler } from "../helper";
@@ -132,26 +130,6 @@ export default defineHandler({
 				const viewer = await channel.viewers.fetch((added ? data.vip : data.unvip).user_id);
 
 				chat.event(RoleStatus, { role: "VIP", added, viewer, moderator });
-
-				break;
-			}
-
-			case "raid": {
-				const viewer = await channel.viewers.fetch(data.raid.user_id);
-
-				chat.event(Raid, {
-					viewers: data.raid.viewer_count,
-					user: viewer.user,
-					moderator,
-				});
-
-				break;
-			}
-
-			case "unraid": {
-				const viewer = await channel.viewers.fetch(data.unraid.user_id);
-
-				chat.event(Unraid, { user: viewer.user, moderator });
 
 				break;
 			}
