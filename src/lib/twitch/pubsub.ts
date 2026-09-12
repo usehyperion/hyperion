@@ -269,10 +269,31 @@ export interface VipAdded {
 	created_by_user_id: string;
 }
 
+export type ChannelTermAction =
+	| "add_blocked_term"
+	| "add_permitted_term"
+	| "delete_blocked_term"
+	| "delete_permitted_term";
+
+/** A single blocked or permitted term, unlike EventSub which batches them. */
+export interface ChannelTerm {
+	type: ChannelTermAction;
+	id: string;
+	text: string;
+	requester_id: string;
+	requester_login: string;
+	channel_id: string;
+	expires_at: string;
+	updated_at: string;
+	from_automod: boolean;
+	content_type: string;
+}
+
 export type ChatModeratorActions =
 	| { type: "moderation_action"; data: ModerationAction }
 	| { type: "moderator_added"; data: ModeratorAdded }
-	| { type: "vip_added"; data: VipAdded };
+	| { type: "vip_added"; data: VipAdded }
+	| { type: "channel_terms_action"; data: ChannelTerm };
 
 export type LowTrustTreatment = "NO_TREATMENT" | "ACTIVE_MONITORING" | "RESTRICTED";
 
