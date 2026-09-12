@@ -297,7 +297,8 @@ export type ChatModeratorActions =
 
 export type LowTrustTreatment = "NO_TREATMENT" | "ACTIVE_MONITORING" | "RESTRICTED";
 
-/** Twitch misspells the likely variant; both spellings are accepted. */
+// I have no idea if "LICKLEY" is actually sent by Twitch, but it was in the
+// community docs so I'm just including to be safe
 export type BanEvasionEvaluation = "UNLIKELY_EVADER" | "LIKELY_EVADER" | "LICKLEY_EVADER";
 
 export type LowTrustUserType =
