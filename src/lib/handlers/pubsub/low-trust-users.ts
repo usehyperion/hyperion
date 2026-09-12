@@ -2,18 +2,9 @@ import { app } from "$lib/app.svelte";
 import SuspicionStatus from "$lib/components/message/events/SuspicionStatus.svelte";
 import { UserMessage } from "$lib/models/message/user-message.svelte";
 import type { StructuredMessage } from "$lib/twitch/api";
-import type { BanEvasionEvaluation } from "$lib/twitch/eventsub";
-import type {
-	BanEvasionEvaluation as LowTrustEvaluation,
-	LowTrustFragment,
-} from "$lib/twitch/pubsub";
+import type { LowTrustFragment } from "$lib/twitch/pubsub";
 
 import { defineHandler } from "../helper";
-
-function evaluation(value: LowTrustEvaluation): BanEvasionEvaluation {
-	// Twitch misspells the likely variant, so both spellings are handled
-	return value === "UNLIKELY_EVADER" ? "unknown" : "likely";
-}
 
 function fragments(list: LowTrustFragment[]): StructuredMessage["fragments"] {
 	return list.map((fragment) =>
@@ -60,7 +51,7 @@ export default defineHandler({
 
 			message.viewer.monitored = user.treatment === "ACTIVE_MONITORING";
 			message.viewer.restricted = user.treatment === "RESTRICTED";
-			message.viewer.banEvasion = evaluation(user.ban_evasion_evaluation);
+			message.viewer.possibleBanEvader = user.ban_evasion_evaluation !== "UNLIKELY_EVADER";
 
 			channel.chat.add(message);
 
