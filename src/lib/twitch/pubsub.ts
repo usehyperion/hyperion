@@ -425,6 +425,24 @@ export interface PredictionsChannel {
 
 export interface PredictionsUser {}
 
+export interface RaidInfo {
+	id: string;
+	creator_id: string;
+	source_id: string;
+	target_id: string;
+	target_login: string;
+	target_display_name: string;
+	target_profile_image: string;
+	transition_jitter_seconds: number;
+	force_raid_now_seconds: number;
+	viewer_count: number;
+}
+
+export interface Raid {
+	type: "raid_go_v2" | "raid_update_v2" | "raid_cancel_v2";
+	raid: RaidInfo;
+}
+
 export interface VideoPlaybackById {
 	type: "stream-up" | "viewcount" | "commercial" | "stream-down" | "tos-strike";
 	server_time: number;
@@ -445,6 +463,7 @@ export interface PubSubTopicMap {
 	"predictions-channel-v1": PredictionsChannel;
 	polls: Polls;
 	"predictions-user-v1": PredictionsUser;
+	raid: Raid;
 	"video-playback-by-id": VideoPlaybackById;
 }
 

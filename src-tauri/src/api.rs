@@ -78,6 +78,7 @@ pub async fn join(
                     format!("pinned-chat-updates-v1.{id}"),
                     format!("predictions-channel-v1.{id}"),
                     format!("polls.{id}"),
+                    format!("raid.{id}"),
                     format!("video-playback-by-id.{id}"),
                 ];
 
