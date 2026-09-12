@@ -4,7 +4,6 @@ import { app } from "$lib/app.svelte";
 import BanStatus from "$lib/components/message/events/BanStatus.svelte";
 import Delete from "$lib/components/message/events/Delete.svelte";
 import RoleStatus from "$lib/components/message/events/RoleStatus.svelte";
-import Term from "$lib/components/message/events/Term.svelte";
 import Timeout from "$lib/components/message/events/Timeout.svelte";
 import Untimeout from "$lib/components/message/events/Untimeout.svelte";
 
@@ -31,14 +30,6 @@ export default defineHandler({
 					moderator,
 				});
 
-				break;
-			}
-
-			case "add_blocked_term":
-			case "add_permitted_term":
-			case "remove_blocked_term":
-			case "remove_permitted_term": {
-				chat.event(Term, { data: data.automod_terms, moderator });
 				break;
 			}
 
