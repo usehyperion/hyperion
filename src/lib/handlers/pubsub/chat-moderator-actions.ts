@@ -4,6 +4,7 @@ import Clear from "$lib/components/message/events/Clear.svelte";
 import Delete from "$lib/components/message/events/Delete.svelte";
 import Mode from "$lib/components/message/events/Mode.svelte";
 import RoleStatus from "$lib/components/message/events/RoleStatus.svelte";
+import Term from "$lib/components/message/events/Term.svelte";
 import Timeout from "$lib/components/message/events/Timeout.svelte";
 import Untimeout from "$lib/components/message/events/Untimeout.svelte";
 import Warn from "$lib/components/message/events/Warn.svelte";
@@ -18,6 +19,15 @@ export default defineHandler({
 		if (!channel) return;
 
 		const { chat } = channel;
+
+		if (payload.type === "channel_terms_action") {
+			const moderator = await channel.viewers.fetch(payload.data.requester_id);
+
+			chat.event(Term, { term: payload.data, moderator });
+
+			return;
+		}
+
 		const moderator = await channel.viewers.fetch(payload.data.created_by_user_id);
 
 		if (payload.type === "moderator_added" || payload.type === "vip_added") {

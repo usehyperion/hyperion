@@ -1,23 +1,20 @@
 <script lang="ts">
 	import Username from "$lib/components/user/Username.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
-	import type { AutoModTermsMetadata } from "$lib/twitch/eventsub";
+	import type { ChannelTerm } from "$lib/twitch/pubsub";
 
 	interface Props {
-		data: AutoModTermsMetadata;
+		term: ChannelTerm;
 		moderator: Viewer;
 	}
 
-	const { data, moderator }: Props = $props();
+	const { term, moderator }: Props = $props();
 
-	const via = $derived(data.from_automod ? " (via AutoMod)" : "");
+	const added = $derived(term.type.startsWith("add"));
+	const list = $derived(term.type.includes("blocked") ? "blocked" : "permitted");
+	const via = $derived(term.from_automod ? " (via AutoMod)" : "");
 </script>
 
 <Username user={moderator.user} />
-{data.action === "add" ? "added" : "removed"}
-
-{#if data.terms.length === 1}
-	a {data.list} term{via}: {data.terms[0]}
-{:else}
-	{data.terms.length} {data.list} terms{via}: {data.terms.join(", ")}
-{/if}
+{added ? "added" : "deleted"}
+a {list} term{via}: {term.text}
