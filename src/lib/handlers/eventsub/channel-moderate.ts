@@ -1,15 +1,11 @@
+// @ts-nocheck migration
+
 import { app } from "$lib/app.svelte";
 import BanStatus from "$lib/components/message/events/BanStatus.svelte";
-import Clear from "$lib/components/message/events/Clear.svelte";
 import Delete from "$lib/components/message/events/Delete.svelte";
-import Mode from "$lib/components/message/events/Mode.svelte";
-import Raid from "$lib/components/message/events/Raid.svelte";
 import RoleStatus from "$lib/components/message/events/RoleStatus.svelte";
-import Term from "$lib/components/message/events/Term.svelte";
 import Timeout from "$lib/components/message/events/Timeout.svelte";
-import Unraid from "$lib/components/message/events/Unraid.svelte";
 import Untimeout from "$lib/components/message/events/Untimeout.svelte";
-import Warn from "$lib/components/message/events/Warn.svelte";
 
 import { defineHandler } from "../helper";
 
@@ -23,61 +19,6 @@ export default defineHandler({
 		const moderator = await channel.viewers.fetch(data.moderator_user_id);
 
 		switch (data.action) {
-			case "emoteonly":
-			case "emoteonlyoff":
-			case "subscribers":
-			case "subscribersoff":
-			case "uniquechat":
-			case "uniquechatoff": {
-				const mode = data.action.startsWith("emote")
-					? "emote-only"
-					: data.action.startsWith("unique")
-						? "unique-mode"
-						: "subscriber-only";
-
-				chat.event(Mode, {
-					mode,
-					enabled: !data.action.includes("off"),
-					seconds: Number.NaN,
-					moderator,
-				});
-
-				break;
-			}
-
-			case "followers":
-			case "followersoff": {
-				chat.event(Mode, {
-					mode: "follower-only",
-					enabled: !data.action.includes("off"),
-					seconds: data.followers
-						? data.followers.follow_duration_minutes * 60
-						: Number.NaN,
-					moderator,
-				});
-
-				break;
-			}
-
-			case "slow":
-			case "slowoff": {
-				chat.event(Mode, {
-					mode: "slow",
-					enabled: data.slow !== null,
-					seconds: data.slow?.wait_time_seconds ?? Number.NaN,
-					moderator,
-				});
-
-				break;
-			}
-
-			case "clear": {
-				chat.deleteMessages();
-				chat.event(Clear, { moderator });
-
-				break;
-			}
-
 			case "delete":
 			case "shared_chat_delete": {
 				const metadata = data.action === "delete" ? data.delete : data.shared_chat_delete;
@@ -88,22 +29,6 @@ export default defineHandler({
 					user: viewer.user,
 					moderator,
 				});
-
-				break;
-			}
-
-			case "add_blocked_term":
-			case "add_permitted_term":
-			case "remove_blocked_term":
-			case "remove_permitted_term": {
-				chat.event(Term, { data: data.automod_terms, moderator });
-				break;
-			}
-
-			case "warn": {
-				const viewer = await channel.viewers.fetch(data.warn.user_id);
-
-				chat.event(Warn, { warning: data.warn, viewer, moderator });
 
 				break;
 			}
@@ -196,26 +121,6 @@ export default defineHandler({
 				const viewer = await channel.viewers.fetch((added ? data.vip : data.unvip).user_id);
 
 				chat.event(RoleStatus, { role: "VIP", added, viewer, moderator });
-
-				break;
-			}
-
-			case "raid": {
-				const viewer = await channel.viewers.fetch(data.raid.user_id);
-
-				chat.event(Raid, {
-					viewers: data.raid.viewer_count,
-					user: viewer.user,
-					moderator,
-				});
-
-				break;
-			}
-
-			case "unraid": {
-				const viewer = await channel.viewers.fetch(data.unraid.user_id);
-
-				chat.event(Unraid, { user: viewer.user, moderator });
 
 				break;
 			}

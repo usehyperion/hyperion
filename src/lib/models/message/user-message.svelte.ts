@@ -6,7 +6,6 @@ import {
 } from "$lib/graphql/twitch";
 import { settings } from "$lib/settings";
 import type { StructuredMessage } from "$lib/twitch/api";
-import type { AutoModMetadata } from "$lib/twitch/eventsub";
 import type {
 	BasicUser,
 	PrivmsgMessage,
@@ -15,6 +14,7 @@ import type {
 	UserNoticeEvent,
 	UserNoticeMessage,
 } from "$lib/twitch/irc";
+import type { AutoModFragment } from "$lib/twitch/pubsub";
 import type { ChannelPointReward } from "$lib/twitch/pubsub";
 import { extractEmotes, type Prefix } from "$lib/util";
 
@@ -50,6 +50,17 @@ interface FromInit {
 	message: StructuredMessage;
 	sender: Prefix<BasicUser, "user">;
 	data?: Partial<PrivmsgMessage>;
+}
+
+export interface AutoModMetadata {
+	category: string;
+	level: number;
+
+	/**
+	 * The message content split into fragments, where the fragments caught by
+	 * AutoMod carry an `automod` property.
+	 */
+	fragments: AutoModFragment[];
 }
 
 /**

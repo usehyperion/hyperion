@@ -345,6 +345,7 @@ impl PubSubClient {
         let futures = topics
             .iter()
             .map(|topic| self.subscriptions.insert(channel, topic, topic.clone()));
+
         join_all(futures).await;
 
         tracing::trace!("Listening to {} topics", topics.len());
@@ -357,6 +358,7 @@ impl PubSubClient {
         let futures = topics
             .iter()
             .map(|topic| self.subscriptions.remove(channel, topic));
+
         let removed: Vec<String> = join_all(futures).await.into_iter().flatten().collect();
 
         for chunk in removed.chunks(MAX_TOPICS_PER_LISTEN) {

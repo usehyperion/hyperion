@@ -1,7 +1,7 @@
 <script lang="ts">
+	import type { AutoModMetadata } from "$lib/models/message/user-message.svelte";
 	import { UserMessage } from "$lib/models/message/user-message.svelte";
 	import { settings } from "$lib/settings";
-	import type { AutoModMetadata } from "$lib/twitch/eventsub";
 
 	import Button from "../ui/Button.svelte";
 	import Message from "./Message.svelte";
@@ -28,37 +28,29 @@
 				height="18"
 			/>
 
-			<span class="font-semibold text-twitch">AutoMod</span>:
-
-			{#if metadata.category === "msg_hold"}
-				Your message is being held for review by the moderators and has not been sent.
-			{:else}
-				Message held {metadata.category}
-				{Number.isNaN(metadata.level) ? null : `(Level ${metadata.level})`}
-			{/if}
+			<span class="font-semibold text-twitch">AutoMod</span>: Message held {metadata.category}
+			{Number.isNaN(metadata.level) ? null : `(Level ${metadata.level})`}
 		</div>
 
-		{#if metadata.category !== "msg_hold"}
-			<div class="flex gap-x-4">
-				<Button
-					class="text-green-400"
-					variant="inline"
-					disabled={message.deleted}
-					onclick={() => message.allow()}
-				>
-					Allow
-				</Button>
+		<div class="flex gap-x-4">
+			<Button
+				class="text-green-400"
+				variant="inline"
+				disabled={message.deleted}
+				onclick={() => message.allow()}
+			>
+				Allow
+			</Button>
 
-				<Button
-					class="text-destructive"
-					variant="inline"
-					disabled={message.deleted}
-					onclick={() => message.deny()}
-				>
-					Deny
-				</Button>
-			</div>
-		{/if}
+			<Button
+				class="text-destructive"
+				variant="inline"
+				disabled={message.deleted}
+				onclick={() => message.deny()}
+			>
+				Deny
+			</Button>
+		</div>
 	</div>
 
 	<Message {message} />

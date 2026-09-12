@@ -1,4 +1,3 @@
-import type { BanEvasionEvaluation } from "../twitch/eventsub";
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";
 
@@ -57,19 +56,18 @@ export class Viewer {
 	 * Whether the viewer's messages are being monitored. This is mutually
 	 * exclusive with `restricted`.
 	 */
-	public monitored = false;
+	public monitored = $state(false);
 
 	/**
 	 * Whether the viewer's messages are being restricted. This is mutually
 	 * exclusive with `monitored`.
 	 */
-	public restricted = false;
+	public restricted = $state(false);
 
 	/**
-	 * The likelihood that the viewer is ban evading if they are considered
-	 * {@link suspicious}.
+	 * Whether there's a possibility that the viewer is ban evading.
 	 */
-	public banEvasion: BanEvasionEvaluation = "unknown";
+	public possibleBanEvader = $state(false);
 
 	public constructor(
 		/**
@@ -93,7 +91,7 @@ export class Viewer {
 	 * evasion.
 	 */
 	public get suspicious() {
-		return this.monitored || this.restricted || this.banEvasion !== "unknown";
+		return this.monitored || this.restricted || this.possibleBanEvader;
 	}
 
 	public ban(reason?: string) {

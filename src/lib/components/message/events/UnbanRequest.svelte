@@ -1,13 +1,10 @@
 <script lang="ts">
 	import Username from "$lib/components/user/Username.svelte";
 	import type { Viewer } from "$lib/models/viewer.svelte";
-	import type {
-		ChannelUnbanRequestCreate,
-		ChannelUnbanRequestResolve,
-	} from "$lib/twitch/eventsub";
+	import type { UnbanRequestCreate, UnbanRequestUpdate } from "$lib/twitch/pubsub";
 
 	interface Props {
-		request: ChannelUnbanRequestCreate | ChannelUnbanRequestResolve;
+		request: UnbanRequestCreate | UnbanRequestUpdate;
 		viewer: Viewer;
 		moderator?: Viewer;
 	}
@@ -16,15 +13,17 @@
 </script>
 
 {#if "status" in request}
+	{@const status = request.status.toLowerCase()}
+
 	{#if !moderator}
-		<Username user={viewer.user} />'s unban request was {request.status}.
+		<Username user={viewer.user} />'s unban request was {status}.
 	{:else}
 		<Username user={moderator.user} />
-		{request.status}
-		<Username user={viewer.user} />'s unban request{request.resolution_text
-			? `: ${request.resolution_text}`
+		{status}
+		<Username user={viewer.user} />'s unban request{request.resolver_message
+			? `: ${request.resolver_message}`
 			: "."}
 	{/if}
 {:else}
-	<Username user={viewer.user} /> submitted an unban request: {request.text}
+	<Username user={viewer.user} /> submitted an unban request: {request.requester_message}
 {/if}

@@ -3,7 +3,6 @@ import { parse as parseTld } from "tldts";
 import { app } from "$lib/app.svelte";
 import type { Emote } from "$lib/emotes";
 import type { CheermoteTier } from "$lib/graphql/twitch";
-import type { Range } from "$lib/twitch/irc";
 
 import type { User } from "../user.svelte";
 import type { UserMessage } from "./user-message.svelte";
@@ -56,20 +55,34 @@ export type Node = TextNode | LinkNode | MentionNode | CheerNode | EmoteNode;
 
 export function parse(message: UserMessage): Node[] {
 	const ircEmotes = [...message.data.emotes];
-	const boundaries = translateBoundaries(message);
+
+	// AutoMod flags the caught fragments themselves; every other message is a
+	// single fragment spanning its whole text
+	const caught = message.autoMod?.fragments ?? [];
+	const fragments = caught.length > 0 ? caught : [{ text: message.text }];
 
 	const nodes: Node[] = [];
 
-	for (const match of message.text.matchAll(/\S+|\s+/g)) {
-		const base: BaseNode = {
-			start: match.index,
-			end: match.index + match[0].length,
-			value: match[0],
-			marked: isMarked(match.index, match.index + match[0].length, boundaries),
-		};
+	let offset = 0;
 
-		const node = classify(base, message, ircEmotes, boundaries);
-		if (node) nodes.push(node);
+	for (const fragment of fragments) {
+		const marked = fragment.automod !== undefined;
+
+		for (const match of fragment.text.matchAll(/\S+|\s+/g)) {
+			const start = offset + match.index;
+
+			const base: BaseNode = {
+				start,
+				end: start + match[0].length,
+				value: match[0],
+				marked,
+			};
+
+			const node = classify(base, message, ircEmotes);
+			if (node) nodes.push(node);
+		}
+
+		offset += fragment.text.length;
 	}
 
 	return fold(nodes);
@@ -79,7 +92,6 @@ function classify(
 	base: BaseNode,
 	message: UserMessage,
 	ircEmotes: UserMessage["data"]["emotes"],
-	boundaries: Range[],
 ): Node | null {
 	const part = base.value;
 
@@ -146,7 +158,7 @@ function classify(
 			start: ircEmote.range.start,
 			end: ircEmote.range.end,
 			value: ircEmote.code,
-			marked: base.marked || isMarked(ircEmote.range.start, ircEmote.range.end, boundaries),
+			marked: base.marked,
 			type: "emote",
 			data: {
 				emote: {
@@ -222,27 +234,4 @@ function precedingEmote(nodes: Node[]): EmoteNode | null {
 	}
 
 	return null;
-}
-
-function isMarked(start: number, end: number, boundaries: Range[]): boolean {
-	return boundaries.some((b) => end > b.start && start <= b.end);
-}
-
-function translateBoundaries(message: UserMessage): Range[] {
-	if (!message.autoMod?.boundaries) return [];
-
-	const map = [0];
-	let index = 0;
-
-	const segmenter = new Intl.Segmenter(navigator.language, { granularity: "grapheme" });
-
-	for (const data of segmenter.segment(message.text)) {
-		index += data.segment.length;
-		map.push(index);
-	}
-
-	return message.autoMod.boundaries.map((b) => ({
-		start: map[b.start_pos],
-		end: map[b.end_pos],
-	}));
 }

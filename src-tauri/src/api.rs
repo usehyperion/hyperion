@@ -1,18 +1,11 @@
 use anyhow::anyhow;
-use serde::Deserialize;
 use serde_json::json;
 use tauri::{State, async_runtime};
 use tokio::sync::Mutex;
 use tracing::Instrument;
-use twitch_api::eventsub::EventType;
 
 use crate::error::Error;
 use crate::{AppState, auth};
-
-#[derive(Debug, Deserialize)]
-pub struct Response<T> {
-    pub data: T,
-}
 
 #[tracing::instrument(skip(state, is_mod))]
 #[tauri::command]
@@ -26,7 +19,7 @@ pub async fn join(
 ) -> Result<(), Error> {
     tracing::info!("Joining {login}");
 
-    let (token, irc, eventsub, seventv, pubsub) = {
+    let (token, irc, seventv, pubsub) = {
         let state = state.lock().await;
         let token = auth::get_access_token(&state)?;
 
@@ -38,7 +31,6 @@ pub async fn join(
         (
             token.clone(),
             irc,
-            state.eventsub.clone(),
             state.seventv.clone(),
             state.pubsub.clone(),
         )
@@ -48,54 +40,6 @@ pub async fn join(
 
     async_runtime::spawn(
         async move {
-            if let Some(eventsub) = eventsub {
-                let ch_cond = json!({
-                    "broadcaster_user_id": id
-                });
-
-                let ch_with_user_cond = json!({
-                    "broadcaster_user_id": id,
-                    "user_id": token.user_id
-                });
-
-                let ch_with_mod_cond = json!({
-                    "broadcaster_user_id": id,
-                    "moderator_user_id": token.user_id
-                });
-
-                use EventType as Ev;
-
-                let base_events = [
-                    (Ev::ChannelChatUserMessageHold, &ch_with_user_cond),
-                    (Ev::ChannelChatUserMessageUpdate, &ch_with_user_cond),
-                    (Ev::ChannelSubscriptionEnd, &ch_cond),
-                    (Ev::ChannelUpdate, &ch_cond),
-                    (Ev::StreamOffline, &ch_cond),
-                    (Ev::StreamOnline, &ch_cond),
-                ];
-
-                let mod_events = [
-                    (Ev::AutomodMessageHold, &ch_with_mod_cond),
-                    (Ev::AutomodMessageUpdate, &ch_with_mod_cond),
-                    (Ev::ChannelModerate, &ch_with_mod_cond),
-                    (Ev::ChannelSuspiciousUserMessage, &ch_with_mod_cond),
-                    (Ev::ChannelSuspiciousUserUpdate, &ch_with_mod_cond),
-                    (Ev::ChannelUnbanRequestCreate, &ch_with_mod_cond),
-                    (Ev::ChannelUnbanRequestResolve, &ch_with_mod_cond),
-                    (Ev::ChannelWarningAcknowledge, &ch_with_mod_cond),
-                ];
-
-                let events: Vec<_> = base_events
-                    .iter()
-                    .chain(mod_events.iter().filter(|_| is_mod))
-                    .copied()
-                    .collect();
-
-                if let Err(err) = eventsub.subscribe_all(login_clone.as_str(), &events).await {
-                    tracing::error!(%err, "Failed to batch subscribe to EventSub events");
-                }
-            }
-
             if let Some(seventv) = seventv {
                 let channel_cond = json!({
                     "ctx": "channel",
@@ -125,12 +69,31 @@ pub async fn join(
             }
 
             if let Some(pubsub) = pubsub {
-                let topics = vec![
+                let user_id = token.user_id;
+
+                let base_topics = vec![
+                    format!("automod-queue.{}.{id}", user_id),
+                    format!("broadcast-settings-update.{id}"),
                     format!("community-points-channel-v1.{id}"),
                     format!("pinned-chat-updates-v1.{id}"),
                     format!("predictions-channel-v1.{id}"),
                     format!("polls.{id}"),
+                    format!("raid.{id}"),
+                    format!("video-playback-by-id.{id}"),
                 ];
+
+                let mut topics = base_topics;
+
+                if is_mod {
+                    let mod_topics = vec![
+                        format!("channel-unban-requests.{}.{id}", user_id),
+                        format!("chat_moderator_actions.{}.{id}", user_id),
+                        format!("low-trust-users.{}.{id}", user_id),
+                    ];
+
+                    topics.reserve(mod_topics.len());
+                    topics.extend(mod_topics);
+                }
 
                 pubsub.listen(&login_clone, &topics).await;
             }
@@ -148,10 +111,6 @@ pub async fn leave(state: State<'_, Mutex<AppState>>, channel: String) -> Result
     tracing::info!("Leaving {channel}");
 
     let state = state.lock().await;
-
-    if let Some(ref eventsub) = state.eventsub {
-        eventsub.unsubscribe_all(&channel).await?;
-    }
 
     if let Some(ref seventv) = state.seventv {
         seventv.unsubscribe_all(&channel).await;
@@ -172,22 +131,11 @@ pub async fn leave(state: State<'_, Mutex<AppState>>, channel: String) -> Result
 pub async fn rejoin(state: State<'_, Mutex<AppState>>, channel: String) -> Result<(), Error> {
     tracing::info!("Rejoining {channel}");
 
-    let (eventsub, pubsub, irc) = {
+    let (pubsub, irc) = {
         let state = state.lock().await;
 
-        (
-            state.eventsub.clone(),
-            state.pubsub.clone(),
-            state.irc.clone(),
-        )
+        (state.pubsub.clone(), state.irc.clone())
     };
-
-    if let Some(eventsub) = eventsub {
-        let subscriptions = eventsub.unsubscribe_all(&channel).await?;
-        let subs_ref: Vec<_> = subscriptions.iter().map(|(e, c)| (*e, c)).collect();
-
-        eventsub.subscribe_all(&channel, &subs_ref).await?;
-    }
 
     if let Some(pubsub) = pubsub {
         pubsub.relisten(&channel).await;
