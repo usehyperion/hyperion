@@ -219,6 +219,7 @@ impl PubSubClient {
         }
     }
 
+    #[tracing::instrument(skip_all)]
     async fn handle_message(&self, msg: Incoming) -> Action {
         match msg {
             Incoming::Pong => {

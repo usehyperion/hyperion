@@ -28,29 +28,37 @@
 				height="18"
 			/>
 
-			<span class="font-semibold text-twitch">AutoMod</span>: Message held {metadata.category}
-			{Number.isNaN(metadata.level) ? null : `(Level ${metadata.level})`}
+			<span class="font-semibold text-twitch">AutoMod</span>:
+
+			{#if metadata.category === "msg_hold"}
+				Your message is being held for review by the moderators and has not been sent.
+			{:else}
+				Message held {metadata.category}
+				{Number.isNaN(metadata.level) ? null : `(Level ${metadata.level})`}
+			{/if}
 		</div>
 
-		<div class="flex gap-x-4">
-			<Button
-				class="text-green-400"
-				variant="inline"
-				disabled={message.deleted}
-				onclick={() => message.allow()}
-			>
-				Allow
-			</Button>
+		{#if metadata.category !== "msg_hold"}
+			<div class="flex gap-x-4">
+				<Button
+					class="text-green-400"
+					variant="inline"
+					disabled={message.deleted}
+					onclick={() => message.allow()}
+				>
+					Allow
+				</Button>
 
-			<Button
-				class="text-destructive"
-				variant="inline"
-				disabled={message.deleted}
-				onclick={() => message.deny()}
-			>
-				Deny
-			</Button>
-		</div>
+				<Button
+					class="text-destructive"
+					variant="inline"
+					disabled={message.deleted}
+					onclick={() => message.deny()}
+				>
+					Deny
+				</Button>
+			</div>
+		{/if}
 	</div>
 
 	<Message {message} />
