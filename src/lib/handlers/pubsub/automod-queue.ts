@@ -1,3 +1,5 @@
+import { tick } from "svelte";
+
 import { app } from "$lib/app.svelte";
 import AutoMod from "$lib/components/message/events/AutoMod.svelte";
 import { UserMessage } from "$lib/models/message/user-message.svelte";
@@ -37,27 +39,6 @@ export default defineHandler({
 		const channel = app.channels.get(payload.target_id);
 		if (!channel) return;
 
-		// todo: not receiving events on this path
-		// Non-moderators only receive the message id and its status
-		if (!("message" in payload.data)) {
-			const { message_id, status } = payload.data;
-
-			if (status === "PENDING") {
-				channel.chat.notice(
-					"Your message is being held for review by the moderators and has not been sent.",
-				);
-
-				return;
-			}
-
-			const held = channel.chat.messages.find((m): m is UserMessage => m.id === message_id);
-			if (held) held.deleted = true;
-
-			channel.chat.notice(`A moderator ${status.toLowerCase()} your message.`);
-
-			return;
-		}
-
 		const { message, status, resolver_id } = payload.data;
 
 		if (status !== "PENDING") {
@@ -65,7 +46,9 @@ export default defineHandler({
 
 			if (held) {
 				held.deleted = true;
-				held.autoMod = null;
+				await tick();
+
+				if (status === "ALLOWED") channel.chat.repost(held);
 			}
 
 			const viewer = await channel.viewers.fetch(message.sender.user_id);
@@ -76,8 +59,6 @@ export default defineHandler({
 				viewer,
 				moderator,
 			});
-
-			// todo: find a way to repost to chat
 
 			return;
 		}

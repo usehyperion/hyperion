@@ -82,7 +82,12 @@ export interface CaughtMessageUpdate {
 
 export interface AutoModQueue {
 	type: "automod_caught_message";
-	data: AutoModCaughtMessage | CaughtMessageUpdate;
+	data: AutoModCaughtMessage;
+}
+
+export interface UserModerationNotifications {
+	type: "automod_caught_message";
+	data: CaughtMessageUpdate;
 }
 
 export interface BroadcastSettingsUpdate {
@@ -486,6 +491,7 @@ export interface PubSubTopicMap {
 	polls: Polls;
 	"predictions-user-v1": PredictionsUser;
 	raid: Raid;
+	"user-moderation-notifications": UserModerationNotifications;
 	"video-playback-by-id": VideoPlaybackById;
 }
 
