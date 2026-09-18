@@ -543,13 +543,15 @@ export const cancelRaidMutation = gql(`
 	}
 `);
 
-// export const clearChatMutation = gql(`
-// 	mutation ClearChat($channel: ID!) {
-// 		clearChat(input: { channelID: $channel }) {
-// 			__typename
-// 		}
-// 	}
-// `);
+export const createMarkerMutation = gql(`
+	mutation CreateMarker($input: CreateVideoBookmarkInput!) {
+		createVideoBookmark(input: $input) {
+			videoBookmark {
+				positionSeconds
+			}
+		}
+	}
+`);
 
 export const deleteMessageMutation = gql(`
 	mutation DeleteMessage($channel: ID!, $message: ID!) {

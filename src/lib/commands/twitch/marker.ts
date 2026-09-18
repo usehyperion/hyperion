@@ -23,8 +23,9 @@ export default defineCommand({
 		}
 
 		const marker = await channel.createMarker(description);
+		if (!marker) return;
 
-		const duration = dayjs.duration(marker.position_seconds, "s");
+		const duration = dayjs.duration(marker.positionSeconds, "s");
 		const format = duration.asHours() > 0 ? "H[h] mm[m] ss[s]" : "mm[m] ss[s]";
 
 		const echo = description ? `: ${description}` : "";
