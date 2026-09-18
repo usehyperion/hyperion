@@ -16,12 +16,12 @@ import {
 	startPredictionMutation,
 	blockTermMutation,
 	shoutoutMutation,
+	createMarkerMutation,
 } from "$lib/graphql/twitch";
 import { ChannelEmoteManager } from "$lib/managers/channel-emote-manager";
 import { fetch7tvId } from "$lib/seventv";
 import { storage } from "$lib/stores";
 
-import type { StreamMarker } from "../twitch/api";
 import type { TwitchClient } from "../twitch/client";
 import type { User } from "./user.svelte";
 
@@ -331,14 +331,16 @@ export class Channel {
 	}
 
 	public async createMarker(description?: string) {
-		const { data } = await this.client.post<StreamMarker>("/streams/markers", {
-			body: {
-				user_id: this.id,
+		const { createVideoBookmark } = await this.client.gql(createMarkerMutation, {
+			input: {
+				channelID: this.id,
 				description,
+				medium: "chat",
+				platform: "web",
 			},
 		});
 
-		return data;
+		return createVideoBookmark?.videoBookmark ?? null;
 	}
 
 	/**

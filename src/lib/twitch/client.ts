@@ -17,12 +17,6 @@ import type { Session } from "./session";
 type QueryValue = string | number | boolean | null | undefined;
 type QueryParams = Record<string, QueryValue | QueryValue[]>;
 
-interface FetchOptions {
-	params?: QueryParams;
-	body?: Record<string, unknown>;
-	timeout?: number;
-}
-
 interface PageVariables {
 	after?: string | null;
 }
@@ -130,11 +124,6 @@ export class TwitchClient {
 		await Promise.all(streams.map((s) => s.fetchGuests()));
 
 		return streams;
-	}
-
-	/** @deprecated REST call — migrate to a GraphQL mutation. */
-	public post<T>(_path: `/${string}`, _options?: FetchOptions): Promise<HelixResponse<T>> {
-		throw new Error("replace me");
 	}
 
 	/** @deprecated REST call — migrate to a GraphQL mutation. */
