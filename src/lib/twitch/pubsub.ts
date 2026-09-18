@@ -280,7 +280,6 @@ export type ChannelTermAction =
 	| "delete_blocked_term"
 	| "delete_permitted_term";
 
-/** A single blocked or permitted term, unlike EventSub which batches them. */
 export interface ChannelTerm {
 	type: ChannelTermAction;
 	id: string;

@@ -166,7 +166,7 @@ export class UserMessage extends TextualMessage {
 	}
 
 	/**
-	 * Creates a user message from a message received over EventSub.
+	 * Creates a user message from a structured message.
 	 */
 	public static from(channel: Channel, init: FromInit) {
 		const isAction = /^\x01ACTION.*$/.test(init.message.text);
