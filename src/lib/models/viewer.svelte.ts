@@ -97,7 +97,7 @@ export class Viewer {
 	}
 
 	public ban(reason?: string) {
-		return this.channel.viewers.ban(this.id, reason);
+		return this.channel.viewers.ban(this.username, reason);
 	}
 
 	public timeout(options: TimeoutOptions) {
@@ -105,6 +105,6 @@ export class Viewer {
 	}
 
 	public warn(reason: string) {
-		return this.channel.viewers.warn(this.id, reason);
+		return this.channel.viewers.warn(this.username, reason);
 	}
 }

@@ -1,5 +1,10 @@
 import { app } from "$lib/app.svelte";
-import { pinnedMessageQuery, toStructuredMessage } from "$lib/graphql/twitch";
+import {
+	pinnedMessageQuery,
+	toStructuredMessage,
+	unpinMessageMutation,
+	updatePinnedMessageMutation,
+} from "$lib/graphql/twitch";
 
 import type { Chat } from "./chat.svelte";
 import type { User } from "./user.svelte";
@@ -103,13 +108,9 @@ export class Pin {
 	public async update(duration: number | null) {
 		if (!app.user || !this.#chat.channel.isMod) return;
 
-		await this.#chat.channel.client.patch("/chat/pins", {
-			params: {
-				broadcaster_id: this.#chat.channel.id,
-				moderator_id: app.user.id,
-				message_id: this.message.id,
-				...(duration !== null && { duration_seconds: duration }),
-			},
+		await this.#chat.channel.client.gql(updatePinnedMessageMutation, {
+			message: this.message.id,
+			duration,
 		});
 
 		await this.#chat.fetchPinned();
@@ -121,10 +122,8 @@ export class Pin {
 	public async unpin() {
 		if (!app.user || !this.#chat.channel.isMod) return;
 
-		await this.#chat.channel.client.delete("/chat/pins", {
-			broadcaster_id: this.#chat.channel.id,
-			moderator_id: app.user.id,
-			message_id: this.message.id,
+		await this.#chat.channel.client.gql(unpinMessageMutation, {
+			message: this.message.id,
 		});
 
 		this.#chat.clearPin(this);

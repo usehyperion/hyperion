@@ -2,10 +2,18 @@ import type { Component, ComponentProps } from "svelte";
 
 import { app } from "$lib/app.svelte";
 import type { Command } from "$lib/commands";
+import {
+	pinMessageMutation,
+	sendAnnouncementMutation,
+	sendMessageMutation,
+	sendPinnedMessageMutation,
+	shieldModeMutation,
+	updateChatSettingsMutation,
+	updateChatSubOnlyMode,
+} from "$lib/graphql/twitch";
 import { log } from "$lib/log";
 import { settings } from "$lib/settings";
 import { sendPresence } from "$lib/seventv";
-import type { SentMessage } from "$lib/twitch/api";
 
 import type { Channel } from "./channel.svelte";
 import type { Message } from "./message/message";
@@ -200,26 +208,18 @@ export class Chat {
 	public async announce(message: string) {
 		if (!app.user || !this.channel.isMod) return;
 
-		await this.channel.client.post("/chat/announcements", {
-			params: {
-				broadcaster_id: this.channel.id,
-				moderator_id: app.user.id,
-			},
-			body: {
-				message,
-			},
+		await this.channel.client.gql(sendAnnouncementMutation, {
+			channel: this.channel.id,
+			message,
 		});
 	}
 
 	public async pin(id: string) {
 		if (!app.user || !this.channel.isMod) return;
 
-		await this.channel.client.put("/chat/pins", {
-			params: {
-				broadcaster_id: this.channel.id,
-				moderator_id: app.user.id,
-				message_id: id,
-			},
+		await this.channel.client.gql(pinMessageMutation, {
+			channel: this.channel.id,
+			message: id,
 		});
 	}
 
@@ -240,19 +240,23 @@ export class Chat {
 	public async setShieldMode(active = true) {
 		if (!app.user || !this.channel.isMod) return;
 
-		await this.channel.client.put("/moderation/shield_mode", {
-			params: {
-				broadcaster_id: this.channel.id,
-				moderator_id: app.user.id,
-			},
-			body: {
-				is_active: active,
-			},
+		await this.channel.client.gql(shieldModeMutation, {
+			channel: this.channel.id,
+			mode: active ? "SHIELD" : "DEFAULT",
 		});
 	}
 
 	public async updateSettings(settings: ChatSettings) {
 		if (!app.user || !this.channel.isMod) return;
+
+		if (typeof settings.subOnly === "boolean") {
+			await this.channel.client.gql(updateChatSubOnlyMode, {
+				channel: this.channel.id,
+				subOnly: settings.subOnly,
+			});
+
+			return;
+		}
 
 		const followDuration =
 			typeof this.mode.followerOnly === "number" ? this.mode.followerOnly : 0;
@@ -260,19 +264,15 @@ export class Chat {
 		const slowDuration = settings.slow ?? this.mode.slow;
 		const isSlow = typeof slowDuration === "number" && slowDuration > 0;
 
-		await this.channel.client.patch("/chat/settings", {
-			params: {
-				broadcaster_id: this.channel.id,
-				moderator_id: app.user.id,
-			},
-			body: {
-				subscriber_mode: settings.subOnly ?? this.mode.subOnly,
-				follower_mode: settings.followerOnly ?? this.mode.followerOnly !== false,
-				follower_mode_duration: settings.followerOnlyDuration ?? followDuration,
-				slow_mode: isSlow,
-				slow_mode_wait_time: isSlow ? slowDuration : 3,
-				unique_chat_mode: settings.unique ?? this.mode.unique,
-				emote_mode: settings.emoteOnly ?? this.mode.emoteOnly,
+		await this.channel.client.gql(updateChatSettingsMutation, {
+			input: {
+				channelID: this.channel.id,
+				followersOnlyDurationMinutes: settings.followerOnly
+					? (settings.followerOnlyDuration ?? followDuration)
+					: -1,
+				slowModeDurationSeconds: isSlow ? slowDuration : 0,
+				isEmoteOnlyModeEnabled: settings.emoteOnly ?? this.mode.emoteOnly,
+				isUniqueChatModeEnabled: settings.unique ?? this.mode.unique,
 			},
 		});
 	}
@@ -327,23 +327,30 @@ export class Chat {
 		const replyId = this.replyTarget?.id;
 		this.replyTarget = null;
 
-		const {
-			data: [data],
-		} = await this.channel.client.post<[SentMessage]>("/chat/messages", {
-			body: {
-				broadcaster_id: this.channel.id,
-				sender_id: viewer.id,
-				reply_parent_message_id: replyId,
+		if (options?.pin) {
+			await this.channel.client.gql(sendPinnedMessageMutation, {
+				channel: this.channel.id,
 				message,
-				pin: options?.pin ?? false,
+			});
+
+			await sendPresence(this.channel.id);
+			return;
+		}
+
+		const { sent } = await this.channel.client.gql(sendMessageMutation, {
+			input: {
+				channelID: this.channel.id,
+				replyParentMessageID: replyId,
+				message,
+				nonce: crypto.randomUUID(),
 			},
 		});
 
-		if (data.is_sent) {
+		if (sent?.message) {
 			log.info("Message sent");
 			await sendPresence(this.channel.id);
-		} else if (data.drop_reason) {
-			const reason = data.drop_reason.message;
+		} else if (sent?.dropReason) {
+			const reason = sent.dropReason;
 
 			log.warn(`Message dropped: ${reason}`);
 			this.notice(reason);

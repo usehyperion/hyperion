@@ -11,6 +11,7 @@ const gql = initGraphQLTada<{
 	introspection: import("./twitch-env").introspection;
 	scalars: {
 		Time: string;
+		Cursor: string;
 	};
 }>();
 
@@ -174,6 +175,50 @@ export const clipQuery = gql(`
 	}
 `);
 
+export const emoteSetsQuery = gql(`
+	query GetEmoteSets($id: ID!) {
+		user(id: $id) {
+			emoteSets {
+				id
+				owner {
+					id
+					displayName
+					avatarUrl: profileImageURL(width: 300)
+				}
+				emotes {
+					id
+					text
+				}
+			}
+		}
+	}
+`);
+
+export const followsQuery = gql(
+	`query GetFollows($id: ID!, $after: Cursor) {
+		user(id: $id) {
+			follows(first: 100, after: $after) {
+				edges {
+					node {
+						...UserDetails
+						channel {
+							...GuestStarDetails
+						}
+						stream {
+							...StreamDetails
+						}
+					}
+					cursor
+				}
+				pageInfo {
+					hasNextPage
+				}
+			}
+		}
+	}`,
+	[userDetailsFragment, guestStarDetailsFragment, streamDetailsFragment],
+);
+
 export const foundersQuery = gql(`
 	query GetFounders($id: ID!) {
 		user(id: $id) {
@@ -205,6 +250,18 @@ export const guestsQuery = gql(
 	}`,
 	[guestStarDetailsFragment],
 );
+
+export const moderatesQuery = gql(`
+	query GetModerates($after: Cursor) {
+		moderatedChannels(first: 100, after: $after) {
+			edges {
+				node {
+					id
+				}
+			}
+		}
+	}
+`);
 
 export const modsQuery = gql(`
 	query GetMods($id: ID!) {
@@ -304,8 +361,7 @@ export const pollQuery = gql(`
 `);
 
 export const predictionQuery = gql(
-	`
-	query GetPrediction($id: ID!) {
+	`query GetPrediction($id: ID!) {
 		channel(id: $id) {
 			active: activePredictionEvents {
 				...PredictionDetails
@@ -314,8 +370,7 @@ export const predictionQuery = gql(
 				...PredictionDetails
 			}
 		}
-	}
-`,
+	}`,
 	[predictionDetailsFragment],
 );
 
@@ -348,6 +403,18 @@ export const searchSuggestionsQuery = gql(`
 export const streamQuery = gql(
 	`query GetStream($id: ID!) {
 		user(id: $id) {
+			stream {
+				...StreamDetails
+			}
+		}
+	}`,
+	[streamDetailsFragment],
+);
+
+export const streamsQuery = gql(
+	`query GetStreams($ids: [ID!]!) {
+		users(ids: $ids) {
+			id
 			stream {
 				...StreamDetails
 			}
@@ -414,6 +481,294 @@ export const vipsQuery = gql(`
 	}
 `);
 
+// Mutations
+
+export const allowHeldMessageMutation = gql(`
+	mutation AllowHeldMessage($message: ID!) {
+		heldMessage: allowRejectedChatMessage(input: { id: $message }) {
+			message {
+				id
+			}
+		}
+	}
+`);
+
+export const banUserMutation = gql(`
+	mutation BanUser($channel: ID!, $target: String!, $duration: String, $reason: String) {
+		banUserFromChatRoom(input: {
+			channelID: $channel,
+			bannedUserLogin: $target,
+			expiresIn: $duration,
+			reason: $reason
+		}) {
+			__typename
+		}
+	}
+`);
+
+export const blockTermMutation = gql(`
+	mutation BlockTerm($channel: ID!, $term: String!) {
+		addChannelBlockedTerm(input: {
+			channelID: $channel,
+			phrase: $term,
+			phrases: [$term],
+			isModEditable: true
+		}) {
+			__typename
+		}
+	}
+`);
+
+export const blockUserMutation = gql(`
+	mutation BlockUser($target: ID!) {
+		blockUser(input: { targetUserID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const cancelPredictionMutation = gql(`
+	mutation CancelPrediction($prediction: ID!) {
+		cancelPredictionEvent(input: { id: $prediction }) {
+			__typename
+		}
+	}
+`);
+
+export const cancelRaidMutation = gql(`
+	mutation CancelRaid($channel: ID!) {
+		cancelRaid(input: { sourceID: $channel }) {
+			__typename
+		}
+	}
+`);
+
+export const createMarkerMutation = gql(`
+	mutation CreateMarker($input: CreateVideoBookmarkInput!) {
+		createVideoBookmark(input: $input) {
+			videoBookmark {
+				positionSeconds
+			}
+		}
+	}
+`);
+
+export const deleteMessageMutation = gql(`
+	mutation DeleteMessage($channel: ID!, $message: ID!) {
+		deleteChatMessage(input: { channelID: $channel, messageID: $message }) {
+			__typename
+		}
+	}
+`);
+
+export const denyHeldMessageMutation = gql(`
+	mutation DenyHeldMessage($message: ID!) {
+		heldMessage: denyRejectedChatMessage(input: { id: $message }) {
+			message {
+				id
+			}
+		}
+	}
+`);
+
+export const grantVipMutation = gql(`
+	mutation GrantVIP($channel: ID!, $target: ID!) {
+		grantVIP(input: { channelID: $channel, granteeID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const lockPredictionMutation = gql(`
+	mutation LockPrediction($prediction: ID!) {
+		lockPredictionEvent(input: { id: $prediction }) {
+			__typename
+		}
+	}
+`);
+
+export const modUserMutation = gql(`
+	mutation ModUser($channel: ID!, $target: ID!) {
+		modUser(input: { channelID: $channel, targetID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const pinMessageMutation = gql(`
+	mutation PinMessage($channel: ID!, $message: ID!, $duration: Int = 1200) {
+		pinChatMessage(input: { channelID: $channel, messageID: $message, durationSeconds: $duration, type: MOD }) {
+			__typename
+		}
+	}
+`);
+
+export const resolvePredictionMutation = gql(`
+	mutation ResolvePrediction($prediction: ID!, $outcome: ID!) {
+		resolvePredictionEvent(input: { eventID: $prediction, outcomeID: $outcome }) {
+			__typename
+		}
+	}
+`);
+
+export const revokeVipMutation = gql(`
+	mutation RevokeVIP($channel: ID!, $target: ID!) {
+		revokeVIP(input: { channelID: $channel, revokeeID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const sendAnnouncementMutation = gql(`
+	mutation SendAnnouncement($channel: ID!, $message: String!) {
+		sendAnnouncementMessage(input: { channelID: $channel, message: $message, color: PRIMARY }) {
+			__typename
+		}
+	}
+`);
+
+export const sendMessageMutation = gql(`
+	mutation SendMessage($input: SendChatMessageInput!) {
+		sent: sendChatMessage(input: $input) {
+			dropReason
+			message {
+				id
+			}
+		}
+	}
+`);
+
+export const sendPinnedMessageMutation = gql(`
+	mutation SendPinnedMessage($channel: ID!, $message: String!) {
+		sendPinnedChatMessage(input: { channelID: $channel, messageText: $message }) {
+			__typename
+		}
+	}
+`);
+
+export const sendWhisperMutation = gql(`
+	mutation SendWhisper($input: SendWhisperInput!) {
+		sendWhisper(input: $input) {
+			__typename
+		}
+	}
+`);
+
+export const shieldModeMutation = gql(`
+	mutation SetShieldMode($channel: ID!, $mode: ShieldModeStatus!) {
+		setChannelShieldModeStatus(input: { channelID: $channel, shieldModeStatus: $mode }) {
+			__typename
+		}
+	}
+`);
+
+export const shoutoutMutation = gql(`
+	mutation Shoutout($source: String!, $target: String!) {
+		createShoutout(input: { channelLogin: $source, callerLogin: $source, targetLogin: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const startPollMutation = gql(`
+	mutation StartPoll($input: CreatePollInput!) {
+		createPoll(input: $input) {
+			__typename
+		}
+	}
+`);
+
+export const startPredictionMutation = gql(`
+	mutation StartPrediction($input: CreatePredictionEventInput!) {
+		createPredictionEvent(input: $input) {
+			__typename
+		}
+	}
+`);
+
+export const startRaidMutation = gql(`
+	mutation StartRaid($source: ID!, $target: ID!) {
+		createRaid(input: { sourceID: $source, targetID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const terminatePollMutation = gql(`
+	mutation TerminatePoll($poll: ID!) {
+		terminatePoll(input: { pollID: $poll }) {
+			__typename
+		}
+	}
+`);
+
+export const unbanUserMutation = gql(`
+	mutation UnbanUser($channel: ID!, $target: String!) {
+		unbanUserFromChatRoom(input: {
+			channelID: $channel,
+			bannedUserLogin: $target
+		}) {
+			__typename
+		}
+	}
+`);
+
+export const unblockUserMutation = gql(`
+	mutation UnblockUser($target: ID!) {
+		unblockUser(input: { targetUserID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const unmodUserMutation = gql(`
+	mutation UnmodUser($channel: ID!, $target: ID!) {
+		unmodUser(input: { channelID: $channel, targetID: $target }) {
+			__typename
+		}
+	}
+`);
+
+export const unpinMessageMutation = gql(`
+	mutation UnpinMessage($message: ID!) {
+		unpinChatMessage(input: { id: $message, reason: UNPIN }) {
+			__typename
+		}
+	}
+`);
+
+export const updateChatSettingsMutation = gql(`
+	mutation UpdateChatSettings($input: UpdateChatSettingsInput!) {
+		updateChatSettings(input: $input) {
+			__typename
+		}
+	}
+`);
+
+export const updateChatSubOnlyMode = gql(`
+	mutation UpdateChatSubOnlyMode($channel: ID!, $subOnly: Boolean!) {
+		updateSubscriptionProduct(input: { id: $channel, targetUserID: $channel, hasSubOnlyChat: $subOnly }) {
+			__typename
+		}
+	}
+`);
+
+export const updatePinnedMessageMutation = gql(`
+	mutation UpdatePinnedMessage($message: ID!, $duration: Int) {
+		updatePinnedChatMessage(input: { id: $message, durationSeconds: $duration }) {
+			__typename
+		}
+	}
+`);
+
+export const warnUserMutation = gql(`
+	mutation WarnUser($channel: ID!, $target: String!, $reason: String!) {
+		warnUserInChatRoom(input: { channelID: $channel, targetUserLogin: $target, reason: $reason, chatRulesCited: [""] }) {
+			__typename
+		}
+	}
+`);
+
 // Types
 
 export type Badge = FragmentOf<typeof badgeDetailsFragment>;
@@ -440,6 +795,10 @@ type PinnedMessage = NonNullableDeep<
 type Poll = NonNullableDeep<ResultOf<typeof pollQuery>, "user.viewablePoll">;
 
 type Prediction = FragmentOf<typeof predictionDetailsFragment>;
+
+export type PredictionOutcome = ReturnType<
+	typeof gql.scalar<"CreatePredictionEventInput">
+>["outcomes"][number];
 
 // Transformers
 

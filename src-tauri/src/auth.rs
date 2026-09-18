@@ -15,7 +15,7 @@ use crate::AppState;
 use crate::error::Error;
 
 const KEYRING_SERVICE: &str = "com.hyperion.chat";
-const KEYRING_USER: &str = "access-token";
+const KEYRING_USER: &str = "session";
 
 const LOGIN_WINDOW_LABEL: &str = "twitch-login";
 const INTEGRITY_WINDOW_LABEL: &str = "twitch-integrity";
@@ -394,7 +394,7 @@ pub async fn store_token(
 }
 
 #[tauri::command]
-pub async fn clear_token(state: State<'_, Mutex<AppState>>) -> Result<(), Error> {
+pub async fn clear_session(state: State<'_, Mutex<AppState>>) -> Result<(), Error> {
     let mut state = state.lock().await;
 
     state.token = None;
@@ -407,13 +407,13 @@ pub async fn clear_token(state: State<'_, Mutex<AppState>>) -> Result<(), Error>
 }
 
 #[tauri::command]
-pub async fn get_token(state: State<'_, Mutex<AppState>>) -> Result<Option<String>, Error> {
+pub async fn get_auth(state: State<'_, Mutex<AppState>>) -> Result<Option<TwitchAuth>, Error> {
     let state = state.lock().await;
 
-    Ok(state
-        .token
-        .as_ref()
-        .map(|token| token.access_token.as_str().to_string()))
+    Ok(state.token.as_ref().map(|token| TwitchAuth {
+        access_token: token.access_token.as_str().to_string(),
+        integrity: state.integrity.clone(),
+    }))
 }
 
 #[tauri::command]

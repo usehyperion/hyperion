@@ -58,10 +58,10 @@
 		if (choices.length > MIN_CHOICES) choices.splice(index, 1);
 	}
 
-	async function create() {
+	async function start() {
 		if (!canSubmit) return;
 
-		await channel.createPoll({
+		await channel.startPoll({
 			title: title.trim(),
 			choices: validChoices,
 			duration,
@@ -153,6 +153,6 @@
 	{/if}
 
 	{#snippet footer()}
-		<Button disabled={!canSubmit} onclickwait={create}>Create poll</Button>
+		<Button disabled={!canSubmit} onclickwait={start}>Start poll</Button>
 	{/snippet}
 </Dialog>

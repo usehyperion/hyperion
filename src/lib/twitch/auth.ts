@@ -7,31 +7,17 @@ import { app } from "$lib/app.svelte";
 import { log } from "$lib/log";
 import { CurrentUser } from "$lib/models/current-user.svelte";
 import { storage } from "$lib/stores";
+import { Session, type Credentials } from "$lib/twitch/session";
 
 interface AuthUser {
 	id: string;
 	login: string;
 }
 
-export interface Integrity {
-	token: string;
-	deviceId: string;
-	expiration: number;
-}
+export async function completeLogin(credentials: Credentials) {
+	const account = await invoke<AuthUser>("store_token", { auth: credentials });
 
-export interface TwitchAuth {
-	accessToken: string;
-	integrity: Integrity | null;
-}
-
-export function getIntegrity() {
-	return invoke<Integrity | null>("get_integrity");
-}
-
-export async function completeLogin(auth: TwitchAuth) {
-	const account = await invoke<AuthUser>("store_token", { auth });
-
-	app.twitch.token = auth.accessToken;
+	app.twitch.session = new Session(credentials);
 
 	const user = await app.twitch.users.fetch(account.id);
 	storage.state.user = user.data;
@@ -46,26 +32,26 @@ export async function completeLogin(auth: TwitchAuth) {
 }
 
 export async function logOut() {
-	const token = app.twitch.token;
+	const accessToken = app.twitch.session?.accessToken;
 
 	storage.state.user = null;
 
 	app.user = null;
 	app.focused = null;
-	app.twitch.token = null;
+	app.twitch.session = null;
 
 	await tick();
 	await storage.saveNow();
 
-	// Drop the keyring entry too, otherwise the next start up restores the token
-	// and logs straight back in.
-	await invoke("clear_token");
+	// Drop the keyring entry too, otherwise the next start up restores the
+	// session and logs straight back in.
+	await invoke("clear_session");
 
-	if (token) {
+	if (accessToken) {
 		await fetch("https://usehyperion.app/api/auth/twitch/revoke", {
 			method: "POST",
 			headers: {
-				Authorization: token,
+				Authorization: accessToken,
 			},
 		});
 	}

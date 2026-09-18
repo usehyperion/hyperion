@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import * as cache from "tauri-plugin-cache-api";
 
-import type { Cheermote } from "$lib/graphql/twitch";
+import type { Cheermote, PredictionOutcome } from "$lib/graphql/twitch";
 import {
 	channelBadgesQuery,
 	cheermoteQuery,
@@ -10,12 +10,18 @@ import {
 	streamQuery,
 	toPubSubPoll,
 	toPubSubPrediction,
+	cancelRaidMutation,
+	startRaidMutation,
+	startPollMutation,
+	startPredictionMutation,
+	blockTermMutation,
+	shoutoutMutation,
+	createMarkerMutation,
 } from "$lib/graphql/twitch";
 import { ChannelEmoteManager } from "$lib/managers/channel-emote-manager";
 import { fetch7tvId } from "$lib/seventv";
 import { storage } from "$lib/stores";
 
-import type { StreamMarker } from "../twitch/api";
 import type { TwitchClient } from "../twitch/client";
 import type { User } from "./user.svelte";
 
@@ -325,48 +331,62 @@ export class Channel {
 	}
 
 	public async createMarker(description?: string) {
-		const { data } = await this.client.post<StreamMarker>("/streams/markers", {
-			body: {
-				user_id: this.id,
+		const { createVideoBookmark } = await this.client.gql(createMarkerMutation, {
+			input: {
+				channelID: this.id,
 				description,
+				medium: "chat",
+				platform: "web",
 			},
 		});
 
-		return data;
+		return createVideoBookmark?.videoBookmark ?? null;
 	}
 
 	/**
-	 * Creates a new poll in the channel.
+	 * Starts a new poll in the channel.
 	 */
-	public async createPoll(options: PollOptions) {
+	public async startPoll(options: PollOptions) {
 		if (!this.isMod) return;
 
-		await this.client.post("/polls", {
-			body: {
-				broadcaster_id: this.id,
+		await this.client.gql(startPollMutation, {
+			input: {
+				ownedBy: this.id,
 				title: options.title,
 				choices: options.choices.map((title) => ({ title })),
-				duration: options.duration,
+				durationSeconds: options.duration,
 				...(options.channelPointsPerVote && {
-					channel_points_voting_enabled: true,
-					channel_points_per_vote: options.channelPointsPerVote,
+					channelPointsVotingEnabled: true,
+					channelPointsPerVote: options.channelPointsPerVote,
 				}),
 			},
 		});
 	}
 
 	/**
-	 * Creates a new prediction in the channel.
+	 * Starts a new prediction in the channel.
 	 */
-	public async createPrediction(options: PredictionOptions) {
+	public async startPrediction(options: PredictionOptions) {
 		if (!this.isMod) return;
 
-		await this.client.post("/predictions", {
-			body: {
-				broadcaster_id: this.id,
+		let outcomes: PredictionOutcome[] = [];
+
+		if (options.outcomes.length === 2) {
+			// GraphQL requires the two outcomes have the correct colors
+			outcomes = [
+				{ title: options.outcomes[0], color: "BLUE" },
+				{ title: options.outcomes[1], color: "PINK" },
+			];
+		} else {
+			outcomes = options.outcomes.map((title) => ({ title, color: "BLUE" }));
+		}
+
+		await this.client.gql(startPredictionMutation, {
+			input: {
+				channelID: this.id,
 				title: options.title,
-				outcomes: options.outcomes.map((title) => ({ title })),
-				prediction_window: options.window,
+				outcomes,
+				predictionWindowSeconds: options.window,
 			},
 		});
 	}
@@ -374,43 +394,33 @@ export class Channel {
 	public async blockTerm(term: string) {
 		if (!app.user || !this.isMod) return;
 
-		await this.client.post("/moderation/blocked_terms", {
-			params: {
-				broadcaster_id: this.id,
-				moderator_id: app.user.id,
-			},
-			body: {
-				text: term,
-			},
+		await this.client.gql(blockTermMutation, {
+			channel: this.id,
+			term,
 		});
 	}
 
-	public async raid(to: string) {
+	public async startRaid(to: string) {
 		if (!this.isMod) return;
 
-		await this.client.post("/raids", {
-			params: {
-				from_broadcaster_id: this.id,
-				to_broadcaster_id: to,
-			},
+		await this.client.gql(startRaidMutation, {
+			source: this.id,
+			target: to,
 		});
 	}
 
-	public async unraid() {
+	public async cancelRaid() {
 		if (!this.isMod) return;
 
-		await this.client.delete("/raids", { broadcaster_id: this.id });
+		await this.client.gql(cancelRaidMutation, { channel: this.id });
 	}
 
 	public async shoutout(to: string) {
 		if (!app.user || !this.isMod) return;
 
-		await this.client.post("/chat/shoutouts", {
-			params: {
-				from_broadcaster_id: this.id,
-				to_broadcaster_id: to,
-				moderator_id: app.user.id,
-			},
+		await this.client.gql(shoutoutMutation, {
+			source: this.user.username,
+			target: to,
 		});
 	}
 }

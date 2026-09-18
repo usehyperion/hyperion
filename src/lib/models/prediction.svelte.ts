@@ -1,3 +1,8 @@
+import {
+	cancelPredictionMutation,
+	lockPredictionMutation,
+	resolvePredictionMutation,
+} from "$lib/graphql/twitch";
 import type { Prediction as ApiPrediction, PredictionStatus } from "$lib/twitch/pubsub";
 
 import type { Channel } from "./channel.svelte";
@@ -120,12 +125,8 @@ export class Prediction {
 	public async lock() {
 		if (!this.channel.isMod || this.status !== "ACTIVE") return;
 
-		await this.channel.client.patch("/predictions", {
-			body: {
-				broadcaster_id: this.channel.id,
-				id: this.id,
-				status: "LOCKED",
-			},
+		await this.channel.client.gql(lockPredictionMutation, {
+			prediction: this.id,
 		});
 	}
 
@@ -136,13 +137,9 @@ export class Prediction {
 		if (!this.channel.isMod) return;
 		if (this.status !== "ACTIVE" && this.status !== "LOCKED") return;
 
-		await this.channel.client.patch("/predictions", {
-			body: {
-				broadcaster_id: this.channel.id,
-				id: this.id,
-				status: "RESOLVED",
-				winning_outcome_id: outcomeId,
-			},
+		await this.channel.client.gql(resolvePredictionMutation, {
+			prediction: this.id,
+			outcome: outcomeId,
 		});
 	}
 
@@ -153,12 +150,8 @@ export class Prediction {
 		if (!this.channel.isMod) return;
 		if (this.status !== "ACTIVE" && this.status !== "LOCKED") return;
 
-		await this.channel.client.patch("/predictions", {
-			body: {
-				broadcaster_id: this.channel.id,
-				id: this.id,
-				status: "CANCELED",
-			},
+		await this.channel.client.gql(cancelPredictionMutation, {
+			prediction: this.id,
 		});
 	}
 
