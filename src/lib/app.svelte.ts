@@ -9,7 +9,6 @@ import type { Channel } from "./models/channel.svelte";
 import type { CurrentUser } from "./models/current-user.svelte";
 import type { DispatchPayload, Paint } from "./seventv";
 import type { Theme } from "./themes";
-import type { NotificationPayload } from "./twitch/eventsub";
 import type { IrcMessage } from "./twitch/irc";
 import type { PubSubTopic } from "./twitch/pubsub";
 
@@ -111,14 +110,13 @@ class App {
 			await this.#handle(message.type, message);
 		});
 
-		const eventsubChannel = new IpcChannel<NotificationPayload>(async (message) => {
-			await this.#handle(message.subscription.type, message.event);
-		});
-
 		const pubsubChannel = new IpcChannel<PubSubTopic>(async (message) => {
-			const [topic, id] = message.topic.split(".");
+			const segments = message.topic.split(".");
 
-			await this.#handle(topic, { ...message.message, target_id: id });
+			await this.#handle(segments[0].replaceAll("_", "-"), {
+				...message.message,
+				target_id: segments.at(-1),
+			});
 		});
 
 		const seventvChannel = new IpcChannel<DispatchPayload>(async (message) => {
@@ -130,7 +128,6 @@ class App {
 
 		await Promise.all([
 			invoke("connect_irc", { channel: ircChannel }),
-			invoke("connect_eventsub", { channel: eventsubChannel }),
 			invoke("connect_pubsub", { channel: pubsubChannel }),
 			invoke("connect_seventv", { channel: seventvChannel }),
 		]);

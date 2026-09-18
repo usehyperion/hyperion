@@ -49,15 +49,9 @@
 	function getSuspicionInfo() {
 		if (!message.viewer?.suspicious) return;
 
-		const likelihood = message.viewer.banEvasion;
-
 		if (message.viewer.monitored) return "Monitoring";
 		if (message.viewer.restricted) return "Restricted";
-
-		if (likelihood !== "unknown") {
-			const status = likelihood[0].toUpperCase() + likelihood.slice(1);
-			return `${status} Ban Evader`;
-		}
+		if (message.viewer.possibleBanEvader) return "Possible Ban Evader";
 	}
 
 	function getMentionStyle(viewer?: Viewer) {

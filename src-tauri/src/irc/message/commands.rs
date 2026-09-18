@@ -390,7 +390,7 @@ impl TryFrom<IrcMessage> for PrivmsgMessage {
             is_mod: raw.try_get_bool("mod")?,
             is_subscriber: raw.try_get_bool("subscriber")?,
             custom_reward_id: raw
-                .try_get_optional_nonempty_tag_value("custom-reward-id")?
+                .get_optional_nonempty_tag_value("custom-reward-id")
                 .map(|s| s.to_owned()),
             deleted: raw.try_get_optional_bool("rm-deleted")?.unwrap_or_default(),
             is_recent: raw.try_get_optional_bool("historical")?.unwrap_or_default(),
@@ -979,6 +979,7 @@ trait IrcMessageParseExt {
         &self,
         key: &'static str,
     ) -> Result<Option<&str>, ServerMessageParseError>;
+    fn get_optional_nonempty_tag_value(&self, key: &'static str) -> Option<&str>;
     fn try_get_channel_login(&self) -> Result<&str, ServerMessageParseError>;
     fn try_get_optional_channel_login(&self) -> Result<Option<&str>, ServerMessageParseError>;
     fn try_get_prefix_nickname(&self) -> Result<&str, ServerMessageParseError>;
@@ -1062,6 +1063,13 @@ impl IrcMessageParseExt for IrcMessage {
                 otherwise => Ok(Some(otherwise)),
             },
             None => Ok(None),
+        }
+    }
+
+    fn get_optional_nonempty_tag_value(&self, key: &'static str) -> Option<&str> {
+        match self.tags.0.get(key)?.as_str() {
+            "" => None,
+            otherwise => Some(otherwise),
         }
     }
 
