@@ -105,6 +105,6 @@ export class Viewer {
 	}
 
 	public warn(reason: string) {
-		return this.channel.viewers.warn(this.id, reason);
+		return this.channel.viewers.warn(this.username, reason);
 	}
 }

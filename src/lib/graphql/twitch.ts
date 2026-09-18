@@ -760,8 +760,8 @@ export const updatePinnedMessageMutation = gql(`
 `);
 
 export const warnUserMutation = gql(`
-	mutation WarnUser($channel: ID!, $target: ID!, $reason: String!) {
-		warnUserInChatRoom(input: { channelID: $channel, targetUserID: $target, reason: $reason, chatRulesCited: [""] }) {
+	mutation WarnUser($channel: ID!, $target: String!, $reason: String!) {
+		warnUserInChatRoom(input: { channelID: $channel, targetUserLogin: $target, reason: $reason, chatRulesCited: [""] }) {
 			__typename
 		}
 	}
