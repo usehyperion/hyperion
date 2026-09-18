@@ -58,10 +58,12 @@ export default defineHandler({
 			return;
 		}
 
-		const { treatment, target_user_id, updated_by } = payload.data;
+		const { treatment, target_user_id, updated_by, ban_evasion_evaluation } = payload.data;
 
 		const viewer = await channel.viewers.fetch(target_user_id);
 		const moderator = await channel.viewers.fetch(updated_by.id);
+
+		viewer.possibleBanEvader = ban_evasion_evaluation !== "UNLIKELY_EVADER";
 
 		// Only update status if the user is not already monitored or
 		// restricted.
