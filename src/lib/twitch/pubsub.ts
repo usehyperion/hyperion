@@ -12,7 +12,7 @@ export interface AutoModFailure {
 export interface BlockedTermFound {
 	is_private: boolean;
 	owner_channel_id: string;
-	positions_in_message: AutoModPosition;
+	positions_in_message: AutoModPosition[];
 	term_id: string;
 	text: string;
 }
