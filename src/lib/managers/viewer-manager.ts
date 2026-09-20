@@ -70,12 +70,12 @@ export class ViewerManager extends SvelteMap<string, Viewer> {
 		});
 	}
 
-	public async timeout(id: string, options: TimeoutOptions) {
+	public async timeout(login: string, options: TimeoutOptions) {
 		if (!app.user) return;
 
 		await this.channel.client.gql(banUserMutation, {
 			channel: this.channel.user.id,
-			target: id,
+			target: login,
 			duration: `${options.duration}s`,
 			reason: options.reason,
 		});

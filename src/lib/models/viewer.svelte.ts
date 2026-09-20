@@ -101,7 +101,7 @@ export class Viewer {
 	}
 
 	public timeout(options: TimeoutOptions) {
-		return this.channel.viewers.timeout(this.id, options);
+		return this.channel.viewers.timeout(this.username, options);
 	}
 
 	public warn(reason: string) {
