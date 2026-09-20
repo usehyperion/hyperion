@@ -39,10 +39,3 @@ export interface StructuredMessage {
 	text: string;
 	fragments: Fragment[];
 }
-
-export interface StreamMarker {
-	id: string;
-	created_at: string;
-	position_seconds: number;
-	description: string;
-}
