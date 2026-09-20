@@ -1,26 +1,20 @@
-import { ofetch } from "ofetch";
 import { SvelteMap } from "svelte/reactivity";
 
 import { app } from "$lib/app.svelte";
 import type { Emote } from "$lib/emotes";
-import { ApiError } from "$lib/errors/api-error";
 import type { User as ApiUser } from "$lib/graphql/twitch";
-import { userBadgesQuery } from "$lib/graphql/twitch";
+import { relationshipQuery } from "$lib/graphql/twitch";
 import { settings } from "$lib/settings";
 import type { Paint } from "$lib/seventv";
 import { COLORS } from "$lib/twitch";
-import type { SubscriptionAge } from "$lib/twitch/api";
 import type { TwitchClient } from "$lib/twitch/client";
-import { dedupe, makeReadable } from "$lib/util";
+import { makeReadable } from "$lib/util";
+
+import type { Channel } from "./channel.svelte";
 
 import { Badge } from "./badge";
 
 export interface RelationshipSubscription {
-	/**
-	 * Whether the user has their subscription info hidden.
-	 */
-	hidden: boolean;
-
 	/**
 	 * The type of subscription the user has in the channel.
 	 */
@@ -216,38 +210,38 @@ export class User {
 	/**
 	 * Retrieves the user's relationship to the specified channel.
 	 */
-	public async fetchRelationship(channel: string) {
-		const rel = this.relationships.get(channel);
-		if (rel) return rel;
+	public async fetchRelationship(channel: Channel) {
+		const existing = this.relationships.get(channel.id);
+		if (existing) return existing;
 
-		const gqlRequest = this.client.gql(userBadgesQuery, { user: this.username, channel });
-
-		const params = `${this.username}/${channel}`;
-		const ivrRequest = dedupe(`ivr:${params}`, async () => {
-			try {
-				return await ofetch<SubscriptionAge>(
-					`https://api.ivr.fi/v2/twitch/subage/${params}`,
-				);
-			} catch (error) {
-				throw ApiError.from(error);
-			}
+		const { channelViewer, user } = await this.client.gql(relationshipQuery, {
+			user: this.username,
+			channelId: channel.id,
+			channel: channel.user.username,
 		});
 
-		const [{ channelViewer }, data] = await Promise.all([gqlRequest, ivrRequest]);
+		const rel = user?.relationship;
+		if (!channelViewer || !rel) return null;
 
-		const relationship = {
-			badges: channelViewer?.earnedBadges?.map(Badge.fromGql) ?? [],
-			followedAt: data.followedAt ? new Date(data.followedAt) : null,
+		const type = rel.sub?.gift?.isGift
+			? "gift"
+			: rel.sub?.purchasedWithPrime
+				? "prime"
+				: rel.sub?.tier
+					? "paid"
+					: null;
+
+		this.relationships.set(channel.id, {
+			badges: channelViewer.earnedBadges?.map(Badge.fromGql) ?? [],
+			followedAt: rel.followedAt ? new Date(rel.followedAt) : null,
 			subscription: {
-				hidden: data.statusHidden,
-				type: data.meta?.type ?? null,
-				tier: data.meta?.tier ?? null,
-				months: data.cumulative?.months ?? null,
+				type,
+				tier: rel.sub?.tier?.slice(0, -3) ?? null,
+				months: rel.tenure?.months ?? null,
 			},
-		};
+		});
 
-		this.relationships.set(channel, relationship);
-		return relationship;
+		return rel;
 	}
 
 	public toJSON() {

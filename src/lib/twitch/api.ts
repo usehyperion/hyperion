@@ -46,21 +46,3 @@ export interface StreamMarker {
 	position_seconds: number;
 	description: string;
 }
-
-// Not a part of Twitch's API but related. Not all fields are included.
-
-export interface SubscriptionTenure {
-	months: number;
-}
-
-export interface SubscriptionMetadata {
-	type: "prime" | "paid" | "gift";
-	tier: string;
-}
-
-export interface SubscriptionAge {
-	statusHidden: boolean;
-	followedAt: string | null;
-	cumulative: SubscriptionTenure | null;
-	meta: SubscriptionMetadata | null;
-}

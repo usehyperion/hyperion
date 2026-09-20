@@ -374,6 +374,32 @@ export const predictionQuery = gql(
 	[predictionDetailsFragment],
 );
 
+export const relationshipQuery = gql(
+	`query GetRelationship($user: String!, $channelId: ID!, $channel: String!) {
+		channelViewer(userLogin: $user, channelLogin: $channel) {
+			earnedBadges {
+				...BadgeDetails
+			}
+		}
+		user(login: $user) {
+			relationship(targetUserID: $channelId) {
+				followedAt
+				tenure: subscriptionTenure(tenureMethod: CUMULATIVE) {
+					months
+				}
+				sub: subscriptionBenefit {
+					tier
+					purchasedWithPrime
+					gift {
+						isGift
+					}
+				}
+			}
+		}
+	}`,
+	[badgeDetailsFragment],
+);
+
 export const searchSuggestionsQuery = gql(`
 	query GetSearchSuggestions($query: String!) {
 		searchSuggestions(queryFragment: $query, withOfflineChannelContent: true) {
@@ -440,17 +466,6 @@ export const userAvatarsQuery = gql(`
 		}
 	}
 `);
-
-export const userBadgesQuery = gql(
-	`query GetUserBadges($user: String!, $channel: String!) {
-		channelViewer(userLogin: $user, channelLogin: $channel) {
-			earnedBadges {
-				...BadgeDetails
-			}
-		}
-	}`,
-	[badgeDetailsFragment],
-);
 
 export const followedChannelsQuery = gql(
 	`query GetFollowedChannels($ids: [ID!]!) {
