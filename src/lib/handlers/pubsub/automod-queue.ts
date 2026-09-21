@@ -2,24 +2,17 @@ import { tick } from "svelte";
 
 import { app } from "$lib/app.svelte";
 import AutoMod from "$lib/components/message/events/AutoMod.svelte";
+import type { MessageFragment } from "$lib/models/message/fragment";
 import { UserMessage } from "$lib/models/message/user-message.svelte";
-import type { StructuredMessage } from "$lib/twitch/api";
 import type { AutoModCaughtMessage, AutoModFragment } from "$lib/twitch/pubsub";
 
 import { defineHandler } from "../helper";
 
-function fragments(list: AutoModFragment[]): StructuredMessage["fragments"] {
-	return list.map((fragment) =>
+function fragments(list: AutoModFragment[]) {
+	return list.map<MessageFragment>((fragment) =>
 		fragment.emoticon
-			? {
-					type: "emote" as const,
-					text: fragment.text,
-					emote: {
-						id: fragment.emoticon.emoticonID,
-						emote_set_id: fragment.emoticon.emoticonSetID,
-					},
-				}
-			: { type: "text" as const, text: fragment.text },
+			? { type: "emote", text: fragment.text, id: fragment.emoticon.emoticonID }
+			: { type: "text", text: fragment.text },
 	);
 }
 
@@ -66,20 +59,16 @@ export default defineHandler({
 		const { sender, content } = message;
 
 		const held = UserMessage.from(channel, {
-			message: {
-				message_id: message.id,
-				text: content.text,
-				fragments: fragments(content.fragments),
-			},
+			id: message.id,
+			text: content.text,
+			fragments: fragments(content.fragments),
 			sender: {
-				user_id: sender.user_id,
-				user_login: sender.login,
-				user_name: sender.display_name,
+				id: sender.user_id,
+				login: sender.login,
+				name: sender.display_name,
 			},
-			data: {
-				name_color: sender.chat_color,
-				badges: sender.badges.map((badge) => ({ name: badge.id, version: badge.version })),
-			},
+			color: sender.chat_color,
+			badges: sender.badges.map((badge) => ({ name: badge.id, version: badge.version })),
 		});
 
 		const isBlockedTerm = payload.data.reason_code === "BlockedTermCaughtMessageReason";

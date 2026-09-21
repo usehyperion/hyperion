@@ -3,6 +3,7 @@ import { parse as parseTld } from "tldts";
 import { app } from "$lib/app.svelte";
 import type { Emote } from "$lib/emotes";
 import type { CheermoteTier } from "$lib/graphql/twitch";
+import type { Emote as IrcEmote } from "$lib/twitch/irc";
 
 import type { User } from "../user.svelte";
 import type { UserMessage } from "./user-message.svelte";
@@ -54,10 +55,9 @@ export interface EmoteNode extends BaseNode {
 export type Node = TextNode | LinkNode | MentionNode | CheerNode | EmoteNode;
 
 export function parse(message: UserMessage): Node[] {
-	const ircEmotes = [...message.data.emotes];
+	const ircEmotes = [...message.emotes];
 
-	// AutoMod flags the caught fragments themselves; every other message is a
-	// single fragment spanning its whole text
+	// AutoMod flags the caught fragments themselves
 	const caught = message.autoMod?.fragments ?? [];
 	const fragments = caught.length > 0 ? caught : [{ text: message.text }];
 
@@ -88,11 +88,7 @@ export function parse(message: UserMessage): Node[] {
 	return fold(nodes);
 }
 
-function classify(
-	base: BaseNode,
-	message: UserMessage,
-	ircEmotes: UserMessage["data"]["emotes"],
-): Node | null {
+function classify(base: BaseNode, message: UserMessage, ircEmotes: IrcEmote[]): Node | null {
 	const part = base.value;
 
 	const url = URL.parse(`https://${part.replace(/^https?:\/\/|\.$/i, "")}`);

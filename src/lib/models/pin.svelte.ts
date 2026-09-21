@@ -1,7 +1,7 @@
 import { app } from "$lib/app.svelte";
 import {
 	pinnedMessageQuery,
-	toStructuredMessage,
+	toMessageFragments,
 	unpinMessageMutation,
 	updatePinnedMessageMutation,
 } from "$lib/graphql/twitch";
@@ -79,15 +79,15 @@ export class Pin {
 			message = existing;
 		} else {
 			message = UserMessage.from(chat.channel, {
-				message: toStructuredMessage(node.pinnedMessage.id, node.pinnedMessage.content),
+				id: node.pinnedMessage.id,
+				text: node.pinnedMessage.content.text,
+				fragments: toMessageFragments(node.pinnedMessage.content),
 				sender,
-				data: {
-					name_color: sender.chatColor ?? "",
-					badges: sender.displayBadges
-						.filter((badge) => badge !== null)
-						.map((badge) => ({ name: badge.setID, version: badge.version })),
-					server_timestamp: new Date(node.pinnedMessage.sentAt).getTime(),
-				},
+				color: sender.chatColor ?? "",
+				badges: sender.displayBadges
+					.filter((badge) => badge !== null)
+					.map((badge) => ({ name: badge.setID, version: badge.version })),
+				timestamp: new Date(node.pinnedMessage.sentAt).getTime(),
 			});
 		}
 

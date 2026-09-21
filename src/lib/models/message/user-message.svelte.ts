@@ -5,9 +5,10 @@ import {
 	denyHeldMessageMutation,
 } from "$lib/graphql/twitch";
 import { settings } from "$lib/settings";
-import type { StructuredMessage } from "$lib/twitch/api";
 import type {
 	BasicUser,
+	Badge as IrcBadge,
+	Emote,
 	PrivmsgMessage,
 	Reply,
 	Source,
@@ -16,7 +17,6 @@ import type {
 } from "$lib/twitch/irc";
 import type { AutoModFragment } from "$lib/twitch/pubsub";
 import type { ChannelPointReward } from "$lib/twitch/pubsub";
-import { extractEmotes, type Prefix } from "$lib/util";
 
 import type { Channel } from "../channel.svelte";
 import type { Node } from "./parse";
@@ -24,8 +24,9 @@ import type { Node } from "./parse";
 import { Badge } from "../badge";
 import { User } from "../user.svelte";
 import { Viewer } from "../viewer.svelte";
+import { extractEmotes, type MessageFragment } from "./fragment";
 import { parse } from "./parse";
-import { TextualMessage } from "./textual-message.svelte";
+import { TextualMessage, type TextualMessageInit } from "./textual-message.svelte";
 
 function createPartialUser(channel: Channel, sender: BasicUser, color: string) {
 	const user = new User(channel.client, {
@@ -46,10 +47,29 @@ function createPartialUser(channel: Channel, sender: BasicUser, color: string) {
 	return user;
 }
 
-interface FromInit {
-	message: StructuredMessage;
-	sender: Prefix<BasicUser, "user">;
-	data?: Partial<PrivmsgMessage>;
+interface UserMessageInit extends TextualMessageInit {
+	id: string;
+	text: string;
+	sender: BasicUser;
+	color: string;
+	badges: IrcBadge[];
+	emotes: Emote[];
+	bits: number;
+	action: boolean;
+	highlighted: boolean;
+	shared: boolean;
+	event: UserNoticeEvent | null;
+	reply: Reply | null;
+}
+
+interface FromMessage {
+	id: string;
+	text: string;
+	fragments: MessageFragment[];
+	sender: BasicUser;
+	color?: string;
+	badges?: IrcBadge[];
+	timestamp?: number;
 }
 
 export interface AutoModMetadata {
@@ -69,6 +89,7 @@ export interface AutoModMetadata {
  */
 export class UserMessage extends TextualMessage {
 	#nodes: Node[] = [];
+	#badges: IrcBadge[];
 
 	public override readonly [Symbol.toStringTag] = "UserMessage";
 	public override readonly id: string;
@@ -110,6 +131,11 @@ export class UserMessage extends TextualMessage {
 	public readonly bits: number;
 
 	/**
+	 * The Twitch emotes in the message, located by their range in the text.
+	 */
+	public readonly emotes: Emote[];
+
+	/**
 	 * The event associated with the message if it's a `USERNOTICE` message.
 	 */
 	public readonly event: UserNoticeEvent | null;
@@ -136,74 +162,77 @@ export class UserMessage extends TextualMessage {
 	 */
 	public redemption = $state<ChannelPointReward | null>(null);
 
-	public constructor(
-		channel: Channel,
-		public readonly data: PrivmsgMessage | UserNoticeMessage,
-	) {
-		super(channel, data);
+	private constructor(channel: Channel, init: UserMessageInit) {
+		super(channel, init);
 
-		const viewer = channel.viewers.get(data.sender.id);
+		const viewer = channel.viewers.get(init.sender.id);
 
-		this.id = data.message_id;
+		this.id = init.id;
+		this.text = init.text;
 
-		// message_text should only be possibly null if it's a USERNOTICE, in
-		// which case we can assume system_message is present
-		this.text = data.message_text ?? ("system_message" in data ? data.system_message : "");
-
-		this.author = viewer?.user ?? createPartialUser(channel, data.sender, data.name_color);
+		this.author = viewer?.user ?? createPartialUser(channel, init.sender, init.color);
 		this.viewer = viewer ?? null;
 
-		this.action = "is_action" in data && data.is_action;
-		this.highlighted = "is_highlighted" in data && data.is_highlighted;
-		this.shared = data.source != null;
+		this.action = init.action;
+		this.highlighted = init.highlighted;
+		this.shared = init.shared;
 
-		this.bits = "bits" in data ? (data.bits ?? 0) : 0;
-		this.event = "event" in data ? data.event : null;
-		this.reply = "reply" in data ? data.reply : null;
+		this.bits = init.bits;
+		this.emotes = init.emotes;
+		this.event = init.event;
+		this.reply = init.reply;
 		this.source = this.channel;
 
+		this.#badges = init.badges;
 		this.#populateBadges();
 	}
 
 	/**
-	 * Creates a user message from a structured message.
+	 * Creates a user message from a `PRIVMSG` or `USERNOTICE` command.
 	 */
-	public static from(channel: Channel, init: FromInit) {
-		const isAction = /^\x01ACTION.*$/.test(init.message.text);
-		const text = isAction ? init.message.text.slice(8, -1) : init.message.text;
+	public static fromIrc(channel: Channel, data: PrivmsgMessage | UserNoticeMessage) {
+		const tags = data.source ?? data;
+		const notice = data.type === "usernotice";
 
 		return new this(channel, {
-			type: "privmsg",
-			badge_info: [],
-			badges: [],
-			bits: init.message.fragments.reduce((a, b) => {
-				return a + (b.type === "cheermote" ? b.cheermote.bits : 0);
-			}, 0),
-			channel_id: "",
-			channel_login: "",
-			deleted: false,
-			emotes: extractEmotes(init.message.fragments),
-			message_id: init.message.message_id,
-			message_text: text,
-			name_color: "",
-			is_action: isAction,
-			is_first_msg: false,
-			is_highlighted: false,
-			is_mod: false,
-			is_subscriber: false,
-			custom_reward_id: null,
-			is_recent: false,
-			is_returning_chatter: false,
+			id: data.message_id,
+			text: data.message_text ?? "",
+			sender: data.sender,
+			color: data.name_color,
+			badges: tags.badges,
+			emotes: data.emotes,
+			bits: (notice ? null : data.bits) ?? 0,
+			action: !notice && data.is_action,
+			highlighted: !notice && data.is_highlighted,
+			shared: data.source != null,
+			event: notice ? data.event : null,
+			reply: notice ? null : data.reply,
+			deleted: data.deleted,
+			recent: data.is_recent,
+			timestamp: data.server_timestamp,
+		});
+	}
+
+	public static from(channel: Channel, msg: FromMessage) {
+		const action = /^\x01ACTION.*$/.test(msg.text);
+		const text = action ? msg.text.slice(8, -1) : msg.text;
+
+		return new this(channel, {
+			id: msg.id,
+			text,
+			sender: msg.sender,
+			color: msg.color ?? "",
+			badges: msg.badges ?? [],
+			emotes: extractEmotes(msg.fragments),
+			bits: msg.fragments.reduce((a, b) => a + (b.type === "cheermote" ? b.bits : 0), 0),
+			action,
+			highlighted: false,
+			shared: false,
+			event: null,
 			reply: null,
-			source_only: false,
-			source: null,
-			server_timestamp: Date.now(),
-			...init.data,
-			sender: {
-				id: init.sender.user_id,
-				login: init.sender.user_login,
-				name: init.sender.user_name,
-			},
+			deleted: false,
+			recent: false,
+			timestamp: msg.timestamp ?? Date.now(),
 		});
 	}
 
@@ -308,7 +337,7 @@ export class UserMessage extends TextualMessage {
 			);
 		}
 
-		for (const badge of (this.data.source ?? this.data).badges) {
+		for (const badge of this.#badges) {
 			const id = `${badge.name}:${badge.version}`;
 
 			const chatBadge = this.source.badges.get(id);

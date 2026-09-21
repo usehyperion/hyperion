@@ -34,9 +34,9 @@ export class EventMessage<C extends Component = Component> extends TextualMessag
 		data?: Partial<EventMessageData>,
 	) {
 		super(channel, {
+			timestamp: data?.server_timestamp ?? Date.now(),
 			deleted: data?.deleted ?? false,
-			is_recent: data?.is_recent ?? false,
-			server_timestamp: data?.server_timestamp ?? Date.now(),
+			recent: data?.is_recent ?? false,
 		});
 	}
 }

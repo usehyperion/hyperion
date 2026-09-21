@@ -1,26 +1,16 @@
 import { app } from "$lib/app.svelte";
 import SuspicionStatus from "$lib/components/message/events/SuspicionStatus.svelte";
+import type { MessageFragment } from "$lib/models/message/fragment";
 import { UserMessage } from "$lib/models/message/user-message.svelte";
-import type { StructuredMessage } from "$lib/twitch/api";
 import type { LowTrustFragment } from "$lib/twitch/pubsub";
 
 import { defineHandler } from "../helper";
 
-function fragments(list: LowTrustFragment[]): StructuredMessage["fragments"] {
-	return list.map((fragment) =>
+function fragments(list: LowTrustFragment[]) {
+	return list.map<MessageFragment>((fragment) =>
 		fragment.emoticon
-			? {
-					type: "emote" as const,
-					text: fragment.text,
-					emote: {
-						id: fragment.emoticon.emoticonID,
-						emote_set_id: fragment.emoticon.emoticonSetID,
-					},
-				}
-			: {
-					type: "text" as const,
-					text: fragment.text,
-				},
+			? { type: "emote", text: fragment.text, id: fragment.emoticon.emoticonID }
+			: { type: "text", text: fragment.text },
 	);
 }
 
@@ -34,17 +24,15 @@ export default defineHandler({
 			const { low_trust_user: user, message_content: content } = payload.data;
 
 			const message = UserMessage.from(channel, {
-				message: {
-					message_id: payload.data.message_id,
-					text: content.text,
-					fragments: fragments(content.fragments),
-				},
+				id: payload.data.message_id,
+				text: content.text,
+				fragments: fragments(content.fragments),
 				sender: {
-					user_id: user.sender.user_id,
-					user_login: user.sender.login,
-					user_name: user.sender.display_name,
+					id: user.sender.user_id,
+					login: user.sender.login,
+					name: user.sender.display_name,
 				},
-				data: { name_color: user.sender.chat_color ?? "" },
+				color: user.sender.chat_color ?? "",
 			});
 
 			message.viewer ??= await channel.viewers.fetch(user.sender.user_id);

@@ -170,7 +170,7 @@
 		{/if}
 	</div>
 
-	{#if message.data.message_text}
+	{#if message.text}
 		<div class="mt-2">
 			<Message {message} />
 		</div>
