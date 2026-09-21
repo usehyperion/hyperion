@@ -245,9 +245,7 @@ async fn refresh_integrity(app: &AppHandle, access_token: &str) -> Option<Integr
         let _ = stale.close();
     }
 
-    let url = Url::parse("https://www.twitch.tv/")
-        .inspect_err(|err| tracing::error!(%err, "Invalid integrity url"))
-        .ok()?;
+    let url = Url::parse("https://www.twitch.tv/directory/following").unwrap();
 
     let window = WebviewWindowBuilder::new(app, INTEGRITY_WINDOW_LABEL, WebviewUrl::External(url))
         .title("Twitch")
@@ -315,8 +313,7 @@ pub async fn ensure_integrity(app: &AppHandle) -> Option<Integrity> {
 
 #[tauri::command]
 pub async fn open_twitch_login(app: AppHandle) -> Result<(), String> {
-    let auth_url =
-        WebviewUrl::External(Url::parse("https://www.twitch.tv/login").map_err(|e| e.to_string())?);
+    let auth_url = WebviewUrl::External(Url::parse("https://www.twitch.tv/login").unwrap());
 
     let auth_window = WebviewWindowBuilder::new(&app, LOGIN_WINDOW_LABEL, auth_url)
         .title("Twitch Login")
