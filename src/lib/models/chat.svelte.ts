@@ -264,10 +264,12 @@ export class Chat {
 		const slowDuration = settings.slow ?? this.mode.slow;
 		const isSlow = typeof slowDuration === "number" && slowDuration > 0;
 
+		const isFollowerOnly = settings.followerOnly ?? this.mode.followerOnly !== false;
+
 		await this.channel.client.gql(updateChatSettingsMutation, {
 			input: {
 				channelID: this.channel.id,
-				followersOnlyDurationMinutes: settings.followerOnly
+				followersOnlyDurationMinutes: isFollowerOnly
 					? (settings.followerOnlyDuration ?? followDuration)
 					: -1,
 				slowModeDurationSeconds: isSlow ? slowDuration : 0,
