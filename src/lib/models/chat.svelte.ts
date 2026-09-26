@@ -17,7 +17,6 @@ import { sendPresence } from "$lib/seventv";
 
 import type { Channel } from "./channel.svelte";
 import type { Message } from "./message/message";
-import type { UserMessage } from "./message/user-message.svelte";
 
 import { commands } from "../commands";
 import Notice from "../components/message/events/Notice.svelte";
@@ -25,6 +24,7 @@ import { RedemptionManager } from "../managers/redemption-manager";
 import { ComponentMessage } from "./message/component-message";
 import { EventMessage, type EventMessageData } from "./message/event-message";
 import { TextualMessage } from "./message/textual-message.svelte";
+import { UserMessage } from "./message/user-message.svelte";
 import { Pin } from "./pin.svelte";
 import { Viewer } from "./viewer.svelte";
 
@@ -132,6 +132,20 @@ export class Chat {
 			}
 		} else {
 			this.messages.push(message);
+		}
+
+		return this;
+	}
+
+	public repost(message: Message) {
+		const index = this.messages.indexOf(message);
+		if (index === -1) return this;
+
+		this.messages.splice(index, 1);
+		this.messages.push(message);
+
+		if (this.#lastRecentAt !== null && index <= this.#lastRecentAt) {
+			this.#lastRecentAt--;
 		}
 
 		return this;
@@ -345,14 +359,25 @@ export class Chat {
 			},
 		});
 
-		if (sent?.message) {
-			log.info("Message sent");
-			await sendPresence(this.channel.id);
-		} else if (sent?.dropReason) {
+		if (sent?.dropReason) {
 			const reason = sent.dropReason;
 
 			log.warn(`Message dropped: ${reason}`);
-			this.notice(reason);
+
+			if (reason === "AUTOMOD_HELD") {
+				this.notice(
+					"Your message is being held for review by the moderators and has not been sent.",
+				);
+			} else {
+				this.notice(`Your message was not sent: ${reason}`);
+			}
+
+			return;
+		}
+
+		if (sent?.message) {
+			log.info("Message sent");
+			await sendPresence(this.channel.id);
 		}
 	}
 

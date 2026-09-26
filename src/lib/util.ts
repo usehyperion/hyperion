@@ -1,9 +1,6 @@
 import type { Menu } from "@tauri-apps/api/menu";
 import chroma from "chroma-js";
 
-import type { Fragment } from "./twitch/api";
-import type { Emote } from "./twitch/irc";
-
 export type {
 	WithElementRef,
 	WithoutChild,
@@ -12,10 +9,6 @@ export type {
 } from "bits-ui";
 
 export type Nullable<T> = { [K in keyof T]: T[K] | null };
-
-export type Prefix<T, P extends string> = {
-	[K in keyof T as `${P}_${K & string}`]: T[K];
-};
 
 export function clamp(min: number, value: number, max: number) {
 	return Math.min(Math.max(min, value), max);
@@ -49,30 +42,6 @@ export function formatDuration(seconds: number) {
 	}
 
 	return parts.join(" ");
-}
-
-export function extractEmotes(fragments: Fragment[]): Emote[] {
-	const emotes: Emote[] = [];
-	let offset = 0;
-
-	for (const fragment of fragments) {
-		const length = Array.from(fragment.text).length;
-
-		if (fragment.type === "emote") {
-			emotes.push({
-				id: fragment.emote.id,
-				code: fragment.text,
-				range: {
-					start: offset,
-					end: offset + length,
-				},
-			});
-		}
-
-		offset += length;
-	}
-
-	return emotes;
 }
 
 const colorCache = new Map<string, string>();

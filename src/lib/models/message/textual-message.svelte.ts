@@ -1,11 +1,12 @@
-import type { BaseUserMessage } from "$lib/twitch/irc";
-
 import type { Channel } from "../channel.svelte";
-import type { EventMessageData } from "./event-message";
 
 import { Message } from "./message";
 
-export type MessageData = BaseUserMessage | EventMessageData;
+export interface TextualMessageInit {
+	timestamp: number;
+	deleted: boolean;
+	recent: boolean;
+}
 
 export abstract class TextualMessage extends Message {
 	public abstract readonly id: string;
@@ -32,12 +33,12 @@ export abstract class TextualMessage extends Message {
 		 * The channel the message was sent in.
 		 */
 		public readonly channel: Channel,
-		public readonly data: MessageData,
+		init: TextualMessageInit,
 	) {
 		super();
 
-		this.timestamp = new Date(this.data.server_timestamp);
-		this.deleted = data.deleted;
-		this.recent = data.is_recent;
+		this.timestamp = new Date(init.timestamp);
+		this.deleted = init.deleted;
+		this.recent = init.recent;
 	}
 }

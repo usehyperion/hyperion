@@ -9,7 +9,7 @@ export default defineHandler({
 		const channel = app.channels.get(data.channel_id);
 		if (!channel) return;
 
-		const message = new UserMessage(channel, data);
+		const message = UserMessage.fromIrc(channel, data);
 
 		message.author.color = data.name_color;
 		message.author.username = data.sender.login;

@@ -1,7 +1,7 @@
 import { initGraphQLTada } from "gql.tada";
 import type { FragmentOf, ResultOf } from "gql.tada";
 
-import type { Fragment, StructuredMessage } from "$lib/twitch/api";
+import type { MessageFragment } from "$lib/models/message/fragment";
 import type { Poll as ApiPoll, Prediction as ApiPrediction } from "$lib/twitch/pubsub";
 
 import type { NonNullableDeep } from ".";
@@ -299,25 +299,17 @@ export const pinnedMessageQuery = gql(
 										__typename
 										... on CheermoteToken {
 											bitsAmount
-											prefix
-											tier
 										}
 										... on Emote {
 											emoteID: id
-											setID
-										}
-										... on User {
-											userID: id
-											login
-											displayName
 										}
 									}
 								}
 							}
 							sender {
-								user_id: id
-								user_login: login
-								user_name: displayName
+								id
+								login
+								name: displayName
 								chatColor
 								displayBadges(channelID: $id) {
 									...BadgeDetails
@@ -896,47 +888,18 @@ export function toPubSubPrediction(channel: string, prediction: Prediction): Api
 	};
 }
 
-export function toStructuredMessage(id: string, content: MessageContent): StructuredMessage {
-	const fragments: Fragment[] = content.fragments.map((fragment) => {
+export function toMessageFragments(content: MessageContent) {
+	return content.fragments.map<MessageFragment>((fragment) => {
 		const text = fragment.text ?? "";
 		const inner = fragment.content;
 
 		switch (inner?.__typename) {
 			case "Emote":
-				return {
-					type: "emote",
-					text,
-					emote: {
-						id: inner.emoteID ?? "",
-						emote_set_id: inner.setID ?? "",
-					},
-				};
-			case "User":
-				return {
-					type: "mention",
-					text,
-					user_id: inner.userID,
-					user_login: inner.login,
-					user_name: inner.displayName,
-				};
+				return { type: "emote", text, id: inner.emoteID ?? "" };
 			case "CheermoteToken":
-				return {
-					type: "cheermote",
-					text,
-					cheermote: {
-						prefix: inner.prefix,
-						bits: inner.bitsAmount,
-						tier: inner.tier,
-					},
-				};
+				return { type: "cheermote", text, bits: inner.bitsAmount };
 			default:
 				return { type: "text", text };
 		}
 	});
-
-	return {
-		message_id: id,
-		text: content.text,
-		fragments,
-	};
 }
