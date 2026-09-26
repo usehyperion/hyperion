@@ -7,6 +7,7 @@ use event_loop::{ClientLoopCommand, ClientLoopWorker};
 use tokio::sync::{mpsc, oneshot};
 
 use super::ClientConfig;
+use super::error::Error;
 use super::message::ServerMessage;
 
 #[derive(Debug, Clone)]
@@ -66,5 +67,19 @@ impl IrcClient {
         {
             tracing::warn!("IRC client loop has stopped, cannot part channel");
         }
+    }
+
+    pub async fn privmsg(&self, channel_login: String, message: String) -> Result<(), Error> {
+        let (return_tx, return_rx) = oneshot::channel();
+
+        self.client_loop_tx
+            .send(ClientLoopCommand::Privmsg {
+                channel_login,
+                message,
+                return_sender: return_tx,
+            })
+            .map_err(|_| Error::ClientClosed)?;
+
+        return_rx.await.map_err(|_| Error::ClientClosed)?
     }
 }

@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import type { Component, ComponentProps } from "svelte";
 
 import { app } from "$lib/app.svelte";
@@ -199,7 +200,10 @@ export class Chat {
 	public async clear() {
 		if (!app.user || !this.channel.isMod) return;
 
-		// TODO: replace with irc pass thru in future PR
+		await invoke("privmsg", {
+			channel: this.channel.user.username,
+			message: "/clear",
+		});
 	}
 
 	public reset() {
