@@ -1,7 +1,6 @@
 import { SvelteMap } from "svelte/reactivity";
 
-import type { Stream as ApiStream } from "$lib/graphql/twitch";
-import { guestsQuery } from "$lib/graphql/twitch";
+import type { Stream as ApiStream, GuestStarDetails } from "$lib/graphql/twitch";
 import type { TwitchClient } from "$lib/twitch/client";
 
 export interface Guest {
@@ -62,19 +61,15 @@ export class Stream {
 	}
 
 	/**
-	 * Retrieves the list of guests in the Stream Together session if there is
-	 * one active.
+	 * Sets the list of guests in the Stream Together session if there is one
+	 * active.
 	 */
-	public async fetchGuests() {
-		const { channel } = await this.client.gql(guestsQuery, { id: this.channelId });
-
+	public setGuests(channel: GuestStarDetails | null | undefined) {
 		for (const { user } of channel?.guestStarSessionCall?.guests ?? []) {
 			this.addGuest({
 				...user,
 				viewers: user.stream?.viewersCount ?? null,
 			});
 		}
-
-		return this.guests;
 	}
 }

@@ -14,19 +14,8 @@ import { dedupe } from "$lib/util";
 
 import type { Session } from "./session";
 
-type QueryValue = string | number | boolean | null | undefined;
-type QueryParams = Record<string, QueryValue | QueryValue[]>;
-
 interface PageVariables {
 	after?: string | null;
-}
-
-export interface HelixResponse<T> {
-	data: T;
-	pagination?: {
-		cursor?: string;
-	};
-	total?: number;
 }
 
 export class TwitchClient {
@@ -118,16 +107,12 @@ export class TwitchClient {
 			const stream = user?.stream;
 			if (!stream) continue;
 
-			streams.push(new Stream(this, user.id, stream));
+			const instance = new Stream(this, user.id, stream);
+			instance.setGuests(user.channel);
+
+			streams.push(instance);
 		}
 
-		await Promise.all(streams.map((s) => s.fetchGuests()));
-
 		return streams;
-	}
-
-	/** @deprecated REST call — migrate to a GraphQL mutation. */
-	public delete<T = null>(_path: `/${string}`, _params?: QueryParams): Promise<HelixResponse<T>> {
-		throw new Error("replace me");
 	}
 }

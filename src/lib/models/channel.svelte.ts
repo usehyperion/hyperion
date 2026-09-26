@@ -166,7 +166,6 @@ export class Channel {
 		]);
 
 		this.seventvId = seventvId;
-		await this.stream?.fetchGuests();
 
 		// Don't resolve to avoid blocking the UI
 		void invoke("join", {
@@ -325,6 +324,7 @@ export class Channel {
 
 		if (user?.stream) {
 			this.stream = new Stream(this.client, this.id, user.stream);
+			this.stream.setGuests(user.channel);
 		}
 
 		return this.stream;

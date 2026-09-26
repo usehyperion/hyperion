@@ -242,15 +242,6 @@ export const globalBadgesQuery = gql(
 	[badgeDetailsFragment],
 );
 
-export const guestsQuery = gql(
-	`query GetGuests($id: ID!) {
-		channel(id: $id) {
-			...GuestStarDetails
-		}
-	}`,
-	[guestStarDetailsFragment],
-);
-
 export const moderatesQuery = gql(`
 	query GetModerates($after: Cursor) {
 		moderatedChannels(first: 100, after: $after) {
@@ -432,9 +423,12 @@ export const streamQuery = gql(
 			stream {
 				...StreamDetails
 			}
+			channel {
+				...GuestStarDetails
+			}
 		}
 	}`,
-	[streamDetailsFragment],
+	[streamDetailsFragment, guestStarDetailsFragment],
 );
 
 export const streamsQuery = gql(
@@ -444,9 +438,12 @@ export const streamsQuery = gql(
 			stream {
 				...StreamDetails
 			}
+			channel {
+				...GuestStarDetails
+			}
 		}
 	}`,
-	[streamDetailsFragment],
+	[streamDetailsFragment, guestStarDetailsFragment],
 );
 
 export const userQuery = gql(
@@ -789,6 +786,7 @@ export const warnUserMutation = gql(`
 export type Badge = FragmentOf<typeof badgeDetailsFragment>;
 export type Cheermote = FragmentOf<typeof cheermoteDetailsFragment>;
 export type CheermoteTier = Cheermote["tiers"][number];
+export type GuestStarDetails = FragmentOf<typeof guestStarDetailsFragment>;
 export type Stream = FragmentOf<typeof streamDetailsFragment>;
 export type User = FragmentOf<typeof userDetailsFragment>;
 

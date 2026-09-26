@@ -185,10 +185,7 @@ export class Chat {
 	public async clear() {
 		if (!app.user || !this.channel.isMod) return;
 
-		await this.channel.client.delete("/moderation/chat", {
-			broadcaster_id: this.channel.id,
-			moderator_id: app.user.id,
-		});
+		// TODO: replace with irc pass thru in future PR
 	}
 
 	public reset() {
