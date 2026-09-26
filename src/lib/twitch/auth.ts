@@ -1,5 +1,4 @@
 import { invoke } from "@tauri-apps/api/core";
-import { fetch } from "@tauri-apps/plugin-http";
 import { tick } from "svelte";
 
 import { goto } from "$app/navigation";
@@ -46,8 +45,6 @@ export async function completeLogin(auth: TwitchAuth) {
 }
 
 export async function logOut() {
-	const token = app.twitch.token;
-
 	storage.state.user = null;
 
 	app.user = null;
@@ -60,15 +57,6 @@ export async function logOut() {
 	// Drop the keyring entry too, otherwise the next start up restores the token
 	// and logs straight back in.
 	await invoke("clear_token");
-
-	if (token) {
-		await fetch("https://usehyperion.app/api/auth/twitch/revoke", {
-			method: "POST",
-			headers: {
-				Authorization: token,
-			},
-		});
-	}
 
 	log.info("User logged out");
 	await goto("/auth/login");
