@@ -17,6 +17,7 @@ export interface Credentials {
 
 // Same skew as Rust
 const INTEGRITY_EXPIRY_SKEW = 5 * 60 * 1000;
+const INTEGRITY_RETRY_DELAY = 30 * 1000;
 
 export function getCredentials() {
 	return invoke<Credentials | null>("get_auth");
@@ -26,6 +27,7 @@ export class Session {
 	public readonly accessToken: string;
 
 	#integrity: Integrity | null;
+	#retryAfter = 0;
 
 	public constructor(credentials: Credentials) {
 		this.accessToken = credentials.accessToken;
@@ -53,9 +55,13 @@ export class Session {
 			return this.#integrity;
 		}
 
+		if (Date.now() < this.#retryAfter) return null;
+
 		this.#integrity = await dedupe("twitch:integrity", () =>
 			invoke<Integrity | null>("get_integrity"),
 		).catch((error) => {
+			this.#retryAfter = Date.now() + INTEGRITY_RETRY_DELAY;
+
 			void log
 				.error(`Failed to refresh the integrity token: ${String(error)}`)
 				.catch(() => {});

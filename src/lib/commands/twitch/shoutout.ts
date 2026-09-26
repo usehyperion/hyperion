@@ -20,6 +20,6 @@ export default defineCommand({
 			throw new CommandError(ErrorMessage.CANNOT_TARGET_SELF);
 		}
 
-		await channel.shoutout(target.displayName);
+		await channel.shoutout(target.username);
 	},
 });

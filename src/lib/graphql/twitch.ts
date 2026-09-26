@@ -63,6 +63,24 @@ const guestStarDetailsFragment = gql(`
 	}
 `);
 
+const userDetailsFragment = gql(`
+	fragment UserDetails on User {
+		id
+		createdAt
+		login
+		displayName
+		description
+		chatColor
+		profileImageURL(width: 300)
+		bannerImageURL
+		roles {
+			isStaff
+			isAffiliate
+			isPartner
+		}
+	}
+`);
+
 const predictionActorIdFragment = gql(`
 	fragment PredictionActorId on PredictionEventActor {
 		... on User {
@@ -82,7 +100,11 @@ const predictionDetailsFragment = gql(
 		status
 		createdAt
 		createdBy {
+			__typename
 			... PredictionActorId
+			... on User {
+				...UserDetails
+			}
 		}
 		endedAt
 		endedBy {
@@ -101,7 +123,7 @@ const predictionDetailsFragment = gql(
 		predictionWindowSeconds
 	}
 `,
-	[predictionActorIdFragment],
+	[predictionActorIdFragment, userDetailsFragment],
 );
 
 const streamDetailsFragment = gql(`
@@ -112,24 +134,6 @@ const streamDetailsFragment = gql(`
 		}
 		viewersCount
 		createdAt
-	}
-`);
-
-const userDetailsFragment = gql(`
-	fragment UserDetails on User {
-		id
-		createdAt
-		login
-		displayName
-		description
-		chatColor
-		profileImageURL(width: 300)
-		bannerImageURL
-		roles {
-			isStaff
-			isAffiliate
-			isPartner
-		}
 	}
 `);
 
@@ -246,9 +250,13 @@ export const moderatesQuery = gql(`
 	query GetModerates($after: Cursor) {
 		moderatedChannels(first: 100, after: $after) {
 			edges {
+				cursor
 				node {
 					id
 				}
+			}
+			pageInfo {
+				hasNextPage
 			}
 		}
 	}
@@ -324,15 +332,15 @@ export const pinnedMessageQuery = gql(
 	[badgeDetailsFragment],
 );
 
-export const pollQuery = gql(`
-	query GetPoll($id: ID!) {
+export const pollQuery = gql(
+	`query GetPoll($id: ID!) {
 		user(id: $id) {
 			viewablePoll {
 				id
 				title
 				status
 				createdBy {
-					id
+					...UserDetails
 				}
 				choices {
 					choice_id: id
@@ -348,8 +356,9 @@ export const pollQuery = gql(`
 				totalVoters
 			}
 		}
-	}
-`);
+	}`,
+	[userDetailsFragment],
+);
 
 export const predictionQuery = gql(
 	`query GetPrediction($id: ID!) {
@@ -675,8 +684,8 @@ export const shieldModeMutation = gql(`
 `);
 
 export const shoutoutMutation = gql(`
-	mutation Shoutout($source: String!, $target: String!) {
-		createShoutout(input: { channelLogin: $source, callerLogin: $source, targetLogin: $target }) {
+	mutation Shoutout($source: String!, $caller: String!, $target: String!) {
+		createShoutout(input: { channelLogin: $source, callerLogin: $caller, targetLogin: $target }) {
 			__typename
 		}
 	}

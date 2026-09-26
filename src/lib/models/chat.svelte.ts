@@ -322,10 +322,6 @@ export class Chat {
 
 		log.info(`Sending message in ${this.channel.user.username} (${this.channel.id})`);
 
-		// Optimistically reset replyTarget to avoid UI delay
-		const replyId = this.replyTarget?.id;
-		this.replyTarget = null;
-
 		if (options?.pin) {
 			await this.channel.client.gql(sendPinnedMessageMutation, {
 				channel: this.channel.id,
@@ -335,6 +331,10 @@ export class Chat {
 			await sendPresence(this.channel.id);
 			return;
 		}
+
+		// Optimistically reset replyTarget to avoid UI delay
+		const replyId = this.replyTarget?.id;
+		this.replyTarget = null;
 
 		const { sent } = await this.channel.client.gql(sendMessageMutation, {
 			input: {

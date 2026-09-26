@@ -2,6 +2,7 @@ import { SvelteMap } from "svelte/reactivity";
 
 import { ApiError } from "$lib/errors/api-error";
 import { ErrorMessage } from "$lib/errors/messages";
+import type { User as ApiUser } from "$lib/graphql/twitch";
 import {
 	blockUserMutation,
 	unblockUserMutation,
@@ -18,8 +19,6 @@ export interface UserFetchOptions {
 }
 
 export class UserManager extends SvelteMap<string, User> {
-	// Ids with an avatar request currently in flight, so overlapping calls (e.g.
-	// as suggestions rebuild on each keystroke) don't refetch the same users.
 	readonly #avatarsInFlight = new Set<string>();
 
 	public constructor(public readonly client: TwitchClient) {
@@ -53,6 +52,10 @@ export class UserManager extends SvelteMap<string, User> {
 		if (by === "id") this.set(idOrLogin, user);
 
 		return user;
+	}
+
+	public from(data: ApiUser) {
+		return this.getOrInsertComputed(data.id, () => new User(this.client, data));
 	}
 
 	/**

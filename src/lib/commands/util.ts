@@ -17,15 +17,31 @@ export interface ApiErrorMatch {
 	message: string;
 }
 
+/**
+ * Flattens the thrown value into the `ApiError`s it carries. A GraphQL request
+ * reports every field error at once, so `TwitchClient.gql` throws an
+ * `AggregateError` wrapping one `ApiError` per error rather than a bare one.
+ */
+function apiErrors(error: unknown): ApiError[] {
+	if (error instanceof ApiError) return [error];
+
+	if (error instanceof AggregateError) {
+		return error.errors.filter((inner) => inner instanceof ApiError);
+	}
+
+	return [];
+}
+
 export async function mapErrors<T>(action: () => Promise<T>, matches: ApiErrorMatch[]): Promise<T> {
 	try {
 		return await action();
 	} catch (error) {
-		if (error instanceof ApiError) {
+		for (const apiError of apiErrors(error)) {
 			for (const match of matches) {
-				const statusMatches = match.status === undefined || error.status === match.status;
+				const statusMatches =
+					match.status === undefined || apiError.status === match.status;
 				const textMatches =
-					match.includes === undefined || error.message.includes(match.includes);
+					match.includes === undefined || apiError.message.includes(match.includes);
 
 				if (statusMatches && textMatches) {
 					throw new CommandError(match.message);

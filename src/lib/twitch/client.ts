@@ -5,9 +5,11 @@ import type { TadaDocumentNode } from "gql.tada";
 import { print } from "graphql-web-lite";
 import { ofetch } from "ofetch";
 
+import { goto } from "$app/navigation";
 import { ApiError } from "$lib/errors/api-error";
 import { type Connection, type GqlResponse, nodes, TWITCH_GQL_URL } from "$lib/graphql";
 import { streamsQuery } from "$lib/graphql/twitch";
+import { log } from "$lib/log";
 import { UserManager } from "$lib/managers/user-manager";
 import { Stream } from "$lib/models/stream.svelte";
 import { dedupe } from "$lib/util";
@@ -16,6 +18,13 @@ import type { Session } from "./session";
 
 interface PageVariables {
 	after?: string | null;
+}
+
+function isQuery<T, U>(document: TadaDocumentNode<T, U>): boolean {
+	return document.definitions.every(
+		(definition) =>
+			definition.kind !== "OperationDefinition" || definition.operation === "query",
+	);
 }
 
 export class TwitchClient {
@@ -39,7 +48,7 @@ export class TwitchClient {
 		const queryStr = print(query);
 		const varStr = JSON.stringify(variables ?? {});
 
-		return dedupe(`twitch:${queryStr}:${varStr}`, async () => {
+		const send = async () => {
 			let response: GqlResponse<T>;
 
 			try {
@@ -54,7 +63,11 @@ export class TwitchClient {
 				});
 			} catch (error) {
 				const apiError = ApiError.from(error);
-				// if (apiError.status === 401) this.#handleRevoked();
+
+				if (apiError.status === 401) {
+					this.#handleRevoked();
+				}
+
 				throw apiError;
 			}
 
@@ -66,7 +79,11 @@ export class TwitchClient {
 			}
 
 			return response.data;
-		});
+		};
+
+		if (!isQuery(query)) return send();
+
+		return dedupe(`twitch:${queryStr}:${varStr}`, send);
 	}
 
 	public async paginate<T, U extends PageVariables, N>(
@@ -114,5 +131,13 @@ export class TwitchClient {
 		}
 
 		return streams;
+	}
+
+	#handleRevoked() {
+		if (!this.session) return;
+		this.session = null;
+
+		void log.warn("Twitch credentials were revoked, returning to login").catch(() => {});
+		void goto("/auth/login");
 	}
 }

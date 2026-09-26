@@ -56,7 +56,9 @@ export async function load({ url }) {
 		const self = new Channel(app.twitch, app.user);
 		app.channels.set(self.id, self);
 
-		await app.user.loadFollowing();
+		void app.user.loadFollowing().catch((error) => {
+			void log.error(`Failed to load followed channels: ${String(error)}`).catch(() => {});
+		});
 	}
 
 	if (!app.emotes.size) {

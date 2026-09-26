@@ -19,7 +19,6 @@ import {
 	createMarkerMutation,
 } from "$lib/graphql/twitch";
 import { ChannelEmoteManager } from "$lib/managers/channel-emote-manager";
-import { fetch7tvId } from "$lib/seventv";
 import { storage } from "$lib/stores";
 
 import type { TwitchClient } from "../twitch/client";
@@ -154,8 +153,7 @@ export class Channel {
 			this.viewers.set(this.id, viewer);
 		}
 
-		const [seventvId] = await Promise.all([
-			fetch7tvId(this.id),
+		await Promise.all([
 			this.fetchStream(),
 			this.emotes.fetch(),
 			this.fetchBadges(),
@@ -164,8 +162,6 @@ export class Channel {
 			this.fetchPoll(),
 			this.fetchPrediction(),
 		]);
-
-		this.seventvId = seventvId;
 
 		// Don't resolve to avoid blocking the UI
 		void invoke("join", {
@@ -181,8 +177,6 @@ export class Channel {
 				channel: this.user.username,
 				limit: settings.state["chat.messages.history.limit"],
 			});
-		} else {
-			await this.chat.fetchPinned();
 		}
 	}
 
@@ -287,7 +281,7 @@ export class Channel {
 		const { user } = await this.client.gql(pollQuery, { id: this.id });
 		if (!user?.viewablePoll) return null;
 
-		const creator = await this.client.users.fetch(user.viewablePoll.createdBy!.id);
+		const creator = this.client.users.from(user.viewablePoll.createdBy!);
 		this.poll = new Poll(this, creator, toPubSubPoll(this.id, user.viewablePoll));
 
 		return this.poll;
@@ -308,7 +302,7 @@ export class Channel {
 
 		const creator =
 			prediction.createdBy.__typename === "User"
-				? await this.client.users.fetch(prediction.createdBy.id)
+				? this.client.users.from(prediction.createdBy)
 				: null;
 
 		this.prediction = new Prediction(this, creator, toPubSubPrediction(this.id, prediction));
@@ -420,6 +414,7 @@ export class Channel {
 
 		await this.client.gql(shoutoutMutation, {
 			source: this.user.username,
+			caller: app.user.username,
 			target: to,
 		});
 	}

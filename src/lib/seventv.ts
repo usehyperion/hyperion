@@ -1,6 +1,4 @@
 import { app } from "./app.svelte";
-import { send7tv as send } from "./graphql";
-import { userIdQuery } from "./graphql/7tv";
 import { log } from "./log";
 
 interface EventObject {
@@ -146,12 +144,6 @@ export interface SevenTvEventMap {
 	"emote_set.update": ChangeMap<EmoteChange>;
 	"entitlement.create": EntitlementCreate;
 	"user.update": ChangeMap<EventObject | null, true>;
-}
-
-export async function fetch7tvId(twitchId: string): Promise<string | null> {
-	const response = await send(userIdQuery, { id: twitchId }).catch(() => null);
-
-	return response?.users.userByConnection?.id ?? null;
 }
 
 export async function sendPresence(id: string) {
