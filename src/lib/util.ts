@@ -149,27 +149,6 @@ export function chunk<T>(items: T[], size: number): T[][] {
 	return chunks;
 }
 
-export async function mapPool<T, R>(
-	items: T[],
-	limit: number,
-	mapper: (item: T, index: number) => Promise<R>,
-): Promise<R[]> {
-	const results = Array.from<R>({ length: items.length });
-	let cursor = 0;
-
-	const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-		while (cursor < items.length) {
-			const index = cursor++;
-			// oxlint-disable-next-line no-await-in-loop -- bounded concurrency pool
-			results[index] = await mapper(items[index], index);
-		}
-	});
-
-	await Promise.all(workers);
-
-	return results;
-}
-
 export async function openMenu(event: MouseEvent, menufn: () => Promise<Menu>) {
 	event.preventDefault();
 

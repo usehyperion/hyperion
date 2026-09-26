@@ -15,20 +15,31 @@ export default defineCommand({
 			() => channel.viewers.vip(target.id),
 			[
 				{
-					status: 409,
-					message: ErrorMessage.NO_VIP_SLOTS,
-				},
-				{
-					status: 422,
-					includes: "already",
+					code: "GRANTEE_ALREADY_VIP",
 					message: ErrorMessage.USER_ALREADY_VIP(target.displayName),
 				},
 				{
-					status: 422,
-					includes: "moderator",
-					message: ErrorMessage.MOD_CANNOT_BE_VIP(target.displayName),
+					code: "MAX_VIPS_REACHED",
+					message: ErrorMessage.NO_VIP_SLOTS,
+				},
+				{
+					code: "GRANTEE_CHAT_BANNED",
+					message: ErrorMessage.BANNED_USER_CANNOT_BE_VIP(target.displayName),
+				},
+				{
+					code: "GRANTEE_NOT_FOUND",
+					message: ErrorMessage.USER_NOT_FOUND(target.username),
+				},
+				{
+					code: "VIP_ACHIEVEMENT_INCOMPLETE",
+					message: ErrorMessage.VIP_ACHIEVEMENT_INCOMPLETE,
+				},
+				{
+					code: "FORBIDDEN",
+					message: ErrorMessage.NO_PERMISSION,
 				},
 			],
+			ErrorMessage.COMMAND_FAILED,
 		);
 	},
 });

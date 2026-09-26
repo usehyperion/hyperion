@@ -97,14 +97,14 @@ export class Viewer {
 	}
 
 	public ban(reason?: string) {
-		return this.channel.viewers.ban(this.id, reason);
+		return this.channel.viewers.ban(this.username, reason);
 	}
 
 	public timeout(options: TimeoutOptions) {
-		return this.channel.viewers.timeout(this.id, options);
+		return this.channel.viewers.timeout(this.username, options);
 	}
 
 	public warn(reason: string) {
-		return this.channel.viewers.warn(this.id, reason);
+		return this.channel.viewers.warn(this.username, reason);
 	}
 }

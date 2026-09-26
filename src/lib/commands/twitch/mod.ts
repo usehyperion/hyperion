@@ -15,20 +15,23 @@ export default defineCommand({
 			() => channel.viewers.mod(target.id),
 			[
 				{
-					status: 400,
-					includes: "already",
+					code: "TARGET_ALREADY_MOD",
 					message: ErrorMessage.USER_ALREADY_MOD(target.displayName),
 				},
 				{
-					status: 400,
-					includes: "banned",
+					code: "TARGET_IS_CHAT_BANNED",
 					message: ErrorMessage.BANNED_USER_CANNOT_BE_MOD(target.displayName),
 				},
 				{
-					status: 422,
-					message: ErrorMessage.VIP_CANNOT_BE_MOD(target.displayName),
+					code: "TARGET_NOT_FOUND",
+					message: ErrorMessage.USER_NOT_FOUND(target.username),
+				},
+				{
+					code: "FORBIDDEN",
+					message: ErrorMessage.NO_PERMISSION,
 				},
 			],
+			ErrorMessage.COMMAND_FAILED,
 		);
 	},
 });

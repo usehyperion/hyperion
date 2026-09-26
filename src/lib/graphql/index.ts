@@ -5,6 +5,10 @@ import { ofetch } from "ofetch";
 import { ApiError } from "$lib/errors/api-error";
 import { dedupe } from "$lib/util";
 
+export const TWITCH_CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko";
+export const TWITCH_GQL_URL = "https://gql.twitch.tv/gql";
+export const SEVENTV_GQL_URL = "https://7tv.io/v4/gql";
+
 export type NonNullableDeep<T, P extends string> = P extends `${infer K}.${infer R}`
 	? K extends keyof T
 		? NonNullableDeep<NonNullable<T[K]>, R>
@@ -17,7 +21,7 @@ export type NonNullableDeep<T, P extends string> = P extends `${infer K}.${infer
 		? NonNullable<T[P]>
 		: never;
 
-type GqlResponse<T> =
+export type GqlResponse<T> =
 	| {
 			data: T;
 			errors?: never;
@@ -27,12 +31,32 @@ type GqlResponse<T> =
 			errors: { message: string }[];
 	  };
 
+export interface Edge<T> {
+	node?: T | null;
+	cursor?: string | null;
+}
+
+export interface Connection<T> {
+	edges?: readonly (Edge<T> | null)[] | null;
+	pageInfo?: { hasNextPage: boolean } | null;
+}
+
+export function nodes<T>(connection: Connection<T> | null | undefined): T[] {
+	const result: T[] = [];
+
+	for (const edge of connection?.edges ?? []) {
+		if (edge?.node != null) result.push(edge.node);
+	}
+
+	return result;
+}
+
 export function sendTwitch<T, U>(query: TadaDocumentNode<T, U>, variables?: U) {
-	return send("https://gql.twitch.tv/gql", query, variables);
+	return send(TWITCH_GQL_URL, query, variables);
 }
 
 export function send7tv<T, U>(query: TadaDocumentNode<T, U>, variables?: U) {
-	return send("https://7tv.io/v4/gql", query, variables);
+	return send(SEVENTV_GQL_URL, query, variables);
 }
 
 async function send<T, U>(url: string, query: TadaDocumentNode<T, U>, variables?: U) {
@@ -46,9 +70,7 @@ async function send<T, U>(url: string, query: TadaDocumentNode<T, U>, variables?
 		try {
 			response = await ofetch<GqlResponse<T>>(url, {
 				method: "POST",
-				headers: url.includes("twitch")
-					? { "Client-Id": "kimne78kx3ncx6brgo4mv6wki5h1ko" }
-					: {},
+				headers: url === TWITCH_GQL_URL ? { "Client-Id": TWITCH_CLIENT_ID } : {},
 				body: {
 					query: queryStr,
 					variables,

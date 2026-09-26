@@ -9,8 +9,14 @@ export default defineCommand({
 	modOnly: true,
 	async exec(_, channel) {
 		await mapErrors(
-			() => channel.unraid(),
-			[{ status: 404, message: ErrorMessage.NO_PENDING_RAID }],
+			() => channel.cancelRaid(),
+			[
+				{
+					code: ["RAID_DOES_NOT_EXIST", "NO_ACTIVE_RAID"],
+					message: ErrorMessage.NO_PENDING_RAID,
+				},
+			],
+			ErrorMessage.COMMAND_FAILED,
 		);
 	},
 });

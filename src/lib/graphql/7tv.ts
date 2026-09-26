@@ -55,6 +55,7 @@ export const activeEmoteSetQuery = gql(
 	`query GetActiveEmoteSet($id: String!, $details: Boolean!) {
 		users {
 			userByConnection(platform: TWITCH, platformId: $id) {
+				id
 				style {
 					activeEmoteSet {
 						id
@@ -96,16 +97,6 @@ export const globalEmoteSetQuery = gql(
 	}`,
 	[emoteSetDetailsFragment],
 );
-
-export const userIdQuery = gql(`
-	query GetUserID($id: String!) {
-		users {
-			userByConnection(platform: TWITCH, platformId: $id) {
-				id
-			}
-		}
-	}
-`);
 
 export const userEmoteSetsQuery = gql(
 	`query GetUserEmoteSets($id: String!) {

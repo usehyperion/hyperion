@@ -1,3 +1,4 @@
+import { nodes } from "$lib/graphql";
 import { vipsQuery } from "$lib/graphql/twitch";
 
 import { defineCommand } from "../util";
@@ -9,10 +10,9 @@ export default defineCommand({
 	async exec(_, channel) {
 		const { user } = await channel.client.gql(vipsQuery, { id: channel.id });
 
-		const vips =
-			user?.vips?.edges
-				?.flatMap((edge) => (edge.node ? [edge.node.displayName] : []))
-				.toSorted() ?? [];
+		const vips = nodes(user?.vips)
+			.map((vip) => vip.displayName)
+			.toSorted();
 
 		const text = vips.length
 			? `Channel VIPs (${vips.length}): ${vips.join(", ")}`

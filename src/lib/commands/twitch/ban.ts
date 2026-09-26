@@ -15,16 +15,15 @@ export default defineCommand({
 			() => target.ban(args.slice(1).join(" ")),
 			[
 				{
-					status: 400,
-					includes: "already banned",
+					code: "TARGET_ALREADY_BANNED",
 					message: ErrorMessage.USER_ALREADY_BANNED(target.displayName),
 				},
 				{
-					status: 400,
-					includes: "may not be banned",
-					message: ErrorMessage.USER_CANNOT_BE_BANNED(target.displayName),
+					code: "TARGET_NOT_FOUND",
+					message: ErrorMessage.USER_NOT_FOUND(target.username),
 				},
 			],
+			ErrorMessage.USER_CANNOT_BE_BANNED(target.displayName),
 		);
 	},
 });

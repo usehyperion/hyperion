@@ -21,10 +21,19 @@ export default defineCommand({
 			() => target.timeout({ duration, reason: args.slice(2).join(" ") }),
 			[
 				{
-					includes: "may not be banned",
-					message: ErrorMessage.USER_CANNOT_BE_TIMED_OUT(target.displayName),
+					code: "TARGET_ALREADY_BANNED",
+					message: ErrorMessage.USER_ALREADY_BANNED(target.displayName),
+				},
+				{
+					code: "DURATION_INVALID",
+					message: ErrorMessage.INVALID_TIMEOUT_DURATION,
+				},
+				{
+					code: "TARGET_NOT_FOUND",
+					message: ErrorMessage.USER_NOT_FOUND(target.username),
 				},
 			],
+			ErrorMessage.USER_CANNOT_BE_TIMED_OUT(target.displayName),
 		);
 	},
 });

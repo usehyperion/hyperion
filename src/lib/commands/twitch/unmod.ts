@@ -13,7 +13,21 @@ export default defineCommand({
 
 		await mapErrors(
 			() => channel.viewers.unmod(target.id),
-			[{ status: 422, message: ErrorMessage.USER_NOT_MOD(target.displayName) }],
+			[
+				{
+					code: "TARGET_NOT_MOD",
+					message: ErrorMessage.USER_NOT_MOD(target.displayName),
+				},
+				{
+					code: "TARGET_NOT_FOUND",
+					message: ErrorMessage.USER_NOT_FOUND(target.username),
+				},
+				{
+					code: "FORBIDDEN",
+					message: ErrorMessage.NO_PERMISSION,
+				},
+			],
+			ErrorMessage.COMMAND_FAILED,
 		);
 	},
 });

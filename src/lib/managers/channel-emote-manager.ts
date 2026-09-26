@@ -8,6 +8,7 @@ import { send7tv as send } from "$lib/graphql";
 import type { ActiveEmoteSet } from "$lib/graphql/7tv";
 import { activeEmoteSetQuery } from "$lib/graphql/7tv";
 import type { Channel } from "$lib/models/channel.svelte";
+import { settings } from "$lib/settings";
 
 import { BaseEmoteManager } from "./base-emote-manager";
 
@@ -32,12 +33,19 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 		if (force || !emotes) {
 			if (force) this.clear();
 
-			emotes = await super.fetch();
+			const [fetched] = await Promise.all([
+				super.fetch(),
+				// fetch7tv resolves the channel's 7TV user, so only look it up
+				// separately when 7TV emotes are disabled
+				settings.state["chat.emotes.seventv"]
+					? null
+					: this.#fetchActiveSet(false).catch(() => null),
+			]);
+
+			emotes = fetched;
 			await cache.set(`emotes:${this.channel.id}`, emotes);
 		} else {
-			const set = await this.#fetchActiveSet(false);
-			this.channel.emoteSetId = set?.id ?? null;
-
+			await this.#fetchActiveSet(false);
 			this.addAll(emotes);
 		}
 
@@ -93,8 +101,6 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 		const set = await this.#fetchActiveSet();
 		if (!set) return [];
 
-		this.channel.emoteSetId = set.id;
-
 		const emotes = set.emotes.items.map((item) => transform7tvEmote(item.emote, item.alias));
 		this.addAll(emotes);
 
@@ -109,6 +115,12 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 			details,
 		});
 
-		return users.userByConnection?.style.activeEmoteSet ?? null;
+		const user = users.userByConnection;
+		const set = user?.style.activeEmoteSet ?? null;
+
+		this.channel.seventvId = user?.id ?? null;
+		this.channel.emoteSetId = set?.id ?? null;
+
+		return set;
 	}
 }

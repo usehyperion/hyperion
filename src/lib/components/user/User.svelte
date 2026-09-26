@@ -34,7 +34,7 @@
 	let showAllBadges = $state(false);
 
 	const user = $derived(mention?.data.user ?? message.author);
-	const relationship = $derived(user.relationships.get(message.channel.user.username));
+	const relationship = $derived(user.relationships.get(message.channel.id));
 	const popoverId = $derived(`user-card-${user.id}-${id}`);
 
 	async function fetchInfo() {
@@ -46,7 +46,7 @@
 			}
 
 			if (!relationship) {
-				await user.fetchRelationship(message.channel.user.username);
+				await user.fetchRelationship(message.channel);
 			}
 		} finally {
 			loading = false;
@@ -159,7 +159,7 @@
 			</div>
 
 			<div class="flex items-center gap-1">
-				{#if relationship?.subscription.hidden || !relationship?.subscription.tier}
+				{#if !relationship?.subscription.tier}
 					<StarOutline class="mr-1 size-3" />
 				{:else}
 					<Star class="mr-1 size-3" />
@@ -167,18 +167,18 @@
 
 				{#if loading}
 					Loading...
-				{:else if !relationship?.subscription.hidden && relationship?.subscription.months}
+				{:else if relationship?.subscription.months}
 					{@const { tier, type, months } = relationship.subscription}
 					{@const noun = `month${months > 1 ? "s" : ""}`}
 
 					{#if tier}
-						{type === "prime" ? "Prime" : `Tier ${tier}`} - {months}
+						{type === "prime" ? "Prime" : `Tier ${tier}`} ({months})
 						{noun}
 					{:else}
 						{months} {noun}
 					{/if}
 				{:else}
-					Subscription hidden
+					Subscription unknown
 				{/if}
 			</div>
 		</div>

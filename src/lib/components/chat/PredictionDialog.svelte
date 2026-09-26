@@ -52,10 +52,10 @@
 		if (outcomes.length > MIN_OUTCOMES) outcomes.splice(index, 1);
 	}
 
-	async function create() {
+	async function start() {
 		if (!canSubmit) return;
 
-		await channel.createPrediction({
+		await channel.startPrediction({
 			title: title.trim(),
 			outcomes: validOutcomes,
 			window,
@@ -122,6 +122,6 @@
 	</Field.Field>
 
 	{#snippet footer()}
-		<Button disabled={!canSubmit} onclickwait={create}>Create prediction</Button>
+		<Button disabled={!canSubmit} onclickwait={start}>Start prediction</Button>
 	{/snippet}
 </Dialog>

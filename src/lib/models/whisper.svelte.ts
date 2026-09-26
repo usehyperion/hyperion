@@ -1,4 +1,5 @@
 import { app } from "$lib/app.svelte";
+import { sendWhisperMutation } from "$lib/graphql/twitch";
 import type { TwitchClient } from "$lib/twitch/client";
 
 import type { Badge } from "./badge";
@@ -36,13 +37,11 @@ export class Whisper {
 	public async send(message: string) {
 		if (!app.user || !message) return;
 
-		await this.client.post("/whispers", {
-			params: {
-				from_user_id: app.user.id,
-				to_user_id: this.sender.id,
-			},
-			body: {
+		await this.client.gql(sendWhisperMutation, {
+			input: {
 				message,
+				recipientUserID: this.sender.id,
+				nonce: crypto.randomUUID(),
 			},
 		});
 
