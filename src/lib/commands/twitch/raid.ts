@@ -20,16 +20,23 @@ export default defineCommand({
 			() => channel.startRaid(target.id),
 			[
 				{
-					status: 400,
-					includes: "settings do not",
+					code: "CANNOT_RAID_THIS_CHANNEL",
 					message: ErrorMessage.SETTINGS_DO_NOT_ALLOW_RAIDS(target.displayName),
 				},
 				{
-					status: 400,
-					includes: "cannot be",
-					message: ErrorMessage.USER_CANNOT_BE_RAIDED(target.displayName),
+					code: "CANNOT_RAID_YOURSELF",
+					message: ErrorMessage.CANNOT_TARGET_SELF,
+				},
+				{
+					code: "ALREADY_RAIDING",
+					message: ErrorMessage.ALREADY_RAIDING,
+				},
+				{
+					code: "TOO_MANY_VIEWERS_TO_RAID",
+					message: ErrorMessage.TOO_MANY_VIEWERS_TO_RAID,
 				},
 			],
+			ErrorMessage.USER_CANNOT_BE_RAIDED(target.displayName),
 		);
 	},
 });

@@ -13,7 +13,21 @@ export default defineCommand({
 
 		await mapErrors(
 			() => channel.viewers.unvip(target.id),
-			[{ status: 422, message: ErrorMessage.USER_NOT_VIP(target.displayName) }],
+			[
+				{
+					code: "REVOKEE_NOT_VIP",
+					message: ErrorMessage.USER_NOT_VIP(target.displayName),
+				},
+				{
+					code: "REVOKEE_NOT_FOUND",
+					message: ErrorMessage.USER_NOT_FOUND(target.username),
+				},
+				{
+					code: "FORBIDDEN",
+					message: ErrorMessage.NO_PERMISSION,
+				},
+			],
+			ErrorMessage.COMMAND_FAILED,
 		);
 	},
 });

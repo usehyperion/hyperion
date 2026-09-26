@@ -2,6 +2,7 @@ import { app } from "$lib/app.svelte";
 import { ApiError } from "$lib/errors/api-error";
 import { CommandError } from "$lib/errors/command-error";
 import { ErrorMessage } from "$lib/errors/messages";
+import { MutationError } from "$lib/errors/mutation-error";
 import type { Channel } from "$lib/models/channel.svelte";
 import { Viewer } from "$lib/models/viewer.svelte";
 
@@ -11,42 +12,66 @@ export function defineCommand<const T extends Command>(command: T) {
 	return command;
 }
 
-export interface ApiErrorMatch {
+export interface ErrorMatch {
+	code?: string | string[];
 	status?: number;
 	includes?: string;
 	message: string;
 }
 
-/**
- * Flattens the thrown value into the `ApiError`s it carries. A GraphQL request
- * reports every field error at once, so `TwitchClient.gql` throws an
- * `AggregateError` wrapping one `ApiError` per error rather than a bare one.
- */
-function apiErrors(error: unknown): ApiError[] {
-	if (error instanceof ApiError) return [error];
+type Failure = ApiError | MutationError;
+
+function failures(error: unknown): Failure[] {
+	if (error instanceof ApiError || error instanceof MutationError) {
+		return [error];
+	}
 
 	if (error instanceof AggregateError) {
-		return error.errors.filter((inner) => inner instanceof ApiError);
+		return error.errors.filter(
+			(inner) => inner instanceof ApiError || inner instanceof MutationError,
+		);
 	}
 
 	return [];
 }
 
-export async function mapErrors<T>(action: () => Promise<T>, matches: ApiErrorMatch[]): Promise<T> {
+function isMatch(failure: Failure, match: ErrorMatch): boolean {
+	if (match.code !== undefined) {
+		if (!(failure instanceof MutationError)) return false;
+
+		const codes = Array.isArray(match.code) ? match.code : [match.code];
+
+		return codes.includes(failure.code);
+	}
+
+	if (failure instanceof MutationError) return false;
+
+	const statusMatches = match.status === undefined || failure.status === match.status;
+	const textMatches = match.includes === undefined || failure.message.includes(match.includes);
+
+	return statusMatches && textMatches;
+}
+
+export async function mapErrors<T>(
+	action: () => Promise<T>,
+	matches: ErrorMatch[],
+	fallback?: string,
+): Promise<T> {
 	try {
 		return await action();
 	} catch (error) {
-		for (const apiError of apiErrors(error)) {
-			for (const match of matches) {
-				const statusMatches =
-					match.status === undefined || apiError.status === match.status;
-				const textMatches =
-					match.includes === undefined || apiError.message.includes(match.includes);
+		const collected = failures(error);
 
-				if (statusMatches && textMatches) {
+		for (const failure of collected) {
+			for (const match of matches) {
+				if (isMatch(failure, match)) {
 					throw new CommandError(match.message);
 				}
 			}
+		}
+
+		if (fallback && collected.length) {
+			throw new CommandError(fallback);
 		}
 
 		throw error;

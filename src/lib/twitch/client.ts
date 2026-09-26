@@ -7,6 +7,7 @@ import { ofetch } from "ofetch";
 
 import { goto } from "$app/navigation";
 import { ApiError } from "$lib/errors/api-error";
+import { MutationError } from "$lib/errors/mutation-error";
 import { type Connection, type GqlResponse, nodes, TWITCH_GQL_URL } from "$lib/graphql";
 import { streamsQuery } from "$lib/graphql/twitch";
 import { log } from "$lib/log";
@@ -18,6 +19,28 @@ import type { Session } from "./session";
 
 interface PageVariables {
 	after?: string | null;
+}
+
+function findMutationError(data: unknown): MutationError | null {
+	if (!data || typeof data !== "object") return null;
+
+	for (const [field, payload] of Object.entries(data)) {
+		if (!payload || typeof payload !== "object" || !("error" in payload)) continue;
+
+		const { error } = payload as { error: unknown };
+		if (!error) continue;
+
+		if (typeof error === "string") return new MutationError(error, field);
+
+		const code =
+			typeof error === "object" && "code" in error && typeof error.code === "string"
+				? error.code
+				: "UNKNOWN";
+
+		return new MutationError(code, field);
+	}
+
+	return null;
 }
 
 function isQuery<T, U>(document: TadaDocumentNode<T, U>): boolean {
@@ -47,6 +70,8 @@ export class TwitchClient {
 		// @ts-expect-error - outdated types
 		const queryStr = print(query);
 		const varStr = JSON.stringify(variables ?? {});
+
+		const read = isQuery(query);
 
 		const send = async () => {
 			let response: GqlResponse<T>;
@@ -78,10 +103,15 @@ export class TwitchClient {
 				);
 			}
 
+			if (!read) {
+				const mutationError = findMutationError(response.data);
+				if (mutationError) throw mutationError;
+			}
+
 			return response.data;
 		};
 
-		if (!isQuery(query)) return send();
+		if (!read) return send();
 
 		return dedupe(`twitch:${queryStr}:${varStr}`, send);
 	}

@@ -522,7 +522,9 @@ export const banUserMutation = gql(`
 			expiresIn: $duration,
 			reason: $reason
 		}) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);
@@ -535,7 +537,7 @@ export const blockTermMutation = gql(`
 			phrases: [$term],
 			isModEditable: true
 		}) {
-			__typename
+			error
 		}
 	}
 `);
@@ -551,7 +553,9 @@ export const blockUserMutation = gql(`
 export const cancelPredictionMutation = gql(`
 	mutation CancelPrediction($prediction: ID!) {
 		cancelPredictionEvent(input: { id: $prediction }) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);
@@ -559,7 +563,9 @@ export const cancelPredictionMutation = gql(`
 export const cancelRaidMutation = gql(`
 	mutation CancelRaid($channel: ID!) {
 		cancelRaid(input: { sourceID: $channel }) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);
@@ -567,6 +573,9 @@ export const cancelRaidMutation = gql(`
 export const createMarkerMutation = gql(`
 	mutation CreateMarker($input: CreateVideoBookmarkInput!) {
 		createVideoBookmark(input: $input) {
+			error {
+				code
+			}
 			videoBookmark {
 				positionSeconds
 			}
@@ -595,7 +604,9 @@ export const denyHeldMessageMutation = gql(`
 export const grantVipMutation = gql(`
 	mutation GrantVIP($channel: ID!, $target: ID!) {
 		grantVIP(input: { channelID: $channel, granteeID: $target }) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);
@@ -603,7 +614,9 @@ export const grantVipMutation = gql(`
 export const lockPredictionMutation = gql(`
 	mutation LockPrediction($prediction: ID!) {
 		lockPredictionEvent(input: { id: $prediction }) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);
@@ -611,7 +624,9 @@ export const lockPredictionMutation = gql(`
 export const modUserMutation = gql(`
 	mutation ModUser($channel: ID!, $target: ID!) {
 		modUser(input: { channelID: $channel, targetID: $target }) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);
@@ -627,7 +642,9 @@ export const pinMessageMutation = gql(`
 export const resolvePredictionMutation = gql(`
 	mutation ResolvePrediction($prediction: ID!, $outcome: ID!) {
 		resolvePredictionEvent(input: { eventID: $prediction, outcomeID: $outcome }) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);
@@ -635,7 +652,9 @@ export const resolvePredictionMutation = gql(`
 export const revokeVipMutation = gql(`
 	mutation RevokeVIP($channel: ID!, $target: ID!) {
 		revokeVIP(input: { channelID: $channel, revokeeID: $target }) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);
@@ -670,7 +689,9 @@ export const sendPinnedMessageMutation = gql(`
 export const sendWhisperMutation = gql(`
 	mutation SendWhisper($input: SendWhisperInput!) {
 		sendWhisper(input: $input) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);
@@ -686,7 +707,7 @@ export const shieldModeMutation = gql(`
 export const shoutoutMutation = gql(`
 	mutation Shoutout($source: String!, $caller: String!, $target: String!) {
 		createShoutout(input: { channelLogin: $source, callerLogin: $caller, targetLogin: $target }) {
-			__typename
+			error
 		}
 	}
 `);
@@ -694,7 +715,9 @@ export const shoutoutMutation = gql(`
 export const startPollMutation = gql(`
 	mutation StartPoll($input: CreatePollInput!) {
 		createPoll(input: $input) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);
@@ -702,7 +725,9 @@ export const startPollMutation = gql(`
 export const startPredictionMutation = gql(`
 	mutation StartPrediction($input: CreatePredictionEventInput!) {
 		createPredictionEvent(input: $input) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);
@@ -710,7 +735,9 @@ export const startPredictionMutation = gql(`
 export const startRaidMutation = gql(`
 	mutation StartRaid($source: ID!, $target: ID!) {
 		createRaid(input: { sourceID: $source, targetID: $target }) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);
@@ -729,7 +756,9 @@ export const unbanUserMutation = gql(`
 			channelID: $channel,
 			bannedUserLogin: $target
 		}) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);
@@ -745,7 +774,9 @@ export const unblockUserMutation = gql(`
 export const unmodUserMutation = gql(`
 	mutation UnmodUser($channel: ID!, $target: ID!) {
 		unmodUser(input: { channelID: $channel, targetID: $target }) {
-			__typename
+			error {
+				code
+			}
 		}
 	}
 `);

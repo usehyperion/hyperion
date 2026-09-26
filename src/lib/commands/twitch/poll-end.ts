@@ -1,6 +1,7 @@
 import { CommandError } from "$lib/errors/command-error";
+import { ErrorMessage } from "$lib/errors/messages";
 
-import { defineCommand } from "../util";
+import { defineCommand, mapErrors } from "../util";
 
 export default defineCommand({
 	provider: "Twitch",
@@ -12,6 +13,6 @@ export default defineCommand({
 			throw new CommandError("There is no active poll to end.");
 		}
 
-		await channel.poll.end();
+		await mapErrors(() => channel.poll!.end(), [], ErrorMessage.COMMAND_FAILED);
 	},
 });

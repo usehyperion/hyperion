@@ -13,7 +13,17 @@ export default defineCommand({
 
 		await mapErrors(
 			() => channel.viewers.unban(target.username),
-			[{ status: 400, message: ErrorMessage.USER_NOT_BANNED(target.displayName) }],
+			[
+				{
+					code: "TARGET_NOT_BANNED",
+					message: ErrorMessage.USER_NOT_BANNED(target.displayName),
+				},
+				{
+					code: "TARGET_NOT_FOUND",
+					message: ErrorMessage.USER_NOT_FOUND(target.username),
+				},
+			],
+			ErrorMessage.COMMAND_FAILED,
 		);
 	},
 });

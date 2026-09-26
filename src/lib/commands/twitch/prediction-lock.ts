@@ -1,6 +1,7 @@
 import { CommandError } from "$lib/errors/command-error";
+import { ErrorMessage } from "$lib/errors/messages";
 
-import { defineCommand } from "../util";
+import { defineCommand, mapErrors } from "../util";
 
 export default defineCommand({
 	provider: "Twitch",
@@ -12,6 +13,19 @@ export default defineCommand({
 			throw new CommandError("There is no active prediction to lock.");
 		}
 
-		await channel.prediction.lock();
+		await mapErrors(
+			() => channel.prediction!.lock(),
+			[
+				{
+					code: "EVENT_NOT_ACTIVE",
+					message: ErrorMessage.PREDICTION_NOT_ACTIVE,
+				},
+				{
+					code: "FORBIDDEN",
+					message: ErrorMessage.NO_PERMISSION,
+				},
+			],
+			ErrorMessage.COMMAND_FAILED,
+		);
 	},
 });

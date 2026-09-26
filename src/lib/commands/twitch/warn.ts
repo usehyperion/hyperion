@@ -20,12 +20,8 @@ export default defineCommand({
 
 		await mapErrors(
 			() => target.warn(reason),
-			[
-				{
-					includes: "may not be warned",
-					message: ErrorMessage.USER_CANNOT_BE_WARNED(target.displayName),
-				},
-			],
+			[],
+			ErrorMessage.USER_CANNOT_BE_WARNED(target.displayName),
 		);
 	},
 });

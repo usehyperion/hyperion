@@ -1,7 +1,7 @@
 import { CommandError } from "$lib/errors/command-error";
 import { ErrorMessage } from "$lib/errors/messages";
 
-import { defineCommand, getTarget } from "../util";
+import { defineCommand, getTarget, mapErrors } from "../util";
 
 export default defineCommand({
 	provider: "Twitch",
@@ -20,6 +20,15 @@ export default defineCommand({
 			throw new CommandError(ErrorMessage.CANNOT_TARGET_SELF);
 		}
 
-		await channel.shoutout(target.username);
+		await mapErrors(
+			() => channel.shoutout(target.username),
+			[
+				{
+					code: "OFFLINE_BROADCASTER",
+					message: ErrorMessage.CHANNEL_MUST_BE_LIVE,
+				},
+			],
+			ErrorMessage.COMMAND_FAILED,
+		);
 	},
 });
