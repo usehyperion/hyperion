@@ -59,8 +59,6 @@ function cleanQuery(params: QueryParams): QueryParams {
 }
 
 export class TwitchClient {
-	public static readonly CLIENT_ID = "2z7vk7rabefjdhey6m5cxfxsbspw7c";
-	public static readonly REDIRECT_URL = "https://usehyperion.app/api/auth/twitch/callback";
 	public static readonly DEFAULT_TIMEOUT = 15_000;
 
 	#refreshing: Promise<string | null> | null = null;
@@ -143,6 +141,7 @@ export class TwitchClient {
 
 		const query = options.params ? cleanQuery(options.params) : undefined;
 		const timeout = options.timeout ?? TwitchClient.DEFAULT_TIMEOUT;
+
 		const send = () => this.#send<T>(method, path, query, options.body, timeout);
 
 		if (method === "GET") {
@@ -169,7 +168,7 @@ export class TwitchClient {
 					query,
 					headers: {
 						Authorization: `Bearer ${this.token}`,
-						"Client-Id": TwitchClient.CLIENT_ID,
+						"Client-Id": "kimne78kx3ncx6brgo4mv6wki5h1ko",
 					},
 					body,
 					signal: AbortSignal.timeout(timeout),

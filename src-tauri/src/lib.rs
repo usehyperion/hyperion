@@ -2,6 +2,7 @@
 
 use std::sync::{Arc, LazyLock};
 
+use auth::Integrity;
 use eventsub::EventSubClient;
 use eventsub::client::NotificationPayload;
 use irc::IrcClient;
@@ -19,9 +20,8 @@ use twitch_api::HelixClient;
 use twitch_api::twitch_oauth2::UserToken;
 use ws::ChannelSink;
 
-use crate::api::refresh_access_token;
-
 mod api;
+mod auth;
 mod commands;
 mod error;
 mod eventsub;
@@ -47,6 +47,10 @@ pub static HTTP: LazyLock<reqwest::Client> = LazyLock::new(|| {
 pub struct AppState {
     helix: HelixClient<'static, reqwest::Client>,
     token: Option<UserToken>,
+    integrity: Option<Integrity>,
+    // Held across an integrity refresh so concurrent callers queue behind the
+    // one webview instead of each opening their own.
+    integrity_refresh: Arc<Mutex<()>>,
     irc: Option<IrcClient>,
     eventsub: Option<Arc<EventSubClient>>,
     seventv: Option<Arc<SeventTvClient>>,
@@ -64,6 +68,8 @@ impl Default for AppState {
         Self {
             helix: HelixClient::new(),
             token: None,
+            integrity: None,
+            integrity_refresh: Arc::new(Mutex::new(())),
             irc: None,
             eventsub: None,
             seventv: None,
@@ -105,7 +111,11 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_window_state::Builder::new().build())
+        .plugin(
+            tauri_plugin_window_state::Builder::new()
+                .with_filter(|label| label == "main")
+                .build(),
+        )
         .setup(|app| {
             log::init_tracing(app);
 
@@ -119,10 +129,19 @@ pub fn run() {
             app_handle.plugin(svelte)?;
 
             async_runtime::block_on(async {
-                state.token = refresh_access_token(&state.helix).await.ok();
+                let restored = auth::restore_credentials(&state.helix).await;
+
+                state.token = restored.token;
+                state.integrity = restored.integrity;
             });
 
             app.manage(Mutex::new(state));
+
+            let handle = app_handle.clone();
+
+            async_runtime::spawn(async move {
+                auth::ensure_integrity(&handle).await;
+            });
 
             Ok(())
         })
@@ -136,9 +155,11 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         api::join,
         api::leave,
         api::rejoin,
-        api::store_tokens,
-        api::get_token,
-        api::refresh_token,
+        auth::clear_token,
+        auth::get_integrity,
+        auth::get_token,
+        auth::open_twitch_login,
+        auth::store_token,
         commands::fetch_recent_messages,
         commands::get_cache_size,
         commands::get_about_info,

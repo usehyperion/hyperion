@@ -9,7 +9,7 @@ use tauri::{AppHandle, Manager, State, async_runtime};
 use tokio::sync::Mutex;
 
 use crate::AppState;
-use crate::api::get_access_token;
+use crate::auth::get_access_token;
 use crate::error::Error;
 use crate::ws::{channel_sink, forward_to_channel};
 

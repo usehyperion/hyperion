@@ -16,7 +16,7 @@ use tauri::{State, async_runtime};
 use tokio::sync::Mutex;
 
 use crate::AppState;
-use crate::api::get_access_token;
+use crate::auth::get_access_token;
 use crate::error::Error as AppError;
 use crate::irc::message::IrcMessage;
 use crate::ws::channel_sink;

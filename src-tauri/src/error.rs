@@ -17,6 +17,9 @@ pub enum Error {
     Io(#[from] std::io::Error),
 
     #[error(transparent)]
+    Json(#[from] serde_json::Error),
+
+    #[error(transparent)]
     Keyring(#[from] keyring::Error),
 
     #[error(transparent)]
