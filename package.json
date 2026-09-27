@@ -16,6 +16,7 @@
 		"prepare": "vp config"
 	},
 	"dependencies": {
+		"@danfessler/trellis": "^0.1.0",
 		"@dnd-kit/abstract": "^0.5.0",
 		"@dnd-kit/dom": "^0.5.0",
 		"@dnd-kit/helpers": "^0.5.0",
@@ -42,7 +43,6 @@
 		"graphql-web-lite": "16.6.0-4",
 		"mode-watcher": "^1.1.0",
 		"ofetch": "^1.5.1",
-		"paneforge": "^1.0.2",
 		"shadow-plugin": "^2.1.0",
 		"tailwindcss": "^4.3.3",
 		"tauri-plugin-cache-api": "^0.1.6",

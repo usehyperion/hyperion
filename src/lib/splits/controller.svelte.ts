@@ -1,280 +1,298 @@
+import {
+	createWorkspace,
+	layoutRects,
+	type Edge,
+	type Placement,
+	type Surface,
+	type ViewInfo,
+	type WorkspaceHandle,
+} from "@danfessler/trellis";
+
+import { app } from "$lib/app.svelte";
+import type { Channel } from "$lib/models/channel.svelte";
+import { settings } from "$lib/settings";
 import { storage } from "$lib/stores";
 
-import { bounds, neighbor } from "./geometry";
-import * as tree from "./tree";
+import { channelParams, isChannelView, panels, withoutEphemeral } from "./document";
+import { neighbor } from "./geometry";
 import {
 	LAYOUT_VERSION,
+	type ChannelViewParams,
 	type DragData,
-	type DragState,
-	type DropData,
 	type DropTarget,
-	type Pane,
-	type Split,
+	type Layout,
+	type Rect,
 	type SplitDirection,
-	type SplitDropPosition,
-	type SplitNode,
-	type Tab,
+	type SplitDropZone,
 } from "./types";
 
 type Point = { x: number; y: number } | undefined;
 
+type DockTarget = { into: string } | { beside: string; edge: Edge };
+
+const DIRECTION_EDGE: Record<SplitDirection, Edge> = {
+	up: "top",
+	down: "bottom",
+	left: "left",
+	right: "right",
+};
+
 export class SplitController {
-	readonly #paneRefs = new Map<string, HTMLElement>();
-
 	/**
-	 * The id of the focused pane.
+	 * Changes requested while the workspace isn't mounted, applied once it is.
 	 */
-	public focusedPaneId = $state<string | null>(null);
+	readonly #pending: ((workspace: WorkspaceHandle) => void)[] = [];
 
 	/**
-	 * The focused pane if it is still part of the layout.
+	 * The mounted workspace, if the split view is on screen.
 	 */
-	public readonly focused = $derived(this.focusedPaneId ? this.pane(this.focusedPaneId) : null);
+	public workspace = $state.raw<WorkspaceHandle | null>(null);
 
 	/**
-	 * The channel or tab drag in progress.
+	 * The mount points of every view in the workspace.
 	 */
-	public drag = $state<DragState | null>(null);
+	public surfaces = $state.raw<readonly Surface[]>([]);
 
 	/**
-	 * The pane and zone currently highlighted while dragging.
+	 * The id of the focused view. Kept while the workspace is unmounted so focus
+	 * can be restored.
+	 */
+	public focusedViewId = $state<string | null>(null);
+
+	/**
+	 * The id of the panel containing the focused view.
+	 */
+	public readonly focusedPanelId = $derived.by(() => {
+		const id = this.focusedViewId;
+		if (!id) return null;
+
+		return panels(this.layout?.root).find((panel) => panel.views.includes(id))?.id ?? null;
+	});
+
+	/**
+	 * The id of the focused channel, if a channel view is focused.
+	 */
+	public readonly focused = $derived(
+		this.focusedViewId && isChannelView(this.layout?.views[this.focusedViewId])
+			? this.focusedViewId
+			: null,
+	);
+
+	/**
+	 * The channel drag in progress.
+	 */
+	public drag = $state<DragData | null>(null);
+
+	/**
+	 * The area highlighted while dragging a channel over the workspace.
 	 */
 	public dropTarget = $state<DropTarget | null>(null);
 
-	public get root(): SplitNode | null {
-		return storage.state.layout?.root ?? null;
+	public get layout(): Layout | null {
+		return storage.state.layout ?? null;
 	}
 
-	public set root(value: SplitNode | null) {
-		if (value && tree.isLeaf(value)) {
-			this.focusedPaneId = value.id;
+	/**
+	 * Whether the given channel is open in the layout.
+	 */
+	public has(channelId: string) {
+		return isChannelView(this.layout?.views[channelId]);
+	}
+
+	/**
+	 * Mounts the workspace in `host`, returning a function that unmounts it.
+	 */
+	public attach(host: HTMLElement) {
+		const workspace = createWorkspace(host, {
+			types: {
+				channel: {
+					title: (view) => app.channels.get(view.id)?.user.displayName ?? view.id,
+				},
+				empty: {
+					title: "Empty split",
+				},
+			},
+			document: this.layout ? $state.snapshot(this.layout) : undefined,
+			floating: false,
+			label: "Splits",
+			panelMenu: (entries, { panelId }) => [
+				// Nothing can restore a hidden panel
+				...entries.filter((entry) => entry === "separator" || entry.id !== "hide"),
+				"separator",
+				{ id: "close-split", label: "Close split", run: () => this.closePanel(panelId) },
+			],
+		});
+
+		workspace.on("change", (layout) => {
+			storage.state.layout = { ...layout, version: LAYOUT_VERSION };
+		});
+
+		workspace.on("surfaces", (surfaces) => {
+			this.surfaces = surfaces;
+		});
+
+		workspace.on("close", (view) => void this.#closed(view));
+
+		const unsubscribe = workspace.subscribe(() => this.#syncFocus(workspace));
+
+		this.workspace = workspace;
+		this.surfaces = workspace.surfaces();
+
+		if (this.focusedViewId && workspace.getDocument().views[this.focusedViewId]) {
+			workspace.focus(this.focusedViewId);
 		}
 
-		storage.state.layout = value ? { version: LAYOUT_VERSION, root: value } : null;
-	}
+		this.#syncFocus(workspace);
 
-	public pane(id: string): Pane | null {
-		return this.root ? tree.findLeaf(this.root, (p) => p.id === id) : null;
-	}
-
-	/**
-	 * The pane containing the given channel tab, if any.
-	 */
-	public paneOf(tabId: string): Pane | null {
-		return this.root
-			? tree.findLeaf(this.root, (p) => p.tabs.some((t) => t.id === tabId))
-			: null;
-	}
-
-	public registerPaneElement(paneId: string, el: HTMLElement) {
-		this.#paneRefs.set(paneId, el);
-	}
-
-	public unregisterPaneElement(paneId: string, el: HTMLElement) {
-		if (this.#paneRefs.get(paneId) === el) {
-			this.#paneRefs.delete(paneId);
-		}
-	}
-
-	/**
-	 * Ensures the given channel is open as a tab. Activates it if already in the
-	 * layout; otherwise opens it in the focused pane, or a new root pane.
-	 */
-	public ensure(tab: Tab) {
-		const existing = this.paneOf(tab.id);
-
-		if (existing) {
-			this.#focus(existing, tab.id);
-			return;
+		for (const run of this.#pending.splice(0)) {
+			run(workspace);
 		}
 
-		if (!this.root) {
-			this.root = tree.createPane([tab]);
-			return;
-		}
+		return () => {
+			unsubscribe();
 
-		const pane = this.focused ?? tree.firstLeaf(this.root);
-		pane.tabs.push(tree.createTab(tab));
+			this.workspace = null;
+			this.surfaces = [];
 
-		this.#focus(pane, tab.id);
-	}
-
-	/**
-	 * Opens the given channel as a tab of the given pane, moving it there if it
-	 * is already open elsewhere.
-	 */
-	public addTab(paneId: string, tab: Tab, index?: number) {
-		const pane = this.pane(paneId);
-		if (!pane) return;
-
-		const source = this.paneOf(tab.id);
-		if (source === pane) {
-			this.#focus(pane, tab.id);
-			return;
-		}
-
-		pane.tabs.splice(index ?? pane.tabs.length, 0, this.#take(source, tab));
-		this.#focus(pane, tab.id);
-
-		this.#closeIfEmpty(source);
-	}
-
-	/**
-	 * Activates the given tab and focuses its pane.
-	 */
-	public activate(id: string) {
-		const pane = this.paneOf(id);
-		if (pane) this.#focus(pane, id);
-	}
-
-	/**
-	 * Reorders a tab within its own pane to the given index.
-	 */
-	public reorderTab(id: string, paneId: string, index: number) {
-		const pane = this.pane(paneId);
-		if (!pane) return;
-
-		const from = pane.tabs.findIndex((t) => t.id === id);
-		if (from === -1) return;
-
-		const [tab] = pane.tabs.splice(from, 1);
-
-		const dest = Math.max(0, Math.min(index > from ? index - 1 : index, pane.tabs.length));
-
-		pane.tabs.splice(dest, 0, tab);
-		this.#focus(pane, id);
-	}
-
-	/**
-	 * Moves a tab to the given pane at an optional index, removing it from its
-	 * source pane.
-	 */
-	public moveTab(tab: Tab, paneId: string, index?: number) {
-		const source = this.paneOf(tab.id);
-		const target = this.pane(paneId);
-
-		if (!target) return;
-
-		if (target === source) {
-			return this.#focus(target, tab.id);
-		}
-
-		target.tabs.splice(index ?? target.tabs.length, 0, this.#take(source, tab));
-
-		this.#focus(target, tab.id);
-		this.#closeIfEmpty(source);
-	}
-
-	/**
-	 * Closes the given tab, auto-closing the pane if it becomes empty.
-	 */
-	public closeTab(id: string) {
-		const pane = this.paneOf(id);
-		if (pane) this.#detach(pane, id);
-	}
-
-	/**
-	 * Splits the given pane in the given direction, opening a new empty pane.
-	 */
-	public split(paneId: string, direction: SplitDirection) {
-		this.#insertPane(paneId, direction, tree.createPane());
-	}
-
-	/**
-	 * Splits the target pane in the given direction, placing the channel in the
-	 * new sibling and removing it from its current pane.
-	 */
-	public splitWithTab(paneId: string, direction: SplitDirection, tab: Tab) {
-		const source = this.paneOf(tab.id);
-
-		this.#insertPane(paneId, direction, tree.createPane([this.#take(source, tab)]));
-		this.#closeIfEmpty(source);
-	}
-
-	/**
-	 * Removes the pane from the layout, collapsing its parent split.
-	 */
-	public closePane(paneId: string) {
-		if (!this.root) return;
-
-		this.root = tree.removeLeaf(this.root, paneId);
-
-		if (this.focusedPaneId === paneId) {
-			this.focusedPaneId = this.root ? tree.firstLeaf(this.root).id : null;
-		}
-	}
-
-	/**
-	 * Applies new sibling sizes to a split.
-	 */
-	public resize(splitId: string, [before, after]: number[]) {
-		const split = this.#findSplit(splitId);
-		if (!split) return;
-
-		split.before.size = before;
-		split.after.size = after;
-	}
-
-	/**
-	 * The pane adjacent to `startId` in the given direction, if any.
-	 */
-	public navigate(startId: string, direction: SplitDirection): string | null {
-		if (!this.root) return null;
-
-		return neighbor(bounds(this.root), startId, direction);
-	}
-
-	/**
-	 * Begins tracking a tab or channel drag.
-	 */
-	public startDrag(data: DragData) {
-		this.drag = {
-			channelId: data.id,
-			sourcePaneId: data.paneId ?? null,
-			ephemeral: data.ephemeral ?? false,
+			workspace.destroy();
 		};
 	}
 
 	/**
-	 * Recomputes the highlighted drop target for the given droppable + pointer.
+	 * Ensures the given channel is open as a tab, focusing it. Opens it in the
+	 * focused panel if it isn't in the layout yet.
 	 */
-	public updateDropTarget(data: DropData | null, point: Point) {
-		if (!this.drag || !data || this.#isSelfNoop(data.paneId)) {
-			this.dropTarget = null;
-			return;
-		}
+	public ensure(channel: Channel) {
+		this.#run((workspace) => {
+			const layout = workspace.getDocument();
 
-		if (data.kind === "pane") {
-			this.dropTarget = { paneId: data.paneId, zone: this.#zoneForPane(data.paneId, point) };
-		} else if (data.kind === "tab-bar") {
-			// Dropping on the tab bar appends, shown as an insertion indicator
-			// after the last tab.
-			this.dropTarget = { paneId: data.paneId, zone: "tab-bar" };
-		} else {
-			// A drop onto a tab relies on the per-tab highlight only.
-			this.dropTarget = null;
-		}
+			if (layout.views[channel.id]) {
+				this.#focus(workspace, channel.id);
+				return;
+			}
+
+			const panelId = workspace.getSnapshot().focusedPanel ?? panels(layout.root)[0]?.id;
+
+			if (panelId) {
+				this.#place(workspace, channel, { into: panelId });
+			} else {
+				this.#open(workspace, channel, "side");
+			}
+		});
 	}
 
 	/**
-	 * Resolves and clears the current drag against the given drop target.
+	 * Splits the given panel in the given direction, opening a new empty split.
 	 */
-	public endDrag(data: DropData | null, point: Point) {
+	public split(direction: SplitDirection, panelId = this.focusedPanelId) {
+		this.#run((workspace) => {
+			workspace.open("empty", {
+				placement: panelId ? { beside: panelId, edge: DIRECTION_EDGE[direction] } : "side",
+			});
+		});
+	}
+
+	/**
+	 * Splits the given panel in the given direction, placing the channel in the
+	 * new split and moving it there if it's already open.
+	 */
+	public splitWith(channel: Channel, direction: SplitDirection, panelId = this.focusedPanelId) {
+		if (!panelId) return;
+
+		this.#run((workspace) => {
+			this.#place(workspace, channel, { beside: panelId, edge: DIRECTION_EDGE[direction] });
+		});
+	}
+
+	/**
+	 * Closes the given view, collapsing its panel if it becomes empty.
+	 */
+	public close(viewId: string) {
+		this.#run((workspace) => void workspace.close(viewId, { force: true }));
+	}
+
+	/**
+	 * Closes every view in the given panel, removing it from the layout.
+	 */
+	public closePanel(panelId: string) {
+		this.#run((workspace) => {
+			const panel = panels(workspace.getDocument().root).find((p) => p.id === panelId);
+
+			for (const viewId of panel?.views ?? []) {
+				void workspace.close(viewId, { force: true });
+			}
+		});
+	}
+
+	/**
+	 * Selects the next or previous tab in the focused panel.
+	 */
+	public cycle(offset: 1 | -1) {
+		const workspace = this.workspace;
+		if (!workspace) return;
+
+		workspace.run(offset > 0 ? "tab.next" : "tab.previous");
+		this.#focusInput(workspace);
+	}
+
+	/**
+	 * Focuses the panel adjacent to the focused one in the given direction.
+	 */
+	public navigate(direction: SplitDirection) {
+		const workspace = this.workspace;
+		if (!workspace) return;
+
+		const { document, focusedPanel } = workspace.getSnapshot();
+		if (!focusedPanel) return;
+
+		const rects: Rect[] = [];
+
+		for (const [id, { node, rect }] of layoutRects(document.root)) {
+			if (node.kind === "panel") {
+				rects.push({ id, x: rect.x, y: rect.y, width: rect.w, height: rect.h });
+			}
+		}
+
+		const panelId = neighbor(rects, focusedPanel, direction);
+		if (panelId) this.#focus(workspace, panelId);
+	}
+
+	/**
+	 * Begins tracking a channel drag.
+	 */
+	public startDrag(data: DragData) {
+		this.drag = data;
+	}
+
+	/**
+	 * Recomputes the highlighted drop target for the given pointer position.
+	 */
+	public updateDropTarget(point: Point) {
+		this.dropTarget = this.drag && point ? this.#dropTargetAt(this.drag, point) : null;
+	}
+
+	/**
+	 * Resolves and clears the current drag, dropping the channel at the given
+	 * pointer position.
+	 */
+	public endDrag(point: Point) {
 		const drag = this.drag;
+		const target = drag && point ? this.#dropTargetAt(drag, point) : null;
+
 		this.drag = null;
 		this.dropTarget = null;
 
-		if (!drag || !data || this.#isSelfNoop(data.paneId)) return;
+		const workspace = this.workspace;
+		const channel = drag && app.channels.get(drag.id);
 
-		const tab: Tab = { id: drag.channelId, ephemeral: drag.ephemeral };
+		if (!workspace || !target || !channel) return;
 
-		if (data.kind === "pane") {
-			this.#dropIntoZone(tab, data.paneId, this.#zoneForPane(data.paneId, point));
-		} else if (drag.sourcePaneId === data.paneId) {
-			const index = data.index ?? this.pane(data.paneId)?.tabs.length ?? 0;
-			this.reorderTab(drag.channelId, data.paneId, index);
+		if (!target.panelId) {
+			this.#open(workspace, channel, "side");
+		} else if (target.zone === "center") {
+			this.#place(workspace, channel, { into: target.panelId });
 		} else {
-			this.moveTab(tab, data.paneId, data.index);
+			this.#place(workspace, channel, { beside: target.panelId, edge: target.zone });
 		}
 	}
 
@@ -282,116 +300,225 @@ export class SplitController {
 	 * Closes any ephemeral tabs that are still open in the layout.
 	 */
 	public cleanup() {
-		const stale = tree
-			.leaves(this.root)
-			.flatMap((pane) => pane.tabs)
-			.filter((tab) => tab.ephemeral);
+		const layout = this.layout;
+		if (!layout) return;
 
-		for (const tab of stale) {
-			this.closeTab(tab.id);
+		const workspace = this.workspace;
+
+		if (!workspace) {
+			storage.state.layout = withoutEphemeral($state.snapshot(layout));
+			return;
+		}
+
+		for (const [id, record] of Object.entries(layout.views)) {
+			// oxlint-disable-next-line typescript/no-unsafe-type-assertion
+			if ((record.params as ChannelViewParams | undefined)?.ephemeral) {
+				void workspace.close(id, { force: true });
+			}
 		}
 	}
 
-	#insertPane(paneId: string, direction: SplitDirection, pane: Pane) {
-		this.root = this.root ? tree.splitLeaf(this.root, paneId, direction, pane) : pane;
-		this.focusedPaneId = pane.id;
-	}
-
-	#focus(pane: Pane, tabId: string) {
-		pane.active = tabId;
-		this.focusedPaneId = pane.id;
-	}
-
-	#detach(pane: Pane | null, tabId: string) {
-		if (!pane) return;
-
-		this.#removeTab(pane, tabId);
-		this.#closeIfEmpty(pane);
-	}
-
-	/**
-	 * The entry to insert for a tab being placed in a pane: the existing one
-	 * lifted out of `source` so its flags travel with it, or a new entry when the
-	 * tab isn't in the layout yet.
-	 */
-	#take(source: Pane | null, tab: Tab): Tab {
-		return this.#removeTab(source, tab.id) ?? tree.createTab(tab);
-	}
-
-	#removeTab(pane: Pane | null, tabId: string): Tab | null {
-		if (!pane) return null;
-
-		const index = pane.tabs.findIndex((t) => t.id === tabId);
-		if (index === -1) return null;
-
-		const [tab] = pane.tabs.splice(index, 1);
-
-		if (pane.active === tabId) {
-			pane.active = (pane.tabs[index] ?? pane.tabs.at(-1))?.id ?? null;
-		}
-
-		return tab;
-	}
-
-	#closeIfEmpty(pane: Pane | null) {
-		if (pane && pane.tabs.length === 0) {
-			this.closePane(pane.id);
-		}
-	}
-
-	#findSplit(splitId: string): Split | null {
-		const walk = (node: SplitNode | null): Split | null => {
-			if (!node || tree.isLeaf(node)) return null;
-			if (node.id === splitId) return node;
-
-			return walk(node.before) ?? walk(node.after);
-		};
-
-		return walk(this.root);
-	}
-
-	/**
-	 * Dropping a tab back onto its own pane when it's the only tab is a no-op
-	 */
-	#isSelfNoop(paneId: string): boolean {
-		if (!this.drag || this.drag.sourcePaneId !== paneId) {
-			return false;
-		}
-
-		return (this.pane(paneId)?.tabs.length ?? 0) <= 1;
-	}
-
-	/**
-	 * The drop zone for a pane, derived from the pointer position against the
-	 * pane's live bounding rect.
-	 */
-	#zoneForPane(paneId: string, point: Point): SplitDropPosition {
-		const rect = point && this.#paneRefs.get(paneId)?.getBoundingClientRect();
-		if (!rect || rect.width === 0 || rect.height === 0) return "center";
-
-		const x = point.x - rect.left;
-		const y = point.y - rect.top;
-
-		const hEdge = Math.max(80, rect.width * 0.25);
-		const vEdge = Math.max(80, rect.height * 0.25);
-
-		if (x < hEdge) return "left";
-		if (x > rect.width - hEdge) return "right";
-		if (y < vEdge) return "top";
-		if (y > rect.height - vEdge) return "bottom";
-
-		return "center";
-	}
-
-	/**
-	 * `center` moves/opens the channel in the pane; an edge splits the pane and
-	 * places the channel in the new sibling.
-	 */
-	#dropIntoZone(tab: Tab, paneId: string, zone: SplitDropPosition) {
-		if (zone === "center") {
-			this.addTab(paneId, tab);
+	#run(fn: (workspace: WorkspaceHandle) => void) {
+		if (this.workspace) {
+			fn(this.workspace);
 		} else {
-			this.splitWithTab(paneId, tree.edgeToDirection(zone), tab);
+			this.#pending.push(fn);
 		}
+	}
+
+	/**
+	 * Opens a channel that isn't in the layout yet.
+	 */
+	#open(workspace: WorkspaceHandle, channel: Channel, placement: Placement) {
+		const params = channelParams(channel);
+
+		workspace.open("channel", {
+			id: channel.id,
+			title: channel.user.displayName,
+			placement,
+			...(params && { params }),
+		});
+
+		this.#closePlaceholders(workspace, channel.id);
+		this.#focusInput(workspace);
+	}
+
+	/**
+	 * Opens a channel at the given target, moving it there if it's already open.
+	 */
+	#place(workspace: WorkspaceHandle, channel: Channel, target: DockTarget) {
+		const layout = workspace.getDocument();
+
+		if (!layout.views[channel.id]) {
+			this.#open(workspace, channel, target);
+			return;
+		}
+
+		const source = panels(layout.root).find((panel) => panel.views.includes(channel.id));
+
+		const noop =
+			"into" in target
+				? target.into === source?.id
+				: target.beside === source?.id && source.views.length === 1;
+
+		if (!noop) {
+			workspace.dock(channel.id, target);
+			this.#closePlaceholders(workspace, channel.id);
+		}
+
+		this.#focus(workspace, channel.id);
+	}
+
+	/**
+	 * Closes the empty split placeholders sharing a panel with the given view.
+	 */
+	#closePlaceholders(workspace: WorkspaceHandle, viewId: string) {
+		const layout = workspace.getDocument();
+		const panel = panels(layout.root).find((p) => p.views.includes(viewId));
+
+		for (const id of panel?.views ?? []) {
+			if (layout.views[id]?.type === "empty") {
+				void workspace.close(id, { force: true });
+			}
+		}
+	}
+
+	/**
+	 * Focuses a view, or the selected view of a panel, and its chat input.
+	 */
+	#focus(workspace: WorkspaceHandle, id: string) {
+		workspace.focus(id);
+		this.#focusInput(workspace);
+	}
+
+	#focusInput(workspace: WorkspaceHandle) {
+		const viewId = workspace.getSnapshot().focusedView;
+		if (!viewId) return;
+
+		// Trellis moves focus to the first focusable element in the view on the
+		// next frame, so take it back for the chat input afterwards
+		requestAnimationFrame(() => {
+			app.channels.get(viewId)?.chat.input?.focus();
+		});
+	}
+
+	#syncFocus(workspace: WorkspaceHandle) {
+		const { document, focusedView } = workspace.getSnapshot();
+		if (focusedView === this.focusedViewId) return;
+
+		this.focusedViewId = focusedView;
+
+		app.focused =
+			focusedView && isChannelView(document.views[focusedView])
+				? (app.channels.get(focusedView) ?? null)
+				: null;
+	}
+
+	async #closed(view: ViewInfo) {
+		if (view.type !== "channel" || !settings.state["splits.leaveOnClose"]) return;
+
+		await app.channels.get(view.id)?.leave();
+	}
+
+	#dropTargetAt(drag: DragData, point: NonNullable<Point>): DropTarget | null {
+		const workspace = this.workspace;
+		if (!workspace) return null;
+
+		const bounds = workspace.element.getBoundingClientRect();
+		if (!contains(bounds, point)) return null;
+
+		const element = [
+			...workspace.element.querySelectorAll<HTMLElement>("[data-trellis-part=panel]"),
+		].find((el) => contains(el.getBoundingClientRect(), point));
+
+		if (!element?.dataset.panel) {
+			// Anywhere on an empty workspace opens the first split
+			return workspace.getDocument().root
+				? null
+				: {
+						panelId: null,
+						zone: "center",
+						rect: { x: 0, y: 0, width: bounds.width, height: bounds.height },
+					};
+		}
+
+		const panelId = element.dataset.panel;
+		const panel = panels(workspace.getDocument().root).find((p) => p.id === panelId);
+
+		// Dropping a channel back onto its own panel when it's the only tab is a
+		// no-op
+		if (panel?.views.length === 1 && panel.views[0] === drag.id) return null;
+
+		const rect = element.getBoundingClientRect();
+		const tabbar = element.querySelector("[data-trellis-part=tabbar]");
+
+		// Dropping on the tab bar adds a tab rather than splitting
+		const zone =
+			tabbar && contains(tabbar.getBoundingClientRect(), point)
+				? "center"
+				: zoneAt(rect, point);
+
+		return {
+			panelId,
+			zone,
+			rect: zoneRect(zone, {
+				x: rect.left - bounds.left,
+				y: rect.top - bounds.top,
+				width: rect.width,
+				height: rect.height,
+			}),
+		};
+	}
+}
+
+function contains(rect: DOMRect, point: NonNullable<Point>) {
+	return (
+		point.x >= rect.left &&
+		point.x <= rect.right &&
+		point.y >= rect.top &&
+		point.y <= rect.bottom
+	);
+}
+
+/**
+ * The drop zone for a panel, derived from the pointer position against the
+ * panel's bounding rect.
+ */
+function zoneAt(rect: DOMRect, point: NonNullable<Point>): SplitDropZone {
+	if (rect.width === 0 || rect.height === 0) return "center";
+
+	const x = point.x - rect.left;
+	const y = point.y - rect.top;
+
+	const hEdge = Math.max(80, rect.width * 0.25);
+	const vEdge = Math.max(80, rect.height * 0.25);
+
+	if (x < hEdge) return "left";
+	if (x > rect.width - hEdge) return "right";
+	if (y < vEdge) return "top";
+	if (y > rect.height - vEdge) return "bottom";
+
+	return "center";
+}
+
+/**
+ * The area of a panel a drop into the given zone would occupy.
+ */
+// oxlint-disable-next-line typescript/consistent-return
+function zoneRect(zone: SplitDropZone, rect: DropTarget["rect"]): DropTarget["rect"] {
+	const halfWidth = rect.width / 2;
+	const halfHeight = rect.height / 2;
+
+	switch (zone) {
+		case "left":
+			return { ...rect, width: halfWidth };
+		case "right":
+			return { ...rect, x: rect.x + halfWidth, width: halfWidth };
+		case "top":
+			return { ...rect, height: halfHeight };
+		case "bottom":
+			return { ...rect, y: rect.y + halfHeight, height: halfHeight };
+		case "center":
+			return rect;
 	}
 }

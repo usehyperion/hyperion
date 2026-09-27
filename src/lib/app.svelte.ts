@@ -82,8 +82,8 @@ class App {
 
 	/**
 	 * Switches the focused channel, joining it if necessary, and ensures it is
-	 * present in the split layout (replacing the focused pane when not already
-	 * shown).
+	 * present in the split layout (as a tab of the focused split when not
+	 * already shown).
 	 */
 	public async open(channel: Channel) {
 		if (this.focused !== channel) {
@@ -94,7 +94,7 @@ class App {
 			}
 		}
 
-		this.splits.ensure({ id: channel.id, ephemeral: channel.ephemeral });
+		this.splits.ensure(channel);
 
 		// The split view only lives at the root route, so return to it when
 		// opening a channel from elsewhere.
@@ -138,7 +138,7 @@ class App {
 
 	public refocus(previous: Channel | undefined) {
 		if (this.focused === previous) {
-			const nextId = this.splits.focused?.active;
+			const nextId = this.splits.focused;
 			this.focused = nextId ? (this.channels.get(nextId) ?? null) : null;
 		}
 	}

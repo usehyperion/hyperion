@@ -72,31 +72,11 @@
 	<DragOverlay>
 		{#snippet children(source)}
 			{@const channel = app.channels.get(source.data.id)}
-			{@const isTab = source.type === "tab"}
 
 			{#if channel}
-				{#if isTab}
-					<div
-						class="mx-auto flex max-w-max items-center gap-2 rounded bg-background px-2 py-1"
-					>
-						<img
-							class={[
-								"size-6 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10",
-								!channel.stream && "grayscale",
-							]}
-							src={channel.user.avatarUrl}
-							alt={channel.user.displayName}
-							width="150"
-							height="150"
-						/>
-
-						<span class="text-sm font-medium">{channel.user.displayName}</span>
-					</div>
-				{:else}
-					<div class="flex items-center gap-2">
-						<StreamInfo {channel} />
-					</div>
-				{/if}
+				<div class="flex items-center gap-2">
+					<StreamInfo {channel} />
+				</div>
 			{/if}
 		{/snippet}
 	</DragOverlay>

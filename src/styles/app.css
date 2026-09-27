@@ -218,3 +218,32 @@
 		}
 	}
 }
+
+/* Unlayered so it overrides the (also unlayered) Trellis defaults */
+.trellis {
+	--trellis-gap: 4px;
+	--trellis-radius: var(--radius);
+	--trellis-font: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+	--trellis-font-size: 0.875rem;
+
+	--trellis-bg: var(--muted);
+	--trellis-panel: var(--background);
+	--trellis-stage: var(--background);
+	--trellis-tabbar: var(--sidebar);
+	--trellis-tab-hover: color-mix(in oklab, var(--background) 50%, transparent);
+	--trellis-tab-active: var(--background);
+	--trellis-text: var(--foreground);
+	--trellis-text-muted: var(--muted-foreground);
+	--trellis-border: var(--border);
+	--trellis-accent: var(--primary);
+	--trellis-accent-contrast: var(--primary-foreground);
+	--trellis-slot: color-mix(in oklab, var(--primary) 25%, transparent);
+	--trellis-menu: var(--popover);
+	--trellis-menu-hover: var(--accent);
+}
+
+/* Views shouldn't inherit the workspace chrome's type scale */
+.trellis [data-trellis-part="content"] {
+	font-size: 1rem;
+	line-height: 1.5;
+}

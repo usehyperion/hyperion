@@ -1,42 +1,7 @@
-import type { Rect, SplitDirection, SplitNode } from "./types";
-
-import { isLeaf } from "./tree";
+import type { Rect, SplitDirection } from "./types";
 
 /**
- * Computes the normalized bounds of every pane in the tree.
- */
-export function bounds(
-	node: SplitNode,
-	rect: Omit<Rect, "id"> = { x: 0, y: 0, width: 1, height: 1 },
-): Rect[] {
-	if (isLeaf(node)) {
-		return [{ id: node.id, ...rect }];
-	}
-
-	const isRow = node.axis === "horizontal";
-	const total = node.before.size + node.after.size;
-	const ratio = total > 0 ? node.before.size / total : 0.5;
-
-	const firstSize = (isRow ? rect.width : rect.height) * ratio;
-
-	return [
-		...bounds(node.before, {
-			x: rect.x,
-			y: rect.y,
-			width: isRow ? firstSize : rect.width,
-			height: isRow ? rect.height : firstSize,
-		}),
-		...bounds(node.after, {
-			x: isRow ? rect.x + firstSize : rect.x,
-			y: isRow ? rect.y : rect.y + firstSize,
-			width: isRow ? rect.width - firstSize : rect.width,
-			height: isRow ? rect.height : rect.height - firstSize,
-		}),
-	];
-}
-
-/**
- * The nearest pane to `startId` in the given direction, by spatial adjacency,
+ * The nearest panel to `startId` in the given direction, by spatial adjacency,
  * preferring the neighbor with the most perpendicular overlap, then the closest.
  */
 export function neighbor(rects: Rect[], startId: string, direction: SplitDirection): string | null {

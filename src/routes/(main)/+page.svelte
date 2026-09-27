@@ -4,12 +4,9 @@
 
 	import { app } from "$lib/app.svelte";
 	import JoinDialog from "$lib/components/JoinDialog.svelte";
-	import SplitNode from "$lib/components/split/SplitNode.svelte";
+	import Workspace from "$lib/components/split/Workspace.svelte";
 	import Button from "$lib/components/ui/Button.svelte";
 	import * as Empty from "$lib/components/ui/empty";
-	import { settings } from "$lib/settings";
-	import { createPane, firstLeaf } from "$lib/splits/tree";
-	import type { SplitDirection } from "$lib/splits/types";
 
 	import ChatDots from "~icons/ph/chat-dots";
 	import Spinner from "~icons/ph/spinner";
@@ -21,126 +18,69 @@
 			await app.user.fetchEmoteSets();
 		}
 
-		if (app.splits.root) {
-			const pane = firstLeaf(app.splits.root);
-			app.splits.focusedPaneId = pane.id;
-
-			const channel = pane.active ? app.channels.get(pane.active) : undefined;
-			if (channel) await app.open(channel);
-		}
-
 		loading = false;
 	});
 
 	createHotkey("Mod+T", () => {
-		if (app.splits.focused) {
-			app.splits.split(app.splits.focused.id, "right");
-		} else {
-			app.splits.root = createPane();
-		}
+		app.splits.split("right");
 	});
 
 	createHotkey("Mod+W", async () => {
-		const pane = app.splits.focused;
+		const viewId = app.splits.focusedViewId;
 
-		if (!pane) {
-			if (app.focused) {
-				await app.focused.leave();
-				app.focused = null;
-			}
-
-			return;
-		}
-
-		if (pane.active) {
-			const tabId = pane.active;
-			app.splits.closeTab(tabId);
-
-			const channel = app.channels.get(tabId);
-
-			if (settings.state["splits.leaveOnClose"]) {
-				await channel?.leave();
-			}
-
-			app.refocus(channel);
-		} else {
-			app.splits.closePane(pane.id);
+		if (viewId) {
+			app.splits.close(viewId);
+		} else if (app.focused) {
+			await app.focused.leave();
+			app.focused = null;
 		}
 	});
 
 	createHotkeys([
-		{ hotkey: "Mod+Tab", callback: () => navigateTabs(1) },
-		{ hotkey: "Mod+Shift+Tab", callback: () => navigateTabs(-1) },
+		{ hotkey: "Mod+Tab", callback: () => app.splits.cycle(1) },
+		{ hotkey: "Mod+Shift+Tab", callback: () => app.splits.cycle(-1) },
 	]);
 
 	createHotkeys([
-		{ hotkey: "Mod+ArrowUp", callback: () => navigateSplit("up") },
-		{ hotkey: "Mod+ArrowDown", callback: () => navigateSplit("down") },
-		{ hotkey: "Mod+ArrowLeft", callback: () => navigateSplit("left") },
-		{ hotkey: "Mod+ArrowRight", callback: () => navigateSplit("right") },
+		{ hotkey: "Mod+ArrowUp", callback: () => app.splits.navigate("up") },
+		{ hotkey: "Mod+ArrowDown", callback: () => app.splits.navigate("down") },
+		{ hotkey: "Mod+ArrowLeft", callback: () => app.splits.navigate("left") },
+		{ hotkey: "Mod+ArrowRight", callback: () => app.splits.navigate("right") },
 	]);
-
-	async function navigateTabs(offset: number) {
-		const pane = app.splits.focused;
-		if (!pane?.active || pane.tabs.length < 2) return;
-
-		const index = pane.tabs.findIndex((tab) => tab.id === pane.active);
-		if (index === -1) return;
-
-		const next = pane.tabs[(index + offset + pane.tabs.length) % pane.tabs.length];
-		if (!next) return;
-
-		const channel = app.channels.get(next.id);
-
-		if (channel) {
-			await app.open(channel);
-		} else {
-			app.splits.activate(next.id);
-		}
-	}
-
-	function navigateSplit(direction: SplitDirection) {
-		if (!app.splits.focusedPaneId) return;
-
-		const paneId = app.splits.navigate(app.splits.focusedPaneId, direction);
-		if (!paneId) return;
-
-		app.splits.focusedPaneId = paneId;
-
-		const pane = app.splits.pane(paneId);
-		const channel = pane?.active ? app.channels.get(pane.active) : undefined;
-		channel?.chat.input?.focus();
-	}
 </script>
 
 <div class="h-full">
-	{#if app.splits.root}
-		<SplitNode node={app.splits.root} />
-	{:else if loading}
-		<div class="flex size-full flex-col items-center justify-center">
-			<Spinner class="size-6 animate-spin" />
-			<span class="mt-2 text-lg font-medium">Loading</span>
-		</div>
-	{:else}
-		<Empty.Root class="h-full">
-			<Empty.Header>
-				<Empty.Media variant="icon">
-					<ChatDots />
-				</Empty.Media>
+	<Workspace>
+		{#snippet empty()}
+			{#if loading}
+				<div class="flex size-full flex-col items-center justify-center">
+					<Spinner class="size-6 animate-spin" />
+					<span class="mt-2 text-lg font-medium">Loading</span>
+				</div>
+			{:else}
+				<Empty.Root class="h-full">
+					<Empty.Header>
+						<Empty.Media variant="icon">
+							<ChatDots />
+						</Empty.Media>
 
-				<Empty.Title>No channel selected</Empty.Title>
+						<Empty.Title>No channel selected</Empty.Title>
 
-				<Empty.Description>
-					Select a channel from your following list or search for a channel to start
-					chatting.
-				</Empty.Description>
-			</Empty.Header>
+						<Empty.Description>
+							Select a channel from your following list or search for a channel to
+							start chatting.
+						</Empty.Description>
+					</Empty.Header>
 
-			<Empty.Content>
-				<Button command="show-modal" commandfor="join-dialog">Search channels</Button>
-			</Empty.Content>
-		</Empty.Root>
+					<Empty.Content>
+						<Button command="show-modal" commandfor="join-dialog"
+							>Search channels</Button
+						>
+					</Empty.Content>
+				</Empty.Root>
 
-		<JoinDialog />
-	{/if}
+				<JoinDialog />
+			{/if}
+		{/snippet}
+	</Workspace>
 </div>

@@ -1,13 +1,13 @@
 allowBuilds:
   esbuild: false
 catalog:
-  vite: npm:@voidzero-dev/vite-plus-core@^0.3.0
-  vite-plus: latest
+  vite: npm:@voidzero-dev/vite-plus-core@1.0.0-rc.1
+  vite-plus: 1.0.0-rc.1
 minimumReleaseAgeExclude:
   - "@voidzero-dev/*"
   - vite-plus
 overrides:
-  vite: "catalog:"
+  vite@*: "catalog:"
 peerDependencyRules:
   allowAny:
     - vite

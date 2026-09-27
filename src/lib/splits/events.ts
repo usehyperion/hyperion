@@ -4,12 +4,7 @@ import { move } from "@dnd-kit/helpers";
 import { app } from "$lib/app.svelte";
 import { storage } from "$lib/stores";
 
-import type { DragData, DropData } from "./types";
-
-function dropData(target: DragOverEvent["operation"]["target"]): DropData | null {
-	// oxlint-disable-next-line typescript/no-unsafe-type-assertion
-	return target ? (target.data as DropData) : null;
-}
+import type { DragData } from "./types";
 
 function point(event: DragOverEvent | DragMoveEvent | DragEndEvent) {
 	return event.operation.position?.current;
@@ -18,7 +13,7 @@ function point(event: DragOverEvent | DragMoveEvent | DragEndEvent) {
 export function onDragStart(event: DragStartEvent) {
 	const source = event.operation.source;
 
-	if (source?.type === "tab" || source?.type === "channel") {
+	if (source?.type === "channel") {
 		// oxlint-disable-next-line typescript/no-unsafe-type-assertion
 		app.splits.startDrag(source.data as DragData);
 	}
@@ -35,22 +30,17 @@ export function onDragOver(event: DragOverEvent) {
 		return;
 	}
 
-	app.splits.updateDropTarget(dropData(target), point(event));
+	app.splits.updateDropTarget(point(event));
 }
 
 export function onDragMove(event: DragMoveEvent) {
-	// A pane is a single droppable, so moving between its edge zones does not
-	// fire `dragover`
+	// The workspace isn't a droppable, so moving across it does not fire
+	// `dragover`
 	if (event.operation.source?.type === "pinned") return;
 
-	app.splits.updateDropTarget(dropData(event.operation.target), point(event));
+	app.splits.updateDropTarget(point(event));
 }
 
 export function onDragEnd(event: DragEndEvent) {
-	if (event.operation.canceled) {
-		app.splits.endDrag(null, undefined);
-		return;
-	}
-
-	app.splits.endDrag(dropData(event.operation.target), point(event));
+	app.splits.endDrag(event.operation.canceled ? undefined : point(event));
 }

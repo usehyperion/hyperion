@@ -12,7 +12,7 @@ import type { SplitDirection } from "$lib/splits/types";
 import { storage } from "$lib/stores";
 
 async function splitItem(channel: Channel, direction: SplitDirection) {
-	const enabled = app.splits.focused !== null && app.splits.paneOf(channel.id) === null;
+	const enabled = app.splits.focusedPanelId !== null && !app.splits.has(channel.id);
 
 	return MenuItem.new({
 		id: `split-${direction}`,
@@ -21,13 +21,7 @@ async function splitItem(channel: Channel, direction: SplitDirection) {
 		async action() {
 			await channel.join();
 
-			const focused = app.splits.focused;
-			if (!focused) return;
-
-			app.splits.splitWithTab(focused.id, direction, {
-				id: channel.id,
-				ephemeral: channel.ephemeral,
-			});
+			app.splits.splitWith(channel, direction);
 		},
 	});
 }
@@ -53,7 +47,7 @@ export async function createChannelMenu(channel: Channel) {
 		async action() {
 			await channel.leave();
 
-			app.splits.closeTab(channel.id);
+			app.splits.close(channel.id);
 			app.refocus(channel);
 		},
 	});
@@ -89,7 +83,7 @@ export async function createChannelMenu(channel: Channel) {
 			async action() {
 				await channel.leave();
 
-				app.splits.closeTab(channel.id);
+				app.splits.close(channel.id);
 				app.refocus(channel);
 				app.channels.delete(channel.id);
 			},

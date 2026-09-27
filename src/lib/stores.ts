@@ -1,8 +1,9 @@
 import { RuneStore } from "@tauri-store/svelte";
 
 import type { User } from "./graphql/twitch";
+import type { Layout } from "./splits/types";
 
-import { LAYOUT_VERSION, type Layout } from "./splits/types";
+import { migrate } from "./splits/document";
 
 export interface RecentSearch {
 	id: string;
@@ -37,9 +38,7 @@ export const storage = new RuneStore<Storage>(
 		autoStart: true,
 		hooks: {
 			beforeFrontendSync: (state) => {
-				if (state.layout?.version !== LAYOUT_VERSION) {
-					state.layout = null;
-				}
+				state.layout = migrate(state.layout);
 
 				return state;
 			},

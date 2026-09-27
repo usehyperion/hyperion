@@ -1,109 +1,112 @@
 <script lang="ts">
-	import { createDroppable } from "@dnd-kit/svelte";
+	import type { Surface } from "@danfessler/trellis";
+	import { Portal } from "bits-ui";
+	import { createSubscriber } from "svelte/reactivity";
 
 	import { app } from "$lib/app.svelte";
+	import Button from "$lib/components/ui/Button.svelte";
 	import * as Empty from "$lib/components/ui/empty";
-	import type { Pane } from "$lib/splits/types";
+	import type { SplitDirection } from "$lib/splits/types";
 
 	import Layout from "~icons/ph/layout";
+	import SquareHalfBottom from "~icons/ph/square-half-bottom-fill";
+	import SquareHalf from "~icons/ph/square-half-fill";
 
 	import Channel from "../channel/Channel.svelte";
-	import TabBar from "./TabBar.svelte";
+	import GuestList from "../stream/GuestList.svelte";
 
 	interface Props {
-		pane: Pane;
+		surface: Surface;
 	}
 
-	const { pane }: Props = $props();
+	const { surface }: Props = $props();
 
-	const channel = $derived(pane.active ? app.channels.get(pane.active) : null);
-
-	const droppable = createDroppable({
-		get id() {
-			return `pane:${pane.id}`;
-		},
-		get type() {
-			return "pane";
-		},
-		get accept() {
-			return ["tab", "channel"];
-		},
-		get data() {
-			return { kind: "pane", paneId: pane.id };
-		},
-	});
-
-	function trackElement(node: HTMLElement) {
-		app.splits.registerPaneElement(pane.id, node);
-		return () => app.splits.unregisterPaneElement(pane.id, node);
-	}
-
-	const activeZone = $derived(
-		app.splits.dropTarget?.paneId === pane.id ? app.splits.dropTarget.zone : null,
+	const channel = $derived(
+		surface.view.type === "channel" ? app.channels.get(surface.view.id) : undefined,
 	);
 
-	const overlayClass = $derived.by(() => {
-		switch (activeZone) {
-			case "left":
-				return "top-0 left-0 w-1/2 h-full";
-			case "right":
-				return "top-0 left-1/2 w-1/2 h-full";
-			case "top":
-				return "top-0 left-0 w-full h-1/2";
-			case "bottom":
-				return "top-1/2 left-0 w-full h-1/2";
-			case "center":
-				return "inset-0 size-full";
-			default:
-				return null;
-		}
+	const subscribe = createSubscriber((update) => surface.view.subscribe(update));
+
+	const selected = $derived.by(() => {
+		subscribe();
+		return surface.view.selected;
 	});
 
-	function setFocus() {
-		app.splits.focusedPaneId = pane.id;
+	$effect(() => {
+		if (channel) surface.view.setTitle(channel.user.displayName);
+	});
+
+	function split(direction: SplitDirection) {
+		app.splits.split(direction, surface.view.panelId);
 	}
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="relative flex size-full flex-col" onfocusin={setFocus} onpointerdowncapture={setFocus}>
-	<TabBar {pane} />
+<Portal to={surface.content}>
+	<div class="size-full">
+		<!-- Only the selected tab keeps its chat mounted -->
+		{#if channel && selected}
+			<Channel {channel} />
+		{:else if surface.view.type === "empty"}
+			<Empty.Root class="h-full">
+				<Empty.Header>
+					<Empty.Media variant="icon">
+						<Layout />
+					</Empty.Media>
 
-	<div class="relative h-full min-h-0">
-		<div class="h-full">
-			{#if channel}
-				{#key channel.id}
-					<Channel {channel} />
-				{/key}
-			{:else}
-				<Empty.Root class="h-full">
-					<Empty.Header>
-						<Empty.Media variant="icon">
-							<Layout />
-						</Empty.Media>
+					<Empty.Title>Empty split</Empty.Title>
 
-						<Empty.Title>Empty split</Empty.Title>
-
-						<Empty.Description>
-							Drag a tab or channel here, or click a channel to open it.
-						</Empty.Description>
-					</Empty.Header>
-				</Empty.Root>
-			{/if}
-		</div>
-
-		<div
-			class="pointer-events-none absolute inset-0 z-10"
-			{@attach droppable.attach}
-			{@attach trackElement}
-			aria-hidden="true"
-		></div>
-
-		<div
-			class={[
-				"pointer-events-none absolute z-20 bg-primary/50 brightness-50 transition-[opacity,top,left,width,height] duration-75 ease-out",
-				overlayClass ? "opacity-100" : "opacity-0",
-				overlayClass ?? "inset-0",
-			]}
-		></div>
+					<Empty.Description>
+						Drag a channel here, or click a channel to open it.
+					</Empty.Description>
+				</Empty.Header>
+			</Empty.Root>
+		{/if}
 	</div>
-</div>
+</Portal>
+
+{#if channel}
+	<Portal to={surface.icon}>
+		<img
+			class="size-4 shrink-0 rounded-full"
+			src={channel.user.avatarUrl}
+			alt=""
+			width="150"
+			height="150"
+			draggable="false"
+		/>
+	</Portal>
+{/if}
+
+<Portal to={surface.accessory}>
+	<div class="flex items-center gap-x-1 text-muted-foreground" data-slot="split-actions">
+		{#if channel?.stream?.guests.size}
+			<GuestList {channel} />
+		{/if}
+
+		<Button
+			class="size-min p-1"
+			size="icon-sm"
+			variant="ghost"
+			title="Split right"
+			onclick={() => split("right")}
+		>
+			<SquareHalf />
+		</Button>
+
+		<Button
+			class="size-min p-1"
+			size="icon-sm"
+			variant="ghost"
+			title="Split down"
+			onclick={() => split("down")}
+		>
+			<SquareHalfBottom />
+		</Button>
+	</div>
+</Portal>
+
+<style>
+	[data-slot="split-actions"] :global(button:hover) {
+		color: var(--color-foreground);
+	}
+</style>
