@@ -7,6 +7,7 @@ pub mod websocket;
 
 use std::sync::Arc;
 
+use anyhow::anyhow;
 pub use client::IrcClient;
 use config::ClientConfig;
 use error::Error;
@@ -67,6 +68,24 @@ pub async fn connect_irc(
     client.connect().await;
     guard.irc = Some(client);
     guard.irc_channel = Some(sink);
+
+    Ok(())
+}
+
+#[tracing::instrument(skip(state))]
+#[tauri::command]
+pub async fn privmsg(
+    state: State<'_, Mutex<AppState>>,
+    channel: String,
+    message: String,
+) -> Result<(), AppError> {
+    let Some(irc) = state.lock().await.irc.clone() else {
+        return Err(AppError::Generic(anyhow!("No IRC connection")));
+    };
+
+    irc.privmsg(channel, message)
+        .await
+        .map_err(anyhow::Error::from)?;
 
     Ok(())
 }

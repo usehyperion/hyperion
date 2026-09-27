@@ -157,6 +157,7 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         commands::get_cache_size,
         commands::get_about_info,
         irc::connect_irc,
+        irc::privmsg,
         log::log,
         log::update_log_level,
         pubsub::connect_pubsub,

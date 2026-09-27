@@ -31,4 +31,7 @@ pub enum Error {
     /// Remote server unexpectedly closed connection
     #[error("Remote server unexpectedly closed connection")]
     RemoteUnexpectedlyClosedConnection,
+    /// Client loop or connection stopped before the message was sent
+    #[error("IRC client stopped before the message was sent")]
+    ClientClosed,
 }

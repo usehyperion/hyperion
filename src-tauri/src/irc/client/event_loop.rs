@@ -8,14 +8,26 @@ use tokio_stream::{StreamExt, StreamMap};
 use super::pool_connection::PoolConnection;
 use crate::irc;
 use crate::irc::ClientConfig;
+use crate::irc::connection::event_loop::ReplySender;
 use crate::irc::connection::{Connection, ConnectionIncomingMessage};
 use crate::irc::message::{JoinMessage, PartMessage, ServerMessage};
 
 #[derive(Debug)]
 pub(crate) enum ClientLoopCommand {
-    Connect { return_sender: oneshot::Sender<()> },
-    Join { channel_login: String },
-    Part { channel_login: String },
+    Connect {
+        return_sender: oneshot::Sender<()>,
+    },
+    Join {
+        channel_login: String,
+    },
+    Part {
+        channel_login: String,
+    },
+    Privmsg {
+        channel_login: String,
+        message: String,
+        return_sender: ReplySender,
+    },
 }
 
 pub(crate) struct ClientLoopWorker {
@@ -73,6 +85,11 @@ impl ClientLoopWorker {
             }
             ClientLoopCommand::Join { channel_login } => self.join(channel_login),
             ClientLoopCommand::Part { channel_login } => self.part(channel_login),
+            ClientLoopCommand::Privmsg {
+                channel_login,
+                message,
+                return_sender,
+            } => self.privmsg(channel_login, message, return_sender),
         }
     }
 
@@ -149,6 +166,31 @@ impl ClientLoopWorker {
 
         pool_connection.register_sent_message();
         pool_connection.wanted_channels.remove(&channel_login);
+
+        self.connections.push_back(pool_connection);
+    }
+
+    fn privmsg(&mut self, channel_login: String, message: String, return_sender: ReplySender) {
+        // Prefer the connection that joined the channel so the server has room
+        // state for it, otherwise fall back to any open connection.
+        let mut pool_connection = self
+            .connections
+            .iter()
+            .position(|c| c.wanted_channels.contains(&channel_login))
+            .or_else(|| (!self.connections.is_empty()).then_some(0))
+            .map(|pos| self.connections.remove(pos).unwrap())
+            .unwrap_or_else(|| self.make_new_connection());
+
+        pool_connection
+            .connection
+            .connection_loop_tx
+            .send((
+                irc!["PRIVMSG", format!("#{}", channel_login), message],
+                Some(return_sender),
+            ))
+            .unwrap();
+
+        pool_connection.register_sent_message();
 
         self.connections.push_back(pool_connection);
     }
