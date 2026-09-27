@@ -137,6 +137,20 @@ const streamDetailsFragment = gql(`
 	}
 `);
 
+const whisperMessageDetailsFragment = gql(`
+	fragment WhisperMessageDetails on WhisperMessage {
+		id
+		nonce
+		sentAt
+		content {
+			content
+		}
+		from {
+			id
+		}
+	}
+`);
+
 // Queries
 
 export const channelBadgesQuery = gql(
@@ -465,21 +479,6 @@ export const userAvatarsQuery = gql(`
 	}
 `);
 
-export const followedChannelsQuery = gql(
-	`query GetFollowedChannels($ids: [ID!]!) {
-		users(ids: $ids) {
-			...UserDetails
-			channel {
-				...GuestStarDetails
-			}
-			stream {
-				...StreamDetails
-			}
-		}
-	}`,
-	[userDetailsFragment, guestStarDetailsFragment, streamDetailsFragment],
-);
-
 export const vipsQuery = gql(`
 	query GetVIPs($id: ID!) {
 		user(id: $id) {
@@ -493,6 +492,51 @@ export const vipsQuery = gql(`
 		}
 	}
 `);
+
+export const whisperMessagesQuery = gql(
+	`query GetWhisperMessages($id: ID!, $after: Cursor) {
+		whisperThread(id: $id) {
+			messages(first: 50, after: $after) {
+				edges {
+					cursor
+					node {
+						...WhisperMessageDetails
+					}
+				}
+				pageInfo {
+					hasNextPage
+				}
+			}
+		}
+	}`,
+	[whisperMessageDetailsFragment],
+);
+
+export const whispersQuery = gql(
+	`query GetWhispers($after: Cursor) {
+		currentUser {
+			whisperThreads(first: 100, after: $after) {
+				edges {
+					cursor
+					node {
+						id
+						unreadMessagesCount
+						lastMessage {
+							...WhisperMessageDetails
+						}
+						participants {
+							...UserDetails
+						}
+					}
+				}
+				pageInfo {
+					hasNextPage
+				}
+			}
+		}
+	}`,
+	[userDetailsFragment, whisperMessageDetailsFragment],
+);
 
 // Mutations
 
@@ -688,6 +732,16 @@ export const sendWhisperMutation = gql(`
 	}
 `);
 
+export const markWhisperReadMutation = gql(`
+	mutation MarkWhisperRead($thread: ID!, $message: ID!) {
+		updateWhisperThread(input: { threadID: $thread, lastReadMessageID: $message }) {
+			thread {
+				id
+			}
+		}
+	}
+`);
+
 export const shieldModeMutation = gql(`
 	mutation SetShieldMode($channel: ID!, $mode: ShieldModeStatus!) {
 		setChannelShieldModeStatus(input: { channelID: $channel, shieldModeStatus: $mode }) {
@@ -821,6 +875,12 @@ export type CheermoteTier = Cheermote["tiers"][number];
 export type GuestStarDetails = FragmentOf<typeof guestStarDetailsFragment>;
 export type Stream = FragmentOf<typeof streamDetailsFragment>;
 export type User = FragmentOf<typeof userDetailsFragment>;
+export type WhisperMessage = FragmentOf<typeof whisperMessageDetailsFragment>;
+
+export type WhisperThread = NonNullableDeep<
+	ResultOf<typeof whispersQuery>,
+	"currentUser.whisperThreads.edges.0.node"
+>;
 
 export type ChannelSuggestion = Extract<
 	NonNullableDeep<

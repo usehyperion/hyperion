@@ -5,13 +5,12 @@ import type { EmoteSet } from "$lib/emotes";
 import { transform7tvEmote } from "$lib/emotes";
 import { send7tv } from "$lib/graphql";
 import { userEmoteSetsQuery } from "$lib/graphql/7tv";
-import { emoteSetsQuery, followsQuery } from "$lib/graphql/twitch";
-
-import type { Whisper } from "./whisper.svelte";
+import { emoteSetsQuery, followsQuery, whispersQuery } from "$lib/graphql/twitch";
 
 import { Channel } from "./channel.svelte";
 import { Stream } from "./stream.svelte";
 import { User } from "./user.svelte";
+import { Whisper } from "./whisper.svelte";
 
 export class CurrentUser extends User {
 	public seventvId: string | null = null;
@@ -99,8 +98,7 @@ export class CurrentUser extends User {
 	}
 
 	/**
-	 * Loads the channels the current user follows, paging through the full
-	 * follow list.
+	 * Loads the channels the current user follows.
 	 */
 	public async loadFollowing() {
 		const follows = await this.client.paginate(
@@ -117,8 +115,9 @@ export class CurrentUser extends User {
 			if (followed.stream) {
 				stream = new Stream(this.client, followed.id, followed.stream);
 
-				for (const { user: guest } of followed.channel?.guestStarSessionCall?.guests ??
-					[]) {
+				const guests = followed.channel?.guestStarSessionCall?.guests ?? [];
+
+				for (const { user: guest } of guests) {
 					stream.addGuest({
 						...guest,
 						viewers: guest.stream?.viewersCount ?? null,
@@ -130,6 +129,31 @@ export class CurrentUser extends User {
 			this.client.users.set(model.id, model);
 
 			app.channels.set(model.id, new Channel(this.client, model, stream));
+		}
+	}
+
+	/**
+	 * Loads the whisper threads the current user is a part of.
+	 */
+	public async loadWhispers() {
+		const threads = await this.client.paginate(
+			whispersQuery,
+			{},
+			(data) => data.currentUser?.whisperThreads,
+		);
+
+		for (const thread of threads) {
+			const other = thread.participants.find((user) => user && user.id !== this.id);
+			if (!other) continue;
+
+			const sender = this.client.users.from(other);
+
+			const whisper = this.whispers.getOrInsertComputed(
+				sender.id,
+				() => new Whisper(this.client, sender),
+			);
+
+			whisper.sync(thread);
 		}
 	}
 

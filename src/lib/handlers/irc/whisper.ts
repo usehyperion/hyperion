@@ -16,7 +16,7 @@ export default defineHandler({
 			() => new Whisper(app.twitch, sender),
 		);
 
-		whisper.messages.push({
+		whisper.add({
 			id: data.message_id,
 			createdAt: new Date(),
 			badges: data.badges

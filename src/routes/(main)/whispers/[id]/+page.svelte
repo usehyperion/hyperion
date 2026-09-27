@@ -1,17 +1,47 @@
 <script lang="ts">
-	import { onMount, tick } from "svelte";
+	import { onMount, tick, untrack } from "svelte";
 	import type { KeyboardEventHandler } from "svelte/elements";
 
 	import Timestamp from "$lib/components/Timestamp.svelte";
 	import Input from "$lib/components/ui/Input.svelte";
+	import { log } from "$lib/log";
 
 	const { data } = $props();
 
 	let chat = $state<HTMLDivElement>();
+	let loadingOlder = false;
 
 	onMount(() => {
 		chat?.scrollTo(0, chat?.scrollHeight);
 	});
+
+	$effect(() => {
+		const { whisper } = data;
+
+		untrack(() => {
+			void whisper.markRead().catch((error) => {
+				void log.error(`Failed to mark whisper as read: ${String(error)}`).catch(() => {});
+			});
+		});
+	});
+
+	async function onscroll() {
+		if (!chat || loadingOlder || !data.whisper.hasOlder || chat.scrollTop > 200) return;
+
+		loadingOlder = true;
+
+		try {
+			const height = chat.scrollHeight;
+
+			await data.whisper.loadOlder();
+			await tick();
+
+			// Keep the current messages in place as older ones are prepended.
+			chat.scrollTop += chat.scrollHeight - height;
+		} finally {
+			loadingOlder = false;
+		}
+	}
 
 	$effect.pre(() => {
 		if (!chat) return;
@@ -37,7 +67,7 @@
 </script>
 
 <div class="flex h-full flex-col">
-	<div class="grow divide-y divide-border overflow-y-auto text-sm" bind:this={chat}>
+	<div class="grow divide-y divide-border overflow-y-auto text-sm" {onscroll} bind:this={chat}>
 		{#each data.whisper.messages as message (message.id)}
 			<div class="flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-muted/50">
 				<img
@@ -48,8 +78,8 @@
 					height="40"
 				/>
 
-				<div class="flex flex-col">
-					<div class="flex items-center gap-2">
+				<div class="flex w-full flex-col">
+					<div class="flex w-full items-center justify-between gap-2">
 						<span class="font-semibold" style={message.user.style}>
 							{message.user.displayName}
 						</span>

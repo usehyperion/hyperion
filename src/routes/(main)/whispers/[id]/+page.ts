@@ -6,7 +6,7 @@ export async function load({ parent, params }) {
 
 	if (!whisper) error(404);
 
-	whisper.unread = 0;
+	await whisper.load();
 
 	return { whisper };
 }
