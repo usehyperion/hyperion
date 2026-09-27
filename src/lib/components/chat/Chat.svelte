@@ -84,7 +84,7 @@
 		<div class="absolute inset-x-0 bottom-4 z-10 flex justify-center">
 			<button
 				class={[
-					"flex items-center rounded-full border bg-twitch/40 p-1.5 text-xs font-medium shadow-sm backdrop-blur-lg transition-[background-color,padding] duration-200 ease-out hover:bg-twitch/60",
+					"flex items-center rounded-full border bg-orange-500/40 p-1.5 text-xs font-medium shadow-sm backdrop-blur-lg transition-[background-color,padding] duration-200 ease-out hover:bg-orange-500/60",
 					hasNew && "pr-3",
 				]}
 				type="button"
