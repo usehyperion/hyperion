@@ -140,7 +140,6 @@ const streamDetailsFragment = gql(`
 const whisperMessageDetailsFragment = gql(`
 	fragment WhisperMessageDetails on WhisperMessage {
 		id
-		nonce
 		sentAt
 		content {
 			content

@@ -16,11 +16,6 @@ import type { User } from "./user.svelte";
 
 export interface WhisperMessage {
 	id: string;
-	/**
-	 * The client-generated nonce the message was sent with, if any. Used to
-	 * match messages sent from this client against history.
-	 */
-	nonce?: string;
 	createdAt: Date;
 	badges: Badge[];
 	user: User;
@@ -36,6 +31,9 @@ interface MessagePage {
 export class Whisper {
 	// Live messages received before history finishes loading.
 	#pending: WhisperMessage[] = [];
+
+	// The per-thread sequence number of the newest live message.
+	#sequence = 0;
 
 	#loaded = false;
 	#history: Promise<void> | null = null;
@@ -93,28 +91,20 @@ export class Whisper {
 	}
 
 	/**
-	 * Updates the whisper with the latest state from the thread list. Any
-	 * loaded history is discarded since it may be missing messages sent from
-	 * other clients; it will be reloaded the next time it's opened.
+	 * Updates the whisper with the latest state from the thread list.
 	 */
 	public sync(thread: ApiWhisperThread) {
 		this.unread = thread.unreadMessagesCount;
 		this.preview = thread.lastMessage && this.#transform(thread.lastMessage);
 		this.#lastReadableId = thread.lastMessage?.id ?? null;
-
-		this.messages = [];
-		this.#pending = [];
-		this.#loaded = false;
-		this.#history = null;
-		this.#older = null;
-		this.#cursor = null;
-		this.hasOlder = false;
 	}
 
 	/**
 	 * Adds a live message to the whisper.
 	 */
-	public add(message: WhisperMessage) {
+	public add(message: WhisperMessage, sequence: number) {
+		this.#sequence = Math.max(this.#sequence, sequence);
+
 		if (this.#loaded) {
 			this.messages.push(message);
 		} else {
@@ -124,8 +114,7 @@ export class Whisper {
 	}
 
 	/**
-	 * Loads the most recent page of messages. Subsequent calls are no-ops until
-	 * the next {@linkcode sync}.
+	 * Loads the most recent page of messages.
 	 */
 	public load() {
 		return (this.#history ??= this.#loadHistory());
@@ -137,12 +126,8 @@ export class Whisper {
 	public loadOlder() {
 		if (!this.hasOlder) return Promise.resolve();
 
-		const pending = this.#pending;
-
 		this.#older ??= this.#fetchPage(this.#cursor)
 			.then((page) => {
-				if (this.#pending !== pending) return;
-
 				this.#paginate(page);
 
 				// Pages can overlap if messages arrive between requests.
@@ -157,6 +142,14 @@ export class Whisper {
 		return this.#older;
 	}
 
+	/**
+	 * Clears the unread count if the thread was read up to its newest message,
+	 * such as from another client.
+	 */
+	public read(sequence: number) {
+		if (sequence >= this.#sequence) this.unread = 0;
+	}
+
 	public async markRead() {
 		if (!this.unread) return;
 		this.unread = 0;
@@ -169,36 +162,29 @@ export class Whisper {
 		});
 	}
 
+	/**
+	 * Sends a message in the whisper thread.
+	 */
 	public async send(message: string) {
-		if (!app.user || !message) return;
-
-		const nonce = crypto.randomUUID();
+		if (!message) return;
 
 		await this.client.gql(sendWhisperMutation, {
 			input: {
 				message,
 				recipientUserID: this.sender.id,
-				nonce,
+				nonce: crypto.randomUUID(),
 			},
-		});
-
-		this.add({
-			id: nonce,
-			nonce,
-			createdAt: new Date(),
-			badges: [],
-			user: app.user,
-			text: message,
 		});
 	}
 
 	async #loadHistory() {
-		const pending = this.#pending;
-		const requestedAt = new Date();
+		// Anything received before the request is sent is already part of the
+		// returned history, so only messages that arrive while it's in flight
+		// need to be carried over.
+		const start = this.#pending.length;
 
 		try {
 			const page = await this.#fetchPage(null);
-			if (this.#pending !== pending) return;
 
 			this.#paginate(page);
 
@@ -209,23 +195,15 @@ export class Whisper {
 				this.#lastReadableId = last.id;
 			}
 
-			// Anything received before the request was sent is already part of
-			// the returned history, so only messages that arrived while it was
-			// in flight need to be carried over.
-			const inFlight = this.#pending.filter(
-				(message) =>
-					message.createdAt >= requestedAt &&
-					!history.some((existing) => isSameMessage(existing, message)),
-			);
+			const inFlight = this.#pending
+				.slice(start)
+				.filter((message) => !history.some((existing) => isSameMessage(existing, message)));
 
 			this.messages = [...history, ...inFlight];
 			this.#pending = [];
 			this.#loaded = true;
 		} catch (error) {
-			if (this.#pending === pending) {
-				this.#history = null;
-			}
-
+			this.#history = null;
 			throw error;
 		}
 	}
@@ -256,7 +234,6 @@ export class Whisper {
 	#transform(message: ApiWhisperMessage): WhisperMessage {
 		return {
 			id: message.id,
-			nonce: message.nonce || undefined,
 			createdAt: new Date(message.sentAt),
 			badges: [],
 			user: message.from.id === this.sender.id ? this.sender : (app.user ?? this.sender),
@@ -266,9 +243,5 @@ export class Whisper {
 }
 
 function isSameMessage(a: WhisperMessage, b: WhisperMessage) {
-	return (
-		a.id === b.id ||
-		(!!a.nonce && a.nonce === b.nonce) ||
-		(a.user.id === b.user.id && a.text === b.text)
-	);
+	return a.id === b.id || (a.user.id === b.user.id && a.text === b.text);
 }
