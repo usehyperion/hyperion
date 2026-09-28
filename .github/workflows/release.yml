@@ -103,7 +103,7 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install
 
-      - uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -112,7 +112,7 @@ jobs:
           tagName: ${{ needs.release.outputs.tag_name }}
           releaseName: ${{ needs.release.outputs.tag_name }}
           releaseDraft: false
-          assetNamePattern: "[name]-[arch][ext]"
+          releaseAssetNamePattern: "[name]-[arch][ext]"
           prerelease: false
-          includeUpdaterJson: true
+          uploadUpdaterJson: true
           args: ${{ matrix.args }}
