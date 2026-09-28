@@ -28,17 +28,6 @@
 				}
 			]
 		},
-		{
-			"identifier": "http:default",
-			"allow": [
-				{
-					"url": "https://usehyperion.app"
-				},
-				{
-					"url": "http://localhost:5173"
-				}
-			]
-		},
 		"notification:default",
 		"opener:default",
 		"os:default",

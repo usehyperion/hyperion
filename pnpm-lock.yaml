@@ -208,9 +208,6 @@ importers:
       '@tauri-apps/plugin-fs':
         specifier: ~2.6.0
         version: 2.6.0
-      '@tauri-apps/plugin-http':
-        specifier: ~2.7.0
-        version: 2.7.0
       '@tauri-apps/plugin-notification':
         specifier: ~2.5.0
         version: 2.5.0
@@ -982,9 +979,6 @@ packages:
 
   '@tauri-apps/plugin-fs@2.6.0':
     resolution: {integrity: sha512-MhBAZ4rryd+h9fijd/GWDfArqiAeGI0ZNduV4wuRyUVI6wDZ+oDBY7atqtoXKDwlTUVSvpvmWJAY0ehQd/v6Uw==}
-
-  '@tauri-apps/plugin-http@2.7.0':
-    resolution: {integrity: sha512-sddZpYeqONDQn2lYobLG1aw0+swN0k4GLNruqAZ8nnHKo38FBaxyf9AFd3+KAVDZHCKQEZDpSn5Tnfq7+f3vKA==}
 
   '@tauri-apps/plugin-notification@2.5.0':
     resolution: {integrity: sha512-S19zXtRLX1YryUh532YcGnjI3fzrBGj4oUcW87ojytmOAOCVMZ2bTTHOhI0enYZPH5uDmdQw+dEGCn5wfCm3zw==}
@@ -2619,10 +2613,6 @@ snapshots:
       '@tauri-apps/api': 2.12.0
 
   '@tauri-apps/plugin-fs@2.6.0':
-    dependencies:
-      '@tauri-apps/api': 2.12.0
-
-  '@tauri-apps/plugin-http@2.7.0':
     dependencies:
       '@tauri-apps/api': 2.12.0
 
