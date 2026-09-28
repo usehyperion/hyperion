@@ -96,16 +96,6 @@ impl<S> ConnectionState<S> {
     }
 }
 
-impl<S: Clone> ConnectionState<S> {
-    /// The negotiated session, available only once the connection is ready.
-    pub fn session(&self) -> Option<S> {
-        match &*self.lock() {
-            Connection::Ready(session) => Some(session.clone()),
-            _ => None,
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SubKey {
     pub channel: String,
@@ -144,13 +134,6 @@ impl<V> SubscriptionStore<V> {
             .lock()
             .await
             .insert(SubKey::new(channel, event), value);
-    }
-
-    pub async fn contains(&self, channel: &str, event: &str) -> bool {
-        self.inner
-            .lock()
-            .await
-            .contains_key(&SubKey::new(channel, event))
     }
 
     pub async fn remove(&self, channel: &str, event: &str) -> Option<V> {
