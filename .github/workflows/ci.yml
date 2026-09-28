@@ -28,3 +28,6 @@ jobs:
       - name: Check
         if: ${{ !cancelled() }}
         run: vp check
+      - name: Build
+        if: ${{ !cancelled() }}
+        run: vp build
