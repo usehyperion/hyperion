@@ -15,6 +15,18 @@
 
 	onMount(() => {
 		app.splits.cleanup();
+
+		// The root load has resolved by the time this mounts, so the splash can
+		// be removed
+		const splash = document.getElementById("splash");
+
+		void splash
+			?.animate([{ opacity: 1 }, { opacity: 0 }], {
+				duration: 250,
+				easing: "ease-out",
+				fill: "forwards",
+			})
+			.finished.then(() => splash.remove());
 	});
 
 	setHotkeysContext({

@@ -9,10 +9,57 @@
 
 		<title>Hyperion</title>
 
+		<script>
+			// Prevent FOUC
+			try {
+				const mode = localStorage.getItem("mode-watcher-mode") ?? "system";
+				const dark =
+					mode === "dark" ||
+					(mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+
+				document.documentElement.classList.toggle("dark", dark);
+			} catch {}
+		</script>
+
+		<style>
+			#splash {
+				position: fixed;
+				inset: 0;
+				z-index: 9999;
+				display: grid;
+				place-items: center;
+				background: oklch(1 0 0);
+
+				.dark & {
+					background: oklch(0.145 0 0);
+				}
+			}
+
+			#splash img {
+				width: 4rem;
+				height: 4rem;
+				object-fit: contain;
+
+				@media (prefers-reduced-motion: no-preference) {
+					animation: splash-pulse 1.2s ease-in-out infinite;
+				}
+			}
+
+			@keyframes splash-pulse {
+				50% {
+					opacity: 0.5;
+				}
+			}
+		</style>
+
 		%sveltekit.head%
 	</head>
 
 	<body data-sveltekit-preload-data="hover">
+		<div id="splash" aria-hidden="true">
+			<img src="%sveltekit.assets%/logo.svg" alt="" />
+		</div>
+
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>
