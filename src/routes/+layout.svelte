@@ -21,7 +21,11 @@
 		const splash = document.getElementById("splash");
 
 		void splash
-			?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, easing: "ease-out" })
+			?.animate([{ opacity: 1 }, { opacity: 0 }], {
+				duration: 250,
+				easing: "ease-out",
+				fill: "forwards",
+			})
 			.finished.then(() => splash.remove());
 	});
 
