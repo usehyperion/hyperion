@@ -478,6 +478,55 @@ export interface VideoPlaybackById {
 	scheduled?: boolean;
 }
 
+export interface WhisperTags {
+	login: string;
+	display_name: string;
+	color: string;
+	emotes: unknown[];
+	badges: { id: string; version: string }[];
+}
+
+export interface WhisperMessage {
+	message_id: string;
+	/**
+	 * The per-thread sequence number of the message.
+	 */
+	id: number;
+	thread_id: string;
+	body: string;
+	/**
+	 * Unix timestamp in seconds.
+	 */
+	sent_ts: number;
+	from_id: number;
+	tags: WhisperTags;
+	recipient: {
+		id: number;
+		username: string;
+		display_name: string;
+		color: string;
+	};
+}
+
+export interface WhisperThreadUpdate {
+	id: string;
+	/**
+	 * The sequence number of the last message read in the thread.
+	 */
+	last_read: number;
+	archived: boolean;
+	muted: boolean;
+	spam_info: {
+		likelihood: string;
+		last_marked_not_spam: number;
+	};
+	whitelisted_until: string;
+}
+
+export type Whispers =
+	| { type: "whisper_received" | "whisper_sent"; data_object: WhisperMessage }
+	| { type: "thread"; data_object: WhisperThreadUpdate };
+
 export interface PubSubTopicMap {
 	"automod-queue": AutoModQueue;
 	"broadcast-settings-update": BroadcastSettingsUpdate;
@@ -492,6 +541,7 @@ export interface PubSubTopicMap {
 	raid: Raid;
 	"user-moderation-notifications": UserModerationNotifications;
 	"video-playback-by-id": VideoPlaybackById;
+	whispers: Whispers;
 }
 
 export type PubSubMessage<K extends keyof PubSubTopicMap> = PubSubTopicMap[K] & {

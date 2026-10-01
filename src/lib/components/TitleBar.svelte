@@ -30,6 +30,10 @@
 	let maximized = $state(false);
 	let fullscreen = $state(false);
 
+	const hasUnread = $derived(
+		app.user ? app.user.whispers.values().some((whisper) => whisper.unread > 0) : false,
+	);
+
 	onMount(async () => {
 		if (!currentWindow) return;
 
@@ -108,13 +112,22 @@
 
 		{#if app.user}
 			<Link
-				class="size-min p-1 text-muted-foreground"
+				class="relative size-min p-1 text-muted-foreground"
 				href={resolve("/whispers")}
 				size="icon"
 				variant="ghost"
-				aria-label="Go to whispers"
+				aria-label={hasUnread ? "Go to whispers (unread)" : "Go to whispers"}
 			>
 				<Chats />
+
+				{#if hasUnread}
+					<span class="pointer-events-none absolute top-0.5 right-0.5 flex size-1.5">
+						<span
+							class="absolute inline-flex size-full animate-ping rounded-full bg-red-400 opacity-75 motion-reduce:hidden"
+						></span>
+						<span class="relative inline-flex size-1.5 rounded-full bg-red-500"></span>
+					</span>
+				{/if}
 			</Link>
 		{/if}
 	</div>

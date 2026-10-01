@@ -305,9 +305,14 @@ impl PubSubClient {
     }
 
     fn listen_user_topics(&self) {
-        let topic = format!("predictions-user-v1.{}", self.token.user_id);
+        let user_id = &self.token.user_id;
 
-        self.send_listen("LISTEN", &[topic]);
+        let topics = [
+            format!("predictions-user-v1.{user_id}"),
+            format!("whispers.{user_id}"),
+        ];
+
+        self.send_listen("LISTEN", &topics);
     }
 
     async fn restore(&self) {

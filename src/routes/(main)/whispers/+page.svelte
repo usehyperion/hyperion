@@ -4,6 +4,7 @@
 	import type { Attachment } from "svelte/attachments";
 
 	import { resolve } from "$app/paths";
+	import { app } from "$lib/app.svelte";
 	import * as Empty from "$lib/components/ui/empty";
 
 	import ChatDots from "~icons/ph/chat-dots";
@@ -11,6 +12,17 @@
 	dayjs.extend(relativeTime);
 
 	const { data } = $props();
+
+	const whispers = $derived(
+		[...data.whispers]
+			.filter(([, whisper]) => whisper.latest)
+			.toSorted(
+				([, a], [, b]) =>
+					(b.latest?.createdAt.getTime() ?? 0) - (a.latest?.createdAt.getTime() ?? 0),
+			),
+	);
+
+	const unread = $derived(whispers.reduce((total, [, whisper]) => total + whisper.unread, 0));
 
 	function relative(date: Date): Attachment {
 		return (element) => {
@@ -35,69 +47,103 @@
 	}
 </script>
 
-{#each data.whispers as [id, whisper]}
-	{@const message = whisper.latest}
+<div class="h-full overflow-y-auto">
+	{#if whispers.length}
+		<div class="mx-auto w-full max-w-3xl pb-6">
+			<header class="flex items-baseline gap-2 p-4">
+				<h1 class="text-lg font-semibold">Whispers</h1>
 
-	{#if message}
-		<div
-			class="relative flex items-center border-b py-4 pr-6 pl-5 transition-colors hover:bg-muted/80"
-		>
-			<a
-				class="absolute inset-0 z-1"
-				href={resolve("/(main)/whispers/[id]", { id })}
-				aria-label="Go to whisper with {whisper.sender.displayName}"
-				data-sveltekit-preload-data="off"
-			></a>
+				{#if unread}
+					<span class="text-sm text-muted-foreground tabular-nums">{unread} unread</span>
+				{/if}
+			</header>
 
-			<img
-				class="mr-3 rounded-full ring-1 ring-black/10 dark:ring-white/10"
-				src={whisper.sender.avatarUrl}
-				alt={whisper.sender.displayName}
-				width="56"
-				height="56"
-			/>
+			<ul class="divide-y border-y">
+				{#each whispers as [id, whisper] (id)}
+					{@const message = whisper.latest!}
+					{@const sender = whisper.sender}
 
-			<div class="flex w-full flex-col">
-				<div class="flex items-center justify-between">
-					<span class="font-semibold" style={whisper.sender.style}>
-						{whisper.sender.displayName}
-					</span>
-
-					<time
-						class="text-sm text-muted-foreground"
-						datetime={message.createdAt.toISOString()}
-						{@attach relative(message.createdAt)}
-					>
-						{dayjs(message.createdAt).fromNow()}
-					</time>
-				</div>
-
-				<div class="flex justify-between">
-					<p class={["text-sm", !whisper.unread && "text-muted-foreground"]}>
-						{message.text}
-					</p>
-
-					{#if whisper.unread}
-						<div
-							class="mt-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-medium text-foreground"
+					<li>
+						<a
+							class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-2 focus-visible:-outline-offset-2"
+							href={resolve("/(main)/whispers/[id]", { id })}
 						>
-							{whisper.unread > 9 ? "9+" : whisper.unread}
-						</div>
-					{/if}
-				</div>
-			</div>
+							{#if sender.avatarUrl}
+								<img
+									class="size-10 shrink-0 rounded-full bg-muted object-cover ring-1 ring-black/10 dark:ring-white/10"
+									src={sender.avatarUrl}
+									alt=""
+									width="40"
+									height="40"
+								/>
+							{:else}
+								<div class="size-10 shrink-0 rounded-full bg-muted"></div>
+							{/if}
+
+							<div class="flex min-w-0 flex-1 flex-col gap-0.5">
+								<div class="flex items-baseline gap-3">
+									<span class="truncate font-semibold" style={sender.style}>
+										{sender.displayName}
+									</span>
+
+									<time
+										class={[
+											"ml-auto shrink-0 text-xs tabular-nums",
+											whisper.unread
+												? "text-foreground"
+												: "text-muted-foreground",
+										]}
+										datetime={message.createdAt.toISOString()}
+										{@attach relative(message.createdAt)}
+									>
+										{dayjs(message.createdAt).fromNow()}
+									</time>
+								</div>
+
+								<div class="flex items-center gap-3">
+									<p
+										class={[
+											"truncate text-sm",
+											whisper.unread
+												? "font-medium text-foreground"
+												: "text-muted-foreground",
+										]}
+									>
+										{#if message.user.id === app.user?.id}
+											<span class="font-normal text-muted-foreground">
+												You:
+											</span>
+										{/if}
+
+										{message.text}
+									</p>
+
+									{#if whisper.unread}
+										<span
+											class="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-red-400 px-1.5 text-[0.6875rem] font-semibold tabular-nums"
+										>
+											{whisper.unread > 9 ? "9+" : whisper.unread}
+											<span class="sr-only">unread</span>
+										</span>
+									{/if}
+								</div>
+							</div>
+						</a>
+					</li>
+				{/each}
+			</ul>
 		</div>
+	{:else}
+		<Empty.Root class="h-full">
+			<Empty.Header>
+				<Empty.Media variant="icon">
+					<ChatDots />
+				</Empty.Media>
+
+				<Empty.Title>No whispers</Empty.Title>
+
+				<Empty.Description>Any whispers you receive will appear here.</Empty.Description>
+			</Empty.Header>
+		</Empty.Root>
 	{/if}
-{:else}
-	<Empty.Root class="h-full">
-		<Empty.Header>
-			<Empty.Media variant="icon">
-				<ChatDots />
-			</Empty.Media>
-
-			<Empty.Title>No whispers</Empty.Title>
-
-			<Empty.Description>Any whispers you receive will appear here.</Empty.Description>
-		</Empty.Header>
-	</Empty.Root>
-{/each}
+</div>
