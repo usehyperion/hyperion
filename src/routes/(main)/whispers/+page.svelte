@@ -87,7 +87,12 @@
 									</span>
 
 									<time
-										class="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums"
+										class={[
+											"ml-auto shrink-0 text-xs tabular-nums",
+											whisper.unread
+												? "text-foreground"
+												: "text-muted-foreground",
+										]}
 										datetime={message.createdAt.toISOString()}
 										{@attach relative(message.createdAt)}
 									>
@@ -115,7 +120,7 @@
 
 									{#if whisper.unread}
 										<span
-											class="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-orange-500 px-1.5 text-[0.6875rem] font-semibold text-orange-950 tabular-nums"
+											class="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-red-400 px-1.5 text-[0.6875rem] font-semibold tabular-nums"
 										>
 											{whisper.unread > 9 ? "9+" : whisper.unread}
 											<span class="sr-only">unread</span>
