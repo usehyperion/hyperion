@@ -2,6 +2,7 @@
 	import { onMount, tick, untrack } from "svelte";
 	import type { KeyboardEventHandler } from "svelte/elements";
 
+	import ChatSeparator from "$lib/components/chat/ChatSeparator.svelte";
 	import Timestamp from "$lib/components/Timestamp.svelte";
 	import Input from "$lib/components/ui/Input.svelte";
 	import { log } from "$lib/log";
@@ -67,9 +68,28 @@
 </script>
 
 <div class="flex h-full flex-col">
-	<div class="grow divide-y divide-border overflow-y-auto text-sm" {onscroll} bind:this={chat}>
-		{#each data.whisper.messages as message (message.id)}
-			<div class="flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-muted/50">
+	<div class="grow overflow-y-auto text-sm" {onscroll} bind:this={chat}>
+		{#each data.whisper.messages as message, i (message.id)}
+			{@const prev = data.whisper.messages[i - 1]}
+			{@const isNewDay =
+				!prev || prev.createdAt.toDateString() !== message.createdAt.toDateString()}
+
+			{#if isNewDay}
+				<ChatSeparator class="my-3">
+					<time datetime={message.createdAt.toISOString()}>
+						{message.createdAt.toLocaleDateString(navigator.languages, {
+							dateStyle: "long",
+						})}
+					</time>
+				</ChatSeparator>
+			{/if}
+
+			<div
+				class={[
+					"flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-muted/50",
+					!isNewDay && "border-t",
+				]}
+			>
 				<img
 					class="rounded-full ring-1 ring-black/10 dark:ring-white/10"
 					src={message.user.avatarUrl}
