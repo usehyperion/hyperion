@@ -1,5 +1,6 @@
 import { page } from "$app/state";
 import { app } from "$lib/app.svelte";
+import { log } from "$lib/log";
 import { Whisper } from "$lib/models/whisper.svelte";
 
 import { defineHandler } from "../helper";
@@ -20,6 +21,8 @@ export default defineHandler({
 			return;
 		}
 
+		if (payload.type !== "whisper_received" && payload.type !== "whisper_sent") return;
+
 		const data = payload.data_object;
 
 		const fromId = String(data.from_id);
@@ -30,7 +33,7 @@ export default defineHandler({
 
 		const whisper = user.whispers.getOrInsertComputed(
 			other.id,
-			() => new Whisper(app.twitch, other),
+			() => new Whisper(app.twitch, data.thread_id, other),
 		);
 
 		whisper.add(
@@ -46,8 +49,15 @@ export default defineHandler({
 			data.id,
 		);
 
-		if (incoming && page.url.pathname !== `/whispers/${other.id}`) {
-			whisper.unread++;
+		if (!incoming) return;
+
+		whisper.unread++;
+
+		// Keep the server in sync when the message is read as it arrives.
+		if (page.url.pathname === `/whispers/${other.id}`) {
+			void whisper.markRead().catch((error) => {
+				void log.error(`Failed to mark whisper as read: ${String(error)}`).catch(() => {});
+			});
 		}
 	},
 });

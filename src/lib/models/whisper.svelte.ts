@@ -29,7 +29,7 @@ interface MessagePage {
 }
 
 export class Whisper {
-	// Live messages received before history finishes loading.
+	// Live messages received while the history request is in flight.
 	#pending: WhisperMessage[] = [];
 
 	// The per-thread sequence number of the newest live message.
@@ -42,11 +42,6 @@ export class Whisper {
 
 	// The newest message id known to exist on Twitch.
 	#lastReadableId: string | null = null;
-
-	/**
-	 * The id of the whisper thread on Twitch.
-	 */
-	public readonly id: string;
 
 	/**
 	 * The loaded messages in the whisper, oldest first. Empty until
@@ -85,10 +80,13 @@ export class Whisper {
 
 	public constructor(
 		public readonly client: TwitchClient,
+
+		/**
+		 * The id of the whisper thread.
+		 */
+		public readonly id: string,
 		public readonly sender: User,
-	) {
-		this.id = [app.user?.id, sender.id].toSorted((a, b) => Number(a) - Number(b)).join("_");
-	}
+	) {}
 
 	/**
 	 * Updates the whisper with the latest state from the thread list.
@@ -104,11 +102,17 @@ export class Whisper {
 	 */
 	public add(message: WhisperMessage, sequence: number) {
 		this.#sequence = Math.max(this.#sequence, sequence);
+		this.#lastReadableId = message.id;
 
 		if (this.#loaded) {
 			this.messages.push(message);
 		} else {
-			this.#pending.push(message);
+			// Only buffer while history is in flight; anything earlier is
+			// already part of the returned history.
+			if (this.#history) {
+				this.#pending.push(message);
+			}
+
 			this.preview = message;
 		}
 	}
@@ -181,7 +185,7 @@ export class Whisper {
 		// Anything received before the request is sent is already part of the
 		// returned history, so only messages that arrive while it's in flight
 		// need to be carried over.
-		const start = this.#pending.length;
+		this.#pending = [];
 
 		try {
 			const page = await this.#fetchPage(null);
@@ -191,19 +195,21 @@ export class Whisper {
 			const history = page.messages;
 			const last = history.at(-1);
 
-			if (last) {
+			if (last && !this.#pending.length) {
 				this.#lastReadableId = last.id;
 			}
 
-			const inFlight = this.#pending
-				.slice(start)
-				.filter((message) => !history.some((existing) => isSameMessage(existing, message)));
+			const inFlight = this.#pending.filter(
+				(message) => !history.some((existing) => isSameMessage(existing, message)),
+			);
 
 			this.messages = [...history, ...inFlight];
 			this.#pending = [];
 			this.#loaded = true;
 		} catch (error) {
+			this.#pending = [];
 			this.#history = null;
+
 			throw error;
 		}
 	}
@@ -243,5 +249,13 @@ export class Whisper {
 }
 
 function isSameMessage(a: WhisperMessage, b: WhisperMessage) {
-	return a.id === b.id || (a.user.id === b.user.id && a.text === b.text);
+	if (a.id === b.id) return true;
+
+	// Live timestamps only have second precision, so allow a small window
+	// rather than treating every repeated message as a duplicate.
+	return (
+		a.user.id === b.user.id &&
+		a.text === b.text &&
+		Math.abs(a.createdAt.getTime() - b.createdAt.getTime()) < 2000
+	);
 }

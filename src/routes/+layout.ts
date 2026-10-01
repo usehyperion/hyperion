@@ -59,6 +59,10 @@ export async function load({ url }) {
 		void app.user.loadFollowing().catch((error) => {
 			void log.error(`Failed to load followed channels: ${String(error)}`).catch(() => {});
 		});
+
+		void app.user.loadWhispers().catch((error) => {
+			void log.error(`Failed to load whispers: ${String(error)}`).catch(() => {});
+		});
 	}
 
 	if (!app.emotes.size) {

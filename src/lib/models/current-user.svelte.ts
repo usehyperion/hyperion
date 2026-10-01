@@ -13,6 +13,8 @@ import { User } from "./user.svelte";
 import { Whisper } from "./whisper.svelte";
 
 export class CurrentUser extends User {
+	#whispers: Promise<void> | null = null;
+
 	public seventvId: string | null = null;
 
 	/**
@@ -49,6 +51,107 @@ export class CurrentUser extends User {
 	public async fetchEmoteSets() {
 		await this.#fetch7tvSets();
 		void this.#fetchTwitchEmotes().catch(() => {});
+	}
+
+	/**
+	 * Loads the channels the current user follows.
+	 */
+	public async loadFollowing() {
+		const follows = await this.client.paginate(
+			followsQuery,
+			{ id: this.id },
+			(data) => data.user?.follows,
+		);
+
+		for (const followed of follows) {
+			if (app.channels.has(followed.id)) continue;
+
+			let stream: Stream | null = null;
+
+			if (followed.stream) {
+				stream = new Stream(this.client, followed.id, followed.stream);
+
+				const guests = followed.channel?.guestStarSessionCall?.guests ?? [];
+
+				for (const { user: guest } of guests) {
+					stream.addGuest({
+						...guest,
+						viewers: guest.stream?.viewersCount ?? null,
+					});
+				}
+			}
+
+			const model = new User(this.client, followed);
+			this.client.users.set(model.id, model);
+
+			app.channels.set(model.id, new Channel(this.client, model, stream));
+		}
+	}
+
+	/**
+	 * Loads the whisper threads the current user is a part of.
+	 */
+	public loadWhispers() {
+		return (this.#whispers ??= this.#loadWhispers().catch((error: unknown) => {
+			this.#whispers = null;
+			throw error;
+		}));
+	}
+
+	async #loadWhispers() {
+		const threads = await this.client.paginate(
+			whispersQuery,
+			{},
+			(data) => data.currentUser?.whisperThreads,
+		);
+
+		for (const thread of threads) {
+			const other = thread.participants.find((user) => user && user.id !== this.id);
+			if (!other) continue;
+
+			const sender = this.client.users.from(other);
+
+			const whisper = this.whispers.getOrInsertComputed(
+				sender.id,
+				() => new Whisper(this.client, thread.id, sender),
+			);
+
+			whisper.sync(thread);
+		}
+	}
+
+	async #fetch7tvSets() {
+		const { users } = await send7tv(userEmoteSetsQuery, { id: this.id });
+
+		this.seventvId = users.userByConnection?.id ?? null;
+
+		if (users.userByConnection?.personalEmoteSet) {
+			const set = users.userByConnection.personalEmoteSet;
+
+			this.emoteSets.set(set.id, {
+				id: set.id,
+				provider: "7TV",
+				name: `${this.displayName}: 7TV Personal Emotes`,
+				owner: this,
+				global: true,
+				emotes: set.emotes.items.map((item) => transform7tvEmote(item.emote, item.alias)),
+			});
+		}
+
+		if (users.userByConnection?.specialEmoteSets) {
+			for (const set of users.userByConnection.specialEmoteSets) {
+				this.emoteSets.set(set.id, {
+					id: set.id,
+					provider: "7TV",
+					name: set.name,
+					owner: this,
+					global: true,
+					emotes: set.emotes.items.map((item) =>
+						transform7tvEmote(item.emote, item.alias),
+					),
+				});
+			}
+		}
 	}
 
 	async #fetchTwitchEmotes() {
@@ -94,100 +197,6 @@ export class CurrentUser extends User {
 							),
 						})) ?? [],
 			});
-		}
-	}
-
-	/**
-	 * Loads the channels the current user follows.
-	 */
-	public async loadFollowing() {
-		const follows = await this.client.paginate(
-			followsQuery,
-			{ id: this.id },
-			(data) => data.user?.follows,
-		);
-
-		for (const followed of follows) {
-			if (app.channels.has(followed.id)) continue;
-
-			let stream: Stream | null = null;
-
-			if (followed.stream) {
-				stream = new Stream(this.client, followed.id, followed.stream);
-
-				const guests = followed.channel?.guestStarSessionCall?.guests ?? [];
-
-				for (const { user: guest } of guests) {
-					stream.addGuest({
-						...guest,
-						viewers: guest.stream?.viewersCount ?? null,
-					});
-				}
-			}
-
-			const model = new User(this.client, followed);
-			this.client.users.set(model.id, model);
-
-			app.channels.set(model.id, new Channel(this.client, model, stream));
-		}
-	}
-
-	/**
-	 * Loads the whisper threads the current user is a part of.
-	 */
-	public async loadWhispers() {
-		const threads = await this.client.paginate(
-			whispersQuery,
-			{},
-			(data) => data.currentUser?.whisperThreads,
-		);
-
-		for (const thread of threads) {
-			const other = thread.participants.find((user) => user && user.id !== this.id);
-			if (!other) continue;
-
-			const sender = this.client.users.from(other);
-
-			const whisper = this.whispers.getOrInsertComputed(
-				sender.id,
-				() => new Whisper(this.client, sender),
-			);
-
-			whisper.sync(thread);
-		}
-	}
-
-	async #fetch7tvSets() {
-		const { users } = await send7tv(userEmoteSetsQuery, { id: this.id });
-
-		this.seventvId = users.userByConnection?.id ?? null;
-
-		if (users.userByConnection?.personalEmoteSet) {
-			const set = users.userByConnection.personalEmoteSet;
-
-			this.emoteSets.set(set.id, {
-				id: set.id,
-				provider: "7TV",
-				name: `${this.displayName}: 7TV Personal Emotes`,
-				owner: this,
-				global: true,
-				emotes: set.emotes.items.map((item) => transform7tvEmote(item.emote, item.alias)),
-			});
-		}
-
-		if (users.userByConnection?.specialEmoteSets) {
-			for (const set of users.userByConnection.specialEmoteSets) {
-				this.emoteSets.set(set.id, {
-					id: set.id,
-					provider: "7TV",
-					name: set.name,
-					owner: this,
-					global: true,
-					emotes: set.emotes.items.map((item) =>
-						transform7tvEmote(item.emote, item.alias),
-					),
-				});
-			}
 		}
 	}
 }
