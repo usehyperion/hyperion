@@ -143,6 +143,20 @@ class App {
 		}
 	}
 
+	public reset() {
+		this.user = null;
+		this.focused = null;
+		this.twitch.session = null;
+
+		this.history.reset();
+		this.channels.clear();
+		this.emotes.clear();
+		this.emoteSets.clear();
+		this.badges.clear();
+		this.paints.clear();
+		this.u2p.clear();
+	}
+
 	async #handle(key: string, payload: any) {
 		await handlers.get(key)?.handle(payload);
 	}

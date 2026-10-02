@@ -28,15 +28,20 @@ export async function completeLogin(credentials: Credentials) {
 
 	await tick();
 	await storage.saveNow();
-	await goto("/");
+
+	await goto("/", { refreshAll: true });
 }
 
 export async function logOut() {
-	storage.state.user = null;
+	await Promise.allSettled(
+		app.channels
+			.values()
+			.filter((channel) => channel.joined)
+			.map((channel) => channel.leave()),
+	);
 
-	app.user = null;
-	app.focused = null;
-	app.twitch.session = null;
+	app.reset();
+	storage.state.user = null;
 
 	await tick();
 	await storage.saveNow();
