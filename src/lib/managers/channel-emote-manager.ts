@@ -7,8 +7,7 @@ import type { Channel } from "#lib/models/channel.svelte.js";
 
 import { transform7tvEmote, transformBttvEmote, transformFfzEmote } from "#lib/emotes.js";
 import { ApiError } from "#lib/errors/api-error.js";
-import { activeEmoteSetQuery } from "#lib/graphql/7tv.js";
-import { send7tv as send } from "#lib/graphql/index.js";
+import { execute7tvQuery, activeEmoteSetQuery } from "#lib/graphql/7tv.js";
 import { settings } from "#lib/settings/index.js";
 
 import { BaseEmoteManager } from "./base-emote-manager";
@@ -111,7 +110,7 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 	async #fetchActiveSet(): Promise<ActiveEmoteSet | null>;
 	async #fetchActiveSet(details: false): Promise<ActiveEmoteSet<false> | null>;
 	async #fetchActiveSet(details = true): Promise<ActiveEmoteSet<boolean> | null> {
-		const { users } = await send(activeEmoteSetQuery, {
+		const { users } = await execute7tvQuery(activeEmoteSetQuery, {
 			id: this.channel.id,
 			details,
 		});

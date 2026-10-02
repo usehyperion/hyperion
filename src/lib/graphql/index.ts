@@ -1,14 +1,3 @@
-import type { TadaDocumentNode } from "gql.tada";
-import { print } from "graphql-web-lite";
-import { ofetch } from "ofetch";
-
-import { ApiError } from "#lib/errors/api-error.js";
-import { dedupe } from "#lib/util.js";
-
-export const TWITCH_CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko";
-export const TWITCH_GQL_URL = "https://gql.twitch.tv/gql";
-export const SEVENTV_GQL_URL = "https://7tv.io/v4/gql";
-
 export type NonNullableDeep<T, P extends string> = P extends `${infer K}.${infer R}`
 	? K extends keyof T
 		? NonNullableDeep<NonNullable<T[K]>, R>
@@ -49,45 +38,4 @@ export function nodes<T>(connection: Connection<T> | null | undefined): T[] {
 	}
 
 	return result;
-}
-
-export function sendTwitch<T, U>(query: TadaDocumentNode<T, U>, variables?: U) {
-	return send(TWITCH_GQL_URL, query, variables);
-}
-
-export function send7tv<T, U>(query: TadaDocumentNode<T, U>, variables?: U) {
-	return send(SEVENTV_GQL_URL, query, variables);
-}
-
-async function send<T, U>(url: string, query: TadaDocumentNode<T, U>, variables?: U) {
-	// @ts-expect-error - outdated types
-	const queryStr = print(query);
-	const varStr = JSON.stringify(variables ?? {});
-
-	return dedupe(`${url}:${queryStr}:${varStr}`, async () => {
-		let response: GqlResponse<T>;
-
-		try {
-			response = await ofetch<GqlResponse<T>>(url, {
-				method: "POST",
-				headers: url === TWITCH_GQL_URL ? { "Client-Id": TWITCH_CLIENT_ID } : {},
-				body: {
-					query: queryStr,
-					variables,
-				},
-				signal: AbortSignal.timeout(15_000),
-			});
-		} catch (error) {
-			throw ApiError.from(error);
-		}
-
-		if (response.errors) {
-			throw new AggregateError(
-				response.errors.map((err) => new ApiError(400, err.message)),
-				"GraphQL request failed",
-			);
-		}
-
-		return response.data;
-	});
 }

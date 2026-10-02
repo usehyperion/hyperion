@@ -7,9 +7,11 @@ import { ofetch } from "ofetch";
 
 import { goto } from "$app/navigation";
 
+import type { Connection, GqlResponse } from "#lib/graphql/index.js";
+
 import { ApiError } from "#lib/errors/api-error.js";
 import { MutationError } from "#lib/errors/mutation-error.js";
-import { type Connection, type GqlResponse, nodes, TWITCH_GQL_URL } from "#lib/graphql/index.js";
+import { nodes } from "#lib/graphql/index.js";
 import { streamsQuery } from "#lib/graphql/twitch.js";
 import { log } from "#lib/log.js";
 import { UserManager } from "#lib/managers/user-manager.js";
@@ -78,7 +80,7 @@ export class TwitchClient {
 			let response: GqlResponse<T>;
 
 			try {
-				response = await ofetch<GqlResponse<T>>(TWITCH_GQL_URL, {
+				response = await ofetch<GqlResponse<T>>("https://gql.twitch.tv/gql", {
 					method: "POST",
 					headers: await session.headers(),
 					body: {

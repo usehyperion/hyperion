@@ -5,8 +5,7 @@ import type { BttvEmote, Emote, GlobalSet } from "#lib/emotes.js";
 
 import { transform7tvEmote, transformBttvEmote, transformFfzEmote } from "#lib/emotes.js";
 import { ApiError } from "#lib/errors/api-error.js";
-import { globalEmoteSetQuery } from "#lib/graphql/7tv.js";
-import { send7tv } from "#lib/graphql/index.js";
+import { execute7tvQuery, globalEmoteSetQuery } from "#lib/graphql/7tv.js";
 
 import { BaseEmoteManager } from "./base-emote-manager";
 
@@ -67,7 +66,7 @@ export class EmoteManager extends BaseEmoteManager {
 	 * Retrieves the list of global 7TV emotes.
 	 */
 	public override async fetch7tv() {
-		const { emoteSets } = await send7tv(globalEmoteSetQuery);
+		const { emoteSets } = await execute7tvQuery(globalEmoteSetQuery);
 
 		const emotes = emoteSets.global!.emotes.items.map((item) =>
 			transform7tvEmote(item.emote, item.alias),

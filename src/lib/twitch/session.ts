@@ -1,6 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import { TWITCH_CLIENT_ID } from "#lib/graphql/index.js";
 import { log } from "#lib/log.js";
 import { dedupe } from "#lib/util.js";
 
@@ -37,7 +36,7 @@ export class Session {
 	public async headers() {
 		const headers = new Headers({
 			Authorization: `OAuth ${this.accessToken}`,
-			"Client-Id": TWITCH_CLIENT_ID,
+			"Client-Id": "kimne78kx3ncx6brgo4mv6wki5h1ko",
 		});
 
 		const integrity = await this.#fresh();

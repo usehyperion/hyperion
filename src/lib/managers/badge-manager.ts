@@ -4,8 +4,8 @@ import * as cache from "tauri-plugin-cache-api";
 
 import type { BttvBadge, FfzBadge } from "#lib/models/badge.js";
 
+import { app } from "#lib/app.svelte.ts";
 import { ApiError } from "#lib/errors/api-error.js";
-import { sendTwitch } from "#lib/graphql/index.js";
 import { globalBadgesQuery } from "#lib/graphql/twitch.js";
 import { Badge } from "#lib/models/badge.js";
 
@@ -36,7 +36,7 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		let badges = await cache.get<Badge[]>("global_badges");
 
 		if (!badges || force) {
-			const { badges: data } = await sendTwitch(globalBadgesQuery);
+			const { badges: data } = await app.twitch.gql(globalBadgesQuery);
 			badges = data?.flatMap((b) => (b ? [Badge.fromGql(b)] : [])) ?? [];
 
 			// Twitch adds new badges fairly often, so ttl is lower than the

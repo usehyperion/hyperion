@@ -1,7 +1,14 @@
 import { initGraphQLTada } from "gql.tada";
-import type { FragmentOf, ResultOf } from "gql.tada";
+import type { FragmentOf, ResultOf, TadaDocumentNode } from "gql.tada";
+import { print } from "graphql-web-lite";
+import { ofetch } from "ofetch";
 
-import type { NonNullableDeep } from ".";
+import { ApiError } from "#lib/errors/api-error.ts";
+import { dedupe } from "#lib/util.ts";
+
+import type { GqlResponse, NonNullableDeep } from ".";
+
+const SEVENTV_GQL_URL = "https://7tv.io/v4/gql";
 
 const gql = initGraphQLTada<{
 	disableMasking: true;
@@ -11,6 +18,38 @@ const gql = initGraphQLTada<{
 		DateTime: string;
 	};
 }>();
+
+export function execute7tvQuery<T, U>(query: TadaDocumentNode<T, U>, variables?: U) {
+	// @ts-expect-error - outdated types
+	const queryStr = print(query);
+	const varStr = JSON.stringify(variables ?? {});
+
+	return dedupe(`${SEVENTV_GQL_URL}:${queryStr}:${varStr}`, async () => {
+		let response: GqlResponse<T>;
+
+		try {
+			response = await ofetch<GqlResponse<T>>(SEVENTV_GQL_URL, {
+				method: "POST",
+				body: {
+					query: queryStr,
+					variables,
+				},
+				signal: AbortSignal.timeout(15_000),
+			});
+		} catch (error) {
+			throw ApiError.from(error);
+		}
+
+		if (response.errors) {
+			throw new AggregateError(
+				response.errors.map((err) => new ApiError(400, err.message)),
+				"GraphQL request failed",
+			);
+		}
+
+		return response.data;
+	});
+}
 
 // Fragments
 

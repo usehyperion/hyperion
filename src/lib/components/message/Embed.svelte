@@ -8,7 +8,7 @@
 	import { app } from "#lib/app.svelte.js";
 	import { transform7tvEmote } from "#lib/emotes.js";
 	import { emoteQuery } from "#lib/graphql/7tv.js";
-	import { send7tv as send } from "#lib/graphql/index.js";
+	import { execute7tvQuery } from "#lib/graphql/7tv.js";
 	import { clipQuery } from "#lib/graphql/twitch.js";
 
 	interface Props {
@@ -24,7 +24,7 @@
 		const parts = url.pathname.split("/");
 		if (parts[1] !== "emotes") return;
 
-		const { emotes } = await send(emoteQuery, { id: parts[2] });
+		const { emotes } = await execute7tvQuery(emoteQuery, { id: parts[2] });
 		if (!emotes.emote) return;
 
 		return {

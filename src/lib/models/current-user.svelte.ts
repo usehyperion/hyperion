@@ -4,8 +4,7 @@ import type { EmoteSet } from "#lib/emotes.js";
 
 import { app } from "#lib/app.svelte.js";
 import { transform7tvEmote } from "#lib/emotes.js";
-import { userEmoteSetsQuery } from "#lib/graphql/7tv.js";
-import { send7tv } from "#lib/graphql/index.js";
+import { execute7tvQuery, userEmoteSetsQuery } from "#lib/graphql/7tv.js";
 import { emoteSetsQuery, followsQuery, whispersQuery } from "#lib/graphql/twitch.js";
 
 import { Channel } from "./channel.svelte";
@@ -122,7 +121,7 @@ export class CurrentUser extends User {
 	}
 
 	async #fetch7tvSets() {
-		const { users } = await send7tv(userEmoteSetsQuery, { id: this.id });
+		const { users } = await execute7tvQuery(userEmoteSetsQuery, { id: this.id });
 
 		this.seventvId = users.userByConnection?.id ?? null;
 
