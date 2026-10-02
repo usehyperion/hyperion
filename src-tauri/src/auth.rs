@@ -397,6 +397,15 @@ pub async fn clear_session(state: State<'_, Mutex<AppState>>) -> Result<(), Erro
     state.token = None;
     state.integrity = None;
 
+    state.irc = None;
+    state.irc_channel = None;
+
+    if let Some(pubsub) = state.pubsub.take() {
+        pubsub.disconnect();
+    }
+
+    state.pubsub_channel = None;
+
     match keyring_entry()?.delete_credential() {
         Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
         Err(err) => Err(err.into()),

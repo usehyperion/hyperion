@@ -144,6 +144,7 @@ class App {
 	}
 
 	public reset() {
+		this.connected = false;
 		this.user = null;
 		this.focused = null;
 		this.twitch.session = null;
