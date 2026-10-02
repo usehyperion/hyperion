@@ -1,6 +1,7 @@
 {
 	"extends": "$app/tsconfig",
 	"compilerOptions": {
+		"allowImportingTsExtensions": false,
 		"strict": true,
 		"sourceMap": true,
 		"plugins": [

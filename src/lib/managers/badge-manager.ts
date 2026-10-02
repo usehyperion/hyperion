@@ -4,7 +4,7 @@ import * as cache from "tauri-plugin-cache-api";
 
 import type { BttvBadge, FfzBadge } from "#lib/models/badge.js";
 
-import { app } from "#lib/app.svelte.ts";
+import { app } from "#lib/app.svelte.js";
 import { ApiError } from "#lib/errors/api-error.js";
 import { globalBadgesQuery } from "#lib/graphql/twitch.js";
 import { Badge } from "#lib/models/badge.js";

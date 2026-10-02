@@ -8,6 +8,7 @@
 	"editor.formatOnSaveMode": "file",
 	"oxc.fmt.configPath": "./vite.config.ts",
 	"js/ts.tsdk.path": "node_modules/typescript/lib",
+	"js/ts.preferences.importModuleSpecifierEnding": "js",
 	"rust-analyzer.check.command": "clippy",
 	"[svelte]": {
 		"editor.defaultFormatter": "oxc.oxc-vscode"

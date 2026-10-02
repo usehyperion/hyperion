@@ -3,8 +3,8 @@ import type { FragmentOf, ResultOf, TadaDocumentNode } from "gql.tada";
 import { print } from "graphql-web-lite";
 import { ofetch } from "ofetch";
 
-import { ApiError } from "#lib/errors/api-error.ts";
-import { dedupe } from "#lib/util.ts";
+import { ApiError } from "#lib/errors/api-error.js";
+import { dedupe } from "#lib/util.js";
 
 import type { GqlResponse, NonNullableDeep } from ".";
 

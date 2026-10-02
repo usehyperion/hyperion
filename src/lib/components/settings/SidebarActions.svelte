@@ -6,7 +6,7 @@
 	import Info from "~icons/ph/info";
 	import SignOut from "~icons/ph/sign-out";
 
-	import { app } from "#lib/app.svelte.ts";
+	import { app } from "#lib/app.svelte.js";
 	import Button from "#lib/components/ui/Button.svelte";
 	import { logOut } from "#lib/twitch/auth.js";
 
