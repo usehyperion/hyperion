@@ -1,13 +1,14 @@
 <script lang="ts">
 	import type { HTMLInputAttributes, KeyboardEventHandler } from "svelte/elements";
 
-	import { app } from "$lib/app.svelte";
-	import { Completer } from "$lib/completer.svelte";
-	import { CommandError } from "$lib/errors/command-error";
-	import type { Chat } from "$lib/models/chat.svelte";
-
 	import ChartBarHorizontal from "~icons/ph/chart-bar-horizontal";
 	import SealQuestion from "~icons/ph/seal-question";
+
+	import type { Chat } from "#lib/models/chat.svelte.js";
+
+	import { app } from "#lib/app.svelte.js";
+	import { Completer } from "#lib/completer.svelte.js";
+	import { CommandError } from "#lib/errors/command-error.js";
 
 	import EmotePicker from "../emote-picker/EmotePicker.svelte";
 	import Suggestions from "../Suggestions.svelte";

@@ -1,4 +1,4 @@
-import { foundersQuery } from "$lib/graphql/twitch";
+import { foundersQuery } from "#lib/graphql/twitch.js";
 
 import { defineCommand } from "../util";
 

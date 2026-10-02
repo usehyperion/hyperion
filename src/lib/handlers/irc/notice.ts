@@ -1,5 +1,5 @@
-import { app } from "$lib/app.svelte";
-import Banned from "$lib/components/message/events/Banned.svelte";
+import { app } from "#lib/app.svelte.js";
+import Banned from "#lib/components/message/events/Banned.svelte";
 
 import { defineHandler } from "../helper";
 

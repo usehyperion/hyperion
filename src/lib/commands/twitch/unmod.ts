@@ -1,4 +1,4 @@
-import { ErrorMessage } from "$lib/errors/messages";
+import { ErrorMessage } from "#lib/errors/messages.js";
 
 import { defineCommand, getTarget, mapErrors } from "../util";
 

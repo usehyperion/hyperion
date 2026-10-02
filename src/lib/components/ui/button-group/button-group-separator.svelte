@@ -2,7 +2,7 @@
 	import type { ComponentProps } from "svelte";
 	import { cn } from "tailwind-variants";
 
-	import Separator from "$lib/components/ui/Separator.svelte";
+	import Separator from "#lib/components/ui/Separator.svelte";
 
 	let {
 		ref = $bindable(null),

@@ -1,6 +1,7 @@
 <script lang="ts">
-	import Username from "$lib/components/user/Username.svelte";
-	import type { Viewer } from "$lib/models/viewer.svelte";
+	import type { Viewer } from "#lib/models/viewer.svelte.js";
+
+	import Username from "#lib/components/user/Username.svelte";
 
 	interface Props {
 		reasons: string[];

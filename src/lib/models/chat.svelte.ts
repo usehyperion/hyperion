@@ -1,8 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { Component, ComponentProps } from "svelte";
 
-import { app } from "$lib/app.svelte";
-import type { Command } from "$lib/commands";
+import type { Command } from "#lib/commands/index.js";
+
+import { app } from "#lib/app.svelte.js";
 import {
 	pinMessageMutation,
 	sendAnnouncementMutation,
@@ -11,10 +12,10 @@ import {
 	shieldModeMutation,
 	updateChatSettingsMutation,
 	updateChatSubOnlyMode,
-} from "$lib/graphql/twitch";
-import { log } from "$lib/log";
-import { settings } from "$lib/settings";
-import { sendPresence } from "$lib/seventv";
+} from "#lib/graphql/twitch.js";
+import { log } from "#lib/log.js";
+import { settings } from "#lib/settings/index.js";
+import { sendPresence } from "#lib/seventv.js";
 
 import type { Channel } from "./channel.svelte";
 import type { Message } from "./message/message";

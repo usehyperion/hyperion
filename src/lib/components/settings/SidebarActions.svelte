@@ -2,12 +2,12 @@
 	import { appLogDir } from "@tauri-apps/api/path";
 	import { openPath } from "@tauri-apps/plugin-opener";
 
-	import Button from "$lib/components/ui/Button.svelte";
-	import { logOut } from "$lib/twitch/auth";
-
 	import FolderOpen from "~icons/ph/folder-open";
 	import Info from "~icons/ph/info";
 	import SignOut from "~icons/ph/sign-out";
+
+	import Button from "#lib/components/ui/Button.svelte";
+	import { logOut } from "#lib/twitch/auth.js";
 
 	import AboutDialog from "./AboutDialog.svelte";
 

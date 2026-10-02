@@ -1,14 +1,14 @@
-import { app } from "$lib/app.svelte";
-import BanStatus from "$lib/components/message/events/BanStatus.svelte";
-import Clear from "$lib/components/message/events/Clear.svelte";
-import Delete from "$lib/components/message/events/Delete.svelte";
-import Mode from "$lib/components/message/events/Mode.svelte";
-import RoleStatus from "$lib/components/message/events/RoleStatus.svelte";
-import Term from "$lib/components/message/events/Term.svelte";
-import Timeout from "$lib/components/message/events/Timeout.svelte";
-import Untimeout from "$lib/components/message/events/Untimeout.svelte";
-import Warn from "$lib/components/message/events/Warn.svelte";
-import WarnAck from "$lib/components/message/events/WarnAck.svelte";
+import { app } from "#lib/app.svelte.js";
+import BanStatus from "#lib/components/message/events/BanStatus.svelte";
+import Clear from "#lib/components/message/events/Clear.svelte";
+import Delete from "#lib/components/message/events/Delete.svelte";
+import Mode from "#lib/components/message/events/Mode.svelte";
+import RoleStatus from "#lib/components/message/events/RoleStatus.svelte";
+import Term from "#lib/components/message/events/Term.svelte";
+import Timeout from "#lib/components/message/events/Timeout.svelte";
+import Untimeout from "#lib/components/message/events/Untimeout.svelte";
+import Warn from "#lib/components/message/events/Warn.svelte";
+import WarnAck from "#lib/components/message/events/WarnAck.svelte";
 
 import { defineHandler } from "../helper";
 

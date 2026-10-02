@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { User } from "$lib/models/user.svelte";
+	import type { User } from "#lib/models/user.svelte.js";
 
 	interface Props {
 		user: User;

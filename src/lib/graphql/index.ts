@@ -2,8 +2,8 @@ import type { TadaDocumentNode } from "gql.tada";
 import { print } from "graphql-web-lite";
 import { ofetch } from "ofetch";
 
-import { ApiError } from "$lib/errors/api-error";
-import { dedupe } from "$lib/util";
+import { ApiError } from "#lib/errors/api-error.js";
+import { dedupe } from "#lib/util.js";
 
 export const TWITCH_CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 export const TWITCH_GQL_URL = "https://gql.twitch.tv/gql";

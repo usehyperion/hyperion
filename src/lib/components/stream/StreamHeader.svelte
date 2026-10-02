@@ -4,10 +4,10 @@
 	import duration from "dayjs/plugin/duration";
 	import { onDestroy } from "svelte";
 
-	import type { Stream } from "$lib/models/stream.svelte";
-
 	import Clock from "~icons/ph/clock";
 	import Users from "~icons/ph/users";
+
+	import type { Stream } from "#lib/models/stream.svelte.js";
 
 	dayjs.extend(duration);
 

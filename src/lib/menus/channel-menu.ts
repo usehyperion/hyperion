@@ -6,10 +6,11 @@ import {
 	type MenuOptions,
 } from "@tauri-apps/api/menu";
 
-import { app } from "$lib/app.svelte";
-import type { Channel } from "$lib/models/channel.svelte";
-import type { SplitDirection } from "$lib/splits/types";
-import { storage } from "$lib/stores";
+import type { Channel } from "#lib/models/channel.svelte.js";
+import type { SplitDirection } from "#lib/splits/types.js";
+
+import { app } from "#lib/app.svelte.js";
+import { storage } from "#lib/stores.js";
 
 async function splitItem(channel: Channel, direction: SplitDirection) {
 	const enabled = app.splits.focused !== null && app.splits.paneOf(channel.id) === null;

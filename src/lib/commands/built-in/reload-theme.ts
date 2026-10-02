@@ -1,5 +1,5 @@
-import { settings } from "$lib/settings";
-import { reloadThemes } from "$lib/themes";
+import { settings } from "#lib/settings/index.js";
+import { reloadThemes } from "#lib/themes.js";
 
 import { defineCommand } from "../util";
 

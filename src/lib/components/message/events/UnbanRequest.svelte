@@ -1,7 +1,8 @@
 <script lang="ts">
-	import Username from "$lib/components/user/Username.svelte";
-	import type { Viewer } from "$lib/models/viewer.svelte";
-	import type { UnbanRequestCreate, UnbanRequestUpdate } from "$lib/twitch/pubsub";
+	import type { Viewer } from "#lib/models/viewer.svelte.js";
+	import type { UnbanRequestCreate, UnbanRequestUpdate } from "#lib/twitch/pubsub.js";
+
+	import Username from "#lib/components/user/Username.svelte";
 
 	interface Props {
 		request: UnbanRequestCreate | UnbanRequestUpdate;

@@ -1,5 +1,5 @@
-import type { Channel } from "$lib/models/channel.svelte";
-import type { User } from "$lib/models/user.svelte";
+import type { Channel } from "#lib/models/channel.svelte.js";
+import type { User } from "#lib/models/user.svelte.js";
 
 export type CommandProvider = "Built-in" | "Twitch";
 

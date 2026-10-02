@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { page } from "$app/state";
-	import * as Empty from "$lib/components/ui/empty";
-	import Link from "$lib/components/ui/Link.svelte";
-	import { log } from "$lib/log";
 
 	import WarningCircle from "~icons/ph/warning-circle";
+
+	import * as Empty from "#lib/components/ui/empty/index.js";
+	import Link from "#lib/components/ui/Link.svelte";
+	import { log } from "#lib/log.js";
 
 	if (page.error) {
 		log.error(`[${page.status}]: ${page.error.message}`);

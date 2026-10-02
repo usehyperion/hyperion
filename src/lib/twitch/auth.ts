@@ -2,11 +2,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { tick } from "svelte";
 
 import { goto } from "$app/navigation";
-import { app } from "$lib/app.svelte";
-import { log } from "$lib/log";
-import { CurrentUser } from "$lib/models/current-user.svelte";
-import { storage } from "$lib/stores";
-import { Session, type Credentials } from "$lib/twitch/session";
+
+import { app } from "#lib/app.svelte.js";
+import { log } from "#lib/log.js";
+import { CurrentUser } from "#lib/models/current-user.svelte.js";
+import { storage } from "#lib/stores.js";
+import { Session, type Credentials } from "#lib/twitch/session.js";
 
 interface AuthUser {
 	id: string;

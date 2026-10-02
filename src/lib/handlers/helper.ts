@@ -1,6 +1,6 @@
-import type { SevenTvEventMap } from "$lib/seventv";
-import type { IrcMessageMap } from "$lib/twitch/irc";
-import type { PubSubMessage, PubSubTopicMap } from "$lib/twitch/pubsub";
+import type { SevenTvEventMap } from "#lib/seventv.js";
+import type { IrcMessageMap } from "#lib/twitch/irc.js";
+import type { PubSubMessage, PubSubTopicMap } from "#lib/twitch/pubsub.js";
 
 type HandlerKey = keyof IrcMessageMap | keyof PubSubTopicMap | keyof SevenTvEventMap;
 

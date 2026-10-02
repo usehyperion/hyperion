@@ -1,6 +1,6 @@
 <script lang="ts">
-	import ColorPicker from "$lib/components/ui/ColorPicker.svelte";
-	import Popover from "$lib/components/ui/Popover.svelte";
+	import ColorPicker from "#lib/components/ui/ColorPicker.svelte";
+	import Popover from "#lib/components/ui/Popover.svelte";
 
 	interface Props {
 		id: string;

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 
-	import { decorations } from "$lib/components/message/Highlight.svelte";
-	import type { HighlightConfig } from "$lib/settings";
+	import type { HighlightConfig } from "#lib/settings/index.js";
+
+	import { decorations } from "#lib/components/message/Highlight.svelte";
 
 	import Color from "./Color.svelte";
 	import StyleSelect from "./Style.svelte";

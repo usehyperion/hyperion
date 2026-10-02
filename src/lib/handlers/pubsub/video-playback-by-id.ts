@@ -1,5 +1,5 @@
-import { app } from "$lib/app.svelte";
-import StreamStatus from "$lib/components/message/events/StreamStatus.svelte";
+import { app } from "#lib/app.svelte.js";
+import StreamStatus from "#lib/components/message/events/StreamStatus.svelte";
 
 import { defineHandler } from "../helper";
 

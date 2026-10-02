@@ -1,9 +1,10 @@
 <script lang="ts">
-	import type { Poll } from "$lib/models/poll.svelte";
-	import { formatDuration } from "$lib/util";
-
 	import ChartBar from "~icons/ph/chart-bar";
 	import Stop from "~icons/ph/stop-fill";
+
+	import type { Poll } from "#lib/models/poll.svelte.js";
+
+	import { formatDuration } from "#lib/util.js";
 
 	import Progress from "../ui/Progress.svelte";
 	import Username from "../user/Username.svelte";

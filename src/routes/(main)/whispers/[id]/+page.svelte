@@ -2,10 +2,10 @@
 	import { onMount, tick, untrack } from "svelte";
 	import type { KeyboardEventHandler } from "svelte/elements";
 
-	import ChatSeparator from "$lib/components/chat/ChatSeparator.svelte";
-	import Timestamp from "$lib/components/Timestamp.svelte";
-	import Input from "$lib/components/ui/Input.svelte";
-	import { log } from "$lib/log";
+	import ChatSeparator from "#lib/components/chat/ChatSeparator.svelte";
+	import Timestamp from "#lib/components/Timestamp.svelte";
+	import Input from "#lib/components/ui/Input.svelte";
+	import { log } from "#lib/log.js";
 
 	const { data } = $props();
 

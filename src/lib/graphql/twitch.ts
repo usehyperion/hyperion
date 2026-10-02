@@ -1,8 +1,8 @@
 import { initGraphQLTada } from "gql.tada";
 import type { FragmentOf, ResultOf } from "gql.tada";
 
-import type { MessageFragment } from "$lib/models/message/fragment";
-import type { Poll as ApiPoll, Prediction as ApiPrediction } from "$lib/twitch/pubsub";
+import type { MessageFragment } from "#lib/models/message/fragment.js";
+import type { Poll as ApiPoll, Prediction as ApiPrediction } from "#lib/twitch/pubsub.js";
 
 import type { NonNullableDeep } from ".";
 

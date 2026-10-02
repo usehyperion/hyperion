@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { EventMessage } from "$lib/models/message/event-message";
+	import type { EventMessage } from "#lib/models/message/event-message.js";
 
 	import Timestamp from "../Timestamp.svelte";
 

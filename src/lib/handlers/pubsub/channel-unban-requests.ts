@@ -1,5 +1,5 @@
-import { app } from "$lib/app.svelte";
-import UnbanRequest from "$lib/components/message/events/UnbanRequest.svelte";
+import { app } from "#lib/app.svelte.js";
+import UnbanRequest from "#lib/components/message/events/UnbanRequest.svelte";
 
 import { defineHandler } from "../helper";
 

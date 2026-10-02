@@ -2,17 +2,18 @@
 	import { createHotkey, createHotkeys } from "@tanstack/svelte-hotkeys";
 	import { onMount } from "svelte";
 
-	import { app } from "$lib/app.svelte";
-	import JoinDialog from "$lib/components/JoinDialog.svelte";
-	import SplitNode from "$lib/components/split/SplitNode.svelte";
-	import Button from "$lib/components/ui/Button.svelte";
-	import * as Empty from "$lib/components/ui/empty";
-	import { settings } from "$lib/settings";
-	import { createPane, firstLeaf } from "$lib/splits/tree";
-	import type { SplitDirection } from "$lib/splits/types";
-
 	import ChatDots from "~icons/ph/chat-dots";
 	import Spinner from "~icons/ph/spinner";
+
+	import type { SplitDirection } from "#lib/splits/types.js";
+
+	import { app } from "#lib/app.svelte.js";
+	import JoinDialog from "#lib/components/JoinDialog.svelte";
+	import SplitNode from "#lib/components/split/SplitNode.svelte";
+	import Button from "#lib/components/ui/Button.svelte";
+	import * as Empty from "#lib/components/ui/empty/index.js";
+	import { settings } from "#lib/settings/index.js";
+	import { createPane, firstLeaf } from "#lib/splits/tree.js";
 
 	let loading = $state(true);
 

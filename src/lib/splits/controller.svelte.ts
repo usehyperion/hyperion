@@ -1,4 +1,4 @@
-import { storage } from "$lib/stores";
+import { storage } from "#lib/stores.js";
 
 import { bounds, neighbor } from "./geometry";
 import * as tree from "./tree";

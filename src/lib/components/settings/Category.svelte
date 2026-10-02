@@ -1,8 +1,9 @@
 <script lang="ts">
-	import * as Empty from "$lib/components/ui/empty";
-	import type { SettingsCategory } from "$lib/settings/types";
-
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
+
+	import type { SettingsCategory } from "#lib/settings/types.js";
+
+	import * as Empty from "#lib/components/ui/empty/index.js";
 
 	import FieldControl from "./FieldControl.svelte";
 

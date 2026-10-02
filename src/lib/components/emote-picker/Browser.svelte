@@ -2,9 +2,9 @@
 	import { Accordion } from "bits-ui";
 	import { onDestroy, tick } from "svelte";
 
-	import type { EmoteSet } from "$lib/emotes";
-
 	import CaretRight from "~icons/ph/caret-right";
+
+	import type { EmoteSet } from "#lib/emotes.js";
 
 	import EmoteGrid from "./EmoteGrid.svelte";
 	import ProviderRail from "./ProviderRail.svelte";

@@ -3,12 +3,13 @@
 	import { listen } from "@tauri-apps/api/event";
 	import { onMount } from "svelte";
 
-	import Button from "$lib/components/ui/Button.svelte";
-	import { log } from "$lib/log";
-	import { completeLogin } from "$lib/twitch/auth";
-	import type { Credentials } from "$lib/twitch/session";
-
 	import Twitch from "~icons/local/twitch";
+
+	import type { Credentials } from "#lib/twitch/session.js";
+
+	import Button from "#lib/components/ui/Button.svelte";
+	import { log } from "#lib/log.js";
+	import { completeLogin } from "#lib/twitch/auth.js";
 
 	let error = $state<string | null>(null);
 

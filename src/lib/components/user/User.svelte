@@ -3,16 +3,17 @@
 	import dayjs from "dayjs";
 	import localizedFormat from "dayjs/plugin/localizedFormat";
 
-	import type { MentionNode } from "$lib/models/message/parse";
-	import { UserMessage } from "$lib/models/message/user-message.svelte";
-	import { User } from "$lib/models/user.svelte";
-	import { settings } from "$lib/settings";
-
 	import Cake from "~icons/ph/cake-fill";
 	import Heart from "~icons/ph/heart-fill";
 	import StarOutline from "~icons/ph/star";
 	import Star from "~icons/ph/star-fill";
 	import UserIcon from "~icons/ph/user-bold";
+
+	import type { MentionNode } from "#lib/models/message/parse.js";
+
+	import { UserMessage } from "#lib/models/message/user-message.svelte.js";
+	import { User } from "#lib/models/user.svelte.js";
+	import { settings } from "#lib/settings/index.js";
 
 	import Message from "../message/Message.svelte";
 	import Popover from "../ui/Popover.svelte";

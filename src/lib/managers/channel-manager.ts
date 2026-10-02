@@ -1,7 +1,8 @@
 import { SvelteMap } from "svelte/reactivity";
 
-import { Channel } from "$lib/models/channel.svelte";
-import type { TwitchClient } from "$lib/twitch/client";
+import type { TwitchClient } from "#lib/twitch/client.js";
+
+import { Channel } from "#lib/models/channel.svelte.js";
 
 export interface ChannelFetchOptions {
 	by?: "id" | "login";

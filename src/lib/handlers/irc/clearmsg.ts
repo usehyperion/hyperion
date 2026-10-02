@@ -1,6 +1,7 @@
-import { app } from "$lib/app.svelte";
-import Delete from "$lib/components/message/events/Delete.svelte";
-import type { UserMessage } from "$lib/models/message/user-message.svelte";
+import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
+
+import { app } from "#lib/app.svelte.js";
+import Delete from "#lib/components/message/events/Delete.svelte";
 
 import { defineHandler } from "../helper";
 

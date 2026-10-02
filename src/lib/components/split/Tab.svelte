@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { createDraggable, createDroppable } from "@dnd-kit/svelte";
 
-	import { app } from "$lib/app.svelte";
-	import { settings } from "$lib/settings";
-
 	import X from "~icons/ph/x";
+
+	import { app } from "#lib/app.svelte.js";
+	import { settings } from "#lib/settings/index.js";
 
 	interface Props {
 		id: string;

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { UserMessage } from "$lib/models/message/user-message.svelte";
-
 	import Confetti from "~icons/ph/confetti";
 	import Fire from "~icons/ph/fire";
 	import HandHeart from "~icons/ph/hand-heart";
 	import Megaphone from "~icons/ph/megaphone";
+
+	import { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 	import Username from "../user/Username.svelte";
 	import Message from "./Message.svelte";

@@ -1,9 +1,10 @@
 <script lang="ts">
-	import Button from "$lib/components/ui/Button.svelte";
-	import type { HighlightType } from "$lib/settings";
-	import { defaultHighlightTypes, settings } from "$lib/settings";
-
 	import ArrowClockwise from "~icons/ph/arrow-clockwise";
+
+	import type { HighlightType } from "#lib/settings/index.js";
+
+	import Button from "#lib/components/ui/Button.svelte";
+	import { defaultHighlightTypes, settings } from "#lib/settings/index.js";
 
 	import Row from "./Row.svelte";
 

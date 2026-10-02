@@ -1,4 +1,4 @@
-import { app } from "$lib/app.svelte";
+import { app } from "#lib/app.svelte.js";
 
 import { defineCommand } from "../util";
 

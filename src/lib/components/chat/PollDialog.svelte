@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { Channel } from "$lib/models/channel.svelte";
-
 	import Plus from "~icons/ph/plus";
 	import X from "~icons/ph/x";
+
+	import type { Channel } from "#lib/models/channel.svelte.js";
 
 	import Button from "../ui/Button.svelte";
 	import Dialog from "../ui/Dialog.svelte";

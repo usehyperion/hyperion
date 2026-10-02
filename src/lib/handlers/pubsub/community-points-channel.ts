@@ -1,5 +1,5 @@
-import { app } from "$lib/app.svelte";
-import Redemption from "$lib/components/message/Redemption.svelte";
+import { app } from "#lib/app.svelte.js";
+import Redemption from "#lib/components/message/Redemption.svelte";
 
 import { defineHandler } from "../helper";
 

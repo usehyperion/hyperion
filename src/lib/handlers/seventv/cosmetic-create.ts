@@ -1,5 +1,5 @@
-import { app } from "$lib/app.svelte";
-import { Badge } from "$lib/models/badge";
+import { app } from "#lib/app.svelte.js";
+import { Badge } from "#lib/models/badge.js";
 
 import { defineHandler } from "../helper";
 

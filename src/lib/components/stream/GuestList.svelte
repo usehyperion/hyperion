@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { Channel } from "$lib/models/channel.svelte";
-	import type { Guest } from "$lib/models/stream.svelte";
-
 	import Users from "~icons/ph/users-bold";
+
+	import type { Channel } from "#lib/models/channel.svelte.js";
+	import type { Guest } from "#lib/models/stream.svelte.js";
 
 	import Button from "../ui/Button.svelte";
 	import Popover from "../ui/Popover.svelte";

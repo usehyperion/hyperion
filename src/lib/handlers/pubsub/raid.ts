@@ -1,6 +1,6 @@
-import { app } from "$lib/app.svelte";
-import Raid from "$lib/components/message/events/Raid.svelte";
-import Unraid from "$lib/components/message/events/Unraid.svelte";
+import { app } from "#lib/app.svelte.js";
+import Raid from "#lib/components/message/events/Raid.svelte";
+import Unraid from "#lib/components/message/events/Unraid.svelte";
 
 import { defineHandler } from "../helper";
 

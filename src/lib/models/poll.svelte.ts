@@ -1,5 +1,6 @@
-import { terminatePollMutation } from "$lib/graphql/twitch";
-import type { Poll as ApiPoll, PollStatus } from "$lib/twitch/pubsub";
+import type { Poll as ApiPoll, PollStatus } from "#lib/twitch/pubsub.js";
+
+import { terminatePollMutation } from "#lib/graphql/twitch.js";
 
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";

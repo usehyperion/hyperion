@@ -1,6 +1,6 @@
-import { app } from "$lib/app.svelte";
-import { CommandError } from "$lib/errors/command-error";
-import { ErrorMessage } from "$lib/errors/messages";
+import { app } from "#lib/app.svelte.js";
+import { CommandError } from "#lib/errors/command-error.js";
+import { ErrorMessage } from "#lib/errors/messages.js";
 
 import { defineCommand, mapErrors } from "../util";
 

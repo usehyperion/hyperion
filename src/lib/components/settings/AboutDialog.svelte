@@ -2,11 +2,11 @@
 	import { invoke } from "@tauri-apps/api/core";
 	import { scale } from "svelte/transition";
 
-	import Button from "$lib/components/ui/Button.svelte";
-	import Dialog from "$lib/components/ui/Dialog.svelte";
-
 	import Check from "~icons/ph/check";
 	import Clipboard from "~icons/ph/clipboard";
+
+	import Button from "#lib/components/ui/Button.svelte";
+	import Dialog from "#lib/components/ui/Dialog.svelte";
 
 	interface AboutInfo {
 		name: string;

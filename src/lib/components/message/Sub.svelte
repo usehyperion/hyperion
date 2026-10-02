@@ -1,16 +1,16 @@
 <script lang="ts">
-	import type { UserMessage } from "$lib/models/message/user-message.svelte";
+	import PrimeCrown from "~icons/local/prime-crown";
+	import Gift from "~icons/ph/gift";
+	import Star from "~icons/ph/star-fill";
+
+	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 	import type {
 		GiftPaidUpgradeEvent,
 		PrimePaidUpgradeEvent,
 		SubGiftEvent,
 		SubMysteryGiftEvent,
 		SubOrResubEvent,
-	} from "$lib/twitch/irc";
-
-	import PrimeCrown from "~icons/local/prime-crown";
-	import Gift from "~icons/ph/gift";
-	import Star from "~icons/ph/star-fill";
+	} from "#lib/twitch/irc.js";
 
 	import Username from "../user/Username.svelte";
 	import Message from "./Message.svelte";

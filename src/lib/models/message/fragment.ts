@@ -1,4 +1,4 @@
-import type { Emote } from "$lib/twitch/irc";
+import type { Emote } from "#lib/twitch/irc.js";
 
 export type MessageFragment = TextFragment | EmoteFragment | CheermoteFragment;
 

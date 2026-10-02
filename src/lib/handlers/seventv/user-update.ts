@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import { app } from "$lib/app.svelte";
-import EmoteSetChange from "$lib/components/message/events/EmoteSetChange.svelte";
+import { app } from "#lib/app.svelte.js";
+import EmoteSetChange from "#lib/components/message/events/EmoteSetChange.svelte";
 
 import { defineHandler } from "../helper";
 

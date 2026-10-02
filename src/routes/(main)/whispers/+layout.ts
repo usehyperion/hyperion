@@ -1,7 +1,7 @@
 import { error } from "@sveltejs/kit";
 
-import { app } from "$lib/app.svelte";
-import { log } from "$lib/log";
+import { app } from "#lib/app.svelte.js";
+import { log } from "#lib/log.js";
 
 export async function load() {
 	if (!app.user) error(401);

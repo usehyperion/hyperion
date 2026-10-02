@@ -1,6 +1,6 @@
 <script lang="ts" module>
-	import type { Command } from "$lib/commands";
-	import type { User } from "$lib/models/user.svelte";
+	import type { Command } from "#lib/commands/index.js";
+	import type { User } from "#lib/models/user.svelte.js";
 
 	interface BaseSuggestion {
 		value: string;

@@ -75,7 +75,7 @@
 	import type { HTMLButtonAttributes } from "svelte/elements";
 	import { cn } from "tailwind-variants";
 
-	import type { WithElementRef } from "$lib/util";
+	import type { WithElementRef } from "#lib/util.js";
 
 	interface Props extends WithElementRef<HTMLButtonAttributes> {
 		variant?: ButtonVariant;

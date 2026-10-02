@@ -1,5 +1,5 @@
-import { app } from "$lib/app.svelte";
-import { UserMessage } from "$lib/models/message/user-message.svelte";
+import { app } from "#lib/app.svelte.js";
+import { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 import { defineHandler } from "../helper";
 

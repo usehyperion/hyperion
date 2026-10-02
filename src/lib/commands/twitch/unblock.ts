@@ -1,5 +1,5 @@
-import { app } from "$lib/app.svelte";
-import BlockStatus from "$lib/components/message/events/BlockStatus.svelte";
+import { app } from "#lib/app.svelte.js";
+import BlockStatus from "#lib/components/message/events/BlockStatus.svelte";
 
 import { defineCommand, getTarget } from "../util";
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { EmoteSet } from "$lib/emotes";
+	import type { EmoteSet } from "#lib/emotes.js";
 
 	interface Props {
 		sets: EmoteSet[];

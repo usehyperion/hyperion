@@ -1,6 +1,6 @@
-import { timeoutPresets } from "$lib/moderation";
-
 import Shield from "~icons/ph/shield";
+
+import { timeoutPresets } from "#lib/moderation.js";
 
 import type { SettingsCategory } from "../types";
 

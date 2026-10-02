@@ -1,7 +1,8 @@
 import { Menu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/menu";
 
-import type { UserMessage } from "$lib/models/message/user-message.svelte";
-import { timeoutDuration, timeoutLabel } from "$lib/moderation";
+import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
+
+import { timeoutDuration, timeoutLabel } from "#lib/moderation.js";
 
 export async function createMessageMenu(message: UserMessage) {
 	const items: (MenuItem | PredefinedMenuItem)[] = [];

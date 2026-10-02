@@ -1,14 +1,15 @@
 import { SvelteMap } from "svelte/reactivity";
 
-import { app } from "$lib/app.svelte";
-import type { Emote } from "$lib/emotes";
-import type { User as ApiUser } from "$lib/graphql/twitch";
-import { relationshipQuery } from "$lib/graphql/twitch";
-import { settings } from "$lib/settings";
-import type { Paint } from "$lib/seventv";
-import { COLORS } from "$lib/twitch";
-import type { TwitchClient } from "$lib/twitch/client";
-import { makeReadable } from "$lib/util";
+import type { Emote } from "#lib/emotes.js";
+import type { User as ApiUser } from "#lib/graphql/twitch.js";
+import type { Paint } from "#lib/seventv.js";
+import type { TwitchClient } from "#lib/twitch/client.js";
+
+import { app } from "#lib/app.svelte.js";
+import { relationshipQuery } from "#lib/graphql/twitch.js";
+import { settings } from "#lib/settings/index.js";
+import { COLORS } from "#lib/twitch/index.js";
+import { makeReadable } from "#lib/util.js";
 
 import type { Channel } from "./channel.svelte";
 

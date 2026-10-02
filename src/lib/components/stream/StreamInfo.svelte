@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { useSidebar } from "$lib/hooks/use-sidebar.svelte";
-	import type { Channel } from "$lib/models/channel.svelte";
-
 	import DotsThreeCircle from "~icons/ph/dots-three-circle";
+
+	import type { Channel } from "#lib/models/channel.svelte.js";
+
+	import { useSidebar } from "#lib/hooks/use-sidebar.svelte.js";
 
 	interface Props {
 		channel: Channel;

@@ -1,4 +1,4 @@
-import type { ChannelPointReward } from "$lib/twitch/pubsub";
+import type { ChannelPointReward } from "#lib/twitch/pubsub.js";
 
 import type { UserMessage } from "../models/message/user-message.svelte";
 

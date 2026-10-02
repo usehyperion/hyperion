@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { app } from "$lib/app.svelte";
-	import { createMessageMenu } from "$lib/menus/message-menu";
-	import type { UserMessage } from "$lib/models/message/user-message.svelte";
-	import type { Viewer } from "$lib/models/viewer.svelte";
-	import { settings } from "$lib/settings";
-	import { openMenu } from "$lib/util";
-
 	import ArrowBendUpRight from "~icons/ph/arrow-bend-up-right";
+
+	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
+	import type { Viewer } from "#lib/models/viewer.svelte.js";
+
+	import { app } from "#lib/app.svelte.js";
+	import { createMessageMenu } from "#lib/menus/message-menu.js";
+	import { settings } from "#lib/settings/index.js";
+	import { openMenu } from "#lib/util.js";
 
 	import Highlight from "./Highlight.svelte";
 	import Message from "./Message.svelte";

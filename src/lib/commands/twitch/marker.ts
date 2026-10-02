@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 
-import { CommandError } from "$lib/errors/command-error";
-import { ErrorMessage } from "$lib/errors/messages";
+import { CommandError } from "#lib/errors/command-error.js";
+import { ErrorMessage } from "#lib/errors/messages.js";
 
 import { defineCommand, mapErrors } from "../util";
 

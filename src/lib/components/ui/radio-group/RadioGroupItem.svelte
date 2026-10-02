@@ -3,7 +3,7 @@
 	import { scale } from "svelte/transition";
 	import { cn } from "tailwind-variants";
 
-	import type { WithoutChildrenOrChild } from "$lib/util.js";
+	import type { WithoutChildrenOrChild } from "#lib/util.js";
 
 	let {
 		class: className,

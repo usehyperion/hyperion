@@ -1,10 +1,11 @@
 import { tick } from "svelte";
 
-import { app } from "$lib/app.svelte";
-import AutoMod from "$lib/components/message/events/AutoMod.svelte";
-import type { MessageFragment } from "$lib/models/message/fragment";
-import { UserMessage } from "$lib/models/message/user-message.svelte";
-import type { AutoModCaughtMessage, AutoModFragment } from "$lib/twitch/pubsub";
+import type { MessageFragment } from "#lib/models/message/fragment.js";
+import type { AutoModCaughtMessage, AutoModFragment } from "#lib/twitch/pubsub.js";
+
+import { app } from "#lib/app.svelte.js";
+import AutoMod from "#lib/components/message/events/AutoMod.svelte";
+import { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 import { defineHandler } from "../helper";
 

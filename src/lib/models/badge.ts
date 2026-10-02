@@ -1,4 +1,4 @@
-import type { Badge as ApiBadge } from "$lib/graphql/twitch";
+import type { Badge as ApiBadge } from "#lib/graphql/twitch.js";
 
 export interface BttvBadge {
 	type: number;

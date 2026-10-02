@@ -1,7 +1,8 @@
 <script lang="ts">
-	import Username from "$lib/components/user/Username.svelte";
-	import type { User } from "$lib/models/user.svelte";
-	import type { Viewer } from "$lib/models/viewer.svelte";
+	import type { User } from "#lib/models/user.svelte.js";
+	import type { Viewer } from "#lib/models/viewer.svelte.js";
+
+	import Username from "#lib/components/user/Username.svelte";
 
 	interface Props {
 		user: User;

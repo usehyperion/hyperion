@@ -3,8 +3,9 @@
 	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "tailwind-variants";
 
-	import Separator from "$lib/components/ui/Separator.svelte";
-	import type { WithElementRef } from "$lib/util.js";
+	import type { WithElementRef } from "#lib/util.js";
+
+	import Separator from "#lib/components/ui/Separator.svelte";
 
 	let {
 		ref = $bindable(null),

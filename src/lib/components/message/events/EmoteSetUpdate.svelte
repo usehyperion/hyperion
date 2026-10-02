@@ -1,8 +1,9 @@
 <script lang="ts">
-	import Emote from "$lib/components/Emote.svelte";
-	import Username from "$lib/components/user/Username.svelte";
-	import type { Emote as EmoteType } from "$lib/emotes";
-	import type { Viewer } from "$lib/models/viewer.svelte";
+	import type { Emote as EmoteType } from "#lib/emotes.js";
+	import type { Viewer } from "#lib/models/viewer.svelte.js";
+
+	import Emote from "#lib/components/Emote.svelte";
+	import Username from "#lib/components/user/Username.svelte";
 
 	interface Props {
 		action: "added" | "removed" | "renamed";

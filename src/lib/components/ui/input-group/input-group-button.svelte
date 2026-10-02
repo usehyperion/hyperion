@@ -23,7 +23,7 @@
 	import type { ComponentProps } from "svelte";
 	import { cn } from "tailwind-variants";
 
-	import Button from "$lib/components/ui/Button.svelte";
+	import Button from "#lib/components/ui/Button.svelte";
 
 	let {
 		ref = $bindable(null),

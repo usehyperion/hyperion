@@ -2,7 +2,7 @@
 	import type { ComponentProps } from "svelte";
 	import { cn } from "tailwind-variants";
 
-	import Input from "$lib/components/ui/Input.svelte";
+	import Input from "#lib/components/ui/Input.svelte";
 
 	let {
 		ref = $bindable(null),

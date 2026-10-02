@@ -4,10 +4,11 @@
 	import type { Attachment } from "svelte/attachments";
 
 	import { resolve } from "$app/paths";
-	import { app } from "$lib/app.svelte";
-	import * as Empty from "$lib/components/ui/empty";
 
 	import ChatDots from "~icons/ph/chat-dots";
+
+	import { app } from "#lib/app.svelte.js";
+	import * as Empty from "#lib/components/ui/empty/index.js";
 
 	dayjs.extend(relativeTime);
 

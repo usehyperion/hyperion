@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { Emote } from "$lib/emotes";
-
 	import SmileySad from "~icons/ph/smiley-sad";
+
+	import type { Emote } from "#lib/emotes.js";
 
 	import EmoteGrid from "./EmoteGrid.svelte";
 

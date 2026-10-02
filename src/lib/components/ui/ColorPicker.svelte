@@ -4,7 +4,7 @@
 	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "tailwind-variants";
 
-	import { clamp } from "$lib/util";
+	import { clamp } from "#lib/util.js";
 
 	import Input from "./Input.svelte";
 

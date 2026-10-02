@@ -5,11 +5,11 @@
 	import { ModeWatcher } from "mode-watcher";
 	import { onMount } from "svelte";
 
-	import { app } from "$lib/app.svelte";
-	import TitleBar from "$lib/components/TitleBar.svelte";
-	import { log } from "$lib/log";
-	import { settings } from "$lib/settings";
-	import { injectTheme } from "$lib/themes";
+	import { app } from "#lib/app.svelte.js";
+	import TitleBar from "#lib/components/TitleBar.svelte";
+	import { log } from "#lib/log.js";
+	import { settings } from "#lib/settings/index.js";
+	import { injectTheme } from "#lib/themes.js";
 
 	const { children } = $props();
 

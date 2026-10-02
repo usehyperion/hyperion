@@ -1,13 +1,13 @@
 import { redirect } from "@sveltejs/kit";
 
-import { app } from "$lib/app.svelte";
-import { moderatesQuery } from "$lib/graphql/twitch.js";
-import { log } from "$lib/log";
-import { Channel } from "$lib/models/channel.svelte";
-import { CurrentUser } from "$lib/models/current-user.svelte";
-import { User } from "$lib/models/user.svelte";
-import { storage } from "$lib/stores";
-import { Session, getCredentials } from "$lib/twitch/session";
+import { app } from "#lib/app.svelte.js";
+import { moderatesQuery } from "#lib/graphql/twitch.js";
+import { log } from "#lib/log.js";
+import { Channel } from "#lib/models/channel.svelte.js";
+import { CurrentUser } from "#lib/models/current-user.svelte.js";
+import { User } from "#lib/models/user.svelte.js";
+import { storage } from "#lib/stores.js";
+import { Session, getCredentials } from "#lib/twitch/session.js";
 
 export const ssr = false;
 

@@ -1,5 +1,5 @@
-import { app } from "$lib/app.svelte";
-import { Poll } from "$lib/models/poll.svelte";
+import { app } from "#lib/app.svelte.js";
+import { Poll } from "#lib/models/poll.svelte.js";
 
 import { defineHandler } from "../helper";
 

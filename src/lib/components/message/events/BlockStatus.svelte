@@ -1,6 +1,7 @@
 <script lang="ts">
-	import Username from "$lib/components/user/Username.svelte";
-	import type { User } from "$lib/models/user.svelte";
+	import type { User } from "#lib/models/user.svelte.js";
+
+	import Username from "#lib/components/user/Username.svelte";
 
 	interface Props {
 		blocked: boolean;

@@ -7,7 +7,7 @@
 <script lang="ts">
 	import dayjs from "dayjs";
 
-	import { settings } from "$lib/settings";
+	import { settings } from "#lib/settings/index.js";
 
 	interface Props {
 		date: Date;

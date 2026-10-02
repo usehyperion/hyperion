@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { createDroppable } from "@dnd-kit/svelte";
 
-	import { app } from "$lib/app.svelte";
-	import Button from "$lib/components/ui/Button.svelte";
-	import { settings } from "$lib/settings";
-	import type { Pane } from "$lib/splits/types";
-
 	import SquareHalfBottom from "~icons/ph/square-half-bottom-fill";
 	import SquareHalf from "~icons/ph/square-half-fill";
 	import X from "~icons/ph/x";
+
+	import type { Pane } from "#lib/splits/types.js";
+
+	import { app } from "#lib/app.svelte.js";
+	import Button from "#lib/components/ui/Button.svelte";
+	import { settings } from "#lib/settings/index.js";
 
 	import GuestList from "../stream/GuestList.svelte";
 	import Tab from "./Tab.svelte";

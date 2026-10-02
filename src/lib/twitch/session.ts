@@ -1,8 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import { TWITCH_CLIENT_ID } from "$lib/graphql";
-import { log } from "$lib/log";
-import { dedupe } from "$lib/util";
+import { TWITCH_CLIENT_ID } from "#lib/graphql/index.js";
+import { log } from "#lib/log.js";
+import { dedupe } from "#lib/util.js";
 
 export interface Integrity {
 	token: string;

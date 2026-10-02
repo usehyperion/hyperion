@@ -1,10 +1,11 @@
 <script lang="ts">
-	import type { Pin } from "$lib/models/pin.svelte";
-	import { clamp, formatDuration } from "$lib/util";
-
 	import Clock from "~icons/ph/clock";
 	import PushPin from "~icons/ph/push-pin";
 	import PushPinSlash from "~icons/ph/push-pin-slash";
+
+	import type { Pin } from "#lib/models/pin.svelte.js";
+
+	import { clamp, formatDuration } from "#lib/util.js";
 
 	import Message from "../message/Message.svelte";
 	import Username from "../user/Username.svelte";

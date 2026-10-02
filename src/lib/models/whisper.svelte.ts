@@ -1,15 +1,16 @@
-import { app } from "$lib/app.svelte";
-import { nodes } from "$lib/graphql";
 import type {
 	WhisperMessage as ApiWhisperMessage,
 	WhisperThread as ApiWhisperThread,
-} from "$lib/graphql/twitch";
+} from "#lib/graphql/twitch.js";
+import type { TwitchClient } from "#lib/twitch/client.js";
+
+import { app } from "#lib/app.svelte.js";
+import { nodes } from "#lib/graphql/index.js";
 import {
 	markWhisperReadMutation,
 	sendWhisperMutation,
 	whisperMessagesQuery,
-} from "$lib/graphql/twitch";
-import type { TwitchClient } from "$lib/twitch/client";
+} from "#lib/graphql/twitch.js";
 
 import type { Badge } from "./badge";
 import type { User } from "./user.svelte";

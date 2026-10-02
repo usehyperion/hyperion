@@ -2,7 +2,7 @@
 	import type { HTMLAnchorAttributes } from "svelte/elements";
 	import { cn } from "tailwind-variants";
 
-	import type { WithElementRef } from "$lib/util";
+	import type { WithElementRef } from "#lib/util.js";
 
 	import {
 		type ButtonSize,

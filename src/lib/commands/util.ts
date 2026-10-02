@@ -1,10 +1,11 @@
-import { app } from "$lib/app.svelte";
-import { ApiError } from "$lib/errors/api-error";
-import { CommandError } from "$lib/errors/command-error";
-import { ErrorMessage } from "$lib/errors/messages";
-import { MutationError } from "$lib/errors/mutation-error";
-import type { Channel } from "$lib/models/channel.svelte";
-import { Viewer } from "$lib/models/viewer.svelte";
+import type { Channel } from "#lib/models/channel.svelte.js";
+
+import { app } from "#lib/app.svelte.js";
+import { ApiError } from "#lib/errors/api-error.js";
+import { CommandError } from "#lib/errors/command-error.js";
+import { ErrorMessage } from "#lib/errors/messages.js";
+import { MutationError } from "#lib/errors/mutation-error.js";
+import { Viewer } from "#lib/models/viewer.svelte.js";
 
 import type { Command } from ".";
 

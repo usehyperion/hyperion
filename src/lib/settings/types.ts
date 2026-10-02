@@ -1,6 +1,6 @@
 import type { Component } from "svelte";
 
-import type { Settings } from "$lib/settings";
+import type { Settings } from "#lib/settings/index.js";
 
 type SettingKey = keyof Settings;
 

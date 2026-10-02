@@ -1,7 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
 import * as cache from "tauri-plugin-cache-api";
 
-import type { Cheermote, PredictionOutcome } from "$lib/graphql/twitch";
+import type { Cheermote, PredictionOutcome } from "#lib/graphql/twitch.js";
+import type { TwitchClient } from "#lib/twitch/client.js";
+
+import { app } from "#lib/app.svelte.js";
 import {
 	channelBadgesQuery,
 	cheermoteQuery,
@@ -17,16 +20,14 @@ import {
 	blockTermMutation,
 	shoutoutMutation,
 	createMarkerMutation,
-} from "$lib/graphql/twitch";
-import { ChannelEmoteManager } from "$lib/managers/channel-emote-manager";
-import { storage } from "$lib/stores";
+} from "#lib/graphql/twitch.js";
+import { ChannelEmoteManager } from "#lib/managers/channel-emote-manager.js";
+import { ViewerManager } from "#lib/managers/viewer-manager.js";
+import { settings } from "#lib/settings/index.js";
+import { storage } from "#lib/stores.js";
 
-import type { TwitchClient } from "../twitch/client";
 import type { User } from "./user.svelte";
 
-import { app } from "../app.svelte";
-import { ViewerManager } from "../managers/viewer-manager";
-import { settings } from "../settings";
 import { Badge } from "./badge";
 import { Chat } from "./chat.svelte";
 import { Poll } from "./poll.svelte";

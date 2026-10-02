@@ -1,10 +1,10 @@
-import { app } from "$lib/app.svelte";
+import { app } from "#lib/app.svelte.js";
 import {
 	pinnedMessageQuery,
 	toMessageFragments,
 	unpinMessageMutation,
 	updatePinnedMessageMutation,
-} from "$lib/graphql/twitch";
+} from "#lib/graphql/twitch.js";
 
 import type { Chat } from "./chat.svelte";
 import type { User } from "./user.svelte";

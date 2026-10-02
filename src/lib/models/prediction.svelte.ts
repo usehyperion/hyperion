@@ -1,9 +1,10 @@
+import type { Prediction as ApiPrediction, PredictionStatus } from "#lib/twitch/pubsub.js";
+
 import {
 	cancelPredictionMutation,
 	lockPredictionMutation,
 	resolvePredictionMutation,
-} from "$lib/graphql/twitch";
-import type { Prediction as ApiPrediction, PredictionStatus } from "$lib/twitch/pubsub";
+} from "#lib/graphql/twitch.js";
 
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";

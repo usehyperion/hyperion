@@ -1,7 +1,7 @@
 import { SvelteMap } from "svelte/reactivity";
 
-import type { Stream as ApiStream, GuestStarDetails } from "$lib/graphql/twitch";
-import type { TwitchClient } from "$lib/twitch/client";
+import type { Stream as ApiStream, GuestStarDetails } from "#lib/graphql/twitch.js";
+import type { TwitchClient } from "#lib/twitch/client.js";
 
 export interface Guest {
 	id: string;

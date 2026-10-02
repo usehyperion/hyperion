@@ -1,8 +1,9 @@
-import { app } from "$lib/app.svelte";
-import SuspicionStatus from "$lib/components/message/events/SuspicionStatus.svelte";
-import type { MessageFragment } from "$lib/models/message/fragment";
-import { UserMessage } from "$lib/models/message/user-message.svelte";
-import type { LowTrustFragment } from "$lib/twitch/pubsub";
+import type { MessageFragment } from "#lib/models/message/fragment.js";
+import type { LowTrustFragment } from "#lib/twitch/pubsub.js";
+
+import { app } from "#lib/app.svelte.js";
+import SuspicionStatus from "#lib/components/message/events/SuspicionStatus.svelte";
+import { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 import { defineHandler } from "../helper";
 

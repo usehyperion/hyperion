@@ -7,13 +7,14 @@
 
 	import { afterNavigate } from "$app/navigation";
 	import { resolve } from "$app/paths";
-	import { app } from "$lib/app.svelte";
 
 	import ArrowLeft from "~icons/ph/arrow-left";
 	import ArrowRight from "~icons/ph/arrow-right";
 	import Chats from "~icons/ph/chats";
 	import Gear from "~icons/ph/gear";
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
+
+	import { app } from "#lib/app.svelte.js";
 
 	import JoinDialog from "./JoinDialog.svelte";
 	import SettingsDialog from "./settings/SettingsDialog.svelte";
@@ -48,6 +49,8 @@
 	onDestroy(() => unlisten?.());
 
 	afterNavigate((navigation) => {
+		if (navigation.shallow) return;
+
 		if (!navigation.to || navigation.to.route.id?.startsWith("/auth")) {
 			return;
 		}
@@ -101,19 +104,15 @@
 		<button
 			class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-[background-color,scale] hover:bg-accent active:scale-[0.96]"
 			command="show-modal"
-			commandfor="join-dialog"
+			commandfor="join-dialog"><MagnifyingGlass />Search channels</button
 		>
-			<MagnifyingGlass />
-
-			Search channels
-		</button>
 
 		<JoinDialog />
 
 		{#if app.user}
 			<Link
 				class="relative size-min p-1 text-muted-foreground"
-				href={resolve("/whispers")}
+				href={resolve("whispers")}
 				size="icon"
 				variant="ghost"
 				aria-label={hasUnread ? "Go to whispers (unread)" : "Go to whispers"}

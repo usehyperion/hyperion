@@ -1,7 +1,8 @@
 <script lang="ts">
-	import type { AutoModMetadata } from "$lib/models/message/user-message.svelte";
-	import { UserMessage } from "$lib/models/message/user-message.svelte";
-	import { settings } from "$lib/settings";
+	import type { AutoModMetadata } from "#lib/models/message/user-message.svelte.js";
+
+	import { UserMessage } from "#lib/models/message/user-message.svelte.js";
+	import { settings } from "#lib/settings/index.js";
 
 	import Button from "../ui/Button.svelte";
 	import Message from "./Message.svelte";

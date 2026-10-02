@@ -1,7 +1,8 @@
 import { SvelteMap } from "svelte/reactivity";
 
-import type { Emote, EmoteProvider } from "$lib/emotes";
-import { settings } from "$lib/settings";
+import type { Emote, EmoteProvider } from "#lib/emotes.js";
+
+import { settings } from "#lib/settings/index.js";
 
 export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	public abstract fetchFfz(): Promise<Emote[]>;

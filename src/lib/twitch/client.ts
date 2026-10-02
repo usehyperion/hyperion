@@ -6,14 +6,15 @@ import { print } from "graphql-web-lite";
 import { ofetch } from "ofetch";
 
 import { goto } from "$app/navigation";
-import { ApiError } from "$lib/errors/api-error";
-import { MutationError } from "$lib/errors/mutation-error";
-import { type Connection, type GqlResponse, nodes, TWITCH_GQL_URL } from "$lib/graphql";
-import { streamsQuery } from "$lib/graphql/twitch";
-import { log } from "$lib/log";
-import { UserManager } from "$lib/managers/user-manager";
-import { Stream } from "$lib/models/stream.svelte";
-import { dedupe } from "$lib/util";
+
+import { ApiError } from "#lib/errors/api-error.js";
+import { MutationError } from "#lib/errors/mutation-error.js";
+import { type Connection, type GqlResponse, nodes, TWITCH_GQL_URL } from "#lib/graphql/index.js";
+import { streamsQuery } from "#lib/graphql/twitch.js";
+import { log } from "#lib/log.js";
+import { UserManager } from "#lib/managers/user-manager.js";
+import { Stream } from "#lib/models/stream.svelte.js";
+import { dedupe } from "#lib/util.js";
 
 import type { Session } from "./session";
 

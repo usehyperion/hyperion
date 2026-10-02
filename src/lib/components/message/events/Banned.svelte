@@ -1,7 +1,8 @@
 <script lang="ts">
-	import Button from "$lib/components/ui/Button.svelte";
-	import Username from "$lib/components/user/Username.svelte";
-	import type { Channel } from "$lib/models/channel.svelte";
+	import type { Channel } from "#lib/models/channel.svelte.js";
+
+	import Button from "#lib/components/ui/Button.svelte";
+	import Username from "#lib/components/user/Username.svelte";
 
 	interface Props {
 		channel: Channel;

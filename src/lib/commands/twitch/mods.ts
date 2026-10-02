@@ -1,5 +1,5 @@
-import { nodes } from "$lib/graphql";
-import { modsQuery } from "$lib/graphql/twitch";
+import { nodes } from "#lib/graphql/index.js";
+import { modsQuery } from "#lib/graphql/twitch.js";
 
 import { defineCommand } from "../util";
 

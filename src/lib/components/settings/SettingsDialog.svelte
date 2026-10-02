@@ -2,22 +2,23 @@
 	import { platform as getPlatform } from "@tauri-apps/plugin-os";
 	import { Tabs } from "bits-ui";
 
-	import Button from "$lib/components/ui/Button.svelte";
-	import Dialog from "$lib/components/ui/Dialog.svelte";
-	import * as InputGroup from "$lib/components/ui/input-group";
-	import Separator from "$lib/components/ui/Separator.svelte";
-	import { log } from "$lib/log";
-	import { settings } from "$lib/settings";
-	import { countFields, filterCategory } from "$lib/settings/search";
-	import type { SettingsCategory } from "$lib/settings/types";
-
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
 	import X from "~icons/ph/x";
+
+	import type { SettingsCategory } from "#lib/settings/types.js";
+
+	import Button from "#lib/components/ui/Button.svelte";
+	import Dialog from "#lib/components/ui/Dialog.svelte";
+	import * as InputGroup from "#lib/components/ui/input-group/index.js";
+	import Separator from "#lib/components/ui/Separator.svelte";
+	import { log } from "#lib/log.js";
+	import { settings } from "#lib/settings/index.js";
+	import { countFields, filterCategory } from "#lib/settings/search.js";
 
 	import Category from "./Category.svelte";
 	import SidebarActions from "./SidebarActions.svelte";
 
-	const imports = import.meta.glob<SettingsCategory>(["$lib/settings/categories/*.ts"], {
+	const imports = import.meta.glob<SettingsCategory>(["#lib/settings/categories/*.ts"], {
 		eager: true,
 		import: "default",
 	});

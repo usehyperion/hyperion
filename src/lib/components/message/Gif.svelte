@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Gif } from "$lib/twitch/irc";
+	import type { Gif } from "#lib/twitch/irc.js";
 
 	interface Props {
 		gif: Gif;

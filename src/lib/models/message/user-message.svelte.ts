@@ -1,10 +1,3 @@
-import { app } from "$lib/app.svelte";
-import {
-	allowHeldMessageMutation,
-	deleteMessageMutation,
-	denyHeldMessageMutation,
-} from "$lib/graphql/twitch";
-import { settings } from "$lib/settings";
 import type {
 	BasicUser,
 	Badge as IrcBadge,
@@ -15,9 +8,17 @@ import type {
 	Source,
 	UserNoticeEvent,
 	UserNoticeMessage,
-} from "$lib/twitch/irc";
-import type { AutoModFragment } from "$lib/twitch/pubsub";
-import type { ChannelPointReward } from "$lib/twitch/pubsub";
+} from "#lib/twitch/irc.js";
+import type { AutoModFragment } from "#lib/twitch/pubsub.js";
+import type { ChannelPointReward } from "#lib/twitch/pubsub.js";
+
+import { app } from "#lib/app.svelte.js";
+import {
+	allowHeldMessageMutation,
+	deleteMessageMutation,
+	denyHeldMessageMutation,
+} from "#lib/graphql/twitch.js";
+import { settings } from "#lib/settings/index.js";
 
 import type { Channel } from "../channel.svelte";
 import type { Node } from "./parse";

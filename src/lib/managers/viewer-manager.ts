@@ -1,6 +1,9 @@
 import { SvelteMap } from "svelte/reactivity";
 
-import { app } from "$lib/app.svelte";
+import type { Channel } from "#lib/models/channel.svelte.js";
+import type { TimeoutOptions } from "#lib/models/viewer.svelte.js";
+
+import { app } from "#lib/app.svelte.js";
 import {
 	banUserMutation,
 	grantVipMutation,
@@ -9,10 +12,8 @@ import {
 	unbanUserMutation,
 	unmodUserMutation,
 	warnUserMutation,
-} from "$lib/graphql/twitch";
-import type { Channel } from "$lib/models/channel.svelte";
-import type { TimeoutOptions } from "$lib/models/viewer.svelte";
-import { Viewer } from "$lib/models/viewer.svelte";
+} from "#lib/graphql/twitch.js";
+import { Viewer } from "#lib/models/viewer.svelte.js";
 
 export class ViewerManager extends SvelteMap<string, Viewer> {
 	public constructor(public readonly channel: Channel) {

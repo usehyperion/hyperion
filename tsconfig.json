@@ -1,15 +1,8 @@
 {
-	"extends": "./.svelte-kit/tsconfig.json",
+	"extends": "$app/tsconfig",
 	"compilerOptions": {
-		"moduleResolution": "bundler",
-		"resolveJsonModule": true,
-		"allowJs": true,
-		"checkJs": true,
 		"strict": true,
 		"sourceMap": true,
-		"esModuleInterop": true,
-		"forceConsistentCasingInFileNames": true,
-		"skipLibCheck": true,
 		"plugins": [
 			{
 				"name": "gql.tada/ts-plugin",
@@ -31,5 +24,6 @@
 				]
 			}
 		]
-	}
+	},
+	"include": ["src"]
 }

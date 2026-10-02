@@ -1,5 +1,5 @@
-import { nodes } from "$lib/graphql";
-import { vipsQuery } from "$lib/graphql/twitch";
+import { nodes } from "#lib/graphql/index.js";
+import { vipsQuery } from "#lib/graphql/twitch.js";
 
 import { defineCommand } from "../util";
 

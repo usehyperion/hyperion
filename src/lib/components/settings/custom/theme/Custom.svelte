@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { openPath } from "@tauri-apps/plugin-opener";
 
-	import { app } from "$lib/app.svelte";
-	import Button from "$lib/components/ui/Button.svelte";
-	import * as Field from "$lib/components/ui/field";
-	import * as RadioGroup from "$lib/components/ui/radio-group";
-	import Separator from "$lib/components/ui/Separator.svelte";
-	import { settings } from "$lib/settings";
-	import { getThemesDir, reloadThemes } from "$lib/themes";
+	import { app } from "#lib/app.svelte.js";
+	import Button from "#lib/components/ui/Button.svelte";
+	import * as Field from "#lib/components/ui/field/index.js";
+	import * as RadioGroup from "#lib/components/ui/radio-group/index.js";
+	import Separator from "#lib/components/ui/Separator.svelte";
+	import { settings } from "#lib/settings/index.js";
+	import { getThemesDir, reloadThemes } from "#lib/themes.js";
 
 	const selected = $derived(settings.state["appearance.theme"]);
 

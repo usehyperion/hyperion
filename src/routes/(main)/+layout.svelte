@@ -8,12 +8,12 @@
 	import { Tooltip } from "bits-ui";
 	import { onMount } from "svelte";
 
-	import { app } from "$lib/app.svelte";
-	import Sidebar from "$lib/components/Sidebar.svelte";
-	import StreamInfo from "$lib/components/stream/StreamInfo.svelte";
-	import { openDialog } from "$lib/components/ui/Dialog.svelte";
-	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "$lib/splits/events";
-	import { storage } from "$lib/stores";
+	import { app } from "#lib/app.svelte.js";
+	import Sidebar from "#lib/components/Sidebar.svelte";
+	import StreamInfo from "#lib/components/stream/StreamInfo.svelte";
+	import { openDialog } from "#lib/components/ui/Dialog.svelte";
+	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "#lib/splits/events.js";
+	import { storage } from "#lib/stores.js";
 
 	const { children } = $props();
 

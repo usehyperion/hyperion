@@ -2,7 +2,7 @@
 	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "tailwind-variants";
 
-	import { type WithElementRef } from "$lib/util.js";
+	import { type WithElementRef } from "#lib/util.js";
 
 	let {
 		ref = $bindable(null),

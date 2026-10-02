@@ -1,8 +1,8 @@
 import type { DragEndEvent, DragMoveEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/abstract";
 import { move } from "@dnd-kit/helpers";
 
-import { app } from "$lib/app.svelte";
-import { storage } from "$lib/stores";
+import { app } from "#lib/app.svelte.js";
+import { storage } from "#lib/stores.js";
 
 import type { DragData, DropData } from "./types";
 

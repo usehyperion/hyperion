@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { UserMessage } from "$lib/models/message/user-message.svelte";
-	import type { Viewer } from "$lib/models/viewer.svelte";
-	import type { ChannelPointReward } from "$lib/twitch/pubsub";
+	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
+	import type { Viewer } from "#lib/models/viewer.svelte.js";
+	import type { ChannelPointReward } from "#lib/twitch/pubsub.js";
 
 	import Username from "../user/Username.svelte";
 	import Message from "./Message.svelte";

@@ -1,7 +1,7 @@
-import { app } from "$lib/app.svelte";
-import Join from "$lib/components/message/events/Join.svelte";
-import { log } from "$lib/log";
-import { sendPresence } from "$lib/seventv";
+import { app } from "#lib/app.svelte.js";
+import Join from "#lib/components/message/events/Join.svelte";
+import { log } from "#lib/log.js";
+import { sendPresence } from "#lib/seventv.js";
 
 import { defineHandler } from "../helper";
 

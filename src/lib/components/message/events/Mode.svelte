@@ -1,7 +1,8 @@
 <script lang="ts">
-	import Username from "$lib/components/user/Username.svelte";
-	import type { Viewer } from "$lib/models/viewer.svelte";
-	import { formatDuration } from "$lib/util";
+	import type { Viewer } from "#lib/models/viewer.svelte.js";
+
+	import Username from "#lib/components/user/Username.svelte";
+	import { formatDuration } from "#lib/util.js";
 
 	interface Props {
 		mode: string;

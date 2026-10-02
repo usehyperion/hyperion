@@ -1,5 +1,5 @@
-import { app } from "$lib/app.svelte";
-import { Prediction } from "$lib/models/prediction.svelte";
+import { app } from "#lib/app.svelte.js";
+import { Prediction } from "#lib/models/prediction.svelte.js";
 
 import { defineHandler } from "../helper";
 

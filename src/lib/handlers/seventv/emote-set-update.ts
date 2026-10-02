@@ -1,9 +1,10 @@
 import * as cache from "tauri-plugin-cache-api";
 
-import { app } from "$lib/app.svelte";
-import EmoteSetUpdate from "$lib/components/message/events/EmoteSetUpdate.svelte";
-import type { Emote } from "$lib/emotes";
-import type { EmoteChange } from "$lib/seventv";
+import type { Emote } from "#lib/emotes.js";
+import type { EmoteChange } from "#lib/seventv.js";
+
+import { app } from "#lib/app.svelte.js";
+import EmoteSetUpdate from "#lib/components/message/events/EmoteSetUpdate.svelte";
 
 import { defineHandler } from "../helper";
 

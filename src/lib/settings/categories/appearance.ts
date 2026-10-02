@@ -1,7 +1,7 @@
-import Custom from "$lib/components/settings/custom/theme/Custom.svelte";
-import Default from "$lib/components/settings/custom/theme/Default.svelte";
-
 import Monitor from "~icons/ph/palette";
+
+import Custom from "#lib/components/settings/custom/theme/Custom.svelte";
+import Default from "#lib/components/settings/custom/theme/Default.svelte";
 
 import type { SettingsCategory } from "../types";
 

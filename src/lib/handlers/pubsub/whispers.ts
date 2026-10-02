@@ -1,7 +1,8 @@
 import { page } from "$app/state";
-import { app } from "$lib/app.svelte";
-import { log } from "$lib/log";
-import { Whisper } from "$lib/models/whisper.svelte";
+
+import { app } from "#lib/app.svelte.js";
+import { log } from "#lib/log.js";
+import { Whisper } from "#lib/models/whisper.svelte.js";
 
 import { defineHandler } from "../helper";
 

@@ -1,17 +1,18 @@
 import { SvelteMap } from "svelte/reactivity";
 
-import { ApiError } from "$lib/errors/api-error";
-import { ErrorMessage } from "$lib/errors/messages";
-import type { User as ApiUser } from "$lib/graphql/twitch";
+import type { User as ApiUser } from "#lib/graphql/twitch.js";
+import type { TwitchClient } from "#lib/twitch/client.js";
+
+import { ApiError } from "#lib/errors/api-error.js";
+import { ErrorMessage } from "#lib/errors/messages.js";
 import {
 	blockUserMutation,
 	unblockUserMutation,
 	userAvatarsQuery,
 	userQuery,
-} from "$lib/graphql/twitch";
-import { User } from "$lib/models/user.svelte";
-import type { TwitchClient } from "$lib/twitch/client";
-import { chunk } from "$lib/util";
+} from "#lib/graphql/twitch.js";
+import { User } from "#lib/models/user.svelte.js";
+import { chunk } from "#lib/util.js";
 
 export interface UserFetchOptions {
 	by?: "id" | "login";

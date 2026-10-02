@@ -2,11 +2,12 @@ import { ofetch } from "ofetch";
 import { SvelteMap } from "svelte/reactivity";
 import * as cache from "tauri-plugin-cache-api";
 
-import { ApiError } from "$lib/errors/api-error";
-import { sendTwitch } from "$lib/graphql";
-import { globalBadgesQuery } from "$lib/graphql/twitch";
-import type { BttvBadge, FfzBadge } from "$lib/models/badge";
-import { Badge } from "$lib/models/badge";
+import type { BttvBadge, FfzBadge } from "#lib/models/badge.js";
+
+import { ApiError } from "#lib/errors/api-error.js";
+import { sendTwitch } from "#lib/graphql/index.js";
+import { globalBadgesQuery } from "#lib/graphql/twitch.js";
+import { Badge } from "#lib/models/badge.js";
 
 interface BttvUser {
 	providerId: string;

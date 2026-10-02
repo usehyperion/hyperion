@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Tooltip } from "bits-ui";
 
-	import type { Badge } from "$lib/models/badge";
+	import type { Badge } from "#lib/models/badge.js";
 
 	interface Props {
 		badges: Badge[];

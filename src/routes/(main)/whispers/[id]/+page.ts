@@ -1,6 +1,6 @@
 import { error } from "@sveltejs/kit";
 
-import { log } from "$lib/log";
+import { log } from "#lib/log.js";
 
 export async function load({ parent, params }) {
 	const { whispers } = await parent();

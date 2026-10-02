@@ -1,11 +1,12 @@
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
-import { app } from "$lib/app.svelte";
-import type { EmoteSet } from "$lib/emotes";
-import { transform7tvEmote } from "$lib/emotes";
-import { send7tv } from "$lib/graphql";
-import { userEmoteSetsQuery } from "$lib/graphql/7tv";
-import { emoteSetsQuery, followsQuery, whispersQuery } from "$lib/graphql/twitch";
+import type { EmoteSet } from "#lib/emotes.js";
+
+import { app } from "#lib/app.svelte.js";
+import { transform7tvEmote } from "#lib/emotes.js";
+import { userEmoteSetsQuery } from "#lib/graphql/7tv.js";
+import { send7tv } from "#lib/graphql/index.js";
+import { emoteSetsQuery, followsQuery, whispersQuery } from "#lib/graphql/twitch.js";
 
 import { Channel } from "./channel.svelte";
 import { Stream } from "./stream.svelte";

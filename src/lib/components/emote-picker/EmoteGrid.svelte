@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Emote } from "$lib/emotes";
+	import type { Emote } from "#lib/emotes.js";
 
 	interface Props {
 		emotes: Emote[];

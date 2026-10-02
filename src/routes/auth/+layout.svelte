@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { app } from "$lib/app.svelte";
+	import { app } from "#lib/app.svelte.js";
 
 	const { children } = $props();
 

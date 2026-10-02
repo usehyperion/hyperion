@@ -1,7 +1,7 @@
 import { stats } from "tauri-plugin-cache-api";
 
-import { log } from "$lib/log";
-import { loadThemes } from "$lib/themes";
+import { log } from "#lib/log.js";
+import { loadThemes } from "#lib/themes.js";
 
 export async function init() {
 	const { totalSize } = await stats();
