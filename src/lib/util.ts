@@ -1,5 +1,6 @@
 import type { Menu } from "@tauri-apps/api/menu";
 import chroma from "chroma-js";
+import { createSubscriber } from "svelte/reactivity";
 
 export type {
 	WithElementRef,
@@ -46,8 +47,20 @@ export function formatDuration(seconds: number) {
 
 const colorCache = new Map<string, string>();
 
+const subscribeBackground = createSubscriber((update) => {
+	const observer = new MutationObserver(update);
+
+	observer.observe(document.documentElement, {
+		attributeFilter: ["class", "style"],
+	});
+
+	return () => observer.disconnect();
+});
+
 export function makeReadable(foreground: string) {
 	if (foreground === "inherit") return foreground;
+
+	subscribeBackground();
 
 	const background = getComputedStyle(document.body).backgroundColor;
 	const key = `${foreground}:${background}`;
