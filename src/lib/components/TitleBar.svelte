@@ -80,36 +80,38 @@
 		<img class="size-4" src="/logo.svg" alt="Hyperion logo" />
 	</div>
 
-	<div class="flex items-center justify-center gap-1.5" data-tauri-drag-region>
-		<Button
-			class="size-min p-1 hover:text-foreground"
-			size="icon"
-			variant="ghost"
-			disabled={!app.history.canGoBack}
-			onclick={() => app.history.back()}
-		>
-			<ArrowLeft />
-		</Button>
+	{#if app.user}
+		<div class="flex items-center justify-center gap-1.5" data-tauri-drag-region>
+			<Button
+				class="size-min p-1 hover:text-foreground"
+				size="icon"
+				variant="ghost"
+				disabled={!app.history.canGoBack}
+				onclick={() => app.history.back()}
+			>
+				<ArrowLeft />
+			</Button>
 
-		<Button
-			class="size-min p-1 hover:text-foreground"
-			size="icon"
-			variant="ghost"
-			disabled={!app.history.canGoForward}
-			onclick={() => app.history.forward()}
-		>
-			<ArrowRight />
-		</Button>
+			<Button
+				class="size-min p-1 hover:text-foreground"
+				size="icon"
+				variant="ghost"
+				disabled={!app.history.canGoForward}
+				onclick={() => app.history.forward()}
+			>
+				<ArrowRight />
+			</Button>
 
-		<button
-			class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-[background-color,scale] hover:bg-accent active:scale-[0.96]"
-			command="show-modal"
-			commandfor="join-dialog"><MagnifyingGlass />Search channels</button
-		>
+			<button
+				class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-[background-color,scale] hover:bg-accent active:scale-[0.96]"
+				command="show-modal"
+				commandfor="join-dialog"
+			>
+				<MagnifyingGlass /> Search channels
+			</button>
 
-		<JoinDialog />
+			<JoinDialog />
 
-		{#if app.user}
 			<Link
 				class="relative size-min p-1 text-muted-foreground"
 				href={resolve("whispers")}
@@ -128,8 +130,8 @@
 					</span>
 				{/if}
 			</Link>
-		{/if}
-	</div>
+		</div>
+	{/if}
 
 	<div class="flex items-center justify-end" data-tauri-drag-region>
 		<div class="pr-3">

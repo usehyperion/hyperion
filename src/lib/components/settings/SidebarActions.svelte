@@ -6,9 +6,11 @@
 	import Info from "~icons/ph/info";
 	import SignOut from "~icons/ph/sign-out";
 
+	import { app } from "#lib/app.svelte.ts";
 	import Button from "#lib/components/ui/Button.svelte";
 	import { logOut } from "#lib/twitch/auth.js";
 
+	import { closeDialog } from "../ui/Dialog.svelte";
 	import AboutDialog from "./AboutDialog.svelte";
 
 	async function openLogDir() {
@@ -32,10 +34,19 @@
 		<span class="text-sm">About</span>
 	</Button>
 
-	<Button class="text-muted-foreground" variant="ghost" onclick={logOut}>
-		<SignOut />
-		<span class="text-sm">Log out</span>
-	</Button>
+	{#if app.user}
+		<Button
+			class="text-muted-foreground"
+			variant="ghost"
+			onclick={() => {
+				logOut();
+				closeDialog("settings-dialog");
+			}}
+		>
+			<SignOut />
+			<span class="text-sm">Log out</span>
+		</Button>
+	{/if}
 </div>
 
 <AboutDialog />

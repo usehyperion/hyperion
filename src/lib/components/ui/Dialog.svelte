@@ -2,6 +2,10 @@
 	export function openDialog(id: string) {
 		document.querySelector<HTMLDialogElement>(`#${id}`)?.showModal();
 	}
+
+	export function closeDialog(id: string) {
+		document.querySelector<HTMLDialogElement>(`#${id}`)?.close();
+	}
 </script>
 
 <script lang="ts">
