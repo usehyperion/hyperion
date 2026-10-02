@@ -27,7 +27,8 @@
 				"enable": true,
 				"scope": ["$APPCONFIG/**"]
 			},
-			"csp": "default-src 'self' https: ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline' asset: http://asset.localhost; img-src 'self' data: https:"
+			"csp": "default-src 'self' https: ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline' asset: http://asset.localhost; img-src 'self' data: https:",
+			"dangerousDisableAssetCspModification": ["style-src"]
 		}
 	},
 	"bundle": {
