@@ -11,6 +11,19 @@ export default {
 	fields: [
 		{
 			type: "group",
+			label: "Updates",
+			fields: [
+				{
+					id: "advanced.updates.autoInstall",
+					type: "switch",
+					label: "Automatically install updates",
+					description:
+						"Download new versions in the background and install them the next time Hyperion restarts.",
+				},
+			],
+		},
+		{
+			type: "group",
 			label: "Logs",
 			fields: [
 				{

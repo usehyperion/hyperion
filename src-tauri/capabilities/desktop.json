@@ -2,5 +2,5 @@
 	"identifier": "desktop-capability",
 	"platforms": ["macOS", "windows", "linux"],
 	"windows": ["main"],
-	"permissions": ["window-state:default", "updater:default"]
+	"permissions": ["core:window:allow-destroy", "window-state:default", "updater:default"]
 }

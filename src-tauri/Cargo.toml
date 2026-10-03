@@ -38,7 +38,6 @@ time = { version = "0.3", features = ["formatting", "local-offset"] }
 tauri = { version = "2", features = ["protocol-asset"] }
 tauri-plugin-cache = "0.1.5"
 tauri-plugin-deep-link = "2"
-tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-opener = "2"
