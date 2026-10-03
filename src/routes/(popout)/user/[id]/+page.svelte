@@ -4,6 +4,7 @@
 
 	import { app } from "#lib/app.svelte.js";
 	import UserCard from "#lib/components/user/UserCard.svelte";
+	import { log } from "#lib/log.js";
 	import { UserMessage, type UserMessageInit } from "#lib/models/message/user-message.svelte.js";
 	import { Viewer } from "#lib/models/viewer.svelte.js";
 	import { subscribeUserCard, type UserCardSync } from "#lib/user-cards.js";
@@ -12,10 +13,11 @@
 
 	// A popout is bound to one user in one channel for the lifetime of its
 	// window, so this data is read once rather than tracked.
-	const { user, channel, relationship } = untrack(() => data);
+	const { user, channel, relationship, ready } = untrack(() => data);
 
 	let history = $state<UserMessage[]>([]);
 	let unsubscribe: (() => Promise<void>) | undefined;
+	let destroyed = false;
 
 	// Seeding the viewer up front means rebuilt messages resolve their author to
 	// the fully fetched user rather than the partial one `UserMessage` would
@@ -47,6 +49,16 @@
 	}
 
 	onMount(async () => {
+		// Messages resolve their badges and emotes when they are rebuilt, so
+		// history is only requested once the channel's metadata has loaded.
+		await ready.catch((error: unknown) =>
+			log
+				.error(`Failed to load channel data for user card: ${String(error)}`)
+				.catch(() => {}),
+		);
+
+		if (destroyed) return;
+
 		unsubscribe = await subscribeUserCard(
 			{
 				label: getCurrentWindow().label,
@@ -55,9 +67,14 @@
 			},
 			{ onSync, onMessage },
 		);
+
+		if (destroyed) void unsubscribe();
 	});
 
-	onDestroy(() => void unsubscribe?.());
+	onDestroy(() => {
+		destroyed = true;
+		void unsubscribe?.();
+	});
 </script>
 
 <svelte:head>
