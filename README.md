@@ -2,7 +2,7 @@
 
 <p align="center">A sleek, batteries included chat client for Twitch.</p>
 
-![Preview](https://raw.githubusercontent.com/usehyperion/website/refs/heads/main/apps/web/src/lib/assets/preview.png)
+![Preview](https://raw.githubusercontent.com/usehyperion/website/refs/heads/main/src/lib/assets/preview-dark.png)
 
 > [!IMPORTANT]
 > Hyperion is still under heavy development, expect bugs.
