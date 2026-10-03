@@ -6,7 +6,7 @@ use futures::future::join_all;
 use futures::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tokio::sync::mpsc;
+use tokio::sync::{Notify, mpsc};
 use tokio::time::{Instant, MissedTickBehavior};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
@@ -75,6 +75,7 @@ pub struct PubSubClient {
     sender: mpsc::UnboundedSender<PubSubMessage>,
     message_tx: mpsc::UnboundedSender<Message>,
     nonce: AtomicU64,
+    shutdown: Notify,
 }
 
 pub struct PubSubHandles {
@@ -91,7 +92,17 @@ pub struct PubSubConnector {
 
 impl PubSubConnector {
     pub async fn connect(self) -> Result<(), Error> {
-        self.client.run(self.outgoing).await
+        let Self { client, outgoing } = self;
+
+        // The run loop retries forever and holds its own sender, so it never
+        // ends by itself and has to be cut off from the outside
+        tokio::select! {
+            result = client.run(outgoing) => result,
+            () = client.shutdown.notified() => {
+                client.state.disconnect();
+                Ok(())
+            }
+        }
     }
 }
 
@@ -107,6 +118,7 @@ impl PubSubClient {
             sender,
             message_tx,
             nonce: AtomicU64::new(0),
+            shutdown: Notify::new(),
         });
 
         let connector = PubSubConnector {
@@ -340,6 +352,12 @@ impl PubSubClient {
     /// Whether the client is connected or still establishing its connection.
     pub fn active(&self) -> bool {
         self.state.active()
+    }
+
+    /// Closes the connection and stops any reconnect in progress. The client
+    /// can't be connected again afterwards.
+    pub fn disconnect(&self) {
+        self.shutdown.notify_one();
     }
 
     #[tracing::instrument(name = "pubsub_listen", skip(self, topics))]
