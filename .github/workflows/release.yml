@@ -35,7 +35,11 @@ jobs:
         if: ${{ steps.release.outputs.pr }}
         run: |
           cd src-tauri
-          cargo generate-lockfile
+
+          PKG_NAME=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')
+          PKG_VER=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+
+          cargo update -p "$PKG_NAME" --precise "$PKG_VER"
 
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
