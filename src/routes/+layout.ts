@@ -11,7 +11,7 @@ import { Session, getCredentials } from "#lib/twitch/session.js";
 
 export const ssr = false;
 
-export async function load({ url }) {
+export async function load({ url, route }) {
 	if (!app.twitch.session) {
 		const credentials = await getCredentials();
 		app.twitch.session = credentials && new Session(credentials);
@@ -38,7 +38,11 @@ export async function load({ url }) {
 		app.user = new CurrentUser(user);
 	}
 
-	if (!app.user.moderating.size) {
+	// Popouts only render a single view and get anything channel-specific from
+	// the main window, so the app-wide state below is skipped for them.
+	const popout = route.id?.startsWith("/(popout)") ?? false;
+
+	if (!popout && !app.user.moderating.size) {
 		app.user.moderating.add(app.user.id);
 
 		const moderates = await app.twitch.paginate(
@@ -52,7 +56,7 @@ export async function load({ url }) {
 		}
 	}
 
-	if (!app.channels.size) {
+	if (!popout && !app.channels.size) {
 		const self = new Channel(app.twitch, app.user);
 		app.channels.set(self.id, self);
 
@@ -65,11 +69,8 @@ export async function load({ url }) {
 		});
 	}
 
-	if (!app.emotes.size) {
-		await app.emotes.fetch();
-	}
-
-	if (!app.badges.size) {
-		await app.badges.fetch();
-	}
+	await Promise.all([
+		app.emotes.size ? null : app.emotes.fetch(),
+		app.badges.size ? null : app.badges.fetch(),
+	]);
 }
