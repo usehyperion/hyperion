@@ -202,9 +202,6 @@ importers:
       '@tauri-apps/plugin-deep-link':
         specifier: ~2.6.2
         version: 2.6.2
-      '@tauri-apps/plugin-dialog':
-        specifier: ~2.8.3
-        version: 2.8.3
       '@tauri-apps/plugin-fs':
         specifier: ~2.7.1
         version: 2.7.1
@@ -973,9 +970,6 @@ packages:
 
   '@tauri-apps/plugin-deep-link@2.6.2':
     resolution: {integrity: sha512-uMsF1VQt1OdYq3jDGsSBlBdtbTp6o7WYFYFnjiNuLfFpBvZsdH0XnolJoSzBOlTzhroROBUys/j1y1PQqdiMZA==}
-
-  '@tauri-apps/plugin-dialog@2.8.3':
-    resolution: {integrity: sha512-Hd/yBfk2R5v2MFrz/0VArSXeh8xKLLXGunqSiTtcHKn1zNZwaKujuA0VSwUvNfwC4hDoF1PveS+gBDNe3nHspw==}
 
   '@tauri-apps/plugin-fs@2.7.1':
     resolution: {integrity: sha512-4TBVjpi/q8PuNzjpkAc2iBGXMTLjOrAyfTiiOL8ORaJCZJRG3tjzmQ4sqs2CMG75FvLyRkOkERfP7AyY4iBNwQ==}
@@ -2546,10 +2540,6 @@ snapshots:
       '@tauri-apps/cli-win32-x64-msvc': 2.12.4
 
   '@tauri-apps/plugin-deep-link@2.6.2':
-    dependencies:
-      '@tauri-apps/api': 2.12.4
-
-  '@tauri-apps/plugin-dialog@2.8.3':
     dependencies:
       '@tauri-apps/api': 2.12.4
 

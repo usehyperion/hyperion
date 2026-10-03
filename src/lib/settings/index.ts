@@ -63,6 +63,7 @@ export type Settings = {
 	"moderation.deleted.appearance": DeletedAppearance;
 
 	"advanced.logs.level": "error" | "warn" | "info" | "debug" | "trace";
+	"advanced.updates.autoInstall": boolean;
 };
 
 export const defaultHighlightTypes: Record<HighlightType, HighlightConfig> = {
@@ -109,6 +110,7 @@ export const defaults: Settings = {
 	"moderation.quickActions.show": true,
 	"moderation.deleted.appearance": "dim",
 	"advanced.logs.level": "info",
+	"advanced.updates.autoInstall": false,
 };
 
 export const settings = new RuneStore<Settings>("settings", defaults, {
