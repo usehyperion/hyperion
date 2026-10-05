@@ -173,8 +173,7 @@
 					{@const noun = `month${months > 1 ? "s" : ""}`}
 
 					{#if tier}
-						{type === "prime" ? "Prime" : `Tier ${tier}`} ({months})
-						{noun}
+						{type === "prime" ? "Prime" : `Tier ${tier}`} ({months} {noun})
 					{:else}
 						{months} {noun}
 					{/if}
