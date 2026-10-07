@@ -47,6 +47,7 @@ export type Settings = {
 	"chat.emotes.seventv": boolean;
 	"chat.emotes.padding": number;
 	"chat.messages.duplicateBypass": boolean;
+	"chat.messages.limit": number;
 	"chat.messages.history.enabled": boolean;
 	"chat.messages.history.limit": number;
 	"chat.messages.history.separator": boolean;
@@ -96,6 +97,7 @@ export const defaults: Settings = {
 	"chat.emotes.seventv": true,
 	"chat.emotes.padding": 0,
 	"chat.messages.duplicateBypass": true,
+	"chat.messages.limit": 500,
 	"chat.messages.history.enabled": true,
 	"chat.messages.history.limit": 250,
 	"chat.messages.history.separator": true,

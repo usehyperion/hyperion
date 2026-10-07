@@ -33,6 +33,13 @@ import { Viewer } from "./viewer.svelte";
 const RATE_LIMIT_WINDOW = 30 * 1000;
 const RATE_LIMIT_GRACE = 1000;
 
+// How many times the message limit can be exceeded while scrolled up.
+const PAUSED_LIMIT_FACTOR = 10;
+
+// How far past the limit the chat can grow before trimming, so messages are
+// removed in batches instead of one at a time.
+const TRIM_BUFFER = 100;
+
 export interface ChatMode {
 	unique: boolean;
 	subOnly: boolean;
@@ -56,6 +63,7 @@ interface MessageOptions {
 
 export class Chat {
 	#bypassNext = false;
+	#paused = false;
 	#lastRecentAt: number | null = null;
 
 	#ids = new Set<string>();
@@ -84,6 +92,12 @@ export class Chat {
 	 * An array of messages sent in the chat.
 	 */
 	public messages = $state<Message[]>([]);
+
+	/**
+	 * The total number of messages added to the chat. Unlike the length of
+	 * {@linkcode messages}, this is not affected by trimming.
+	 */
+	public received = $state(0);
 
 	/**
 	 * An array of messages the current user has sent in the chat.
@@ -117,6 +131,21 @@ export class Chat {
 		this.addCommands(commands);
 	}
 
+	/**
+	 * Whether the user is scrolled up in the chat. While paused, the chat
+	 * holds more messages so the ones being read aren't removed.
+	 */
+	public get paused() {
+		return this.#paused;
+	}
+
+	public set paused(value: boolean) {
+		if (this.#paused === value) return;
+
+		this.#paused = value;
+		if (!value) this.#trim();
+	}
+
 	public add(message: Message) {
 		if (this.#ids.has(message.id)) {
 			return this;
@@ -135,6 +164,9 @@ export class Chat {
 		} else {
 			this.messages.push(message);
 		}
+
+		this.received++;
+		this.#trim();
 
 		return this;
 	}
@@ -383,6 +415,27 @@ export class Chat {
 		if (sent?.message) {
 			log.info("Message sent");
 			await sendPresence(this.channel.id);
+		}
+	}
+
+	#trim() {
+		const limit =
+			Math.max(
+				settings.state["chat.messages.limit"],
+				settings.state["chat.messages.history.limit"],
+			) * (this.#paused ? PAUSED_LIMIT_FACTOR : 1);
+
+		if (this.messages.length <= limit + TRIM_BUFFER) return;
+
+		const removed = this.messages.splice(0, this.messages.length - limit);
+
+		for (const message of removed) {
+			this.#ids.delete(message.id);
+		}
+
+		if (this.#lastRecentAt !== null) {
+			this.#lastRecentAt -= removed.length;
+			if (this.#lastRecentAt < 0) this.#lastRecentAt = null;
 		}
 	}
 

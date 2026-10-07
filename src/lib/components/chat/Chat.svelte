@@ -35,7 +35,7 @@
 		if (!scrollingPaused) scrollToEnd();
 	});
 
-	const newMessageCount = $derived(chat.messages.length - countSnapshot);
+	const newMessageCount = $derived(chat.received - countSnapshot);
 	const hasNew = $derived(newMessageCount > 0);
 
 	$effect(() => {
@@ -54,10 +54,11 @@
 		const atBottom = offset >= list.getScrollSize() - list.getViewportSize() - TOLERANCE;
 
 		if (!atBottom && !scrollingPaused) {
-			countSnapshot = chat.messages.length;
+			countSnapshot = chat.received;
 		}
 
 		scrollingPaused = !atBottom;
+		chat.paused = scrollingPaused;
 	}
 </script>
 
