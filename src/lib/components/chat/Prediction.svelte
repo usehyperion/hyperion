@@ -173,27 +173,6 @@
 
 						<span>Returns {ratio(outcome.points).toFixed(2)}&times;</span>
 					</Tooltip>
-
-					{#snippet outcomeDetails()}
-						<span class="flex items-center gap-1 font-medium">
-							<span class={["size-2 shrink-0 rounded-full", colorFor(i)]}></span>
-
-							{outcome.title}
-
-							{#if won}
-								<Crown class="size-3 text-yellow-400" />
-							{/if}
-						</span>
-
-						<span>{outcome.points.toLocaleString()} points ({pct}%)</span>
-
-						<span>
-							{outcome.users.toLocaleString()}
-							{outcome.users === 1 ? "predictor" : "predictors"}
-						</span>
-
-						<span>Returns {ratio(outcome.points).toFixed(2)}&times;</span>
-					{/snippet}
 				</li>
 			{/each}
 		</ul>
