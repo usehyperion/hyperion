@@ -59,6 +59,22 @@ pub async fn connect_irc(
 
             tracing::trace!(?tags, "Received {command} message");
 
+            // Only forward messages the frontend has handlers for to avoid
+            // unnecessary IPC traffic
+            if !matches!(
+                message,
+                ServerMessage::ClearChat(_)
+                    | ServerMessage::ClearMsg(_)
+                    | ServerMessage::Join(_)
+                    | ServerMessage::Notice(_)
+                    | ServerMessage::Part(_)
+                    | ServerMessage::Privmsg(_)
+                    | ServerMessage::RoomState(_)
+                    | ServerMessage::UserNotice(_)
+            ) {
+                continue;
+            }
+
             if forward_sink.lock().await.send(message).is_err() {
                 tracing::warn!("IRC channel send failed");
             }
