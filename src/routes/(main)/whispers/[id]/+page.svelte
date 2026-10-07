@@ -67,8 +67,13 @@
 	};
 </script>
 
-<div class="flex h-full flex-col">
-	<div class="grow overflow-y-auto text-sm" {onscroll} bind:this={chat}>
+<div class="flex h-full flex-col" data-component="whisper-page">
+	<div
+		class="grow overflow-y-auto text-sm"
+		data-slot="whisper-page-messages"
+		{onscroll}
+		bind:this={chat}
+	>
 		{#each data.whisper.messages as message, i (message.id)}
 			{@const prev = data.whisper.messages[i - 1]}
 			{@const isNewDay =
@@ -89,6 +94,7 @@
 					"flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-muted/50",
 					!isNewDay && "border-t",
 				]}
+				data-slot="whisper-page-message"
 			>
 				<img
 					class="rounded-full ring-1 ring-black/10 dark:ring-white/10"
@@ -96,24 +102,29 @@
 					alt={message.user.displayName}
 					width="40"
 					height="40"
+					data-slot="whisper-page-message-avatar"
 				/>
 
 				<div class="flex w-full flex-col">
 					<div class="flex w-full items-center justify-between gap-2">
-						<span class="font-semibold" style={message.user.style}>
+						<span
+							class="font-semibold"
+							style={message.user.style}
+							data-slot="whisper-page-message-name"
+						>
 							{message.user.displayName}
 						</span>
 
 						<Timestamp date={message.createdAt} />
 					</div>
 
-					<p>{message.text}</p>
+					<p data-slot="whisper-page-message-text">{message.text}</p>
 				</div>
 			</div>
 		{/each}
 	</div>
 
-	<div class="p-2">
+	<div class="p-2" data-slot="whisper-page-composer">
 		<Input
 			class="h-12"
 			autocapitalize="off"

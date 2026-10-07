@@ -136,7 +136,7 @@
 	<ChatError message={error} />
 {/if}
 
-<div class="flex flex-col gap-1.5">
+<div class="flex flex-col gap-1.5" data-component="chat-input">
 	<InputGroup.Root class="h-12 rounded-xl" bind:ref={anchor}>
 		<InputGroup.Input
 			class={[(chat.replyTarget || error) && "rounded-t-none", className]}
@@ -183,8 +183,8 @@
 		</InputGroup.Addon>
 	</InputGroup.Root>
 
-	<div class="flex items-center justify-between px-1">
-		<div class="text-xs text-muted-foreground tabular-nums">
+	<div class="flex items-center justify-between px-1" data-slot="chat-input-footer">
+		<div class="text-xs text-muted-foreground tabular-nums" data-slot="chat-input-counter">
 			<span class:text-foreground={chat.value.length === 500}>{chat.value.length}</span>
 			/ 500
 		</div>

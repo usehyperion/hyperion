@@ -39,17 +39,17 @@
 	}
 </script>
 
-<div class="p-2 text-sm">
-	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
-		<ChartBar class="size-3 shrink-0" />
+<div class="p-2 text-sm" data-component="poll" data-status={poll.status}>
+	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground" data-slot="poll-header">
+		<ChartBar class="size-3 shrink-0" data-slot="poll-icon" />
 
-		<span class="truncate">
+		<span class="truncate" data-slot="poll-label">
 			Poll by <Username user={poll.creator} />
 		</span>
 
-		<span class="ml-auto shrink-0 whitespace-nowrap">{status}</span>
+		<span class="ml-auto shrink-0 whitespace-nowrap" data-slot="poll-status">{status}</span>
 
-		<div class="flex shrink-0 items-center gap-0.5">
+		<div class="flex shrink-0 items-center gap-0.5" data-slot="poll-actions">
 			{#if poll.status === "ACTIVE" && poll.channel.isMod}
 				<NoticeAction icon={Stop} tooltip="End poll" onclick={() => poll.end()} />
 			{/if}
@@ -59,20 +59,26 @@
 		</div>
 	</div>
 
-	<p class="mb-1.5 font-medium">{poll.title}</p>
+	<p class="mb-1.5 font-medium" data-slot="poll-title">{poll.title}</p>
 
 	{#if expanded}
-		<ul class="flex flex-col gap-1.5">
+		<ul class="flex flex-col gap-1.5" data-slot="poll-choices">
 			{#each poll.choices as choice (choice.id)}
 				{@const pct = percent(choice.votes)}
 				{@const winner =
 					poll.status !== "ACTIVE" && choice.votes === leading && leading > 0}
 
-				<li>
-					<div class="mb-0.5 flex items-center justify-between gap-2">
-						<span class="truncate">{choice.title}</span>
+				<li data-slot="poll-choice" data-winner={winner ? true : null}>
+					<div
+						class="mb-0.5 flex items-center justify-between gap-2"
+						data-slot="poll-choice-header"
+					>
+						<span class="truncate" data-slot="poll-choice-title">{choice.title}</span>
 
-						<span class="text-xs whitespace-nowrap text-muted-foreground tabular-nums">
+						<span
+							class="text-xs whitespace-nowrap text-muted-foreground tabular-nums"
+							data-slot="poll-choice-votes"
+						>
 							{pct}% ({choice.votes})
 						</span>
 					</div>
@@ -88,7 +94,7 @@
 			{/each}
 		</ul>
 
-		<p class="mt-1.5 text-xs text-muted-foreground tabular-nums">
+		<p class="mt-1.5 text-xs text-muted-foreground tabular-nums" data-slot="poll-total">
 			{poll.totalVotes.toLocaleString()}
 			{poll.totalVotes === 1 ? "vote" : "votes"}
 		</p>

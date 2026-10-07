@@ -33,13 +33,13 @@
 	const fraction = $derived(pin.duration ? clamp(0, remaining / (pin.duration * 1000), 1) : 0);
 </script>
 
-<div class="relative p-2 text-sm">
-	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
-		<PushPin class="size-3" />
+<div class="relative p-2 text-sm" data-component="pin">
+	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground" data-slot="pin-header">
+		<PushPin class="size-3" data-slot="pin-icon" />
 
-		<span>Pinned by <Username user={pin.pinner} /></span>
+		<span data-slot="pin-label">Pinned by <Username user={pin.pinner} /></span>
 
-		<div class="ml-auto flex items-center gap-0.5">
+		<div class="ml-auto flex items-center gap-0.5" data-slot="pin-actions">
 			{#if pin.message.channel.isMod}
 				<NoticeAction
 					icon={Clock}
@@ -65,10 +65,12 @@
 			class="absolute inset-x-0 bottom-0 h-0.5 bg-muted"
 			role="timer"
 			aria-label="{formatDuration(Math.ceil(remaining / 1000))} remaining"
+			data-slot="pin-timer"
 		>
 			<div
 				class="h-full bg-primary transition-[width] duration-1000 ease-linear"
 				style:width="{fraction * 100}%"
+				data-slot="pin-timer-indicator"
 			></div>
 		</div>
 	{/if}

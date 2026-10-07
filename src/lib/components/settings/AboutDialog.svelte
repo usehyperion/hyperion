@@ -55,24 +55,39 @@
 
 <Dialog id="about-dialog" aria-label="About" {ontoggle}>
 	{#snippet header()}
-		<div class="flex flex-col items-center gap-3 text-center">
-			<img class="size-16" src="/logo.svg" alt="Hyperion logo" />
+		<div class="flex flex-col items-center gap-3 text-center" data-slot="about-dialog-header">
+			<img
+				class="size-16"
+				src="/logo.svg"
+				alt="Hyperion logo"
+				data-slot="about-dialog-logo"
+			/>
 
 			<div>
-				<h2 class="text-lg/tight font-semibold">Hyperion</h2>
+				<h2 class="text-lg/tight font-semibold" data-slot="about-dialog-title">Hyperion</h2>
 
-				<p class="text-sm text-muted-foreground tabular-nums">
+				<p
+					class="text-sm text-muted-foreground tabular-nums"
+					data-slot="about-dialog-version"
+				>
 					{info ? `v${info.version}` : " "}
 				</p>
 			</div>
 		</div>
 	{/snippet}
 
-	<dl class="divide-y text-sm">
+	<dl class="divide-y text-sm" data-slot="about-dialog-info">
 		{#each rows as row (row.label)}
-			<div class="flex items-baseline justify-between gap-4 px-3 py-2">
-				<dt class="shrink-0 text-muted-foreground">{row.label}</dt>
-				<dd class="truncate text-right tabular-nums">{row.value}</dd>
+			<div
+				class="flex items-baseline justify-between gap-4 px-3 py-2"
+				data-slot="about-dialog-row"
+			>
+				<dt class="shrink-0 text-muted-foreground" data-slot="about-dialog-label">
+					{row.label}
+				</dt>
+				<dd class="truncate text-right tabular-nums" data-slot="about-dialog-value">
+					{row.value}
+				</dd>
 			</div>
 		{/each}
 	</dl>

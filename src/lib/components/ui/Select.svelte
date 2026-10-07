@@ -23,7 +23,7 @@
 	}: Props = $props();
 </script>
 
-<div class="relative w-full">
+<div class="relative w-full" data-component="select">
 	<select
 		class={cn(
 			"h-9 w-full min-w-0 appearance-none rounded-lg border border-input py-1 pr-8 pl-2.5 text-sm transition-colors outline-none select-none",
@@ -34,12 +34,17 @@
 			"dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
 			className,
 		)}
+		data-slot="select-control"
 		bind:value
 		bind:this={ref}
 		{...rest}
 	>
 		{#each options as option}
-			<option class="bg-[canvas] text-[canvastext]" value={option.value}>
+			<option
+				class="bg-[canvas] text-[canvastext]"
+				value={option.value}
+				data-slot="select-option"
+			>
 				{option.label}
 			</option>
 		{/each}
@@ -48,5 +53,6 @@
 	<CaretDown
 		class="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-muted-foreground"
 		aria-hidden="true"
+		data-slot="select-icon"
 	/>
 </div>

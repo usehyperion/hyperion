@@ -28,10 +28,11 @@
 		<button
 			class={cn(buttonVariants({ size: "icon-sm", variant: "ghost" }), "size-5")}
 			aria-label={tooltip}
+			data-component="notice-action"
 			{...props}
 			{...rest}
 		>
-			<Icon class="size-3.5" />
+			<Icon class="size-3.5" data-slot="notice-action-icon" />
 		</button>
 	{/snippet}
 

@@ -57,9 +57,13 @@
 {#if notices.length}
 	<div
 		class="absolute inset-x-2 top-2 z-10 overflow-hidden rounded-lg bg-popover smooth-shadow-ring-md"
+		data-component="live-notices"
 	>
 		{#if notices.length > 1}
-			<div class="flex items-center gap-1 border-b px-1 py-0.5 text-xs text-muted-foreground">
+			<div
+				class="flex items-center gap-1 border-b px-1 py-0.5 text-xs text-muted-foreground"
+				data-slot="live-notices-nav"
+			>
 				<Button
 					class="size-5"
 					size="icon-sm"
@@ -70,9 +74,9 @@
 					<CaretLeft class="size-3.5" />
 				</Button>
 
-				<span class="truncate">{active?.label}</span>
+				<span class="truncate" data-slot="live-notices-label">{active?.label}</span>
 
-				<div class="ml-auto flex items-center gap-1">
+				<div class="ml-auto flex items-center gap-1" data-slot="live-notices-dots">
 					{#each notices as notice, i (notice.kind)}
 						<button
 							class={[
@@ -82,11 +86,14 @@
 							type="button"
 							aria-label="Show {notice.label}"
 							aria-current={i === index}
+							data-slot="live-notices-dot"
 							onclick={() => (index = i)}
 						></button>
 					{/each}
 
-					<span class="ml-0.5 tabular-nums">{index + 1}/{notices.length}</span>
+					<span class="ml-0.5 tabular-nums" data-slot="live-notices-counter"
+						>{index + 1}/{notices.length}</span
+					>
 				</div>
 
 				<Button

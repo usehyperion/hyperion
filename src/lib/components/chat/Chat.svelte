@@ -74,6 +74,7 @@
 
 <div
 	class="chat group/chat relative h-full"
+	data-component="chat"
 	data-scrollbar={!settings.state["chat.hideScrollbar"]}
 	{@attach (element) => {
 		observer.observe(element);
@@ -89,13 +90,15 @@
 					hasNew && "pr-3",
 				]}
 				type="button"
+				data-slot="chat-scroll-button"
 				onclick={scrollToEnd}
 				transition:fly={{ y: 16, duration: 200 }}
 			>
-				<ArrowDown class="size-4 shrink-0" />
+				<ArrowDown class="size-4 shrink-0" data-slot="chat-scroll-button-icon" />
 
 				<span
 					class="grid overflow-hidden transition-[grid-template-columns] duration-200 ease-out"
+					data-slot="chat-scroll-button-label"
 					style:grid-template-columns={hasNew ? "minmax(0, 1fr)" : "minmax(0, 0fr)"}
 				>
 					<span class="overflow-hidden pl-1.5 whitespace-nowrap">

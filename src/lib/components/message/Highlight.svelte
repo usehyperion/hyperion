@@ -58,18 +58,30 @@
 </script>
 
 {#if config.style === "background"}
-	<div class={cn("bg-(--highlight)/30", className)} style:--highlight={config.color}>
+	<div
+		class={cn("bg-(--highlight)/30", className)}
+		style:--highlight={config.color}
+		data-component="message-highlight"
+		data-type={type}
+		data-style={config.style}
+	>
 		{@render children()}
 	</div>
 {:else}
 	<div
 		class={cn("m-1 box-border overflow-hidden rounded-md border", className)}
 		style:border-color={config.color}
+		data-component="message-highlight"
+		data-type={type}
+		data-style={config.style}
 	>
 		{#if config.style === "default"}
-			<div class="flex items-center bg-muted px-2.5 py-1.5 text-xs font-medium">
-				<div class="flex items-center">
-					<decoration.icon class="mr-2 size-4" />
+			<div
+				class="flex items-center bg-muted px-2.5 py-1.5 text-xs font-medium"
+				data-slot="message-highlight-header"
+			>
+				<div class="flex items-center" data-slot="message-highlight-label">
+					<decoration.icon class="mr-2 size-4" data-slot="message-highlight-icon" />
 
 					{decoration.label}
 
@@ -79,7 +91,10 @@
 				</div>
 
 				{#if type === "custom"}
-					<div class="ml-auto flex items-center gap-2.5">
+					<div
+						class="ml-auto flex items-center gap-2.5"
+						data-slot="message-highlight-flags"
+					>
 						{#if config.matchCase}
 							<CaseSensitive class="size-4" />
 						{/if}

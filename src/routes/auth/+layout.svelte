@@ -6,11 +6,19 @@
 	app.history.reset();
 </script>
 
-<div class="rails fixed inset-0 top-title-bar z-0 flex justify-center" aria-hidden="true">
+<div
+	class="rails fixed inset-0 top-title-bar z-0 flex justify-center"
+	data-component="auth-layout"
+	aria-hidden="true"
+>
 	<main
 		class="relative flex size-full h-full items-center justify-center overflow-hidden border-x bg-background"
+		data-slot="auth-layout-panel"
 	>
-		<div class="flex flex-col items-center gap-y-8 px-6 text-center">
+		<div
+			class="flex flex-col items-center gap-y-8 px-6 text-center"
+			data-slot="auth-layout-content"
+		>
 			{@render children()}
 		</div>
 	</main>

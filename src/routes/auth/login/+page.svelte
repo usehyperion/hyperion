@@ -32,12 +32,14 @@
 	}
 </script>
 
-<img class="size-16" src="/logo.svg" alt="Hyperion logo" />
+<img class="size-16" data-slot="login-page-logo" src="/logo.svg" alt="Hyperion logo" />
 
-<div class="space-y-2">
-	<h1 class="text-4xl font-semibold">Hyperion</h1>
+<div class="space-y-2" data-slot="login-page-header">
+	<h1 class="text-4xl font-semibold" data-slot="login-page-title">Hyperion</h1>
 
-	<p class="max-w-sm text-muted-foreground">Connect your Twitch account to start chatting.</p>
+	<p class="max-w-sm text-muted-foreground" data-slot="login-page-description">
+		Connect your Twitch account to start chatting.
+	</p>
 </div>
 
 <Button class="h-12" size="lg" onclickwait={() => handleLogIn()}>
@@ -46,5 +48,5 @@
 </Button>
 
 {#if error}
-	<p class="text-sm text-destructive">{error}</p>
+	<p class="text-sm text-destructive" data-slot="login-page-error">{error}</p>
 {/if}

@@ -58,12 +58,15 @@
 	{onDragEnd}
 >
 	<Tooltip.Provider delayDuration={300}>
-		<div class="flex grow overflow-hidden">
+		<div class="flex grow overflow-hidden" data-component="main-layout">
 			{#if storage.state.user}
 				<Sidebar />
 			{/if}
 
-			<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
+			<main
+				class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}
+				data-slot="main-layout-content"
+			>
 				{@render children()}
 			</main>
 		</div>
@@ -78,22 +81,31 @@
 				{#if isTab}
 					<div
 						class="mx-auto flex max-w-max items-center gap-2 rounded bg-background px-2 py-1"
+						data-slot="main-layout-drag-preview"
+						data-type="tab"
 					>
 						<img
 							class={[
 								"size-6 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10",
 								!channel.stream && "grayscale",
 							]}
+							data-slot="main-layout-drag-preview-avatar"
 							src={channel.user.avatarUrl}
 							alt={channel.user.displayName}
 							width="150"
 							height="150"
 						/>
 
-						<span class="text-sm font-medium">{channel.user.displayName}</span>
+						<span class="text-sm font-medium" data-slot="main-layout-drag-preview-name"
+							>{channel.user.displayName}</span
+						>
 					</div>
 				{:else}
-					<div class="flex items-center gap-2">
+					<div
+						class="flex items-center gap-2"
+						data-slot="main-layout-drag-preview"
+						data-type="channel"
+					>
 						<StreamInfo {channel} />
 					</div>
 				{/if}

@@ -41,12 +41,12 @@
 	onDestroy(() => unlisten?.());
 </script>
 
-<div class="flex h-full flex-col">
+<div class="flex h-full flex-col" data-component="channel">
 	{#if channel.stream}
 		<StreamHeader stream={channel.stream} />
 	{/if}
 
-	<div class="relative grow">
+	<div class="relative grow" data-slot="channel-body">
 		<LiveNotices {chat} />
 
 		<Chat {chat} />
@@ -56,7 +56,7 @@
 
 	<PredictionDialog {channel} />
 
-	<div class="p-2">
+	<div class="p-2" data-slot="channel-footer">
 		<ChatInput {chat} />
 	</div>
 </div>

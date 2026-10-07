@@ -93,7 +93,7 @@
 		<Field.Label>Choices</Field.Label>
 
 		{#each choices as _, index (index)}
-			<div class="flex items-center gap-1">
+			<div class="flex items-center gap-1" data-slot="poll-dialog-choice">
 				<Input
 					placeholder="Choice {index + 1}"
 					maxlength={CHOICE_MAX}

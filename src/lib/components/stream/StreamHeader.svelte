@@ -42,16 +42,17 @@
 
 <div
 	class="flex items-center justify-between overflow-hidden border-b p-2 text-xs text-muted-foreground shadow"
+	data-component="stream-header"
 >
-	<p class="truncate" title={stream.title}>{stream.title}</p>
+	<p class="truncate" title={stream.title} data-slot="stream-header-title">{stream.title}</p>
 
-	<div class="ml-[3ch] flex items-center gap-x-2.5">
-		<div class="flex items-center">
+	<div class="ml-[3ch] flex items-center gap-x-2.5" data-slot="stream-header-stats">
+		<div class="flex items-center" data-slot="stream-header-viewers">
 			<Users class="mr-1" />
 			<NumberFlow class="tabular-nums" value={stream.viewers} />
 		</div>
 
-		<div class="flex items-center">
+		<div class="flex items-center" data-slot="stream-header-uptime">
 			<Clock class="mr-1" />
 			<span class="tabular-nums">{uptime}</span>
 		</div>

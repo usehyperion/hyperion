@@ -31,6 +31,8 @@
 						width="18"
 						height="18"
 						style:background-color={badge.color}
+						data-slot="badges-item"
+						data-badge={badge.setId}
 						{...triggerProps}
 					/>
 				{/snippet}
@@ -38,7 +40,7 @@
 		{/each}
 
 		<Tooltip.Portal>
-			<Tooltip.Content class="p-1" sideOffset={6}>
+			<Tooltip.Content class="p-1" sideOffset={6} data-slot="badges-tooltip">
 				<Tooltip.Arrow class="text-neutral-800" />
 				{payload?.title}
 			</Tooltip.Content>

@@ -43,12 +43,17 @@
 		<div
 			class="my-1 border-x-4 [border-image-slice:1]"
 			style:border-image-source="linear-gradient({stops[0]}, {stops[1]})"
+			data-component="notification-message"
+			data-type={type}
 		>
-			<div class="flex items-center bg-muted px-2.5 py-1.5 text-xs font-medium">
-				<Megaphone class="mr-2 -scale-x-100" /> Announcement
+			<div
+				class="flex items-center bg-muted px-2.5 py-1.5 text-xs font-medium"
+				data-slot="notification-message-header"
+			>
+				<Megaphone class="mr-2 -scale-x-100" data-slot="notification-message-icon" /> Announcement
 			</div>
 
-			<div class="bg-muted/50 p-2">
+			<div class="bg-muted/50 p-2" data-slot="notification-message-body">
 				<Message {message} />
 			</div>
 		</div>
@@ -58,10 +63,12 @@
 		<div
 			class="my-0.5 border-l-4 bg-muted/50 p-2"
 			style:border-color={message.source.user.color}
+			data-component="notification-message"
+			data-type={type}
 		>
 			{#if type === "bits_badge_tier"}
 				<div class="flex gap-1">
-					<Confetti class="mt-0.5 shrink-0" />
+					<Confetti class="mt-0.5 shrink-0" data-slot="notification-message-icon" />
 
 					<p>
 						<Username user={message.author} />
@@ -70,7 +77,7 @@
 				</div>
 
 				{#if message.text}
-					<div class="mt-2">
+					<div class="mt-2" data-slot="notification-message-body">
 						<Message {message} />
 					</div>
 				{/if}
@@ -78,7 +85,7 @@
 				{@const amount = message.event.donation_amount / 10 ** message.event.exponent}
 
 				<div class="flex gap-1">
-					<HandHeart class="mt-0.5 shrink-0" />
+					<HandHeart class="mt-0.5 shrink-0" data-slot="notification-message-icon" />
 
 					<div class="flex flex-col gap-0.5">
 						<Username user={message.author} />
@@ -154,7 +161,7 @@
 				</p>
 			{:else if type === "watch_streak"}
 				<div class="flex gap-1">
-					<Fire class="mt-0.5 shrink-0" />
+					<Fire class="mt-0.5 shrink-0" data-slot="notification-message-icon" />
 
 					<p>
 						<Username user={message.author} />
@@ -164,7 +171,7 @@
 				</div>
 
 				{#if message.text}
-					<div class="mt-2">
+					<div class="mt-2" data-slot="notification-message-body">
 						<Message {message} />
 					</div>
 				{/if}

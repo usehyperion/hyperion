@@ -185,7 +185,7 @@
 
 <Dialog id="join-dialog" class="overflow-hidden p-0 sm:max-w-xl">
 	<div class="flex flex-col">
-		<div class="flex items-center gap-3 border-b px-5 py-4">
+		<div class="flex items-center gap-3 border-b px-5 py-4" data-slot="join-dialog-header">
 			<!-- svelte-ignore a11y_autofocus -- palette should be typeable on open -->
 			<input
 				class="w-full bg-transparent text-lg outline-none placeholder:text-muted-foreground"
@@ -196,25 +196,30 @@
 				spellcheck="false"
 				placeholder="Search..."
 				aria-invalid={error != null}
+				data-slot="join-dialog-input"
 				{onkeydown}
 				bind:value
 			/>
 
 			{#if searching}
-				<Spinner class="size-5 shrink-0 animate-spin text-muted-foreground" />
+				<Spinner
+					class="size-5 shrink-0 animate-spin text-muted-foreground"
+					data-slot="join-dialog-spinner"
+				/>
 			{/if}
 
 			<button
 				class="flex size-10 shrink-0 items-center justify-center text-muted-foreground transition-[color,scale] hover:text-foreground active:scale-[0.96]"
 				type="button"
 				aria-label="Close"
+				data-slot="join-dialog-close"
 				onclick={handleClose}
 			>
 				<X class="size-5" />
 			</button>
 		</div>
 
-		<div class="flex items-center gap-6 border-b px-5 text-sm">
+		<div class="flex items-center gap-6 border-b px-5 text-sm" data-slot="join-dialog-filters">
 			{#each filters as { key, label } (key)}
 				<button
 					class={cn(
@@ -224,6 +229,8 @@
 							: "border-transparent text-muted-foreground hover:text-foreground",
 					)}
 					type="button"
+					data-slot="join-dialog-filter"
+					data-state={filter === key ? "active" : "inactive"}
 					onclick={() => (filter = key)}
 				>
 					{label}
@@ -231,14 +238,17 @@
 			{/each}
 		</div>
 
-		<div class="max-h-96 min-h-32 overflow-y-auto p-2">
+		<div class="max-h-96 min-h-32 overflow-y-auto p-2" data-slot="join-dialog-list">
 			{#if error}
-				<p class="px-3 py-2 text-sm text-destructive">{error}</p>
+				<p class="px-3 py-2 text-sm text-destructive" data-slot="join-dialog-error">
+					{error}
+				</p>
 			{/if}
 
 			{#if rows.length}
 				<div
 					class="flex items-center gap-2 px-3 pt-1 pb-2 text-xs font-medium text-muted-foreground"
+					data-slot="join-dialog-list-heading"
 				>
 					{#if isSearch}
 						<Broadcast class="size-4" />
@@ -256,31 +266,44 @@
 							"group flex items-center rounded-2xl transition-colors",
 							active === index ? "bg-accent" : "hover:bg-accent/60",
 						)}
+						data-slot="join-dialog-item"
+						data-state={active === index ? "active" : "inactive"}
 						onmouseenter={() => (active = index)}
 					>
 						<button
 							class="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left"
+							data-slot="join-dialog-item-button"
 							type="button"
 							onclick={() => join(item.login, item)}
 						>
 							<img
 								class="size-9 shrink-0 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10"
+								data-slot="join-dialog-item-avatar"
 								src={item.profileImageURL}
 								alt={item.displayName}
 							/>
 
 							<div class="w-full min-w-0 flex-1">
-								<span class="font-semibold">{item.displayName}</span>
+								<span class="font-semibold" data-slot="join-dialog-item-name"
+									>{item.displayName}</span
+								>
 
 								{#if isSearch && item.streamTitle}
-									<p class="truncate text-sm" title={item.streamTitle}>
+									<p
+										class="truncate text-sm"
+										data-slot="join-dialog-item-title"
+										title={item.streamTitle}
+									>
 										{item.streamTitle}
 									</p>
 								{/if}
 							</div>
 
 							{#if isSearch && item.isLive}
-								<span class="flex items-center gap-1.5 text-red-500">
+								<span
+									class="flex items-center gap-1.5 text-red-500"
+									data-slot="join-dialog-item-live"
+								>
 									<span class="size-2 animate-pulse rounded-full bg-current"
 									></span>
 									<span class="text-sm font-medium">Live</span>
@@ -289,10 +312,14 @@
 						</button>
 
 						{#if isSearch}
-							<CaretRight class="mr-3 size-4 shrink-0 text-muted-foreground" />
+							<CaretRight
+								class="mr-3 size-4 shrink-0 text-muted-foreground"
+								data-slot="join-dialog-item-caret"
+							/>
 						{:else}
 							<button
 								class="mr-1.5 flex size-10 shrink-0 items-center justify-center text-muted-foreground opacity-0 transition-[opacity,color,scale] group-hover:opacity-100 hover:text-foreground active:scale-[0.96]"
+								data-slot="join-dialog-item-remove"
 								type="button"
 								aria-label="Remove from recent searches"
 								onclick={(event) => removeRecent(event, item.id)}
@@ -303,16 +330,25 @@
 					</div>
 				{/each}
 			{:else if searching}
-				<p class="flex items-center gap-2 px-3 py-8 text-sm text-muted-foreground">
+				<p
+					class="flex items-center gap-2 px-3 py-8 text-sm text-muted-foreground"
+					data-slot="join-dialog-loading"
+				>
 					<Spinner class="animate-spin" />
 					Searching&hellip;
 				</p>
 			{:else if isSearch}
-				<p class="px-3 py-8 text-center text-sm text-muted-foreground">
+				<p
+					class="px-3 py-8 text-center text-sm text-muted-foreground"
+					data-slot="join-dialog-empty"
+				>
 					No channels found.
 				</p>
 			{:else}
-				<p class="px-3 py-8 text-center text-sm text-muted-foreground">
+				<p
+					class="px-3 py-8 text-center text-sm text-muted-foreground"
+					data-slot="join-dialog-empty"
+				>
 					Search for a channel to join.
 				</p>
 			{/if}

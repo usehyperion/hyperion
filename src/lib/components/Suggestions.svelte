@@ -78,6 +78,7 @@
 			customAnchor={anchor}
 			side="top"
 			sideOffset={8}
+			data-component="suggestions"
 		>
 			{#each suggestions as suggestion, i (suggestion.value)}
 				<Combobox.Item
@@ -87,6 +88,8 @@
 					]}
 					title={suggestion.display}
 					value={suggestion.value}
+					data-slot="suggestions-item"
+					data-type={suggestion.type}
 					data-current={current === i ? true : null}
 					onmouseenter={() => onhighlight(i)}
 					bind:ref={items[i]}
@@ -94,23 +97,32 @@
 					{#if suggestion.type === "command"}
 						<div class="flex min-w-0 flex-1 flex-col">
 							<div class="flex items-center gap-1">
-								<span class="font-medium">{suggestion.display}</span>
+								<span class="font-medium" data-slot="suggestions-item-label"
+									>{suggestion.display}</span
+								>
 
 								{#each suggestion.args as arg (arg)}
 									<span
 										class="rounded border border-primary/20 bg-background px-1 py-0.5 text-xs text-muted-foreground"
+										data-slot="suggestions-item-arg"
 									>
 										{arg}
 									</span>
 								{/each}
 							</div>
 
-							<p class="truncate text-xs text-muted-foreground">
+							<p
+								class="truncate text-xs text-muted-foreground"
+								data-slot="suggestions-item-description"
+							>
 								{suggestion.description}
 							</p>
 						</div>
 
-						<span class="shrink-0 text-xs text-muted-foreground">
+						<span
+							class="shrink-0 text-xs text-muted-foreground"
+							data-slot="suggestions-item-provider"
+						>
 							{suggestion.provider}
 						</span>
 					{:else if suggestion.type === "emote"}
@@ -118,28 +130,40 @@
 							class="size-8 shrink-0 object-contain"
 							src={suggestion.imageUrl}
 							alt={suggestion.display}
+							data-slot="suggestions-item-image"
 						/>
 
-						<span class="truncate">{suggestion.display}</span>
+						<span class="truncate" data-slot="suggestions-item-label"
+							>{suggestion.display}</span
+						>
 					{:else}
 						{#if suggestion.user.avatarUrl}
 							<img
 								class="size-6 shrink-0 rounded-full bg-muted object-cover"
 								src={suggestion.user.avatarUrl}
 								alt={suggestion.display}
+								data-slot="suggestions-item-avatar"
 							/>
 						{:else}
 							<!-- Placeholder until the avatar is backfilled in the background. -->
-							<div class="size-6 shrink-0 rounded-full bg-muted"></div>
+							<div
+								class="size-6 shrink-0 rounded-full bg-muted"
+								data-slot="suggestions-item-avatar"
+							></div>
 						{/if}
 
-						<span class="truncate font-semibold" style={suggestion.style}>
+						<span
+							class="truncate font-semibold"
+							data-slot="suggestions-item-label"
+							style={suggestion.style}
+						>
 							{suggestion.display}
 						</span>
 
 						{#if suggestion.role}
 							<span
 								class="ml-auto shrink-0 rounded bg-background px-1 py-0.5 text-xs text-muted-foreground"
+								data-slot="suggestions-item-role"
 							>
 								{roleLabels[suggestion.role]}
 							</span>

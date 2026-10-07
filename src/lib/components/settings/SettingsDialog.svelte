@@ -85,6 +85,7 @@
 				"flex h-full w-52 shrink-0 flex-col gap-3 p-3",
 				isMac && "pt-[calc(var(--spacing-title-bar)+4px)]",
 			]}
+			data-slot="settings-dialog-sidebar"
 		>
 			<InputGroup.Root class="h-9 bg-background">
 				<InputGroup.Addon>
@@ -121,7 +122,10 @@
 				{/if}
 			</InputGroup.Root>
 
-			<Tabs.List class="min-h-0 flex-1 space-y-0.5 overflow-y-auto">
+			<Tabs.List
+				class="min-h-0 flex-1 space-y-0.5 overflow-y-auto"
+				data-slot="settings-dialog-tabs"
+			>
 				{#each results as category (category.label)}
 					{@const count = counts.get(category.label) ?? 0}
 
@@ -134,11 +138,14 @@
 							>
 								<category.icon />
 
-								<span class="truncate">{category.label}</span>
+								<span class="truncate" data-slot="settings-dialog-tab-label"
+									>{category.label}</span
+								>
 
 								{#if searching}
 									<span
 										class="ml-auto rounded-full bg-primary/20 px-1.5 text-xs tabular-nums"
+										data-slot="settings-dialog-tab-count"
 									>
 										{count}
 									</span>
@@ -154,17 +161,21 @@
 			<SidebarActions />
 		</div>
 
-		<div class="relative flex min-w-0 grow flex-col border-l bg-accent/15">
+		<div
+			class="relative flex min-w-0 grow flex-col border-l bg-accent/15"
+			data-slot="settings-dialog-main"
+		>
 			<div
 				class="flex items-center justify-end gap-2 px-4 pt-3 text-sm text-muted-foreground"
+				data-slot="settings-dialog-header"
 			>
-				<div class="mr-auto">
+				<div class="mr-auto" data-slot="settings-dialog-title">
 					Settings
 
 					{#if searching}
 						&bullet;
 
-						<span class="tabular-nums">
+						<span class="tabular-nums" data-slot="settings-dialog-result-count">
 							{total}
 							{total === 1 ? "result" : "results"}
 						</span>
@@ -182,9 +193,16 @@
 				</Button>
 			</div>
 
-			<div class="min-h-0 grow overflow-y-auto px-4 pt-2 pb-10">
+			<div
+				class="min-h-0 grow overflow-y-auto px-4 pt-2 pb-10"
+				data-slot="settings-dialog-body"
+			>
 				{#each results as category (category.label)}
-					<Tabs.Content class="mx-auto max-w-xl" value={category.label}>
+					<Tabs.Content
+						class="mx-auto max-w-xl"
+						data-slot="settings-dialog-panel"
+						value={category.label}
+					>
 						<Category {category} query={searching ? query.trim() : ""} />
 					</Tabs.Content>
 				{/each}

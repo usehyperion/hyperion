@@ -65,7 +65,7 @@
 
 <ModeWatcher />
 
-<div class="flex h-screen flex-col overflow-hidden">
+<div class="flex h-screen flex-col overflow-hidden" data-component="root-layout">
 	<TitleBar />
 
 	{@render children()}

@@ -16,9 +16,13 @@
 </script>
 
 {#if reward}
-	<div class="my-0.5 border-l-4 bg-muted/50 p-2" style:border-color={reward.background_color}>
+	<div
+		class="my-0.5 border-l-4 bg-muted/50 p-2"
+		style:border-color={reward.background_color}
+		data-component="redemption-message"
+	>
 		{#if viewer}
-			<p>
+			<p data-slot="redemption-message-header">
 				<Username user={viewer.user} />
 				used <span class="font-medium">{reward.cost}</span> channel points to redeem
 				<span class="font-medium">{reward.title}</span>
@@ -26,7 +30,7 @@
 		{/if}
 
 		{#if reward.is_user_input_required && message}
-			<div class="mt-2">
+			<div class="mt-2" data-slot="redemption-message-body">
 				<Message {message} />
 			</div>
 		{/if}

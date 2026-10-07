@@ -46,13 +46,14 @@
 			"mb-1 inline-block text-xs font-medium text-muted-foreground uppercase",
 			tooltip ? "mt-2" : "mt-4",
 		]}
+		data-slot="guest-list-label"
 	>
 		Live with
 	</span>
 
-	<ul class="flex flex-col gap-y-1">
+	<ul class="flex flex-col gap-y-1" data-slot="guest-list-items">
 		{#each stream.guests as [id, guest] (id)}
-			<li>
+			<li data-slot="guest-list-item">
 				{@render participant(guest, guest.viewers)}
 			</li>
 		{/each}
@@ -60,7 +61,7 @@
 {/snippet}
 
 {#snippet participant(guest: Omit<Guest, "viewers">, viewers: number | null)}
-	<div class="flex items-center justify-between gap-x-8">
+	<div class="flex items-center justify-between gap-x-8" data-slot="guest-list-participant">
 		<div class={["flex items-center", tooltip ? "gap-x-1 text-xs" : "gap-x-2 text-sm"]}>
 			<img
 				src={guest.avatarUrl}
@@ -69,6 +70,7 @@
 					"rounded-full ring-1 ring-black/10 dark:ring-white/10",
 					tooltip ? "size-5" : "size-6",
 				]}
+				data-slot="guest-list-avatar"
 				width="50"
 				height="50"
 			/>
@@ -76,13 +78,17 @@
 			<span
 				class="font-medium"
 				style:color={tooltip ? "var(--color-text-primary-foreground)" : guest.color}
+				data-slot="guest-list-name"
 			>
 				{guest.displayName}
 			</span>
 		</div>
 
 		{#if viewers != null}
-			<div class="flex items-center text-xs text-red-500 tabular-nums dark:text-red-400">
+			<div
+				class="flex items-center text-xs text-red-500 tabular-nums dark:text-red-400"
+				data-slot="guest-list-viewers"
+			>
 				<Users class="mr-1" />
 				{viewers}
 			</div>

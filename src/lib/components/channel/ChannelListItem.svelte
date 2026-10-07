@@ -15,13 +15,16 @@
 	const { channel, dragging, attach }: Props = $props();
 </script>
 
-<div class="relative" {@attach attach}>
+<div class="relative" data-component="channel-list-item" {@attach attach}>
 	<div class={[dragging && "invisible"]}>
 		<StreamTooltip {channel} />
 	</div>
 
 	{#if dragging}
-		<div class="absolute inset-1.5 flex items-center gap-2 px-1.5 opacity-70">
+		<div
+			class="absolute inset-1.5 flex items-center gap-2 px-1.5 opacity-70"
+			data-slot="channel-list-item-drag-preview"
+		>
 			<StreamInfo {channel} />
 		</div>
 	{/if}

@@ -13,10 +13,11 @@
 <div
 	class="px-3 py-2 text-muted-foreground aria-disabled:opacity-50"
 	aria-disabled={message.deleted}
+	data-component="event-message"
 >
 	<Timestamp date={message.timestamp} />
 
-	<p class="inline">
+	<p class="inline" data-slot="event-message-content">
 		<message.component {...message.props} />
 	</p>
 </div>

@@ -23,24 +23,28 @@
 	const title = $derived(label || decoration.label);
 </script>
 
-<div class="@container">
+<div class="@container" data-component="highlight-row" data-type={type}>
 	<div
 		class="group flex flex-wrap items-center gap-2 rounded-xl border bg-background/50 px-3 py-2.5 transition-[border-color] duration-200"
+		data-slot="highlight-row-body"
 		data-enabled={config.enabled}
 		style:border-color={config.enabled ? config.color : undefined}
 	>
 		<div
 			class="flex min-w-0 flex-1 items-center gap-2.5 transition-opacity duration-200 group-data-[enabled=false]:opacity-45"
+			data-slot="highlight-row-info"
 		>
 			<span
 				class="shrink-0 group-data-[enabled=false]:text-muted-foreground"
 				style:color={config.enabled ? config.color : undefined}
+				data-slot="highlight-row-icon"
 			>
 				<decoration.icon class="size-4" />
 			</span>
 
 			<span
 				class="truncate text-sm font-medium group-data-[enabled=false]:text-muted-foreground"
+				data-slot="highlight-row-label"
 				{title}
 			>
 				{title}
@@ -49,7 +53,10 @@
 			{@render badges?.()}
 		</div>
 
-		<div class="flex shrink-0 items-center gap-2 @max-[350px]:order-last @max-[350px]:w-full">
+		<div
+			class="flex shrink-0 items-center gap-2 @max-[350px]:order-last @max-[350px]:w-full"
+			data-slot="highlight-row-controls"
+		>
 			<Color {id} bind:value={config.color} />
 			<StyleSelect bind:config />
 		</div>
@@ -57,6 +64,7 @@
 		{#if actions}
 			<div
 				class="flex shrink-0 items-center gap-0.5 transition-opacity duration-200 group-data-[enabled=false]:opacity-45"
+				data-slot="highlight-row-actions"
 			>
 				{@render actions()}
 			</div>

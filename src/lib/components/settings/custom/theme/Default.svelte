@@ -9,7 +9,7 @@
 	] as const;
 </script>
 
-<div class="@container">
+<div class="@container" data-component="theme-default">
 	<RadioGroup.Root
 		class="grid gap-3 @max-md:max-w-3xs @min-md:grid-cols-3"
 		bind:value={() => userPrefersMode.current, (value) => setMode(value)}
@@ -17,10 +17,11 @@
 		{#each themes as theme (theme.value)}
 			<RadioGroup.Item
 				class="cursor-pointer overflow-hidden rounded-xl border text-left transition-[border-color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 data-[state=checked]:ring-1 data-[state=checked]:ring-primary"
+				data-slot="theme-default-option"
 				value={theme.value}
 			>
 				{#snippet children({ checked })}
-					<div class="aspect-4/3 w-full border-b">
+					<div class="aspect-4/3 w-full border-b" data-slot="theme-default-preview">
 						{#if theme.value === "system"}
 							<div class="relative size-full">
 								<div class="absolute inset-0 [clip-path:inset(0_50%_0_0)]">
@@ -36,19 +37,25 @@
 						{/if}
 					</div>
 
-					<div class="flex items-center gap-2 px-3 py-2.5">
+					<div
+						class="flex items-center gap-2 px-3 py-2.5"
+						data-slot="theme-default-footer"
+					>
 						<span
 							class={[
 								"flex size-4 shrink-0 items-center justify-center rounded-full border border-input shadow-xs",
 								checked && "border-primary",
 							]}
+							data-slot="theme-default-indicator"
 						>
 							{#if checked}
 								<span class="size-2 rounded-full bg-primary"></span>
 							{/if}
 						</span>
 
-						<span class="text-sm font-medium">{theme.label}</span>
+						<span class="text-sm font-medium" data-slot="theme-default-label"
+							>{theme.label}</span
+						>
 					</div>
 				{/snippet}
 			</RadioGroup.Item>

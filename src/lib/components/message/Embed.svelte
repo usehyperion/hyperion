@@ -59,21 +59,28 @@
 			"group relative flex h-19 w-full max-w-100 gap-3 overflow-hidden rounded-lg border bg-card",
 			"transition-[background-color,border-color] hover:border-ring/40 hover:bg-accent/40",
 		]}
+		data-component="embed"
 	>
-		<a class="absolute inset-0 z-10 rounded-lg" {href} target="_blank" aria-label={label}></a>
+		<a
+			class="absolute inset-0 z-10 rounded-lg"
+			{href}
+			target="_blank"
+			aria-label={label}
+			data-slot="embed-link"
+		></a>
 
-		<div class="relative shrink-0">
+		<div class="relative shrink-0" data-slot="embed-media">
 			{@render media()}
 		</div>
 
-		<div class="flex min-w-0 flex-col justify-center gap-0.5 py-2 pr-3">
+		<div class="flex min-w-0 flex-col justify-center gap-0.5 py-2 pr-3" data-slot="embed-body">
 			{@render body()}
 		</div>
 	</div>
 {/snippet}
 
 {#snippet meta(children: Snippet)}
-	<div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+	<div class="flex items-center gap-1.5 text-xs text-muted-foreground" data-slot="embed-meta">
 		{@render children()}
 	</div>
 {/snippet}
@@ -88,6 +95,7 @@
 						srcset={emote.srcset.join(", ")}
 						alt={emote.displayName}
 						decoding="async"
+						data-slot="embed-thumbnail"
 					/>
 				</div>
 
@@ -96,6 +104,7 @@
 						class="absolute inset-0 z-20 grid place-items-center backdrop-blur-lg
 							transition-colors hover:bg-background/20"
 						aria-label="Click to reveal unlisted emote"
+						data-slot="embed-reveal"
 						onclick={() => (blurred = false)}
 					>
 						<EyeSlash class="size-5 text-muted-foreground" />
@@ -105,7 +114,11 @@
 
 			{#snippet emoteBody()}
 				<div class="flex min-w-0 items-center gap-1.5">
-					<span class="truncate font-medium" title={emote.displayName}>
+					<span
+						class="truncate font-medium"
+						title={emote.displayName}
+						data-slot="embed-title"
+					>
 						{emote.displayName}
 					</span>
 
@@ -113,6 +126,7 @@
 						<span
 							class="shrink-0 rounded-sm bg-red-500/15 px-1 py-px text-[10px]
 								font-medium tracking-wide text-red-400 uppercase"
+							data-slot="embed-badge"
 						>
 							unlisted
 						</span>
@@ -132,7 +146,7 @@
 		{/if}
 	{/await}
 {:else if tld.hostname === "open.spotify.com"}
-	<div class="w-full max-w-100 overflow-hidden rounded-lg border bg-card">
+	<div class="w-full max-w-100 overflow-hidden rounded-lg border bg-card" data-component="embed">
 		<iframe
 			class="block"
 			title="Spotify Web Player"
@@ -152,18 +166,20 @@
 					src={clip.thumbnailURL}
 					alt={clip.title}
 					decoding="async"
+					data-slot="embed-thumbnail"
 				/>
 
 				<div
 					class="absolute right-1.5 bottom-1.5 rounded bg-black/75 px-1 py-0.5
 						text-[10px] font-medium text-white tabular-nums"
+					data-slot="embed-duration"
 				>
 					{formatDuration(clip.durationSeconds)}
 				</div>
 			{/snippet}
 
 			{#snippet clipBody()}
-				<span class="truncate font-medium" title={clip.title}>
+				<span class="truncate font-medium" title={clip.title} data-slot="embed-title">
 					{clip.title}
 				</span>
 

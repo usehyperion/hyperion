@@ -38,25 +38,31 @@
 
 <button
 	class={["flex items-center", topMostActive && "text-green-500"]}
+	data-component="restrictions"
 	popovertarget="restrictions-{chat.channel.id}"
 >
-	<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
+	<div class="mr-1 size-1.5 rounded-full bg-current/50" data-slot="restrictions-indicator"></div>
 
-	<span class="text-xs">
+	<span class="text-xs" data-slot="restrictions-label">
 		{topMostActive?.label ?? "No chat restrictions"}
 	</span>
 </button>
 
 <Popover id="restrictions-{chat.channel.id}" class="w-max p-3 text-xs">
-	<ul class="space-y-1">
+	<ul class="space-y-1" data-slot="restrictions-list">
 		{#each modes as mode}
 			<li
 				class={[
 					"flex items-center",
 					mode.active ? "text-green-500" : "text-muted-foreground",
 				]}
+				data-slot="restrictions-item"
+				data-active={mode.active ? true : null}
 			>
-				<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
+				<div
+					class="mr-1 size-1.5 rounded-full bg-current/50"
+					data-slot="restrictions-item-indicator"
+				></div>
 
 				{mode.label}
 

@@ -18,7 +18,7 @@
 		className,
 	)}
 	role="separator"
-	data-slot="chat-separator"
+	data-component="chat-separator"
 >
 	<span class="min-w-0 flex-none text-center text-xs font-medium wrap-break-word uppercase">
 		{@render children()}

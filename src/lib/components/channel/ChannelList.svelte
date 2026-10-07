@@ -75,7 +75,7 @@
 	<Separator />
 
 	{#if group.type === "Pinned"}
-		<div class="space-y-1.5">
+		<div class="space-y-1.5" data-slot="channel-list-pinned">
 			{#each group.channels as channel, i (channel.user.id)}
 				<Sortable {channel} index={i} />
 			{/each}

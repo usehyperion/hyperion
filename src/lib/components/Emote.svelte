@@ -34,6 +34,7 @@
 			class="-my-2 inline-grid align-middle"
 			type="button"
 			style:padding="{settings.state['chat.emotes.padding']}px"
+			data-component="emote"
 			{...props}
 		>
 			<img
@@ -43,6 +44,7 @@
 				width={emote.displayWidth}
 				height={emote.displayHeight}
 				decoding="async"
+				data-slot="emote-image"
 			/>
 
 			{#each layers as layer}
@@ -53,12 +55,13 @@
 					width={layer.displayWidth}
 					height={layer.displayHeight}
 					decoding="async"
+					data-slot="emote-layer"
 				/>
 			{/each}
 		</button>
 	{/snippet}
 
-	<div class="flex items-center justify-center p-2">
+	<div class="flex items-center justify-center p-2" data-slot="emote-preview">
 		<div class="inline-grid">
 			<img
 				class="col-start-1 row-start-1 max-h-16 max-w-full object-contain"
@@ -82,17 +85,22 @@
 		</div>
 	</div>
 
-	<div class="space-y-1 px-3 pb-2.5">
-		<p class="text-xs leading-tight font-semibold wrap-anywhere">{emote.displayName}</p>
+	<div class="space-y-1 px-3 pb-2.5" data-slot="emote-info">
+		<p class="text-xs leading-tight font-semibold wrap-anywhere" data-slot="emote-name">
+			{emote.displayName}
+		</p>
 
 		{#if emote.alias}
-			<p class="text-xs wrap-anywhere text-neutral-400">
+			<p class="text-xs wrap-anywhere text-neutral-400" data-slot="emote-alias">
 				Alias of <span class="font-medium">{emote.name}</span>
 			</p>
 		{/if}
 
-		<div class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-neutral-400">
-			<span class="flex items-center gap-1">
+		<div
+			class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-neutral-400"
+			data-slot="emote-meta"
+		>
+			<span class="flex items-center gap-1" data-slot="emote-provider">
 				<ProviderIcon class="size-3" />
 				{emote.provider}
 			</span>
@@ -100,7 +108,10 @@
 			<span class="tabular-nums">&bullet; {emote.width}&times;{emote.height}</span>
 
 			{#if emote.zeroWidth}
-				<span class="rounded bg-white/10 px-1 py-px text-[10px] text-neutral-300">
+				<span
+					class="rounded bg-white/10 px-1 py-px text-[10px] text-neutral-300"
+					data-slot="emote-zero-width"
+				>
 					Zero-width
 				</span>
 			{/if}
@@ -108,7 +119,7 @@
 	</div>
 
 	{#if layers.length}
-		<div class="space-y-1 border-t border-white/10 px-3 py-2">
+		<div class="space-y-1 border-t border-white/10 px-3 py-2" data-slot="emote-modifiers">
 			<p class="text-[10px] tracking-wide text-neutral-400 uppercase">
 				{layers.length === 1 ? "Modifier" : "Modifiers"}
 			</p>
@@ -116,7 +127,7 @@
 			{#each layers as layer}
 				{@const LayerIcon = PROVIDER_ICONS[layer.provider]}
 
-				<div class="flex items-center gap-1.5">
+				<div class="flex items-center gap-1.5" data-slot="emote-modifier">
 					<img
 						class="size-4 shrink-0 object-contain"
 						srcset={layer.srcset.join(", ")}

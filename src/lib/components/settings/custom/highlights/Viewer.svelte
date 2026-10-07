@@ -37,7 +37,7 @@
 	}
 </script>
 
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-2" data-component="highlight-viewer">
 	{#each highlights as highlight (highlight.value)}
 		<Row
 			type={highlight.value}

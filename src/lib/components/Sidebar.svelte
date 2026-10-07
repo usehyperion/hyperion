@@ -15,10 +15,11 @@
 		"group shrink-0 overflow-hidden transition-[width] duration-200 ease-out-quint",
 		sidebar.collapsed ? "w-0" : "w-12",
 	]}
+	data-component="sidebar"
 	data-collapsed={sidebar.collapsed}
 >
 	<ScrollArea.Viewport class="h-full">
-		<nav>
+		<nav data-slot="sidebar-nav">
 			<ChannelList />
 		</nav>
 	</ScrollArea.Viewport>
@@ -29,8 +30,12 @@
 			"data-[state=hidden]:animate-out data-[state=hidden]:fade-out-0 data-[state=visible]:animate-in data-[state=visible]:fade-in-0",
 			"group-data-[collapsed=true]:hidden",
 		]}
+		data-slot="sidebar-scrollbar"
 		orientation="vertical"
 	>
-		<ScrollArea.Thumb class="rounded-full bg-muted-foreground/80" />
+		<ScrollArea.Thumb
+			class="rounded-full bg-muted-foreground/80"
+			data-slot="sidebar-scrollbar-thumb"
+		/>
 	</ScrollArea.Scrollbar>
 </ScrollArea.Root>

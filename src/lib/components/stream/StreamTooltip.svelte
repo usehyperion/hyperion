@@ -31,6 +31,7 @@
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="relative flex cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-accent"
+			data-slot="stream-tooltip-trigger"
 			{...props}
 			onclick={async () => {
 				await app.open(channel);
@@ -47,33 +48,37 @@
 
 {#snippet indicators()}
 	{#if channel.pinned}
-		<PushPin />
+		<PushPin data-slot="stream-tooltip-pinned-icon" />
 	{/if}
 
 	{#if channel.ephemeral}
-		<ClockCountdown />
+		<ClockCountdown data-slot="stream-tooltip-ephemeral-icon" />
 	{/if}
 {/snippet}
 
 {#snippet details()}
 	{#if channel.stream}
-		<div class="space-y-0.5">
+		<div class="space-y-0.5" data-slot="stream-tooltip-details">
 			{#if !sidebar.collapsed}
-				<div class="flex items-center gap-1">
+				<div class="flex items-center gap-1" data-slot="stream-tooltip-header">
 					{@render indicators()}
 
 					<div
 						class="overflow-hidden text-ellipsis whitespace-nowrap text-twitch dark:text-twitch-link"
+						data-slot="stream-tooltip-channel"
 					>
 						{channel.user.displayName} &bullet; {channel.stream.game}
 					</div>
 				</div>
 			{/if}
 
-			<p class="line-clamp-2">{channel.stream.title}</p>
+			<p class="line-clamp-2" data-slot="stream-tooltip-title">{channel.stream.title}</p>
 
 			{#if !sidebar.collapsed}
-				<div class="flex items-center text-red-500 dark:text-red-400">
+				<div
+					class="flex items-center text-red-500 dark:text-red-400"
+					data-slot="stream-tooltip-viewers"
+				>
 					<Users class="mr-1 size-3" />
 
 					<p class="text-xs">
@@ -87,7 +92,7 @@
 			{/if}
 		</div>
 	{:else if !sidebar.collapsed}
-		<div class="flex items-center gap-1">
+		<div class="flex items-center gap-1" data-slot="stream-tooltip-header">
 			{@render indicators()}
 			{channel.user.displayName}
 		</div>

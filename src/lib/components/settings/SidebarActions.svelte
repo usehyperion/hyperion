@@ -18,7 +18,7 @@
 	}
 </script>
 
-<div class="space-y-0.5 *:w-full *:justify-start">
+<div class="space-y-0.5 *:w-full *:justify-start" data-component="settings-sidebar-actions">
 	<Button class="text-muted-foreground" variant="ghost" onclick={openLogDir}>
 		<FolderOpen />
 		<span class="text-sm">Open logs</span>

@@ -66,11 +66,16 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="relative flex size-full flex-col" onfocusin={setFocus} onpointerdowncapture={setFocus}>
+<div
+	class="relative flex size-full flex-col"
+	data-component="split-view"
+	onfocusin={setFocus}
+	onpointerdowncapture={setFocus}
+>
 	<TabBar {pane} />
 
 	<div class="relative h-full min-h-0">
-		<div class="h-full">
+		<div class="h-full" data-slot="split-view-content">
 			{#if channel}
 				{#key channel.id}
 					<Channel {channel} />
@@ -105,6 +110,7 @@
 				overlayClass ? "opacity-100" : "opacity-0",
 				overlayClass ?? "inset-0",
 			]}
+			data-slot="split-view-drop-overlay"
 		></div>
 	</div>
 </div>

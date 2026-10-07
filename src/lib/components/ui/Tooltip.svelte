@@ -19,8 +19,8 @@
 	</Tooltip.Trigger>
 
 	<Tooltip.Portal>
-		<Tooltip.Content sideOffset={6} {...rest}>
-			<Tooltip.Arrow class="text-neutral-800" />
+		<Tooltip.Content sideOffset={6} data-component="tooltip" {...rest}>
+			<Tooltip.Arrow class="text-neutral-800" data-slot="tooltip-arrow" />
 
 			{@render children()}
 		</Tooltip.Content>

@@ -17,19 +17,25 @@
 
 <div
 	class="my-0.5 border-l-4 border-red-500 bg-muted/50 p-2"
+	data-component="automod-message"
 	data-deleted={message.deleted ? settings.state["moderation.deleted.appearance"] : undefined}
 >
-	<div class="mb-2 flex w-full items-start justify-between gap-x-4">
-		<div>
+	<div
+		class="mb-2 flex w-full items-start justify-between gap-x-4"
+		data-slot="automod-message-header"
+	>
+		<div data-slot="automod-message-notice">
 			<img
 				class="inline align-middle"
 				src="https://static-cdn.jtvnw.net/badges/v1/df9095f6-a8a0-4cc2-bb33-d908c0adffb8/3"
 				alt="AutoMod"
 				width="18"
 				height="18"
+				data-slot="automod-message-icon"
 			/>
 
-			<span class="font-semibold text-twitch">AutoMod</span>:
+			<span class="font-semibold text-twitch" data-slot="automod-message-label">AutoMod</span
+			>:
 
 			{#if metadata.category === "msg_hold"}
 				Your message is being held for review by the moderators and has not been sent.
@@ -40,7 +46,7 @@
 		</div>
 
 		{#if metadata.category !== "msg_hold"}
-			<div class="flex gap-x-4">
+			<div class="flex gap-x-4" data-slot="automod-message-actions">
 				<Button
 					class="text-green-400"
 					variant="inline"

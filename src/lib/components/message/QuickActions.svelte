@@ -63,12 +63,13 @@
 			]}
 			role="group"
 			aria-label="Message actions"
+			data-component="quick-actions"
 		>
 			{@render action({ icon: Clipboard, label: "Copy", onclick: copy })}
 			{@render action({ icon: ArrowBendUpLeft, label: "Reply", onclick: reply })}
 
 			{#if message.actionable && settings.state["moderation.quickActions.show"]}
-				<div class="h-4">
+				<div class="h-4" data-slot="quick-actions-separator">
 					<Separator orientation="vertical" class="mx-1 self-center" />
 				</div>
 
@@ -96,7 +97,7 @@
 		</div>
 
 		<Tooltip.Portal>
-			<Tooltip.Content collisionPadding={6} sideOffset={8}>
+			<Tooltip.Content collisionPadding={6} sideOffset={8} data-slot="quick-actions-tooltip">
 				<Tooltip.Arrow class="text-neutral-800" />
 				{payload?.label}
 			</Tooltip.Content>

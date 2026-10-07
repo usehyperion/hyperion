@@ -183,19 +183,19 @@
 		opacity: 0.5;
 	}
 
-	[data-deleted="strike"] [data-slot="message-content"] {
+	[data-deleted="strike"] [data-component="message-content"] {
 		text-decoration: line-through;
 		text-decoration-thickness: 1px;
 	}
 
-	[data-deleted="blur"] [data-slot="message-content"] {
+	[data-deleted="blur"] [data-component="message-content"] {
 		@apply transition-[filter,opacity] duration-150 ease-out-quad;
 
 		filter: blur(4px);
 		opacity: 0.65;
 	}
 
-	[data-deleted="blur"]:is(:hover, :focus-within) [data-slot="message-content"] {
+	[data-deleted="blur"]:is(:hover, :focus-within) [data-component="message-content"] {
 		filter: none;
 		opacity: 1;
 	}

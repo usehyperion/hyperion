@@ -67,6 +67,7 @@
 
 <div
 	class="relative flex min-h-title-bar w-full shrink-0 items-center justify-between border-b"
+	data-component="title-bar"
 	data-tauri-drag-region
 >
 	<div
@@ -75,13 +76,18 @@
 			platform === "macos" && (fullscreen ? "pl-3" : "pl-20"),
 			["windows", "linux"].includes(platform) && "pl-3",
 		]}
+		data-slot="title-bar-start"
 		data-tauri-drag-region
 	>
-		<img class="size-4" src="/logo.svg" alt="Hyperion logo" />
+		<img class="size-4" data-slot="title-bar-logo" src="/logo.svg" alt="Hyperion logo" />
 	</div>
 
 	{#if app.user}
-		<div class="flex items-center justify-center gap-1.5" data-tauri-drag-region>
+		<div
+			class="flex items-center justify-center gap-1.5"
+			data-slot="title-bar-nav"
+			data-tauri-drag-region
+		>
 			<Button
 				class="size-min p-1 hover:text-foreground"
 				size="icon"
@@ -104,6 +110,7 @@
 
 			<button
 				class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-[background-color,scale] hover:bg-accent active:scale-[0.96]"
+				data-slot="title-bar-search"
 				command="show-modal"
 				commandfor="join-dialog"
 			>
@@ -122,7 +129,10 @@
 				<Chats />
 
 				{#if hasUnread}
-					<span class="pointer-events-none absolute top-0.5 right-0.5 flex size-1.5">
+					<span
+						class="pointer-events-none absolute top-0.5 right-0.5 flex size-1.5"
+						data-slot="title-bar-unread-indicator"
+					>
 						<span
 							class="absolute inline-flex size-full animate-ping rounded-full bg-red-400 opacity-75 motion-reduce:hidden"
 						></span>
@@ -133,7 +143,7 @@
 		</div>
 	{/if}
 
-	<div class="flex items-center justify-end" data-tauri-drag-region>
+	<div class="flex items-center justify-end" data-slot="title-bar-end" data-tauri-drag-region>
 		<div class="pr-3">
 			<Button
 				class="size-min p-1 text-muted-foreground"
@@ -148,7 +158,7 @@
 		</div>
 
 		{#if platform === "windows"}
-			<div class="flex">
+			<div class="flex" data-slot="title-bar-controls">
 				{@render control("minimize", {
 					onclick: () => currentWindow?.minimize(),
 				})}
@@ -170,6 +180,7 @@
 {#snippet control(type: ControlType, rest: HTMLButtonAttributes)}
 	<button
 		class="flex h-title-bar w-12 items-center justify-center bg-transparent text-[10px] font-light transition-colors hover:bg-white/10 hover:data-[control=close]:bg-[#ff0000]/70"
+		data-slot="title-bar-control"
 		data-control={type}
 		{...rest}
 	>

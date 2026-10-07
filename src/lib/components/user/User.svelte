@@ -72,6 +72,8 @@
 		popovertarget={popoverId}
 		disabled={nested}
 		style={getMentionStyle()}
+		data-component="user"
+		data-variant="mention"
 		onpointerdown={() => (opened = true)}
 		onfocus={() => (opened = true)}
 	>
@@ -83,6 +85,8 @@
 		popovertarget={popoverId}
 		disabled={nested}
 		style={message.author.style}
+		data-component="user"
+		data-variant="author"
 		onpointerdown={() => (opened = true)}
 		onfocus={() => (opened = true)}
 	>
@@ -107,7 +111,7 @@
 		(m): m is UserMessage => m.isUser() && m.author.id === user.id,
 	)}
 
-	<div class="h-18 bg-twitch" style:background-color={user.color}>
+	<div class="h-18 bg-twitch" style:background-color={user.color} data-slot="user-card-banner">
 		{#if user.bannerUrl}
 			<img
 				class="size-full object-cover"
@@ -119,10 +123,11 @@
 		{/if}
 	</div>
 
-	<div class="relative border-t p-4">
+	<div class="relative border-t p-4" data-slot="user-card-body">
 		<Avatar.Root class="-mt-14">
 			<div
 				class="flex size-20 items-center justify-center overflow-hidden rounded-full border-4 border-popover bg-primary"
+				data-slot="user-card-avatar"
 			>
 				<Avatar.Image src={user.avatarUrl} alt={user.displayName} />
 
@@ -132,7 +137,10 @@
 			</div>
 		</Avatar.Root>
 
-		<div class="absolute top-2 right-2 space-y-1 text-xs text-muted-foreground">
+		<div
+			class="absolute top-2 right-2 space-y-1 text-xs text-muted-foreground"
+			data-slot="user-card-meta"
+		>
 			<div class="flex items-center gap-1">
 				<Cake class="mr-1 size-3" />
 
@@ -184,14 +192,16 @@
 		</div>
 
 		<div class="mt-1 flex flex-col gap-y-2">
-			<span class="font-semibold" style={user.style}>{user.displayName}</span>
+			<span class="font-semibold" style={user.style} data-slot="user-card-name"
+				>{user.displayName}</span
+			>
 
 			{#if relationship?.badges.length}
 				{@const badges = showAllBadges
 					? relationship.badges
 					: relationship.badges.slice(0, 10)}
 
-				<div class="flex flex-wrap items-center gap-1">
+				<div class="flex flex-wrap items-center gap-1" data-slot="user-card-badges">
 					{#each badges as badge (badge.id)}
 						<img
 							class="size-4"
@@ -215,13 +225,13 @@
 			{/if}
 
 			{#if user.bio}
-				<p class="text-xs text-muted-foreground">{user.bio}</p>
+				<p class="text-xs text-muted-foreground" data-slot="user-card-bio">{user.bio}</p>
 			{/if}
 		</div>
 	</div>
 
 	{#if history.length}
-		<div class="max-h-40 overflow-y-auto border-t px-4 py-2">
+		<div class="max-h-40 overflow-y-auto border-t px-4 py-2" data-slot="user-card-history">
 			{#each history.toReversed() as message (message.id)}
 				<div class="origin-left scale-80">
 					<Message {message} nested />

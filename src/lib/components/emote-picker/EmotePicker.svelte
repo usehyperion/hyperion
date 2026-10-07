@@ -97,16 +97,22 @@
 </InputGroup.Button>
 
 <Popover id="emote-picker-{channel.id}" class="h-100 w-120 flex-col overflow-hidden p-0 open:flex">
-	<Tabs.Root class="flex min-h-0 flex-1 flex-col" bind:value={activeProvider}>
-		<Tabs.List class="flex shrink-0 border-b">
+	<Tabs.Root
+		class="flex min-h-0 flex-1 flex-col"
+		data-component="emote-picker"
+		bind:value={activeProvider}
+	>
+		<Tabs.List class="flex shrink-0 border-b" data-slot="emote-picker-tab-list">
 			{#each TABS as tab (tab.provider)}
 				<Tabs.Trigger
 					class="group flex flex-1 justify-center py-2 transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-40 data-[state=active]:bg-accent"
+					data-slot="emote-picker-tab"
 					value={tab.provider}
 					disabled={!providerSets[tab.provider]?.length}
 				>
 					<tab.icon
 						class="size-4 fill-muted-foreground group-hover:fill-foreground group-data-[state=active]:fill-foreground"
+						data-slot="emote-picker-tab-icon"
 					/>
 				</Tabs.Trigger>
 			{/each}
@@ -120,7 +126,11 @@
 		/>
 
 		{#each TABS as tab (tab.provider)}
-			<Tabs.Content class="flex min-h-0 flex-1 flex-col" value={tab.provider}>
+			<Tabs.Content
+				class="flex min-h-0 flex-1 flex-col"
+				data-slot="emote-picker-tab-content"
+				value={tab.provider}
+			>
 				{#if query}
 					<Results emotes={results} onpick={appendEmote} />
 				{:else}

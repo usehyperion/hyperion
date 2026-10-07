@@ -76,17 +76,22 @@
 	}
 </script>
 
-<div class="p-2 text-sm">
-	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
-		<SealQuestion class="size-3 shrink-0" />
+<div class="p-2 text-sm" data-component="prediction" data-status={prediction.status}>
+	<div
+		class="mb-1 flex items-center gap-1 text-xs text-muted-foreground"
+		data-slot="prediction-header"
+	>
+		<SealQuestion class="size-3 shrink-0" data-slot="prediction-icon" />
 
-		<span class="truncate">
+		<span class="truncate" data-slot="prediction-label">
 			Prediction {#if prediction.creator}by <Username user={prediction.creator} />{/if}
 		</span>
 
-		<span class="ml-auto shrink-0 whitespace-nowrap">{status}</span>
+		<span class="ml-auto shrink-0 whitespace-nowrap" data-slot="prediction-status"
+			>{status}</span
+		>
 
-		<div class="flex shrink-0 items-center gap-0.5">
+		<div class="flex shrink-0 items-center gap-0.5" data-slot="prediction-actions">
 			{#if prediction.channel.isMod}
 				{#if prediction.status === "ACTIVE"}
 					<NoticeAction
@@ -110,10 +115,10 @@
 		</div>
 	</div>
 
-	<p class="mb-1.5 font-medium">{prediction.title}</p>
+	<p class="mb-1.5 font-medium" data-slot="prediction-title">{prediction.title}</p>
 
 	{#if expanded}
-		<ul class="flex flex-col gap-1.5">
+		<ul class="flex flex-col gap-1.5" data-slot="prediction-outcomes">
 			{#each prediction.outcomes as outcome, i (outcome.id)}
 				{@const pct = percent(outcome.points)}
 				{@const won =
@@ -121,16 +126,29 @@
 				{@const lost =
 					prediction.status === "RESOLVED" && prediction.winningOutcomeId !== outcome.id}
 
-				<li class="flex flex-col">
-					<div class="mb-0.5 flex items-center gap-1.5">
-						<span class="truncate">{outcome.title}</span>
+				<li
+					class="flex flex-col"
+					data-slot="prediction-outcome"
+					data-winner={won ? true : null}
+				>
+					<div
+						class="mb-0.5 flex items-center gap-1.5"
+						data-slot="prediction-outcome-header"
+					>
+						<span class="truncate" data-slot="prediction-outcome-title"
+							>{outcome.title}</span
+						>
 
 						{#if won}
-							<Crown class="size-3 shrink-0 text-yellow-400" />
+							<Crown
+								class="size-3 shrink-0 text-yellow-400"
+								data-slot="prediction-outcome-winner-icon"
+							/>
 						{/if}
 
 						<span
 							class="ml-auto shrink-0 text-xs whitespace-nowrap text-muted-foreground tabular-nums"
+							data-slot="prediction-outcome-points"
 						>
 							{pct}% ({outcome.points.toLocaleString()})
 						</span>
@@ -198,7 +216,7 @@
 			{/each}
 		</ul>
 
-		<p class="mt-1.5 text-xs text-muted-foreground tabular-nums">
+		<p class="mt-1.5 text-xs text-muted-foreground tabular-nums" data-slot="prediction-total">
 			{prediction.totalPoints.toLocaleString()} points ·
 			{prediction.totalUsers.toLocaleString()}
 			{prediction.totalUsers === 1 ? "predictor" : "predictors"}

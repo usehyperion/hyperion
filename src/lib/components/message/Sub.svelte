@@ -28,16 +28,21 @@
 	const { message, sub }: Props = $props();
 </script>
 
-<div class="my-0.5 border-l-4 bg-muted/50 p-2" style:border-color={message.source.user.color}>
-	<div class="flex gap-1">
+<div
+	class="my-0.5 border-l-4 bg-muted/50 p-2"
+	style:border-color={message.source.user.color}
+	data-component="sub-message"
+	data-type={sub.type}
+>
+	<div class="flex gap-1" data-slot="sub-message-header">
 		{#if sub.type === "sub_or_resub" || sub.type === "prime_paid_upgrade" || sub.type === "gift_paid_upgrade"}
 			{#if sub.type === "sub_or_resub" && sub.sub_plan === "Prime"}
-				<PrimeCrown class="fill-current" />
+				<PrimeCrown class="fill-current" data-slot="sub-message-icon" />
 			{:else}
-				<Star class="mt-0.5 shrink-0" />
+				<Star class="mt-0.5 shrink-0" data-slot="sub-message-icon" />
 			{/if}
 		{:else}
-			<Gift class="mt-px shrink-0" />
+			<Gift class="mt-px shrink-0" data-slot="sub-message-icon" />
 		{/if}
 
 		{#if sub.type === "sub_or_resub"}
@@ -171,7 +176,7 @@
 	</div>
 
 	{#if message.text}
-		<div class="mt-2">
+		<div class="mt-2" data-slot="sub-message-body">
 			<Message {message} />
 		</div>
 	{/if}

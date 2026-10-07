@@ -49,11 +49,12 @@
 	}
 </script>
 
-<div class="flex h-8 shrink-0 items-center border-b bg-sidebar" data-slot="tab-bar">
+<div class="flex h-8 shrink-0 items-center border-b bg-sidebar" data-component="tab-bar">
 	<div
 		class="flex h-full min-w-0 grow scrollbar-none items-stretch overflow-x-auto"
 		role="tablist"
 		tabindex="-1"
+		data-slot="tab-bar-tabs"
 		{@attach droppable.attach}
 	>
 		{#each pane.tabs as tab, index (tab.id)}
@@ -61,11 +62,18 @@
 		{/each}
 
 		{#if showDropIndicator}
-			<div class="w-0.5 shrink-0 self-stretch bg-primary" aria-hidden="true"></div>
+			<div
+				class="w-0.5 shrink-0 self-stretch bg-primary"
+				aria-hidden="true"
+				data-slot="tab-bar-drop-indicator"
+			></div>
 		{/if}
 	</div>
 
-	<div class="flex shrink-0 items-center gap-x-1 px-1 text-muted-foreground">
+	<div
+		class="flex shrink-0 items-center gap-x-1 px-1 text-muted-foreground"
+		data-slot="tab-bar-actions"
+	>
 		{#if channel?.stream?.guests.size}
 			<GuestList {channel} />
 		{/if}
@@ -107,7 +115,7 @@
 </div>
 
 <style>
-	[data-slot="tab-bar"] :global(button:hover) {
+	[data-component="tab-bar"] :global(button:hover) {
 		color: var(--color-foreground);
 	}
 </style>

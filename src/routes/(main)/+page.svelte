@@ -114,11 +114,14 @@
 	}
 </script>
 
-<div class="h-full">
+<div class="h-full" data-component="home-page">
 	{#if app.splits.root}
 		<SplitNode node={app.splits.root} />
 	{:else if loading}
-		<div class="flex size-full flex-col items-center justify-center">
+		<div
+			class="flex size-full flex-col items-center justify-center"
+			data-slot="home-page-loading"
+		>
 			<Spinner class="size-6 animate-spin" />
 			<span class="mt-2 text-lg font-medium">Loading</span>
 		</div>

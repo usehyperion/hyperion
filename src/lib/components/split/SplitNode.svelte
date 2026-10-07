@@ -21,10 +21,11 @@
 {:else}
 	<PaneGroup
 		class="size-full"
+		data-component="split-node"
 		direction={node.axis}
 		onLayoutChange={(layout) => app.splits.resize(node.id, layout)}
 	>
-		<Pane defaultSize={node.before.size} minSize={10}>
+		<Pane data-slot="split-node-pane" defaultSize={node.before.size} minSize={10}>
 			<Self node={node.before} />
 		</Pane>
 
@@ -33,9 +34,10 @@
 				"relative flex items-center justify-center bg-muted transition-colors hover:bg-blue-400",
 				node.axis === "horizontal" ? "w-1 cursor-col-resize" : "h-1 cursor-row-resize",
 			]}
+			data-slot="split-node-resizer"
 		/>
 
-		<Pane defaultSize={node.after.size} minSize={10}>
+		<Pane data-slot="split-node-pane" defaultSize={node.after.size} minSize={10}>
 			<Self node={node.after} />
 		</Pane>
 	</PaneGroup>

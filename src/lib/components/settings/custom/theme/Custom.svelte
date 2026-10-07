@@ -20,7 +20,7 @@
 	}
 </script>
 
-<div class="flex items-center gap-x-2">
+<div class="flex items-center gap-x-2" data-slot="theme-custom-actions">
 	<Button size="sm" onclick={openThemeDir}>Open folder</Button>
 
 	<Button
@@ -49,7 +49,10 @@
 							</Field.Description>
 						{/if}
 
-						<div class="flex h-5 items-center gap-x-2 text-xs text-muted-foreground">
+						<div
+							class="flex h-5 items-center gap-x-2 text-xs text-muted-foreground"
+							data-slot="theme-custom-meta"
+						>
 							{theme.author}
 
 							{#if theme.repository}
@@ -59,6 +62,7 @@
 									href={theme.repository}
 									target="_blank"
 									rel="noreferrer noopener"
+									data-slot="theme-custom-repository"
 								>
 									Repository
 								</a>
@@ -76,5 +80,5 @@
 		{/each}
 	</RadioGroup.Root>
 {:else}
-	<p class="text-sm text-muted-foreground">No themes installed.</p>
+	<p class="text-sm text-muted-foreground" data-slot="theme-custom-empty">No themes installed.</p>
 {/if}

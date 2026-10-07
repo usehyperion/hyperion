@@ -8,4 +8,6 @@
 	const { user }: Props = $props();
 </script>
 
-<span class="font-semibold" style:color={user.color}>{user.displayName}</span>
+<span class="font-semibold" style:color={user.color} data-component="username"
+	>{user.displayName}</span
+>

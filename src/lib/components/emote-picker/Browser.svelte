@@ -58,11 +58,12 @@
 	}
 </script>
 
-<div class="flex min-h-0 flex-1">
+<div class="flex min-h-0 flex-1" data-component="emote-picker-browser">
 	<ProviderRail {sets} activeId={activeSet} onselect={scrollToSet} />
 
 	<Accordion.Root
 		class="min-w-0 flex-1 divide-y overflow-y-auto overscroll-none border-l"
+		data-slot="emote-picker-browser-sets"
 		type="multiple"
 		bind:value={open}
 	>
@@ -70,31 +71,43 @@
 			<Accordion.Item
 				id={set.id}
 				class="group flex flex-col"
+				data-slot="emote-picker-browser-set"
 				value={set.id}
 				{@attach observe}
 			>
-				<Accordion.Header class="sticky top-0 z-10 bg-sidebar p-2">
+				<Accordion.Header
+					class="sticky top-0 z-10 bg-sidebar p-2"
+					data-slot="emote-picker-browser-set-header"
+				>
 					<Accordion.Trigger class="group flex w-full items-center justify-between">
 						<div class="flex items-center">
 							<img
 								class="mr-2 size-5 rounded-full object-contain ring-1 ring-black/10 dark:ring-white/10"
 								src={set.owner.avatarUrl}
 								alt={set.owner.displayName}
+								data-slot="emote-picker-browser-set-avatar"
 								decoding="async"
 								loading="lazy"
 							/>
 
-							<span class="text-sm font-medium">{set.name}</span>
+							<span
+								class="text-sm font-medium"
+								data-slot="emote-picker-browser-set-name">{set.name}</span
+							>
 						</div>
 
 						<CaretRight
 							class="text-muted-foreground group-data-[state=open]:rotate-90"
+							data-slot="emote-picker-browser-set-caret"
 						/>
 					</Accordion.Trigger>
 				</Accordion.Header>
 
 				{#if open.includes(set.id)}
-					<Accordion.Content class="grid grid-cols-9 gap-1.5 px-2 pb-2">
+					<Accordion.Content
+						class="grid grid-cols-9 gap-1.5 px-2 pb-2"
+						data-slot="emote-picker-browser-set-emotes"
+					>
 						<EmoteGrid emotes={set.emotes} {onpick} />
 					</Accordion.Content>
 				{/if}

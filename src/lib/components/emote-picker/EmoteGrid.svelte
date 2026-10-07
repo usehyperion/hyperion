@@ -25,10 +25,12 @@
 		class="w-full"
 		title={emote.displayName}
 		type="button"
+		data-slot="emote-picker-grid-emote"
 		onclick={() => onpick(emote.displayName)}
 	>
 		<div
 			class="aspect-square w-full bg-contain bg-center bg-no-repeat"
+			data-slot="emote-picker-grid-emote-image"
 			style:background-image={toImageSet(emote.srcset)}
 		></div>
 	</button>

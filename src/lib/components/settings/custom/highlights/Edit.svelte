@@ -30,7 +30,7 @@
 
 <Dialog id={dialogId}>
 	{#snippet header()}
-		<h2>Edit pattern</h2>
+		<h2 data-slot="highlight-edit-title">Edit pattern</h2>
 	{/snippet}
 
 	<Field.Field>

@@ -86,7 +86,7 @@
 		<Field.Label>Outcomes</Field.Label>
 
 		{#each outcomes as _, index (index)}
-			<div class="flex items-center gap-1">
+			<div class="flex items-center gap-1" data-slot="prediction-dialog-outcome">
 				<Input
 					placeholder="Outcome {index + 1}"
 					maxlength={OUTCOME_MAX}

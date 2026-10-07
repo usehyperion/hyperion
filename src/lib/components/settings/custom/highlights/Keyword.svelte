@@ -30,7 +30,7 @@
 	}
 </script>
 
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-2" data-component="highlight-keyword">
 	{#if keywords.length === 0}
 		<Empty.Root class="border border-dashed py-8">
 			<Empty.Header>
@@ -55,17 +55,26 @@
 			bind:config={keywords[i]}
 		>
 			{#snippet badges()}
-				<div class="flex shrink-0 items-center gap-1.5 text-muted-foreground">
+				<div
+					class="flex shrink-0 items-center gap-1.5 text-muted-foreground"
+					data-slot="highlight-keyword-badges"
+				>
 					{#if config.matchCase}
-						<span title="Match case"><CaseSensitive class="size-4" /></span>
+						<span title="Match case" data-slot="highlight-keyword-badge"
+							><CaseSensitive class="size-4" /></span
+						>
 					{/if}
 
 					{#if config.wholeWord}
-						<span title="Match whole word"><WholeWord class="size-4" /></span>
+						<span title="Match whole word" data-slot="highlight-keyword-badge"
+							><WholeWord class="size-4" /></span
+						>
 					{/if}
 
 					{#if config.regex}
-						<span title="Regular expression"><Regex class="size-4" /></span>
+						<span title="Regular expression" data-slot="highlight-keyword-badge"
+							><Regex class="size-4" /></span
+						>
 					{/if}
 				</div>
 			{/snippet}

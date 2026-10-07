@@ -10,10 +10,11 @@
 
 <div
 	class="rounded-t-md border border-b-0 border-muted bg-muted/50 px-3 py-2.5 text-sm transition-colors duration-200 has-[+div>input:focus-visible]:border-input"
+	data-component="chat-error"
 >
 	<div class="flex gap-1">
-		<Warning class="mt-px shrink-0 text-yellow-400" />
+		<Warning class="mt-px shrink-0 text-yellow-400" data-slot="chat-error-icon" />
 
-		<p class="text-muted-foreground">{message}</p>
+		<p class="text-muted-foreground" data-slot="chat-error-message">{message}</p>
 	</div>
 </div>

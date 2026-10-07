@@ -16,6 +16,7 @@
 	title="Change color"
 	aria-label="Toggle color picker"
 	style:--highlight={value}
+	data-component="highlight-color"
 ></button>
 
 <Popover id="color-picker-{id}" class="w-60">

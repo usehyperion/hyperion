@@ -68,6 +68,7 @@
 		draggable.isDragging && "opacity-50",
 		droppable.isDropTarget && "shadow-[inset_2px_0_0_var(--color-primary)]",
 	]}
+	data-component="tab"
 	role="tab"
 	tabindex="-1"
 	aria-selected={active}
@@ -81,14 +82,15 @@
 			class="size-4 shrink-0 rounded-full"
 			src={channel.user.avatarUrl}
 			alt=""
+			data-slot="tab-avatar"
 			width="150"
 			height="150"
 			draggable="false"
 		/>
 
-		<span class="truncate">{channel.user.displayName}</span>
+		<span class="truncate" data-slot="tab-label">{channel.user.displayName}</span>
 	{:else}
-		<span class="truncate">{id}</span>
+		<span class="truncate" data-slot="tab-label">{id}</span>
 	{/if}
 
 	<button
@@ -97,6 +99,7 @@
 			!active && "opacity-0 group-hover:opacity-100",
 		]}
 		aria-label="Close tab"
+		data-slot="tab-close"
 		onclick={close}
 	>
 		<X class="size-3" />

@@ -10,9 +10,15 @@
 	const { sets, activeId, onselect }: Props = $props();
 </script>
 
-<div class="flex flex-col gap-3 overflow-y-auto p-2">
+<div class="flex flex-col gap-3 overflow-y-auto p-2" data-component="emote-picker-provider-rail">
 	{#each sets as set (set.id)}
-		<button class="group" type="button" onclick={() => onselect(set.id)}>
+		<button
+			class="group"
+			data-slot="emote-picker-provider-rail-item"
+			data-active={activeId === set.id ? true : null}
+			type="button"
+			onclick={() => onselect(set.id)}
+		>
 			<img
 				class={[
 					"size-7 rounded-full object-contain ring-1 ring-black/10 dark:ring-white/10",
@@ -20,6 +26,7 @@
 				]}
 				src={set.owner.avatarUrl}
 				alt={set.owner.displayName}
+				data-slot="emote-picker-provider-rail-avatar"
 				decoding="async"
 				loading="lazy"
 			/>

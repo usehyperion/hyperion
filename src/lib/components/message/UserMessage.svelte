@@ -73,6 +73,7 @@
 <div
 	class="group relative"
 	aria-disabled={message.deleted}
+	data-component="user-message"
 	data-deleted={message.deleted ? settings.state["moderation.deleted.appearance"] : undefined}
 	oncontextmenu={(event) => openMenu(event, () => createMessageMenu(message))}
 >
@@ -86,6 +87,7 @@
 		<div
 			class="my-0.5 border-l-4 bg-muted/50 p-2"
 			style:border-color={message.source.user.color}
+			data-slot="user-message-highlighted"
 		>
 			<Message {message} />
 		</div>
@@ -109,19 +111,25 @@
 </div>
 
 {#snippet content(bordered: boolean)}
-	<div class={["py-2 not-group-aria-disabled:hover:bg-muted/50", bordered ? "px-1.5" : "px-3"]}>
+	<div
+		class={["py-2 not-group-aria-disabled:hover:bg-muted/50", bordered ? "px-1.5" : "px-3"]}
+		data-slot="user-message-body"
+	>
 		{#if message.reply}
 			{@const viewer = message.channel.viewers.get(message.reply.parent.user.id)}
 
-			<div class="mb-0.5 flex items-center gap-2">
-				<ArrowBendUpRight class="ml-1 shrink-0 scale-x-125 text-muted-foreground" />
+			<div class="mb-0.5 flex items-center gap-2" data-slot="user-message-reply">
+				<ArrowBendUpRight
+					class="ml-1 shrink-0 scale-x-125 text-muted-foreground"
+					data-slot="user-message-reply-icon"
+				/>
 
 				<div class="line-clamp-1 text-xs">
-					<span style={getMentionStyle(viewer)}>
+					<span style={getMentionStyle(viewer)} data-slot="user-message-reply-author">
 						@{message.reply.parent.user.name}
 					</span>:
 
-					<p class="inline text-muted-foreground">
+					<p class="inline text-muted-foreground" data-slot="user-message-reply-content">
 						{message.reply.parent.message_text}
 					</p>
 				</div>
