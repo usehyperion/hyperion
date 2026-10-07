@@ -201,7 +201,7 @@
 	}
 
 	[data-tooltip-content] {
-		@apply text-xs smooth-shadow-ring-md;
+		@apply z-50 text-xs smooth-shadow-ring-md;
 
 		width: max-content;
 		border-radius: var(--radius-lg);
