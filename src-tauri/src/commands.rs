@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, async_runtime};
+use tauri::AppHandle;
 use tauri_plugin_cache::CacheExt;
-use tracing::Instrument;
 
 use crate::HTTP;
 use crate::error::Error;
@@ -13,55 +12,51 @@ struct RecentMessages {
     messages: Vec<String>,
 }
 
-#[tracing::instrument(skip(app_handle))]
+#[tracing::instrument]
 #[tauri::command]
-pub async fn fetch_recent_messages(app_handle: AppHandle, channel: String, limit: u32) {
+pub async fn fetch_recent_messages(
+    channel: String,
+    limit: u32,
+) -> Result<Vec<ServerMessage>, Error> {
     const BASE_URL: &str = "https://recent-messages.robotty.de/api/v2/recent-messages";
 
-    // Return early to prevent wakeups
     if limit == 0 {
         tracing::debug!("History limit is 0, skipping request");
-        return;
+        return Ok(Vec::new());
     }
 
-    async_runtime::spawn(
-        async move {
-            let response: RecentMessages = HTTP
-                .get(format!("{BASE_URL}/{channel}?limit={limit}",))
-                .send()
-                .await?
-                .json()
-                .await?;
+    let response: RecentMessages = HTTP
+        .get(format!("{BASE_URL}/{channel}?limit={limit}",))
+        .send()
+        .await?
+        .json()
+        .await?;
 
-            tracing::info!("Fetched {} recent messages", response.messages.len());
+    tracing::info!("Fetched {} recent messages", response.messages.len());
 
-            let server_messages: Vec<_> = response
-                .messages
-                .into_iter()
-                .filter_map(|msg| {
-                    let irc_message = match IrcMessage::parse(&msg) {
-                        Ok(msg) => msg,
-                        Err(err) => {
-                            tracing::warn!(%err, "Failed to parse IRC message");
-                            return None;
-                        }
-                    };
+    let server_messages = response
+        .messages
+        .into_iter()
+        .filter_map(|msg| {
+            let irc_message = match IrcMessage::parse(&msg) {
+                Ok(msg) => msg,
+                Err(err) => {
+                    tracing::warn!(%err, "Failed to parse IRC message");
+                    return None;
+                }
+            };
 
-                    match ServerMessage::try_from(irc_message) {
-                        Ok(server_msg) => Some(server_msg),
-                        Err(err) => {
-                            tracing::warn!(%err, "Failed to convert to ServerMessage");
-                            None
-                        }
-                    }
-                })
-                .collect();
+            match ServerMessage::try_from(irc_message) {
+                Ok(server_msg) => Some(server_msg),
+                Err(err) => {
+                    tracing::warn!(%err, "Failed to convert to ServerMessage");
+                    None
+                }
+            }
+        })
+        .collect();
 
-            app_handle.emit("recentmessages", server_messages).unwrap();
-            Ok::<_, Error>(())
-        }
-        .in_current_span(),
-    );
+    Ok(server_messages)
 }
 
 #[tauri::command]
