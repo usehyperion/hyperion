@@ -18,7 +18,7 @@ export default {
 					type: "switch",
 					label: "Automatically install updates",
 					description:
-						"Download new versions in the background and install them the next time Hyperion restarts.",
+						"Download new versions in the background and install them the next time the app restarts.",
 				},
 			],
 		},

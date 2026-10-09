@@ -62,8 +62,6 @@ class Updater {
 	/**
 	 * Downloads the update and, where possible, installs it so it takes effect
 	 * on the next launch.
-	 *
-	 * @param options.silent Only surface the dialog once the update is ready.
 	 */
 	public async download({ silent = false } = {}) {
 		if (!this.update || this.status === "downloading") return;
@@ -110,8 +108,7 @@ class Updater {
 	}
 
 	/**
-	 * Runs the installer when the main window is closed so a downloaded update
-	 * still gets applied if the user never restarts from the dialog.
+	 * Runs the installer when the main window is closed.
 	 */
 	async #installOnClose() {
 		if (this.#unlisten) return;
