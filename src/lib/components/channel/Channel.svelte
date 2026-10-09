@@ -1,12 +1,7 @@
 <script lang="ts">
-	import { listen } from "@tauri-apps/api/event";
-	import type { UnlistenFn } from "@tauri-apps/api/event";
-	import { onDestroy, onMount } from "svelte";
+	import { onMount } from "svelte";
 
 	import type { Channel } from "#lib/models/channel.svelte.js";
-	import type { IrcMessage } from "#lib/twitch/irc.js";
-
-	import { handlers } from "#lib/handlers/index.js";
 
 	import Chat from "../chat/Chat.svelte";
 	import ChatInput from "../chat/ChatInput.svelte";
@@ -24,21 +19,7 @@
 	// svelte-ignore state_referenced_locally
 	const chat = channel.chat;
 
-	let unlisten: UnlistenFn | undefined;
-
-	onMount(async () => {
-		await channel.join();
-
-		unlisten = await listen<IrcMessage[]>("recentmessages", async (event) => {
-			for (const message of event.payload) {
-				// Needs to be sequential
-				// oxlint-disable-next-line no-await-in-loop
-				await handlers.get(message.type)?.handle(message);
-			}
-		});
-	});
-
-	onDestroy(() => unlisten?.());
+	onMount(() => channel.join());
 </script>
 
 <div class="flex h-full flex-col">

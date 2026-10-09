@@ -3,6 +3,7 @@ import * as cache from "tauri-plugin-cache-api";
 
 import type { Cheermote, PredictionOutcome } from "#lib/graphql/twitch.js";
 import type { TwitchClient } from "#lib/twitch/client.js";
+import type { IrcMessage } from "#lib/twitch/irc.js";
 
 import { app } from "#lib/app.svelte.js";
 import {
@@ -21,6 +22,8 @@ import {
 	shoutoutMutation,
 	createMarkerMutation,
 } from "#lib/graphql/twitch.js";
+import { handlers } from "#lib/handlers/index.js";
+import { log } from "#lib/log.js";
 import { ChannelEmoteManager } from "#lib/managers/channel-emote-manager.js";
 import { ViewerManager } from "#lib/managers/viewer-manager.js";
 import { settings } from "#lib/settings/index.js";
@@ -174,10 +177,7 @@ export class Channel {
 		});
 
 		if (settings.state["chat.messages.history.enabled"]) {
-			await invoke("fetch_recent_messages", {
-				channel: this.user.username,
-				limit: settings.state["chat.messages.history.limit"],
-			});
+			void this.#loadRecentMessages();
 		}
 	}
 
@@ -418,5 +418,22 @@ export class Channel {
 			caller: app.user.username,
 			target: to,
 		});
+	}
+
+	async #loadRecentMessages() {
+		try {
+			const messages = await invoke<IrcMessage[]>("fetch_recent_messages", {
+				channel: this.user.username,
+				limit: settings.state["chat.messages.history.limit"],
+			});
+
+			for (const message of messages) {
+				// Needs to be sequential
+				// oxlint-disable-next-line no-await-in-loop
+				await handlers.get(message.type)?.handle(message);
+			}
+		} catch (error) {
+			log.error(`Failed to load recent messages for ${this.user.username}: ${String(error)}`);
+		}
 	}
 }
