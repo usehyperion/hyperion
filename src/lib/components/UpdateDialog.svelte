@@ -26,6 +26,7 @@
 	{#snippet header()}
 		{#if updater.status === "available"}
 			<h2 id="t-{id}">Update available</h2>
+
 			<p>
 				Hyperion v{version} is ready to download. You're on v{currentVersion}.
 			</p>
@@ -34,6 +35,7 @@
 			<p>You can keep using Hyperion while v{version} downloads.</p>
 		{:else if updater.status === "ready"}
 			<h2 id="t-{id}">Restart to update</h2>
+
 			<p>
 				Hyperion v{version} is ready. Restart now to finish updating, or it will be installed
 				{updater.deferred ? "when you quit Hyperion" : "the next time Hyperion opens"}.
