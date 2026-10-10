@@ -14,7 +14,6 @@
 		"core:webview:allow-create-webview-window",
 		"cache:default",
 		"deep-link:default",
-		"dialog:default",
 		"fs:allow-exists",
 		"fs:allow-lstat",
 		"fs:allow-mkdir",
