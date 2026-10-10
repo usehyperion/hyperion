@@ -59,10 +59,7 @@
 	</div>
 
 	{#if footer}
-		<footer
-			class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
-			data-slot="dialog-footer"
-		>
+		<footer class="flex justify-end gap-2" data-slot="dialog-footer">
 			{@render footer()}
 		</footer>
 	{/if}
