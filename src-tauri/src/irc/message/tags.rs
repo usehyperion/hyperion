@@ -1,8 +1,7 @@
-use std::collections::HashMap;
-use std::collections::hash_map::RandomState;
 use std::fmt;
 use std::fmt::Write;
 
+use rustc_hash::{FxBuildHasher, FxHashMap};
 use serde::{Deserialize, Serialize};
 
 use super::AsRawIrc;
@@ -57,12 +56,12 @@ fn encode_tag_value(raw: &str) -> String {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Default, Serialize, Deserialize)]
-pub struct IrcTags(pub HashMap<String, String>);
+pub struct IrcTags(pub FxHashMap<String, String>);
 
 impl IrcTags {
     /// Creates a new empty map of tags.
     pub fn new() -> IrcTags {
-        IrcTags(HashMap::new())
+        IrcTags(FxHashMap::default())
     }
 
     /// Panics if `source` is an empty string.
@@ -72,7 +71,10 @@ impl IrcTags {
         }
 
         let tag_count = source.as_bytes().iter().filter(|&&b| b == b';').count() + 1;
-        let mut tags = IrcTags(HashMap::with_capacity(tag_count));
+        let mut tags = IrcTags(FxHashMap::with_capacity_and_hasher(
+            tag_count,
+            FxBuildHasher,
+        ));
 
         for raw_tag in source.split(';') {
             let mut tag_split = raw_tag.splitn(2, '=');
@@ -89,8 +91,8 @@ impl IrcTags {
     }
 }
 
-impl From<HashMap<String, String>> for IrcTags {
-    fn from(map: HashMap<String, String, RandomState>) -> Self {
+impl From<FxHashMap<String, String>> for IrcTags {
+    fn from(map: FxHashMap<String, String>) -> Self {
         IrcTags(map)
     }
 }
@@ -118,13 +120,13 @@ impl AsRawIrc for IrcTags {
     }
 }
 
-impl PartialEq<HashMap<String, String>> for IrcTags {
-    fn eq(&self, other: &HashMap<String, String, RandomState>) -> bool {
+impl PartialEq<FxHashMap<String, String>> for IrcTags {
+    fn eq(&self, other: &FxHashMap<String, String>) -> bool {
         &self.0 == other
     }
 }
 
-impl PartialEq<IrcTags> for HashMap<String, String> {
+impl PartialEq<IrcTags> for FxHashMap<String, String> {
     fn eq(&self, other: &IrcTags) -> bool {
         self == &other.0
     }

@@ -2002,6 +2002,7 @@ dependencies = [
  "keyring",
  "mimalloc",
  "reqwest 0.12.28",
+ "rustc-hash",
  "rustls",
  "serde",
  "serde_json",
