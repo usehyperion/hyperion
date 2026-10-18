@@ -295,7 +295,7 @@ export class UserMessage extends TextualMessage {
 		}
 
 		this.source = await app.channels.fetch(source.channel_id);
-		await this.source.fetchBadges();
+		await this.source.badges.fetch();
 
 		this.#populateBadges();
 	}

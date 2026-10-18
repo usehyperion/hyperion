@@ -14,7 +14,7 @@ export default defineCommand({
 		if (providers.includes("all")) {
 			await app.badges.fetch(true);
 		} else {
-			const promises: Promise<unknown>[] = [channel.fetchBadges(true)];
+			const promises: Promise<unknown>[] = [channel.badges.fetch(true)];
 
 			if (providers.includes("twitch")) {
 				promises.push(app.badges.fetchTwitch(true));
