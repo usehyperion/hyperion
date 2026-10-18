@@ -3,6 +3,7 @@
 use std::sync::{Arc, LazyLock};
 
 use auth::Integrity;
+use cache::Cache;
 use irc::IrcClient;
 use irc::message::ServerMessage;
 use pubsub::PubSubClient;
@@ -12,7 +13,6 @@ use seventv::SeventTvClient;
 use tauri::Manager;
 use tauri::async_runtime::{self, Mutex};
 use tauri::ipc::Invoke;
-use tauri_plugin_cache::{CacheConfig, CompressionMethod};
 use tauri_plugin_svelte::PrettyJsonMarshaler;
 use twitch_api::HelixClient;
 use twitch_api::twitch_oauth2::UserToken;
@@ -20,6 +20,7 @@ use ws::ChannelSink;
 
 mod api;
 mod auth;
+mod cache;
 mod commands;
 mod error;
 mod irc;
@@ -91,11 +92,6 @@ pub fn run() {
     }
 
     builder
-        .plugin(tauri_plugin_cache::init_with_config(CacheConfig {
-            compression_level: Some(8),
-            compression_method: Some(CompressionMethod::Lzma2),
-            ..Default::default()
-        }))
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
@@ -120,6 +116,11 @@ pub fn run() {
                 .build();
 
             app_handle.plugin(svelte)?;
+
+            let cache_dir = app_handle.path().app_cache_dir()?;
+            std::fs::create_dir_all(&cache_dir)?;
+
+            app.manage(Cache::open(&cache_dir.join("cache.db"))?);
 
             async_runtime::block_on(async {
                 let restored = auth::restore_credentials(&state.helix).await;
@@ -153,8 +154,12 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         auth::get_integrity,
         auth::open_twitch_login,
         auth::store_token,
+        cache::cache_clear,
+        cache::cache_size,
+        cache::cache_get,
+        cache::cache_remove,
+        cache::cache_set,
         commands::fetch_recent_messages,
-        commands::get_cache_size,
         commands::get_about_info,
         irc::connect_irc,
         irc::privmsg,

@@ -31,8 +31,8 @@ export default defineHandler({
 			channel.chat.event(EmoteSetChange, { actor });
 		} else {
 			channel.chat.event(EmoteSetChange, { name: child.value.name, actor });
+			channel.emotes.addAll(await channel.emotes.fetch7tv());
 
-			await channel.emotes.fetch7tv();
 			await invoke("resub_emote_set", {
 				channel: channel.user.username,
 				setId: channel.emoteSetId,

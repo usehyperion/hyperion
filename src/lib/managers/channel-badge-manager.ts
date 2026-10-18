@@ -1,7 +1,6 @@
-import * as cache from "tauri-plugin-cache-api";
-
 import type { Channel } from "#lib/models/channel.svelte.js";
 
+import * as cache from "#lib/cache.js";
 import { channelBadgesQuery } from "#lib/graphql/twitch.js";
 import { Badge } from "#lib/models/badge.js";
 

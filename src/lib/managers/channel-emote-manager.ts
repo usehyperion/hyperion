@@ -1,7 +1,6 @@
 import { ofetch } from "ofetch";
-import * as cache from "tauri-plugin-cache-api";
 
-import type { BttvEmote, Emote, FfzEmoteSet } from "#lib/emotes.js";
+import type { BttvEmote, FfzEmoteSet } from "#lib/emotes.js";
 import type { ActiveEmoteSet } from "#lib/graphql/7tv.js";
 import type { Channel } from "#lib/models/channel.svelte.js";
 
@@ -27,29 +26,22 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 		super();
 	}
 
+	protected override get cacheId() {
+		return this.channel.id;
+	}
+
+	protected override async fetch7tvVersion() {
+		const set = await this.#fetchActiveSet(false);
+		return set ? `${set.id}:${set.updatedAt}` : null;
+	}
+
 	public override async fetch(force = false) {
-		let emotes = await cache.get<Emote[]>(`emotes:${this.channel.id}`);
-
-		if (force || !emotes) {
-			if (force) this.clear();
-
-			const [fetched] = await Promise.all([
-				super.fetch(),
-				// fetch7tv resolves the channel's 7TV user, so only look it up
-				// separately when 7TV emotes are disabled
-				settings.state["chat.emotes.seventv"]
-					? null
-					: this.#fetchActiveSet(false).catch(() => null),
-			]);
-
-			emotes = fetched;
-			await cache.set(`emotes:${this.channel.id}`, emotes);
-		} else {
-			await this.#fetchActiveSet(false);
-			this.addAll(emotes);
-		}
-
-		return emotes;
+		await Promise.all([
+			super.fetch(force),
+			settings.state["chat.emotes.seventv"]
+				? null
+				: this.#fetchActiveSet(false).catch(() => null),
+		]);
 	}
 
 	/**
@@ -63,13 +55,11 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 		} catch (error) {
 			const apiError = ApiError.from(error);
 			if (apiError.status === 404) return [];
+
 			throw apiError;
 		}
 
-		const emotes = data.sets[data.room.set].emoticons.map(transformFfzEmote);
-		this.addAll(emotes);
-
-		return emotes;
+		return data.sets[data.room.set].emoticons.map(transformFfzEmote);
 	}
 
 	/**
@@ -88,10 +78,7 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 			throw apiError;
 		}
 
-		const emotes = data.channelEmotes.concat(data.sharedEmotes).map(transformBttvEmote);
-		this.addAll(emotes);
-
-		return emotes;
+		return data.channelEmotes.concat(data.sharedEmotes).map(transformBttvEmote);
 	}
 
 	/**
@@ -101,10 +88,7 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 		const set = await this.#fetchActiveSet();
 		if (!set) return [];
 
-		const emotes = set.emotes.items.map((item) => transform7tvEmote(item.emote, item.alias));
-		this.addAll(emotes);
-
-		return emotes;
+		return set.emotes.items.map((item) => transform7tvEmote(item.emote, item.alias));
 	}
 
 	async #fetchActiveSet(): Promise<ActiveEmoteSet | null>;

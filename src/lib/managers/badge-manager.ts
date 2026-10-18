@@ -1,10 +1,10 @@
 import { ofetch } from "ofetch";
 import { SvelteMap } from "svelte/reactivity";
-import * as cache from "tauri-plugin-cache-api";
 
 import type { BttvBadge, FfzBadge } from "#lib/models/badge.js";
 
 import { app } from "#lib/app.svelte.js";
+import * as cache from "#lib/cache.js";
 import { ApiError } from "#lib/errors/api-error.js";
 import { globalBadgesQuery } from "#lib/graphql/twitch.js";
 import { Badge } from "#lib/models/badge.js";
@@ -41,7 +41,7 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 
 			// Twitch adds new badges fairly often, so ttl is lower than the
 			// global emote cache
-			await cache.set("global_badges", badges, { ttl: 3 * 24 * 60 * 60 });
+			await cache.set("global_badges", badges, 3 * 24 * 60 * 60);
 		}
 
 		for (const badge of badges) {

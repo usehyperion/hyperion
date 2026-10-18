@@ -23,6 +23,9 @@ pub enum Error {
     Keyring(#[from] keyring::Error),
 
     #[error(transparent)]
+    Sqlite(#[from] rusqlite::Error),
+
+    #[error(transparent)]
     WebSocket(#[from] tungstenite::Error),
 }
 

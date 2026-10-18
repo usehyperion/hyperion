@@ -1,6 +1,6 @@
 import Toolbox from "~icons/ph/toolbox";
 
-import ClearCache from "#lib/components/settings/custom/ClearCache.svelte";
+import Cache from "#lib/components/settings/custom/Cache.svelte";
 
 import type { SettingsCategory } from "../types";
 
@@ -39,7 +39,7 @@ export default {
 					label: "Clear",
 					description: "Clear the application cache to free up space or resolve issues.",
 					renderAs: "field",
-					component: ClearCache,
+					component: Cache,
 				},
 			],
 		},

@@ -1,5 +1,3 @@
-import * as cache from "tauri-plugin-cache-api";
-
 import type { Emote } from "#lib/emotes.js";
 import type { EmoteChange } from "#lib/seventv.js";
 
@@ -84,10 +82,9 @@ export default defineHandler({
 				channel.emotes.set(change.value.name, emote);
 			}
 
+			// The cache doesn't need updating since the set's updatedAt changes
+			// with this event, so it's refetched on next launch
 			if (last) channel.chat.event(EmoteSetUpdate, last);
-
-			await cache.remove(`emotes:${channel.id}`);
-			await cache.set(`emotes:${channel.id}`, channel.emotes.values().toArray());
 		}
 		// Personal set was updated
 		else {

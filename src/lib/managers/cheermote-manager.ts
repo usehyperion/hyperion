@@ -1,8 +1,7 @@
-import * as cache from "tauri-plugin-cache-api";
-
 import type { Cheermote } from "#lib/graphql/twitch.js";
 import type { Channel } from "#lib/models/channel.svelte.js";
 
+import * as cache from "#lib/cache.js";
 import { cheermoteQuery } from "#lib/graphql/twitch.js";
 
 /**
