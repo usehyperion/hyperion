@@ -1,0 +1,121 @@
+import { invoke } from "@tauri-apps/api/core";
+
+import { log } from "#lib/log.js";
+import { settings } from "#lib/settings.js";
+
+interface Entry<T> {
+	data: T;
+	fetchedAt: number;
+}
+
+export interface RevalidateOptions<T> {
+	/**
+	 * Seconds after a fetch during which the cached data is used without
+	 * revalidating.
+	 */
+	fresh: number;
+
+	/**
+	 * Seconds until the entry is evicted if it isn't refetched.
+	 */
+	ttl?: number;
+
+	/**
+	 * Whether to bypass the cache and fetch directly.
+	 */
+	force?: boolean;
+
+	/**
+	 * Called with the refetched data after stale data was returned.
+	 */
+	onRevalidate: (data: T) => void;
+}
+
+/**
+ * Whether entries are read from and written to disk. When disabled, every
+ * load goes to the network and only the in-memory state of the managers is
+ * kept, which is useful for comparing both behaviors.
+ */
+function enabled() {
+	return settings.state["advanced.cache.persistent"];
+}
+
+/**
+ * Returns cached data immediately and refetches it in the background once it's
+ * older than `fresh` seconds.
+ */
+export async function revalidate<T>(
+	key: string,
+	fetcher: () => Promise<T>,
+	options: RevalidateOptions<T>,
+) {
+	const entry = options.force ? null : await getEntry<T>(key);
+	const age = entry ? Math.round((Date.now() - entry.fetchedAt) / 1000) : 0;
+
+	if (entry && age < options.fresh) {
+		void log.debug(`Cache hit for ${key} (${age}s old)`);
+		return entry.data;
+	}
+
+	const pending = fetcher().then(async (data) => {
+		await set(key, { data, fetchedAt: Date.now() } satisfies Entry<T>, options.ttl);
+		return data;
+	});
+
+	if (!entry) {
+		void log.debug(`Cache miss for ${key}`);
+		return pending;
+	}
+
+	void log.debug(`Cache stale for ${key} (${age}s old), revalidating`);
+
+	pending
+		.then(options.onRevalidate)
+		.catch((error) => log.warn(`Failed to revalidate ${key}`, error));
+
+	return entry.data;
+}
+
+async function getEntry<T>(key: string) {
+	const entry = await get<Entry<T>>(key);
+
+	// Entries written in an older format are treated as missing.
+	return entry && typeof entry.fetchedAt === "number" && "data" in entry ? entry : null;
+}
+
+export async function get<T>(key: string) {
+	if (!enabled()) return null;
+
+	try {
+		return await invoke<T | null>("cache_get", { key });
+	} catch (error) {
+		// A broken entry shouldn't prevent loading from the network.
+		void log.warn(`Failed to read ${key} from the cache`, error);
+		return null;
+	}
+}
+
+export async function set(key: string, value: unknown, ttl?: number) {
+	if (!enabled()) return;
+
+	try {
+		await invoke("cache_set", { key, value, ttl });
+	} catch (error) {
+		void log.warn(`Failed to write ${key} to the cache`, error);
+	}
+}
+
+export async function remove(key: string) {
+	await invoke("cache_remove", { key });
+}
+
+export async function clear() {
+	await invoke("cache_clear");
+}
+
+/**
+ * Returns the size of all cached entries in bytes.
+ */
+export async function size() {
+	return invoke<number>("cache_size");
+}
