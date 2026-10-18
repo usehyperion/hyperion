@@ -233,7 +233,7 @@ impl TryFrom<IrcMessage> for NoticeMessage {
                 .map(|s| s.to_owned()),
             deleted: raw.try_get_optional_bool("rm-deleted")?.unwrap_or_default(),
             is_recent: raw.try_get_optional_bool("historical")?.unwrap_or_default(),
-            recent_timestamp: raw.try_get_timestamp("rm-received-ts").ok(),
+            recent_timestamp: raw.try_get_optional_number("rm-received-ts").ok().flatten(),
             raw,
         })
     }
@@ -363,7 +363,7 @@ impl TryFrom<IrcMessage> for PrivmsgMessage {
 
         let (message_text, is_action) = raw.try_get_message_text()?;
 
-        let msg_id = raw.try_get_tag_value("msg-id").ok();
+        let msg_id = raw.get_optional_nonempty_tag_value("msg-id");
 
         Ok(PrivmsgMessage {
             channel_login: raw.try_get_channel_login()?.to_owned(),
@@ -396,7 +396,7 @@ impl TryFrom<IrcMessage> for PrivmsgMessage {
                 .map(|s| s.to_owned()),
             deleted: raw.try_get_optional_bool("rm-deleted")?.unwrap_or_default(),
             is_recent: raw.try_get_optional_bool("historical")?.unwrap_or_default(),
-            source_only: raw.try_get_bool("source-only").ok(),
+            source_only: raw.try_get_optional_bool("source-only").ok().flatten(),
             source: raw.try_get_source()?,
             raw,
         })
@@ -748,7 +748,9 @@ impl TryFrom<IrcMessage> for UserNoticeMessage {
                 sender_total_gifts: if sender.login != "twitch" {
                     Some(raw.try_get_number("msg-param-sender-count")?)
                 } else {
-                    raw.try_get_number("msg-param-sender-count").ok()
+                    raw.try_get_optional_number("msg-param-sender-count")
+                        .ok()
+                        .flatten()
                 },
                 sub_plan: raw
                     .try_get_nonempty_tag_value("msg-param-sub-plan")?
@@ -828,7 +830,7 @@ impl TryFrom<IrcMessage> for UserNoticeMessage {
             message_id: raw.try_get_nonempty_tag_value("id")?.to_owned(),
             deleted: raw.try_get_optional_bool("rm-deleted")?.unwrap_or_default(),
             is_recent: raw.try_get_optional_bool("historical")?.unwrap_or_default(),
-            source_only: raw.try_get_bool("source-only").ok(),
+            source_only: raw.try_get_optional_bool("source-only").ok().flatten(),
             source: raw.try_get_source()?,
             server_timestamp: raw.try_get_timestamp("tmi-sent-ts")?,
             raw,
