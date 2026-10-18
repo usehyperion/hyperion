@@ -31,6 +31,31 @@ export default {
 		},
 		{
 			type: "group",
+			label: "Chat",
+			fields: [
+				{
+					id: "advanced.chat.renderMode",
+					type: "radio",
+					label: "Rendering mode",
+					description: "Change how new messages are added to the chat.",
+					items: [
+						{
+							label: "Immediate",
+							value: "immediate",
+							description: "Render each message as soon as it arrives.",
+						},
+						{
+							label: "Yield",
+							value: "yield",
+							description:
+								"Batch messages into a single update per frame and periodically yield to the main thread while loading recent messages. May improve responsiveness in busy chats at the cost of messages appearing up to a frame later.",
+						},
+					],
+				},
+			],
+		},
+		{
+			type: "group",
 			label: "Cache",
 			fields: [
 				{

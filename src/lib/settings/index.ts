@@ -25,6 +25,8 @@ export interface KeywordHighlightConfig extends HighlightConfig {
 
 export type DeletedAppearance = "dim" | "strike" | "blur";
 
+export type RenderMode = "immediate" | "yield";
+
 export type Settings = {
 	"appearance.theme": string;
 
@@ -63,6 +65,7 @@ export type Settings = {
 	"moderation.deleted.appearance": DeletedAppearance;
 
 	"advanced.logs.level": "error" | "warn" | "info" | "debug" | "trace";
+	"advanced.chat.renderMode": RenderMode;
 };
 
 export const defaultHighlightTypes: Record<HighlightType, HighlightConfig> = {
@@ -109,6 +112,7 @@ export const defaults: Settings = {
 	"moderation.quickActions.show": true,
 	"moderation.deleted.appearance": "dim",
 	"advanced.logs.level": "info",
+	"advanced.chat.renderMode": "immediate",
 };
 
 export const settings = new RuneStore<Settings>("settings", defaults, {

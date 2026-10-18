@@ -72,7 +72,7 @@ export class Pin {
 
 		if (!node || !sender) return null;
 
-		const existing = chat.messages.find((m) => m.id === node.pinnedMessage.id);
+		const existing = chat.find((m) => m.id === node.pinnedMessage.id);
 		let message: UserMessage;
 
 		if (existing?.isUser()) {

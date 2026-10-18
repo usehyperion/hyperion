@@ -11,7 +11,7 @@ export default defineHandler({
 		const channel = app.channels.getByLogin(data.channel_login);
 		if (!channel) return;
 
-		const message = channel.chat.messages.find(
+		const message = channel.chat.find(
 			(m): m is UserMessage => m.isUser() && m.id === data.message_id,
 		);
 

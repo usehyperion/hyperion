@@ -25,6 +25,7 @@ import { ChannelBadgeManager } from "#lib/managers/channel-badge-manager.js";
 import { ChannelEmoteManager } from "#lib/managers/channel-emote-manager.js";
 import { CheermoteManager } from "#lib/managers/cheermote-manager.js";
 import { ViewerManager } from "#lib/managers/viewer-manager.js";
+import { createYielder } from "#lib/scheduler.js";
 import { settings } from "#lib/settings/index.js";
 import { storage } from "#lib/stores.js";
 
@@ -382,10 +383,18 @@ export class Channel {
 				limit: settings.state["chat.messages.history.limit"],
 			});
 
+			const yielding = settings.state["advanced.chat.renderMode"] === "yield";
+			const maybeYield = createYielder();
+
 			for (const message of messages) {
 				// Needs to be sequential
 				// oxlint-disable-next-line no-await-in-loop
 				await handlers.get(message.type)?.handle(message);
+
+				// Avoid blocking input and rendering while parsing a large
+				// backlog of messages.
+				// oxlint-disable-next-line no-await-in-loop
+				if (yielding) await maybeYield();
 			}
 		} catch (error) {
 			log.error(`Failed to load recent messages for ${this.user.username}: ${String(error)}`);

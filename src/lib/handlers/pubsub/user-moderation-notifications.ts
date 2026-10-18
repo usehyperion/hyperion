@@ -14,7 +14,7 @@ export default defineHandler({
 		// This is delayed compared to receiving a drop reason
 		if (status === "PENDING") return;
 
-		const held = channel.chat.messages.find((m): m is UserMessage => m.id === message_id);
+		const held = channel.chat.find((m): m is UserMessage => m.id === message_id);
 		if (held) held.deleted = true;
 
 		channel.chat.notice(`A moderator ${status.toLowerCase()} your message.`);

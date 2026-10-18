@@ -60,6 +60,10 @@ export class Chat {
 
 	#ids = new Set<string>();
 
+	// Messages waiting to be flushed on the next frame in yield render mode.
+	#pending: Message[] = [];
+	#frame: number | null = null;
+
 	// Timestamps of last messages sent by normal/elevated users.
 	#lastMessage: number[] = [];
 	#lastMessageElevated: number[] = [];
@@ -124,22 +128,32 @@ export class Chat {
 
 		this.#ids.add(message.id);
 
-		if (message instanceof TextualMessage && message.recent) {
-			if (this.#lastRecentAt === null) {
-				this.messages.unshift(message);
-				this.#lastRecentAt = 0;
-			} else {
-				this.messages.splice(this.#lastRecentAt + 1, 0, message);
-				this.#lastRecentAt++;
-			}
+		if (settings.state["advanced.chat.renderMode"] === "yield") {
+			this.#pending.push(message);
+			this.#frame ??= requestAnimationFrame(() => this.#flush());
 		} else {
-			this.messages.push(message);
+			// Preserve ordering if the mode was switched while messages were
+			// still queued.
+			this.#flush();
+			this.#insert(message);
 		}
 
 		return this;
 	}
 
+	/**
+	 * Finds a message in the chat, including messages that have been added but
+	 * not yet rendered.
+	 */
+	public find<S extends Message>(predicate: (message: Message) => message is S): S | undefined;
+	public find(predicate: (message: Message) => boolean): Message | undefined;
+	public find(predicate: (message: Message) => boolean) {
+		return this.messages.find(predicate) ?? this.#pending.find(predicate);
+	}
+
 	public repost(message: Message) {
+		this.#flush();
+
 		const index = this.messages.indexOf(message);
 		if (index === -1) return this;
 
@@ -187,7 +201,7 @@ export class Chat {
 	}
 
 	public deleteMessages(id?: string) {
-		for (const message of this.messages) {
+		for (const message of [...this.messages, ...this.#pending]) {
 			if (
 				message instanceof TextualMessage &&
 				message.isUser() &&
@@ -215,6 +229,12 @@ export class Chat {
 		this.history = [];
 
 		this.#ids.clear();
+		this.#pending = [];
+
+		if (this.#frame !== null) {
+			cancelAnimationFrame(this.#frame);
+			this.#frame = null;
+		}
 
 		this.clearPin();
 
@@ -417,6 +437,40 @@ export class Chat {
 
 		queue.push(now);
 		return false;
+	}
+
+	#insert(message: Message) {
+		if (message instanceof TextualMessage && message.recent) {
+			if (this.#lastRecentAt === null) {
+				this.messages.unshift(message);
+				this.#lastRecentAt = 0;
+			} else {
+				this.messages.splice(this.#lastRecentAt + 1, 0, message);
+				this.#lastRecentAt++;
+			}
+		} else {
+			this.messages.push(message);
+		}
+	}
+
+	/**
+	 * Inserts all pending messages at once so the list only re-renders and
+	 * scrolls once per frame instead of once per message.
+	 */
+	#flush() {
+		if (this.#frame !== null) {
+			cancelAnimationFrame(this.#frame);
+			this.#frame = null;
+		}
+
+		if (!this.#pending.length) return;
+
+		const pending = this.#pending;
+		this.#pending = [];
+
+		for (const message of pending) {
+			this.#insert(message);
+		}
 	}
 
 	#setPinned(pin: Pin | null) {

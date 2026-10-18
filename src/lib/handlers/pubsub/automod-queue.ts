@@ -36,7 +36,7 @@ export default defineHandler({
 		const { message, status, resolver_id } = payload.data;
 
 		if (status !== "PENDING") {
-			const held = channel.chat.messages.find((m): m is UserMessage => m.id === message.id);
+			const held = channel.chat.find((m): m is UserMessage => m.id === message.id);
 
 			if (held) {
 				held.deleted = true;
