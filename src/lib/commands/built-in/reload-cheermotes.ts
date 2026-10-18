@@ -5,7 +5,7 @@ export default defineCommand({
 	name: "reload-cheermotes",
 	description: "Reload cheermotes for the channel",
 	async exec(_, channel) {
-		await channel.fetchCheermotes(true);
+		await channel.cheermotes.fetch(true);
 
 		channel.chat.notice("Reloaded cheermotes.");
 	},

@@ -123,9 +123,8 @@ function classify(base: BaseNode, message: UserMessage, ircEmotes: IrcEmote[]): 
 		};
 	}
 
-	const cheermote = message.channel.cheermotes.find(
-		(c) => part.toLowerCase().startsWith(c.prefix.toLowerCase()) && /\d+$/.test(part),
-	);
+	const cheer = /^(.+?)\d+$/.exec(part);
+	const cheermote = cheer && message.channel.cheermotes.get(cheer[1].toLowerCase());
 
 	if (cheermote) {
 		const amount = Number(part.slice(cheermote.prefix.length));

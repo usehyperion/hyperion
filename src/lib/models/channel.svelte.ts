@@ -1,14 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
-import * as cache from "tauri-plugin-cache-api";
 
-import type { Cheermote, PredictionOutcome } from "#lib/graphql/twitch.js";
+import type { PredictionOutcome } from "#lib/graphql/twitch.js";
 import type { TwitchClient } from "#lib/twitch/client.js";
 import type { IrcMessage } from "#lib/twitch/irc.js";
 
 import { app } from "#lib/app.svelte.js";
 import {
-	channelBadgesQuery,
-	cheermoteQuery,
 	pollQuery,
 	predictionQuery,
 	streamQuery,
@@ -24,14 +21,15 @@ import {
 } from "#lib/graphql/twitch.js";
 import { handlers } from "#lib/handlers/index.js";
 import { log } from "#lib/log.js";
+import { ChannelBadgeManager } from "#lib/managers/channel-badge-manager.js";
 import { ChannelEmoteManager } from "#lib/managers/channel-emote-manager.js";
+import { CheermoteManager } from "#lib/managers/cheermote-manager.js";
 import { ViewerManager } from "#lib/managers/viewer-manager.js";
 import { settings } from "#lib/settings/index.js";
 import { storage } from "#lib/stores.js";
 
 import type { User } from "./user.svelte";
 
-import { Badge } from "./badge";
 import { Chat } from "./chat.svelte";
 import { Poll } from "./poll.svelte";
 import { Prediction } from "./prediction.svelte";
@@ -64,7 +62,7 @@ export class Channel {
 	/**
 	 * The badges in the channel.
 	 */
-	public readonly badges = new Map<string, Badge>();
+	public readonly badges: ChannelBadgeManager;
 
 	/**
 	 * The emotes in the channel.
@@ -74,7 +72,7 @@ export class Channel {
 	/**
 	 * The cheermotes in the channel.
 	 */
-	public readonly cheermotes = $state<Cheermote[]>([]);
+	public readonly cheermotes: CheermoteManager;
 
 	/**
 	 * The viewers in the channel.
@@ -129,7 +127,9 @@ export class Channel {
 		this.stream = stream;
 
 		this.chat = new Chat(this);
+		this.badges = new ChannelBadgeManager(this);
 		this.emotes = new ChannelEmoteManager(this);
+		this.cheermotes = new CheermoteManager(this);
 		this.viewers = new ViewerManager(this);
 
 		this.pinned = $derived(storage.state.pinned.includes(this.id));
@@ -160,8 +160,8 @@ export class Channel {
 		await Promise.all([
 			this.fetchStream(),
 			this.emotes.fetch(),
-			this.fetchBadges(),
-			this.fetchCheermotes(),
+			this.badges.fetch(),
+			this.cheermotes.fetch(),
 			this.chat.fetchPinned(),
 			this.fetchPoll(),
 			this.fetchPrediction(),
@@ -226,54 +226,8 @@ export class Channel {
 		this.chat.reset();
 		this.badges.clear();
 		this.emotes.clear();
+		this.cheermotes.clear();
 		this.viewers.clear();
-		this.cheermotes.length = 0;
-	}
-
-	/**
-	 * Retrieves the list of badges in the channel and caches them for later use.
-	 */
-	public async fetchBadges(force = false) {
-		if (!force && this.badges.size) {
-			return this.badges;
-		}
-
-		let badges = await cache.get<Badge[]>(`badges:${this.id}`);
-
-		if (force || !badges) {
-			if (force) this.badges.clear();
-
-			const { user } = await this.client.gql(channelBadgesQuery, { id: this.id });
-			badges = user?.broadcastBadges?.flatMap((b) => (b ? [Badge.fromGql(b)] : [])) ?? [];
-
-			await cache.set(`badges:${this.id}`, badges);
-		}
-
-		for (const badge of badges) {
-			this.badges.set(badge.id, badge);
-		}
-
-		return this.badges;
-	}
-
-	/**
-	 * Retrieves the list of cheermotes in the channel and caches them for later
-	 * use.
-	 */
-	public async fetchCheermotes(force = false) {
-		let cheermotes = await cache.get<Cheermote[]>(`cheermotes:${this.id}`);
-
-		if (force || !cheermotes) {
-			if (force) this.cheermotes.length = 0;
-
-			const { user } = await this.client.gql(cheermoteQuery, { id: this.id });
-
-			cheermotes = user?.cheer?.emotes.filter((e) => e != null) ?? [];
-			await cache.set(`cheermotes:${this.id}`, cheermotes);
-		}
-
-		this.cheermotes.push(...cheermotes);
-		return this.cheermotes;
 	}
 
 	/**
