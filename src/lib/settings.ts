@@ -46,6 +46,7 @@ export type Settings = {
 	"moderation.deleted.appearance": DeletedAppearance;
 
 	"advanced.logs.level": LogLevel;
+	"advanced.cache.persistent": boolean;
 };
 
 const defaults: Settings = {
@@ -81,6 +82,7 @@ const defaults: Settings = {
 	"moderation.quickActions.show": true,
 	"moderation.deleted.appearance": "dim",
 	"advanced.logs.level": "info",
+	"advanced.cache.persistent": true,
 };
 
 export const settings = new RuneStore<Settings>("settings", defaults, {

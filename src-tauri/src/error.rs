@@ -9,10 +9,16 @@ pub enum Error {
     Http(#[from] reqwest::Error),
 
     #[error(transparent)]
+    Io(#[from] std::io::Error),
+
+    #[error(transparent)]
     Json(#[from] serde_json::Error),
 
     #[error(transparent)]
     Keyring(#[from] keyring::Error),
+
+    #[error(transparent)]
+    Sqlite(#[from] rusqlite::Error),
 
     #[error(transparent)]
     Tauri(#[from] tauri::Error),

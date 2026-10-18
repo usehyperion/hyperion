@@ -57,6 +57,10 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 		super();
 	}
 
+	protected get cacheId() {
+		return this.channel.id;
+	}
+
 	public override async fetch(force = false) {
 		const loading7tv =
 			settings.state["chat.emotes.seventv"] && (force || !this.isLoaded("7TV"));
@@ -67,6 +71,12 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 			// only look it up separately when they aren't being loaded.
 			loading7tv ? null : this.#syncActiveSet(),
 		]);
+	}
+
+	protected async fetch7tvVersion() {
+		const set = await this.#fetchActiveSet(false);
+
+		return set ? `${set.id}:${set.updatedAt}` : null;
 	}
 
 	async #fetchActiveSet(): Promise<ActiveEmoteSet | null>;

@@ -1,5 +1,6 @@
 import Toolbox from "~icons/ph/toolbox";
 
+import Cache from "#lib/components/settings/custom/Cache.svelte";
 import { LOG_LEVELS } from "#lib/log.js";
 
 import type { SettingsCategory } from "../types";
@@ -23,6 +24,26 @@ export default {
 						label: level.charAt(0).toUpperCase() + level.slice(1),
 						value: level,
 					})),
+				},
+			],
+		},
+		{
+			type: "group",
+			label: "Cache",
+			fields: [
+				{
+					id: "advanced.cache.persistent",
+					type: "switch",
+					label: "Persist to disk",
+					description:
+						"Keep emotes, badges, and cheermotes on disk so channels load instantly after a restart. When disabled, they're fetched again every launch.",
+				},
+				{
+					id: "advanced.cache.clear",
+					type: "custom",
+					label: "Clear",
+					description: "Clear the application cache to free up space or resolve issues.",
+					component: Cache,
 				},
 			],
 		},
