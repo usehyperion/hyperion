@@ -92,20 +92,29 @@ export function parse(message: UserMessage): Node[] {
 function classify(base: BaseNode, message: UserMessage, ircEmotes: IrcEmote[]): Node | null {
 	const part = base.value;
 
-	const url = URL.parse(`https://${part.replace(/^https?:\/\/|\.$/i, "")}`);
-	const tld = url ? parseTld(url.hostname) : null;
-
-	if (url && tld?.domain && tld.isIcann) {
+	if (/^\s/.test(part)) {
 		return {
 			...base,
-			type: "link",
-			data: { url, tld },
+			type: "text",
+			data: part,
 		};
 	}
 
+	if (/[.\u3002\uFF0E\uFF61]/.test(part)) {
+		const url = URL.parse(`https://${part.replace(/^https?:\/\/|\.$/i, "")}`);
+		const tld = url ? parseTld(url.hostname) : null;
+
+		if (url && tld?.domain && tld.isIcann) {
+			return {
+				...base,
+				type: "link",
+				data: { url, tld },
+			};
+		}
+	}
+
 	if (/^@\w{4,24}$/.test(part)) {
-		const name = part.slice(1).toLowerCase();
-		const viewer = message.channel.viewers.values().find((u) => u.username === name);
+		const viewer = message.channel.viewers.getByLogin(part.slice(1).toLowerCase());
 
 		return {
 			...base,
