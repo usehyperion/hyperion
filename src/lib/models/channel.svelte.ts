@@ -227,6 +227,7 @@ export class Channel {
 		this.badges.clear();
 		this.emotes.clear();
 		this.viewers.clear();
+		this.cheermotes.length = 0;
 	}
 
 	/**
