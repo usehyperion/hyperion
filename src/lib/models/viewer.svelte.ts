@@ -1,6 +1,8 @@
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";
 
+import { MessageHistory } from "./message-history.svelte";
+
 export interface TimeoutOptions {
 	/**
 	 * The duration of the timeout in seconds.
@@ -14,6 +16,8 @@ export interface TimeoutOptions {
 }
 
 export class Viewer {
+	#history: MessageHistory | null = null;
+
 	public readonly id: string;
 	public readonly username: string;
 	public readonly displayName: string;
@@ -92,6 +96,13 @@ export class Viewer {
 	 */
 	public get suspicious() {
 		return this.monitored || this.restricted || this.possibleBanEvader;
+	}
+
+	/**
+	 * The messages the viewer has sent in the channel.
+	 */
+	public get history() {
+		return (this.#history ??= new MessageHistory(this));
 	}
 
 	public ban(reason?: string) {

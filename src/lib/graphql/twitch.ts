@@ -63,6 +63,18 @@ const guestStarDetailsFragment = gql(`
 	}
 `);
 
+const messageFragmentContentFragment = gql(`
+	fragment MessageFragmentContent on FragmentContent {
+		__typename
+		... on CheermoteToken {
+			bitsAmount
+		}
+		... on Emote {
+			emoteID: id
+		}
+	}
+`);
+
 const userDetailsFragment = gql(`
 	fragment UserDetails on User {
 		id
@@ -275,6 +287,55 @@ export const moderatesQuery = gql(`
 	}
 `);
 
+export const modLogMessagesQuery = gql(
+	`query GetModLogMessages($channel: ID!, $target: ID!, $after: Cursor) {
+		viewerCardModLogs(channelID: $channel, targetID: $target) {
+			messages(first: 50, after: $after) {
+				__typename
+				... on ViewerCardModLogsMessagesConnection {
+					edges {
+						cursor
+						node {
+							__typename
+							... on ViewerCardModLogsChatMessage {
+								id
+								sentAt
+								isDeleted
+								content {
+									text
+									fragments {
+										text
+										content {
+											...MessageFragmentContent
+										}
+									}
+								}
+								sender {
+									id
+									login
+									name: displayName
+									chatColor
+								}
+								senderBadges {
+									name: setID
+									version
+								}
+							}
+						}
+					}
+					pageInfo {
+						hasNextPage
+					}
+				}
+				... on ViewerCardModLogsMessagesError {
+					code
+				}
+			}
+		}
+	}`,
+	[messageFragmentContentFragment],
+);
+
 export const modsQuery = gql(`
 	query GetMods($id: ID!) {
 		user(id: $id) {
@@ -309,13 +370,7 @@ export const pinnedMessageQuery = gql(
 								fragments {
 									text
 									content {
-										__typename
-										... on CheermoteToken {
-											bitsAmount
-										}
-										... on Emote {
-											emoteID: id
-										}
+										...MessageFragmentContent
 									}
 								}
 							}
@@ -334,7 +389,7 @@ export const pinnedMessageQuery = gql(
 			}
 		}
 	}`,
-	[badgeDetailsFragment],
+	[badgeDetailsFragment, messageFragmentContentFragment],
 );
 
 export const pollQuery = gql(
@@ -889,12 +944,12 @@ export type ChannelSuggestion = Extract<
 	{ __typename: "SearchSuggestionChannel" }
 >;
 
-type MessageContent = NonNullableDeep<PinnedMessage, "pinnedMessage.content">;
-
-type PinnedMessage = NonNullableDeep<
-	ResultOf<typeof pinnedMessageQuery>,
-	"channel.pinnedChatMessages.edges.0.node"
->;
+interface MessageContent {
+	fragments: readonly {
+		text: string;
+		content: FragmentOf<typeof messageFragmentContentFragment> | null;
+	}[];
+}
 
 type Poll = NonNullableDeep<ResultOf<typeof pollQuery>, "user.viewablePoll">;
 

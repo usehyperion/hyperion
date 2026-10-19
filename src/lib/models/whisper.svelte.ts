@@ -1,3 +1,4 @@
+import type { ScrollableHistory } from "#lib/attachments/scroll-history.svelte.js";
 import type {
 	WhisperMessage as ApiWhisperMessage,
 	WhisperThread as ApiWhisperThread,
@@ -5,12 +6,12 @@ import type {
 import type { TwitchClient } from "#lib/twitch/client.js";
 
 import { app } from "#lib/app.svelte.js";
-import { nodes } from "#lib/graphql/index.js";
 import {
 	markWhisperReadMutation,
 	sendWhisperMutation,
 	whisperMessagesQuery,
 } from "#lib/graphql/twitch.js";
+import { Pager, prependUnique, toPage, type Page } from "#lib/pager.svelte.js";
 
 import type { Badge } from "./badge";
 import type { User } from "./user.svelte";
@@ -23,13 +24,9 @@ export interface WhisperMessage {
 	text: string;
 }
 
-interface MessagePage {
-	messages: WhisperMessage[];
-	cursor: string | null;
-	hasNext: boolean;
-}
+export class Whisper implements ScrollableHistory<WhisperMessage> {
+	readonly #pager = new Pager<WhisperMessage>((after) => this.#fetchPage(after));
 
-export class Whisper {
 	// Live messages received while the history request is in flight.
 	#pending: WhisperMessage[] = [];
 
@@ -38,8 +35,6 @@ export class Whisper {
 
 	#loaded = false;
 	#history: Promise<void> | null = null;
-	#older: Promise<void> | null = null;
-	#cursor: string | null = null;
 
 	// The newest message id known to exist on Twitch.
 	#lastReadableId: string | null = null;
@@ -73,12 +68,6 @@ export class Whisper {
 	 */
 	public unread = $state(0);
 
-	/**
-	 * Whether there are older messages that can be loaded with
-	 * {@linkcode loadOlder}.
-	 */
-	public hasOlder = $state(false);
-
 	public constructor(
 		public readonly client: TwitchClient,
 
@@ -88,6 +77,14 @@ export class Whisper {
 		public readonly id: string,
 		public readonly sender: User,
 	) {}
+
+	/**
+	 * Whether there are older messages that can be loaded with
+	 * {@linkcode loadOlder}.
+	 */
+	public get hasOlder() {
+		return this.#pager.hasOlder;
+	}
 
 	/**
 	 * Updates the whisper with the latest state from the thread list.
@@ -128,23 +125,10 @@ export class Whisper {
 	/**
 	 * Loads the page of messages before the oldest loaded message.
 	 */
-	public loadOlder() {
-		if (!this.hasOlder) return Promise.resolve();
+	public async loadOlder() {
+		const older = await this.#pager.older();
 
-		this.#older ??= this.#fetchPage(this.#cursor)
-			.then((page) => {
-				this.#paginate(page);
-
-				// Pages can overlap if messages arrive between requests.
-				const known = new Set(this.messages.map((message) => message.id));
-
-				this.messages.unshift(...page.messages.filter((message) => !known.has(message.id)));
-			})
-			.finally(() => {
-				this.#older = null;
-			});
-
-		return this.#older;
+		this.messages = prependUnique(this.messages, older);
 	}
 
 	/**
@@ -189,11 +173,7 @@ export class Whisper {
 		this.#pending = [];
 
 		try {
-			const page = await this.#fetchPage(null);
-
-			this.#paginate(page);
-
-			const history = page.messages;
+			const history = await this.#pager.first();
 			const last = history.at(-1);
 
 			if (last && !this.#pending.length) {
@@ -215,27 +195,13 @@ export class Whisper {
 		}
 	}
 
-	#paginate(page: MessagePage) {
-		this.#cursor = page.cursor;
-		this.hasOlder = page.hasNext && !!page.cursor;
-	}
-
-	async #fetchPage(after: string | null): Promise<MessagePage> {
+	async #fetchPage(after: string | null): Promise<Page<WhisperMessage>> {
 		const { whisperThread } = await this.client.gql(whisperMessagesQuery, {
 			id: this.id,
 			after,
 		});
 
-		const connection = whisperThread?.messages;
-
-		return {
-			// Pages are returned newest first
-			messages: nodes(connection)
-				.toReversed()
-				.map((message) => this.#transform(message)),
-			cursor: connection?.edges.at(-1)?.cursor ?? null,
-			hasNext: connection?.pageInfo.hasNextPage ?? false,
-		};
+		return toPage(whisperThread?.messages, (message) => this.#transform(message));
 	}
 
 	#transform(message: ApiWhisperMessage): WhisperMessage {
