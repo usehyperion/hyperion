@@ -4,6 +4,24 @@
 
 @import "./positioning.css";
 
+@layer properties {
+	@property --scroll-fade {
+		syntax: "<length-percentage>";
+		inherits: false;
+		initial-value: 0;
+	}
+}
+
+@keyframes scroll-fade {
+	from {
+		--scroll-fade: min(12%, calc(var(--spacing) * 10));
+	}
+
+	to {
+		--scroll-fade: 0;
+	}
+}
+
 @layer {
 	:root {
 		--radius: 0.625rem;
@@ -157,7 +175,7 @@
 		-moz-osx-font-smoothing: grayscale;
 	}
 
-	button:hover {
+	button {
 		cursor: pointer;
 	}
 
@@ -216,5 +234,21 @@
 		&[data-state="closed"] {
 			@apply animate-out zoom-out-95 fade-out;
 		}
+	}
+
+	.scroll-fade {
+		--scroll-fade: 0;
+
+		mask-image: linear-gradient(
+			to bottom,
+			#000 0,
+			#000 calc(100% - var(--scroll-fade)),
+			transparent 100%
+		);
+		mask-composite: intersect;
+		mask-repeat: no-repeat;
+		animation: 1ms ease-in-out scroll-fade both;
+		animation-timeline: scroll(self y);
+		animation-range: calc(100% - calc(var(--spacing) * 24));
 	}
 }

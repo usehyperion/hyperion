@@ -29,7 +29,7 @@
 	// Distance from the top of the list at which older items start loading.
 	const LOAD_THRESHOLD = 200;
 
-	const { class: className, data, getKey, children, lazy = false, onloadmore }: Props = $props();
+	const { class: className, data, getKey, lazy = false, onloadmore, children }: Props = $props();
 
 	let list = $state<VList<T>>();
 	let scrollingPaused = $state(false);
@@ -126,7 +126,7 @@
 	{/if}
 
 	<VList
-		class="{className} reverse-scroll-viewport overflow-y-auto group-data-[scrollbar=false]/scroll:[&::-webkit-scrollbar]:hidden"
+		class="{className} scroll-fade overflow-y-auto group-data-[scrollbar=false]/scroll:[&::-webkit-scrollbar]:hidden"
 		{data}
 		shift={shifting}
 		{getKey}
@@ -135,37 +135,3 @@
 		bind:this={list}
 	/>
 </div>
-
-<style>
-	@property --scroll-fade {
-		syntax: "<length-percentage>";
-		inherits: false;
-		initial-value: 0;
-	}
-
-	.reverse-scroll :global(.reverse-scroll-viewport) {
-		--scroll-fade: 0;
-
-		mask-image: linear-gradient(
-			to bottom,
-			#000 0,
-			#000 calc(100% - var(--scroll-fade)),
-			transparent 100%
-		);
-		mask-composite: intersect;
-		mask-repeat: no-repeat;
-		animation: 1ms ease-in-out scroll-fade both;
-		animation-timeline: scroll(self y);
-		animation-range: calc(100% - calc(var(--spacing) * 24));
-	}
-
-	@keyframes scroll-fade {
-		from {
-			--scroll-fade: min(12%, calc(var(--spacing) * 10));
-		}
-
-		to {
-			--scroll-fade: 0;
-		}
-	}
-</style>
