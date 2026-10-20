@@ -43,6 +43,7 @@
 	let list = $state<VList<T>>();
 	let scrollingPaused = $state(false);
 	let lastSeen = $state.raw<T>();
+	let countSnapshot = $state(0);
 	let shifting = $state(false);
 
 	let loading = false;
@@ -51,9 +52,17 @@
 		if (!scrollingPaused) scrollToEnd();
 	});
 
-	// Counted from the last item seen rather than the length so that older
-	// items loaded in aren't counted as new.
-	const newCount = $derived(scrollingPaused ? data.length - 1 - data.lastIndexOf(lastSeen!) : 0);
+	const newCount = $derived.by(() => {
+		if (!scrollingPaused) return 0;
+
+		// Counted from the last item seen when older items can be loaded so
+		// that they aren't counted as new. Otherwise, the length is compared
+		// so that items moved to the end aren't miscounted.
+		return onloadmore
+			? data.length - 1 - data.lastIndexOf(lastSeen!)
+			: data.length - countSnapshot;
+	});
+
 	const hasNew = $derived(newCount > 0);
 
 	$effect(() => {
@@ -73,6 +82,7 @@
 
 		if (!atBottom && !scrollingPaused) {
 			lastSeen = data.at(-1);
+			countSnapshot = data.length;
 		}
 
 		scrollingPaused = !atBottom;
