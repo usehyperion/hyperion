@@ -1,4 +1,3 @@
-import type { ScrollableHistory } from "#lib/attachments/scroll-history.svelte.js";
 import type {
 	WhisperMessage as ApiWhisperMessage,
 	WhisperThread as ApiWhisperThread,
@@ -24,7 +23,7 @@ export interface WhisperMessage {
 	text: string;
 }
 
-export class Whisper implements ScrollableHistory<WhisperMessage> {
+export class Whisper {
 	readonly #pager = new Pager<WhisperMessage>((after) => this.#fetchPage(after));
 
 	// Live messages received while the history request is in flight.

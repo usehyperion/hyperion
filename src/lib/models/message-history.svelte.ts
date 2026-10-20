@@ -1,6 +1,5 @@
 import type { ResultOf } from "gql.tada";
 
-import type { ScrollableHistory } from "#lib/attachments/scroll-history.svelte.js";
 import type { NonNullableDeep } from "#lib/graphql/index.js";
 
 import { modLogMessagesQuery, toMessageFragments } from "#lib/graphql/twitch.js";
@@ -25,7 +24,7 @@ type ModLogMessage = NonNullable<
 /**
  * The messages a viewer has sent in a channel.
  */
-export class MessageHistory implements ScrollableHistory<UserMessage> {
+export class MessageHistory {
 	readonly #pager = new Pager<UserMessage>((after) => this.#fetchPage(after));
 
 	#history: Promise<void> | null = null;
