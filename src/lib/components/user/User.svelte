@@ -16,6 +16,7 @@
 	import { settings } from "#lib/settings/index.js";
 
 	import Message from "../message/Message.svelte";
+	import ReverseScroll from "../ReverseScroll.svelte";
 	import Popover from "../ui/Popover.svelte";
 
 	dayjs.extend(localizedFormat);
@@ -96,6 +97,17 @@
 		class="w-sm overflow-hidden p-0"
 		onbeforetoggle={async (event) => {
 			if (event.newState === "open") await fetchInfo();
+		}}
+		ontoggle={async (event) => {
+			if (event.newState !== "closed") return;
+
+			const popover = event.currentTarget;
+
+			await Promise.allSettled(
+				popover.getAnimations().map((animation) => animation.finished),
+			);
+
+			if (!popover.matches(":popover-open")) opened = false;
 		}}
 	>
 		{@render card(user)}
@@ -221,12 +233,19 @@
 	</div>
 
 	{#if history.length}
-		<div class="max-h-40 overflow-y-auto border-t px-4 py-2">
-			{#each history.toReversed() as message (message.id)}
-				<div class="origin-left scale-80">
-					<Message {message} nested />
-				</div>
-			{/each}
+		<div class="h-24 border-t">
+			<ReverseScroll
+				class="px-4"
+				data={history}
+				showJumpButton={false}
+				getKey={(message) => message.id}
+			>
+				{#snippet children(message)}
+					<div class="origin-left scale-80">
+						<Message {message} nested />
+					</div>
+				{/snippet}
+			</ReverseScroll>
 		</div>
 	{/if}
 {/snippet}

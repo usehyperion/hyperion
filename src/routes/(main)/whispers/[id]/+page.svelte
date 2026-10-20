@@ -1,20 +1,14 @@
 <script lang="ts">
-	import { onMount, tick, untrack } from "svelte";
+	import { untrack } from "svelte";
 	import type { KeyboardEventHandler } from "svelte/elements";
 
 	import ChatSeparator from "#lib/components/chat/ChatSeparator.svelte";
+	import ReverseScroll from "#lib/components/ReverseScroll.svelte";
 	import Timestamp from "#lib/components/Timestamp.svelte";
 	import Input from "#lib/components/ui/Input.svelte";
 	import { log } from "#lib/log.js";
 
 	const { data } = $props();
-
-	let chat = $state<HTMLDivElement>();
-	let loadingOlder = false;
-
-	onMount(() => {
-		chat?.scrollTo(0, chat?.scrollHeight);
-	});
 
 	$effect(() => {
 		const { whisper } = data;
@@ -24,36 +18,6 @@
 				void log.error(`Failed to mark whisper as read: ${String(error)}`).catch(() => {});
 			});
 		});
-	});
-
-	async function onscroll() {
-		if (!chat || loadingOlder || !data.whisper.hasOlder || chat.scrollTop > 200) return;
-
-		loadingOlder = true;
-
-		try {
-			const height = chat.scrollHeight;
-
-			await data.whisper.loadOlder();
-			await tick();
-
-			// Keep the current messages in place as older ones are prepended.
-			chat.scrollTop += chat.scrollHeight - height;
-		} finally {
-			loadingOlder = false;
-		}
-	}
-
-	$effect.pre(() => {
-		if (!chat) return;
-
-		void data.whisper.messages.length;
-
-		if (chat.offsetHeight + chat.scrollTop > chat.scrollHeight - 20) {
-			tick().then(() => {
-				chat?.scrollTo(0, chat?.scrollHeight);
-			});
-		}
 	});
 
 	const send: KeyboardEventHandler<HTMLInputElement> = async (event) => {
@@ -68,49 +32,60 @@
 </script>
 
 <div class="flex h-full flex-col">
-	<div class="grow overflow-y-auto text-sm" {onscroll} bind:this={chat}>
-		{#each data.whisper.messages as message, i (message.id)}
-			{@const prev = data.whisper.messages[i - 1]}
-			{@const isNewDay =
-				!prev || prev.createdAt.toDateString() !== message.createdAt.toDateString()}
-
-			{#if isNewDay}
-				<ChatSeparator class="my-3">
-					<time datetime={message.createdAt.toISOString()}>
-						{message.createdAt.toLocaleDateString(navigator.languages, {
-							dateStyle: "long",
-						})}
-					</time>
-				</ChatSeparator>
-			{/if}
-
-			<div
-				class={[
-					"flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-muted/50",
-					!isNewDay && "border-t",
-				]}
+	<div class="min-h-0 grow">
+		<!-- Start each thread scrolled to the end. -->
+		{#key data.whisper}
+			<ReverseScroll
+				class="text-sm"
+				data={data.whisper.messages}
+				getKey={(message) => message.id}
+				lazy={data.whisper.hasOlder}
+				onloadmore={() => data.whisper.loadOlder()}
 			>
-				<img
-					class="rounded-full ring-1 ring-black/10 dark:ring-white/10"
-					src={message.user.avatarUrl}
-					alt={message.user.displayName}
-					width="40"
-					height="40"
-				/>
+				{#snippet children(message, i)}
+					{@const prev = data.whisper.messages[i - 1]}
+					{@const isNewDay =
+						!prev || prev.createdAt.toDateString() !== message.createdAt.toDateString()}
 
-				<div class="flex w-full flex-col">
-					<div class="flex w-full items-center justify-between gap-2">
-						<span class="font-semibold" style={message.user.style}>
-							{message.user.displayName}
-						</span>
+					{#if isNewDay}
+						<ChatSeparator class="my-3">
+							<time datetime={message.createdAt.toISOString()}>
+								{message.createdAt.toLocaleDateString(navigator.languages, {
+									dateStyle: "long",
+								})}
+							</time>
+						</ChatSeparator>
+					{/if}
 
-						<Timestamp date={message.createdAt} />
+					<div
+						class={[
+							"flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-muted/50",
+							!isNewDay && "border-t",
+						]}
+					>
+						<img
+							class="rounded-full ring-1 ring-black/10 dark:ring-white/10"
+							src={message.user.avatarUrl}
+							alt={message.user.displayName}
+							width="40"
+							height="40"
+						/>
+
+						<div class="flex w-full flex-col">
+							<div class="flex w-full items-center justify-between gap-2">
+								<span class="font-semibold" style={message.user.style}>
+									{message.user.displayName}
+								</span>
+
+								<Timestamp date={message.createdAt} />
+							</div>
+
+							<p>{message.text}</p>
+						</div>
 					</div>
-
-					<p>{message.text}</p>
-				</div>
-			</div>
-		{/each}
+				{/snippet}
+			</ReverseScroll>
+		{/key}
 	</div>
 
 	<div class="p-2">
