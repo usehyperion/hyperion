@@ -11,6 +11,7 @@
 	interface Props {
 		class?: string;
 		data: T[];
+		showJumpButton?: boolean;
 
 		/**
 		 * Whether older items should be loaded with {@linkcode onloadmore} when
@@ -29,7 +30,15 @@
 	// Distance from the top of the list at which older items start loading.
 	const LOAD_THRESHOLD = 200;
 
-	const { class: className, data, getKey, lazy = false, onloadmore, children }: Props = $props();
+	const {
+		class: className,
+		data,
+		showJumpButton = true,
+		lazy = false,
+		getKey,
+		onloadmore,
+		children,
+	}: Props = $props();
 
 	let list = $state<VList<T>>();
 	let scrollingPaused = $state(false);
@@ -100,7 +109,7 @@
 		return () => observer.disconnect();
 	}}
 >
-	{#if scrollingPaused}
+	{#if showJumpButton && scrollingPaused}
 		<div class="absolute inset-x-0 bottom-4 z-10 flex justify-center">
 			<button
 				class={[

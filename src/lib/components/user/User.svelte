@@ -222,8 +222,13 @@
 	</div>
 
 	{#if history.length}
-		<div class="h-40 border-t">
-			<ReverseScroll class="px-4" data={history} getKey={(message) => message.id}>
+		<div class="h-24 border-t">
+			<ReverseScroll
+				class="px-4"
+				data={history}
+				showJumpButton={false}
+				getKey={(message) => message.id}
+			>
 				{#snippet children(message)}
 					<div class="origin-left scale-80">
 						<Message {message} nested />
