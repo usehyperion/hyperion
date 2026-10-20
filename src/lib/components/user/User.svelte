@@ -98,6 +98,17 @@
 		onbeforetoggle={async (event) => {
 			if (event.newState === "open") await fetchInfo();
 		}}
+		ontoggle={async (event) => {
+			if (event.newState !== "closed") return;
+
+			const popover = event.currentTarget;
+
+			await Promise.allSettled(
+				popover.getAnimations().map((animation) => animation.finished),
+			);
+
+			if (!popover.matches(":popover-open")) opened = false;
+		}}
 	>
 		{@render card(user)}
 	</Popover>
