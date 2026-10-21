@@ -46,8 +46,9 @@ export class MessageHistory {
 		// Prefer messages received in chat since they're kept up to date.
 		const ids = new Set(received.map((message) => message.id));
 
-		return [...this.#logged.filter((message) => !ids.has(message.id)), ...received].toSorted(
-			(a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
+		return merge(
+			this.#logged.filter((message) => !ids.has(message.id)),
+			received,
 		);
 	});
 
@@ -131,4 +132,21 @@ export class MessageHistory {
 
 		return message;
 	}
+}
+
+function merge(a: UserMessage[], b: UserMessage[]) {
+	const merged: UserMessage[] = [];
+
+	let i = 0;
+	let j = 0;
+
+	while (i < a.length && j < b.length) {
+		if (a[i].timestamp <= b[j].timestamp) {
+			merged.push(a[i++]);
+		} else {
+			merged.push(b[j++]);
+		}
+	}
+
+	return merged.concat(a.slice(i), b.slice(j));
 }

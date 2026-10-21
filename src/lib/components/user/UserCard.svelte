@@ -13,7 +13,8 @@
 	import type { User } from "#lib/models/user.svelte.js";
 
 	import { log } from "#lib/log.js";
-	import { settings } from "#lib/settings/index.js";
+	import { MessageHistory } from "#lib/models/message-history.svelte.js";
+	import { deletedAppearance } from "#lib/settings/index.js";
 
 	import Message from "../message/Message.svelte";
 	import ReverseScroll from "../ReverseScroll.svelte";
@@ -35,7 +36,9 @@
 	let showAllBadges = $state(false);
 
 	const relationship = $derived(user.relationships.get(channel.id));
-	const history = $derived(channel.viewers.get(user.id)?.history);
+	const viewer = $derived(channel.viewers.get(user.id));
+
+	const history = $derived(viewer && new MessageHistory(viewer));
 	const messages = $derived(history?.messages ?? []);
 
 	async function fetchInfo() {
@@ -211,12 +214,7 @@
 				onloadmore={() => history.loadOlder()}
 			>
 				{#snippet children(message)}
-					<div
-						class="origin-left scale-80"
-						data-deleted={message.deleted
-							? settings.state["moderation.deleted.appearance"]
-							: undefined}
-					>
+					<div class="origin-left scale-80" data-deleted={deletedAppearance(message)}>
 						<Message {message} nested />
 					</div>
 				{/snippet}
