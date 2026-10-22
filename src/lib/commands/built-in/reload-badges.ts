@@ -12,7 +12,7 @@ export default defineCommand({
 		const providers = args[0]?.split(",") ?? [];
 
 		if (providers.includes("all")) {
-			await app.badges.fetch();
+			await Promise.all([app.badges.fetch(), channel.badges.fetch(true)]);
 		} else {
 			const promises: Promise<unknown>[] = [channel.badges.fetch(true)];
 
