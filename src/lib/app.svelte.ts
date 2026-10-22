@@ -86,21 +86,26 @@ class App {
 	 * shown).
 	 */
 	public async open(channel: Channel) {
+		let joining: Promise<void> | undefined;
+
 		if (this.focused !== channel) {
 			if (channel.joined) {
 				this.focused = channel;
 			} else {
-				await channel.join();
+				// Store the promise so we can make an optimistic UI update
+				// while the channel is joining.
+				joining = channel.join();
 			}
 		}
 
 		this.splits.ensure({ id: channel.id, ephemeral: channel.ephemeral });
 
-		// The split view only lives at the root route, so return to it when
-		// opening a channel from elsewhere.
-		if (page.url.pathname !== "/") {
-			await goto("/");
-		}
+		await Promise.all([
+			joining,
+			// The split view only lives at the root route, so return to it when
+			// opening a channel from elsewhere.
+			page.url.pathname === "/" ? null : goto("/"),
+		]);
 	}
 
 	public async connect() {
