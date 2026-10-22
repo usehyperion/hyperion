@@ -1,3 +1,4 @@
+use std::fs;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -14,8 +15,31 @@ const ZSTD_LEVEL: i32 = 3;
 pub struct Cache(Arc<Mutex<Connection>>);
 
 impl Cache {
-    pub fn open(path: &Path) -> rusqlite::Result<Self> {
-        let conn = Connection::open(path)?;
+    pub fn open(path: &Path) -> Self {
+        match Self::init(Connection::open(path)) {
+            Ok(cache) => return cache,
+            Err(error) => tracing::warn!(%error, "Failed to open cache, recreating it"),
+        }
+
+        for suffix in ["", "-wal", "-shm"] {
+            let mut file = path.as_os_str().to_owned();
+            file.push(suffix);
+
+            let _ = fs::remove_file(file);
+        }
+
+        match Self::init(Connection::open(path)) {
+            Ok(cache) => cache,
+            Err(error) => {
+                tracing::error!(%error, "Failed to recreate cache, falling back to memory");
+
+                Self::init(Connection::open_in_memory()).expect("failed to open in-memory cache")
+            }
+        }
+    }
+
+    fn init(conn: rusqlite::Result<Connection>) -> rusqlite::Result<Self> {
+        let conn = conn?;
 
         conn.execute_batch(
             "PRAGMA journal_mode = WAL;

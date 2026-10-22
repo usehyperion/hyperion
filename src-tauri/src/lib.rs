@@ -106,9 +106,12 @@ pub fn run() {
             app_handle.plugin(svelte)?;
 
             let cache_dir = app_handle.path().app_cache_dir()?;
-            std::fs::create_dir_all(&cache_dir)?;
 
-            app.manage(Cache::open(&cache_dir.join("cache.db"))?);
+            if let Err(error) = std::fs::create_dir_all(&cache_dir) {
+                tracing::error!(%error, "Failed to create cache directory");
+            }
+
+            app.manage(Cache::open(&cache_dir.join("cache.db")));
 
             let http = reqwest::Client::builder().timeout(HTTP_TIMEOUT).build()?;
             let mut state = AppState::new(http);
