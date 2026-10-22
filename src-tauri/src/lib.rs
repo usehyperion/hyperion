@@ -118,9 +118,12 @@ pub fn run() {
             app_handle.plugin(svelte)?;
 
             let cache_dir = app_handle.path().app_cache_dir()?;
-            std::fs::create_dir_all(&cache_dir)?;
 
-            app.manage(Cache::open(&cache_dir.join("cache.db"))?);
+            if let Err(error) = std::fs::create_dir_all(&cache_dir) {
+                tracing::error!(%error, "Failed to create cache directory");
+            }
+
+            app.manage(Cache::open(&cache_dir.join("cache.db")));
 
             async_runtime::block_on(async {
                 let restored = auth::restore_credentials(&state.helix).await;
