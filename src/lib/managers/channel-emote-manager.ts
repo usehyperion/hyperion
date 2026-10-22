@@ -1,7 +1,6 @@
 import { ofetch } from "ofetch";
-import * as cache from "tauri-plugin-cache-api";
 
-import type { BttvEmote, Emote, FfzEmoteSet } from "#lib/emotes.js";
+import type { BttvEmote, FfzEmoteSet } from "#lib/emotes.js";
 import type { ActiveEmoteSet } from "#lib/graphql/7tv.js";
 import type { Channel } from "#lib/models/channel.svelte.js";
 
@@ -28,28 +27,15 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 	}
 
 	public override async fetch(force = false) {
-		let emotes = await cache.get<Emote[]>(`emotes:${this.channel.id}`);
+		const loading7tv =
+			settings.state["chat.emotes.seventv"] && (force || !this.isLoaded("7TV"));
 
-		if (force || !emotes) {
-			if (force) this.clear();
-
-			const [fetched] = await Promise.all([
-				super.fetch(),
-				// fetch7tv resolves the channel's 7TV user, so only look it up
-				// separately when 7TV emotes are disabled
-				settings.state["chat.emotes.seventv"]
-					? null
-					: this.#fetchActiveSet(false).catch(() => null),
-			]);
-
-			emotes = fetched;
-			await cache.set(`emotes:${this.channel.id}`, emotes);
-		} else {
-			await this.#fetchActiveSet(false);
-			this.addAll(emotes);
-		}
-
-		return emotes;
+		await Promise.all([
+			super.fetch(force),
+			// fetch7tv resolves the channel's 7TV user, so only look it up
+			// separately when 7TV emotes aren't being loaded
+			loading7tv ? null : this.#syncActiveSet().catch(() => null),
+		]);
 	}
 
 	/**
@@ -122,5 +108,14 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 		this.channel.emoteSetId = set?.id ?? null;
 
 		return set;
+	}
+
+	async #syncActiveSet() {
+		const previous = this.channel.emoteSetId;
+		const set = await this.#fetchActiveSet(false);
+
+		if (this.isLoaded("7TV") && (set?.id ?? null) !== previous) {
+			await this.load("7TV");
+		}
 	}
 }

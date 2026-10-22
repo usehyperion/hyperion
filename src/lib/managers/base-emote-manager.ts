@@ -4,32 +4,70 @@ import type { Emote, EmoteProvider } from "#lib/emotes.js";
 
 import { settings } from "#lib/settings/index.js";
 
+const PROVIDERS = [
+	["FrankerFaceZ", "chat.emotes.ffz"],
+	["BetterTTV", "chat.emotes.bttv"],
+	["7TV", "chat.emotes.seventv"],
+] as const;
+
+export type ThirdPartyProvider = (typeof PROVIDERS)[number][0];
+
 export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
+	/**
+	 * The providers whose emotes have been loaded successfully.
+	 */
+	readonly #loaded = new Set<EmoteProvider>();
+
 	public abstract fetchFfz(): Promise<Emote[]>;
 	public abstract fetchBttv(): Promise<Emote[]>;
 	public abstract fetch7tv(): Promise<Emote[]>;
 
 	/**
-	 * Retrieves the list of emotes from the providers enabled in the settings and
-	 * caches them for later use.
+	 * Loads the emotes from the providers enabled in the settings that haven't
+	 * been loaded yet and removes the emotes from disabled providers.
 	 */
-	public async fetch() {
-		const promises: Promise<Emote[]>[] = [];
+	public async fetch(force = false) {
+		if (force) this.clear();
 
-		if (settings.state["chat.emotes.ffz"]) {
-			promises.push(this.fetchFfz());
+		const promises: Promise<void>[] = [];
+
+		for (const [provider, key] of PROVIDERS) {
+			if (!settings.state[key]) {
+				this.clear(provider);
+			} else if (!this.#loaded.has(provider)) {
+				promises.push(this.load(provider));
+			}
 		}
 
-		if (settings.state["chat.emotes.bttv"]) {
-			promises.push(this.fetchBttv());
+		await Promise.all(promises);
+	}
+
+	/**
+	 * Replaces the emotes from the specified provider with newly fetched ones.
+	 */
+	public async load(provider: ThirdPartyProvider) {
+		this.clear(provider);
+
+		switch (provider) {
+			case "FrankerFaceZ":
+				await this.fetchFfz();
+				break;
+			case "BetterTTV":
+				await this.fetchBttv();
+				break;
+			case "7TV":
+				await this.fetch7tv();
+				break;
 		}
 
-		if (settings.state["chat.emotes.seventv"]) {
-			promises.push(this.fetch7tv());
-		}
+		this.#loaded.add(provider);
+	}
 
-		const emotes = await Promise.all(promises);
-		return emotes.flat();
+	/**
+	 * Whether the emotes from the specified provider have been loaded.
+	 */
+	public isLoaded(provider: EmoteProvider) {
+		return this.#loaded.has(provider);
 	}
 
 	public addAll(emotes: Iterable<Emote>) {
@@ -46,10 +84,13 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	 */
 	public override clear(provider?: EmoteProvider) {
 		if (provider) {
+			this.#loaded.delete(provider);
+
 			for (const emote of this.values()) {
 				if (emote.provider === provider) this.delete(emote.displayName);
 			}
 		} else {
+			this.#loaded.clear();
 			super.clear();
 		}
 	}

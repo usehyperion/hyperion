@@ -1,7 +1,6 @@
 import { ofetch } from "ofetch";
-import * as cache from "tauri-plugin-cache-api";
 
-import type { BttvEmote, Emote, GlobalSet } from "#lib/emotes.js";
+import type { BttvEmote, GlobalSet } from "#lib/emotes.js";
 
 import { transform7tvEmote, transformBttvEmote, transformFfzEmote } from "#lib/emotes.js";
 import { ApiError } from "#lib/errors/api-error.js";
@@ -10,21 +9,6 @@ import { execute7tvQuery, globalEmoteSetQuery } from "#lib/graphql/7tv.js";
 import { BaseEmoteManager } from "./base-emote-manager";
 
 export class EmoteManager extends BaseEmoteManager {
-	public override async fetch(force = false) {
-		let emotes = await cache.get<Emote[]>("global_emotes");
-
-		if (force || !emotes) {
-			if (force) this.clear();
-
-			emotes = await super.fetch();
-			await cache.set("global_emotes", emotes, { ttl: 7 * 24 * 60 * 60 });
-		} else {
-			this.addAll(emotes);
-		}
-
-		return emotes;
-	}
-
 	/**
 	 * Retrieves the list of global FrankerFaceZ emotes.
 	 */

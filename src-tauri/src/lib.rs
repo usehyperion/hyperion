@@ -12,7 +12,6 @@ use seventv::SeventTvClient;
 use tauri::Manager;
 use tauri::async_runtime::{self, Mutex};
 use tauri::ipc::Invoke;
-use tauri_plugin_cache::{CacheConfig, CompressionMethod};
 use tauri_plugin_svelte::PrettyJsonMarshaler;
 use twitch_api::HelixClient;
 use twitch_api::twitch_oauth2::UserToken;
@@ -91,11 +90,6 @@ pub fn run() {
     }
 
     builder
-        .plugin(tauri_plugin_cache::init_with_config(CacheConfig {
-            compression_level: Some(8),
-            compression_method: Some(CompressionMethod::Lzma2),
-            ..Default::default()
-        }))
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
@@ -154,7 +148,6 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         auth::open_twitch_login,
         auth::store_token,
         commands::fetch_recent_messages,
-        commands::get_cache_size,
         commands::get_about_info,
         irc::connect_irc,
         irc::privmsg,

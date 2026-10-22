@@ -49,7 +49,11 @@ export interface PredictionOptions {
 	window: number;
 }
 
+const TTL = 20 * 60 * 1000; // 20 minutes
+
 export class Channel {
+	#ttlTimeout: ReturnType<typeof setTimeout> | undefined;
+
 	public readonly id: string;
 
 	public seventvId: string | null = null;
@@ -145,6 +149,8 @@ export class Channel {
 	public async join() {
 		if (this.joined) return;
 
+		clearTimeout(this.#ttlTimeout);
+
 		app.channels.set(this.id, this);
 		this.joined = true;
 
@@ -224,10 +230,13 @@ export class Channel {
 		this.clearPrediction();
 
 		this.chat.reset();
-		this.badges.clear();
-		this.emotes.clear();
-		this.cheermotes.clear();
 		this.viewers.clear();
+
+		this.#ttlTimeout = setTimeout(() => {
+			this.badges.clear();
+			this.emotes.clear();
+			this.cheermotes.clear();
+		}, TTL);
 	}
 
 	/**
