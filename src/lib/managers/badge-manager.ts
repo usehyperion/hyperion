@@ -19,6 +19,9 @@ interface FfzResponse {
 	users: Record<string, number[]>;
 }
 
+const FRESH = 60 * 60; // 1 hour
+const TTL = 30 * 24 * 60 * 60; // 30 days
+
 export class BadgeManager extends SvelteMap<string, Badge> {
 	/**
 	 * A map of user ids to provider-specific badges.
@@ -52,18 +55,48 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 	}
 
 	public async fetchBttv(force = false) {
-		let response = await cache.get<BttvUser[]>("bttv_badges");
+		const response = await cache.revalidate(
+			"bttv_badges",
+			async () => {
+				try {
+					return await ofetch<BttvUser[]>("https://api.betterttv.net/3/cached/badges");
+				} catch (error) {
+					throw ApiError.from(error);
+				}
+			},
+			{
+				fresh: FRESH,
+				ttl: TTL,
+				force,
+				onRevalidate: (data) => this.#addBttv(data),
+			},
+		);
 
-		if (!response || force) {
-			try {
-				response = await ofetch<BttvUser[]>("https://api.betterttv.net/3/cached/badges");
-			} catch (error) {
-				throw ApiError.from(error);
-			}
+		this.#addBttv(response);
+	}
 
-			await cache.set("bttv_badges", response);
-		}
+	public async fetchFfz(force = false) {
+		const response = await cache.revalidate(
+			"ffz_badges",
+			async () => {
+				try {
+					return await ofetch<FfzResponse>("https://api.frankerfacez.com/v1/badges/ids");
+				} catch (error) {
+					throw ApiError.from(error);
+				}
+			},
+			{
+				fresh: FRESH,
+				ttl: TTL,
+				force,
+				onRevalidate: (data) => this.#addFfz(data),
+			},
+		);
 
+		this.#addFfz(response);
+	}
+
+	#addBttv(response: BttvUser[]) {
 		for (const user of response) {
 			const id = `bttv:${user.badge.type}`;
 
@@ -81,19 +114,7 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		}
 	}
 
-	public async fetchFfz(force = false) {
-		let response = await cache.get<FfzResponse>("ffz_badges");
-
-		if (!response || force) {
-			try {
-				response = await ofetch<FfzResponse>("https://api.frankerfacez.com/v1/badges/ids");
-			} catch (error) {
-				throw ApiError.from(error);
-			}
-
-			await cache.set("ffz_badges", response);
-		}
-
+	#addFfz(response: FfzResponse) {
 		const badges: Record<string, Badge> = {};
 
 		for (const data of response.badges) {
