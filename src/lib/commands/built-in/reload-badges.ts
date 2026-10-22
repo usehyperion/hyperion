@@ -12,20 +12,20 @@ export default defineCommand({
 		const providers = args[0]?.split(",") ?? [];
 
 		if (providers.includes("all")) {
-			await app.badges.fetch(true);
+			await app.badges.fetch();
 		} else {
 			const promises: Promise<unknown>[] = [channel.badges.fetch(true)];
 
 			if (providers.includes("twitch")) {
-				promises.push(app.badges.fetchTwitch(true));
+				promises.push(app.badges.fetchTwitch());
 			}
 
 			if (providers.includes("bttv")) {
-				promises.push(app.badges.fetchBttv(true));
+				promises.push(app.badges.fetchBttv());
 			}
 
 			if (providers.includes("ffz")) {
-				promises.push(app.badges.fetchFfz(true));
+				promises.push(app.badges.fetchFfz());
 			}
 
 			await Promise.all(promises);

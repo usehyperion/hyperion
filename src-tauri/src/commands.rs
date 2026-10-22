@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
-use tauri_plugin_cache::CacheExt;
 
 use crate::HTTP;
 use crate::error::Error;
@@ -57,24 +56,6 @@ pub async fn fetch_recent_messages(
         .collect();
 
     Ok(server_messages)
-}
-
-#[tauri::command]
-pub fn get_cache_size(app_handle: AppHandle) -> i64 {
-    let cache_path = app_handle.cache().get_cache_file_path();
-
-    match std::fs::metadata(cache_path) {
-        Ok(metadata) => {
-            let size = metadata.len() as i64;
-
-            // Empty cache files contain an empty object i.e. "{}"
-            if size == 2 { 0 } else { size }
-        }
-        Err(error) => {
-            tracing::error!(%error, "Failed to get cache size");
-            0
-        }
-    }
 }
 
 #[derive(Debug, Serialize)]

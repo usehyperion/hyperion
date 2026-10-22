@@ -1,6 +1,5 @@
 import { ofetch } from "ofetch";
 import { SvelteMap } from "svelte/reactivity";
-import * as cache from "tauri-plugin-cache-api";
 
 import type { BttvBadge, FfzBadge } from "#lib/models/badge.js";
 
@@ -25,24 +24,16 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 	 */
 	public readonly users = new SvelteMap<string, Badge[]>();
 
-	public async fetch(force = false) {
-		await Promise.all([this.fetchTwitch(force), this.fetchBttv(force), this.fetchFfz(force)]);
+	public async fetch() {
+		await Promise.all([this.fetchTwitch(), this.fetchBttv(), this.fetchFfz()]);
 	}
 
 	/**
-	 * Retrieves the list of global badges and caches them for later use.
+	 * Retrieves the list of global badges.
 	 */
-	public async fetchTwitch(force = false) {
-		let badges = await cache.get<Badge[]>("global_badges");
-
-		if (!badges || force) {
-			const { badges: data } = await app.twitch.gql(globalBadgesQuery);
-			badges = data?.flatMap((b) => (b ? [Badge.fromGql(b)] : [])) ?? [];
-
-			// Twitch adds new badges fairly often, so ttl is lower than the
-			// global emote cache
-			await cache.set("global_badges", badges, { ttl: 3 * 24 * 60 * 60 });
-		}
+	public async fetchTwitch() {
+		const { badges: data } = await app.twitch.gql(globalBadgesQuery);
+		const badges = data?.flatMap((b) => (b ? [Badge.fromGql(b)] : [])) ?? [];
 
 		for (const badge of badges) {
 			this.set(badge.id, badge);
@@ -51,17 +42,13 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		return badges;
 	}
 
-	public async fetchBttv(force = false) {
-		let response = await cache.get<BttvUser[]>("bttv_badges");
+	public async fetchBttv() {
+		let response: BttvUser[];
 
-		if (!response || force) {
-			try {
-				response = await ofetch<BttvUser[]>("https://api.betterttv.net/3/cached/badges");
-			} catch (error) {
-				throw ApiError.from(error);
-			}
-
-			await cache.set("bttv_badges", response);
+		try {
+			response = await ofetch<BttvUser[]>("https://api.betterttv.net/3/cached/badges");
+		} catch (error) {
+			throw ApiError.from(error);
 		}
 
 		for (const user of response) {
@@ -81,17 +68,13 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		}
 	}
 
-	public async fetchFfz(force = false) {
-		let response = await cache.get<FfzResponse>("ffz_badges");
+	public async fetchFfz() {
+		let response: FfzResponse;
 
-		if (!response || force) {
-			try {
-				response = await ofetch<FfzResponse>("https://api.frankerfacez.com/v1/badges/ids");
-			} catch (error) {
-				throw ApiError.from(error);
-			}
-
-			await cache.set("ffz_badges", response);
+		try {
+			response = await ofetch<FfzResponse>("https://api.frankerfacez.com/v1/badges/ids");
+		} catch (error) {
+			throw ApiError.from(error);
 		}
 
 		const badges: Record<string, Badge> = {};

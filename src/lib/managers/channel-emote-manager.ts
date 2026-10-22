@@ -1,5 +1,4 @@
 import { ofetch } from "ofetch";
-import * as cache from "tauri-plugin-cache-api";
 
 import type { BttvEmote, Emote, FfzEmoteSet } from "#lib/emotes.js";
 import type { ActiveEmoteSet } from "#lib/graphql/7tv.js";
@@ -22,13 +21,15 @@ interface BttvUser {
 	sharedEmotes: BttvEmote[];
 }
 
+const cache = new Map<string, Emote[]>();
+
 export class ChannelEmoteManager extends BaseEmoteManager {
 	public constructor(public readonly channel: Channel) {
 		super();
 	}
 
 	public override async fetch(force = false) {
-		let emotes = await cache.get<Emote[]>(`emotes:${this.channel.id}`);
+		let emotes = cache.get(this.channel.id);
 
 		if (force || !emotes) {
 			if (force) this.clear();
@@ -43,13 +44,17 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 			]);
 
 			emotes = fetched;
-			await cache.set(`emotes:${this.channel.id}`, emotes);
+			cache.set(this.channel.id, emotes);
 		} else {
 			await this.#fetchActiveSet(false);
 			this.addAll(emotes);
 		}
 
 		return emotes;
+	}
+
+	public updateCache() {
+		cache.set(this.channel.id, this.values().toArray());
 	}
 
 	/**

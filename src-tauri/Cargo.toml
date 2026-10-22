@@ -37,7 +37,6 @@ serde_json = "1.0.140"
 thiserror = "2.0.12"
 time = { version = "0.3", features = ["formatting", "local-offset"] }
 tauri = { version = "2", features = ["protocol-asset"] }
-tauri-plugin-cache = "0.1.5"
 tauri-plugin-deep-link = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"

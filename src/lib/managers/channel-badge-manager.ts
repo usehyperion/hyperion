@@ -1,9 +1,9 @@
-import * as cache from "tauri-plugin-cache-api";
-
 import type { Channel } from "#lib/models/channel.svelte.js";
 
 import { channelBadgesQuery } from "#lib/graphql/twitch.js";
 import { Badge } from "#lib/models/badge.js";
+
+const cache = new Map<string, Badge[]>();
 
 export class ChannelBadgeManager extends Map<string, Badge> {
 	public constructor(public readonly channel: Channel) {
@@ -19,7 +19,7 @@ export class ChannelBadgeManager extends Map<string, Badge> {
 			return this;
 		}
 
-		let badges = await cache.get<Badge[]>(`badges:${this.channel.id}`);
+		let badges = cache.get(this.channel.id);
 
 		if (force || !badges) {
 			if (force) this.clear();
@@ -30,7 +30,7 @@ export class ChannelBadgeManager extends Map<string, Badge> {
 
 			badges = user?.broadcastBadges?.flatMap((b) => (b ? [Badge.fromGql(b)] : [])) ?? [];
 
-			await cache.set(`badges:${this.channel.id}`, badges);
+			cache.set(this.channel.id, badges);
 		}
 
 		for (const badge of badges) {

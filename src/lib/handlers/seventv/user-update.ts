@@ -29,10 +29,13 @@ export default defineHandler({
 
 		if (child.value == null) {
 			channel.chat.event(EmoteSetChange, { actor });
+			channel.emotes.updateCache();
 		} else {
 			channel.chat.event(EmoteSetChange, { name: child.value.name, actor });
 
 			await channel.emotes.fetch7tv();
+			channel.emotes.updateCache();
+
 			await invoke("resub_emote_set", {
 				channel: channel.user.username,
 				setId: channel.emoteSetId,

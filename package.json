@@ -48,7 +48,6 @@
 		"paneforge": "^1.0.2",
 		"shadow-plugin": "^2.1.1",
 		"tailwindcss": "^4.3.3",
-		"tauri-plugin-cache-api": "^0.1.6",
 		"tldts": "^7.4.15",
 		"valibot": "^1.5.0",
 		"virtua": "^0.52.7"

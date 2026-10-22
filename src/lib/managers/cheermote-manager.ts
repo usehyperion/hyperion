@@ -1,9 +1,9 @@
-import * as cache from "tauri-plugin-cache-api";
-
 import type { Cheermote } from "#lib/graphql/twitch.js";
 import type { Channel } from "#lib/models/channel.svelte.js";
 
 import { cheermoteQuery } from "#lib/graphql/twitch.js";
+
+const cache = new Map<string, Cheermote[]>();
 
 /**
  * The cheermotes in a channel keyed by their lowercased prefix.
@@ -22,7 +22,7 @@ export class CheermoteManager extends Map<string, Cheermote> {
 			return this;
 		}
 
-		let cheermotes = await cache.get<Cheermote[]>(`cheermotes:${this.channel.id}`);
+		let cheermotes = cache.get(this.channel.id);
 
 		if (force || !cheermotes) {
 			if (force) this.clear();
@@ -30,7 +30,7 @@ export class CheermoteManager extends Map<string, Cheermote> {
 			const { user } = await this.channel.client.gql(cheermoteQuery, { id: this.channel.id });
 
 			cheermotes = user?.cheer?.emotes.filter((e) => e != null) ?? [];
-			await cache.set(`cheermotes:${this.channel.id}`, cheermotes);
+			cache.set(this.channel.id, cheermotes);
 		}
 
 		for (const cheermote of cheermotes) {

@@ -1,7 +1,5 @@
 import Toolbox from "~icons/ph/toolbox";
 
-import ClearCache from "#lib/components/settings/custom/ClearCache.svelte";
-
 import type { SettingsCategory } from "../types";
 
 export default {
@@ -26,20 +24,6 @@ export default {
 						{ label: "Debug", value: "debug" },
 						{ label: "Trace", value: "trace" },
 					],
-				},
-			],
-		},
-		{
-			type: "group",
-			label: "Cache",
-			fields: [
-				{
-					id: "advanced.cache.clear",
-					type: "custom",
-					label: "Clear",
-					description: "Clear the application cache to free up space or resolve issues.",
-					renderAs: "field",
-					component: ClearCache,
 				},
 			],
 		},

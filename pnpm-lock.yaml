@@ -259,9 +259,6 @@ importers:
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
-      tauri-plugin-cache-api:
-        specifier: ^0.1.6
-        version: 0.1.6
       tldts:
         specifier: ^7.4.15
         version: 7.4.15
@@ -1905,9 +1902,6 @@ packages:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
 
-  tauri-plugin-cache-api@0.1.6:
-    resolution: {integrity: sha512-JjkyoISdJLh1M8+wtz/qUglXMVQiim/VR3bQZxijq7GMiPu1DZScMCmIOxEZEPipkF0Y9cRh+svxR2n6oOZl9w==}
-
   tinybench@6.1.4:
     resolution: {integrity: sha512-9APumHG7r4yOk4X4WlkmE71aZcv1gvin1czO3OQ1U9iJcFA5Ja/ygyb0vPOVHTthFozUYs8CLoLUlM8grb2lTQ==}
     engines: {node: '>=20.0.0'}
@@ -3400,10 +3394,6 @@ snapshots:
   tailwindcss@4.3.3: {}
 
   tapable@2.3.3: {}
-
-  tauri-plugin-cache-api@0.1.6:
-    dependencies:
-      '@tauri-apps/api': 2.12.0
 
   tinybench@6.1.4: {}
 
