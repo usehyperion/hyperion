@@ -9,16 +9,6 @@ import { execute7tvQuery, globalEmoteSetQuery } from "#lib/graphql/7tv.js";
 import { BaseEmoteManager } from "./base-emote-manager";
 
 export class EmoteManager extends BaseEmoteManager {
-	public override async fetch(force = false) {
-		if (!force && this.size) {
-			return this.values().toArray();
-		}
-
-		if (force) this.clear();
-
-		return super.fetch();
-	}
-
 	/**
 	 * Retrieves the list of global FrankerFaceZ emotes.
 	 */

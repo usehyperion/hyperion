@@ -29,17 +29,17 @@ export default defineHandler({
 
 		if (child.value == null) {
 			channel.chat.event(EmoteSetChange, { actor });
-			channel.emotes.updateCache();
 		} else {
 			channel.chat.event(EmoteSetChange, { name: child.value.name, actor });
 
-			await channel.emotes.fetch7tv();
-			channel.emotes.updateCache();
-
+			// Subscribe to the new set first so its updates aren't missed if
+			// fetching its emotes fails
 			await invoke("resub_emote_set", {
 				channel: channel.user.username,
 				setId: channel.emoteSetId,
 			});
+
+			await channel.emotes.load("7TV");
 		}
 	},
 });

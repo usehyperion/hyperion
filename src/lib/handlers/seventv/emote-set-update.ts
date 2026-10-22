@@ -83,8 +83,6 @@ export default defineHandler({
 			}
 
 			if (last) channel.chat.event(EmoteSetUpdate, last);
-
-			channel.emotes.updateCache();
 		}
 		// Personal set was updated
 		else {
