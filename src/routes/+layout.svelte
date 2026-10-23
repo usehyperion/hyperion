@@ -2,6 +2,7 @@
 	import "../styles/app.css";
 	import { setHotkeysContext } from "@tanstack/svelte-hotkeys";
 	import { invoke } from "@tauri-apps/api/core";
+	import { Tooltip } from "bits-ui";
 	import { ModeWatcher } from "mode-watcher";
 	import { onMount } from "svelte";
 
@@ -65,8 +66,10 @@
 
 <ModeWatcher />
 
-<div class="flex h-screen flex-col overflow-hidden">
-	<TitleBar />
+<Tooltip.Provider delayDuration={300}>
+	<div class="flex h-screen flex-col overflow-hidden">
+		<TitleBar />
 
-	{@render children()}
-</div>
+		{@render children()}
+	</div>
+</Tooltip.Provider>

@@ -11,15 +11,18 @@
 	import ArrowLeft from "~icons/ph/arrow-left";
 	import ArrowRight from "~icons/ph/arrow-right";
 	import Chats from "~icons/ph/chats";
+	import Download from "~icons/ph/download-simple";
 	import Gear from "~icons/ph/gear";
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
 
 	import { app } from "#lib/app.svelte.js";
+	import { updater } from "#lib/updater.svelte.js";
 
 	import JoinDialog from "./JoinDialog.svelte";
 	import SettingsDialog from "./settings/SettingsDialog.svelte";
 	import Button from "./ui/Button.svelte";
 	import Link from "./ui/Link.svelte";
+	import Tooltip from "./ui/Tooltip.svelte";
 
 	type ControlType = "minimize" | "maximize" | "close";
 
@@ -134,7 +137,26 @@
 	{/if}
 
 	<div class="flex items-center justify-end" data-tauri-drag-region>
-		<div class="pr-3">
+		<div class="flex items-center gap-1.5 pr-3">
+			{#if updater.status === "ready"}
+				<Tooltip>
+					{#snippet trigger(props)}
+						<Button
+							{...props}
+							class="size-min p-1 text-orange-500"
+							size="icon"
+							variant="ghost"
+							aria-label="Restart to update to v{updater.update?.version}"
+							onclickwait={() => updater.restart()}
+						>
+							<Download />
+						</Button>
+					{/snippet}
+
+					Restart to update to v{updater.update?.version}
+				</Tooltip>
+			{/if}
+
 			<Button
 				class="size-min p-1 text-muted-foreground"
 				command="show-modal"
