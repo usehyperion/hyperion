@@ -1,6 +1,6 @@
 [package]
 name = "hyperion"
-version = "0.9.3"
+version = "0.9.4"
 authors = ["Oliver Rose <hello@olivermrose.com>"]
 edition = "2024"
 publish = false
