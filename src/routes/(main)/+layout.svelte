@@ -2,14 +2,12 @@
 	import { AutoScroller } from "@dnd-kit/dom";
 	import { DragDropProvider, DragOverlay } from "@dnd-kit/svelte";
 	import { createHotkey } from "@tanstack/svelte-hotkeys";
-	import { Tooltip } from "bits-ui";
 	import { onMount } from "svelte";
 
 	import { app } from "#lib/app.svelte.js";
 	import Sidebar from "#lib/components/Sidebar.svelte";
 	import StreamInfo from "#lib/components/stream/StreamInfo.svelte";
 	import { openDialog } from "#lib/components/ui/Dialog.svelte";
-	import UpdateDialog from "#lib/components/UpdateDialog.svelte";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "#lib/splits/events.js";
 	import { storage } from "#lib/stores.js";
 	import { updater } from "#lib/updater.svelte.js";
@@ -36,17 +34,15 @@
 	{onDragMove}
 	{onDragEnd}
 >
-	<Tooltip.Provider delayDuration={300}>
-		<div class="flex grow overflow-hidden">
-			{#if storage.state.user}
-				<Sidebar />
-			{/if}
+	<div class="flex grow overflow-hidden">
+		{#if storage.state.user}
+			<Sidebar />
+		{/if}
 
-			<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
-				{@render children()}
-			</main>
-		</div>
-	</Tooltip.Provider>
+		<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
+			{@render children()}
+		</main>
+	</div>
 
 	<DragOverlay>
 		{#snippet children(source)}
@@ -80,5 +76,3 @@
 		{/snippet}
 	</DragOverlay>
 </DragDropProvider>
-
-<UpdateDialog />
