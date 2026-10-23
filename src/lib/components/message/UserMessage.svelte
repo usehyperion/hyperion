@@ -6,7 +6,7 @@
 
 	import { app } from "#lib/app.svelte.js";
 	import { createMessageMenu } from "#lib/menus/message-menu.js";
-	import { settings } from "#lib/settings/index.js";
+	import { deletedAppearance, settings } from "#lib/settings/index.js";
 	import { openMenu } from "#lib/util.js";
 
 	import Highlight from "./Highlight.svelte";
@@ -73,7 +73,7 @@
 <div
 	class="group relative"
 	aria-disabled={message.deleted}
-	data-deleted={message.deleted ? settings.state["moderation.deleted.appearance"] : undefined}
+	data-deleted={deletedAppearance(message)}
 	oncontextmenu={(event) => openMenu(event, () => createMessageMenu(message))}
 >
 	{#if !message.deleted && !app.user?.banned.has(message.channel.id)}
