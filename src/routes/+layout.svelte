@@ -1,6 +1,6 @@
 <script lang="ts">
 	import "../styles/app.css";
-	import { setHotkeysContext } from "@tanstack/svelte-hotkeys";
+	import { HotkeysProvider } from "@tanstack/svelte-hotkeys";
 	import { invoke } from "@tauri-apps/api/core";
 	import { ModeWatcher } from "mode-watcher";
 	import { onMount } from "svelte";
@@ -27,12 +27,6 @@
 				fill: "forwards",
 			})
 			.finished.then(() => splash.remove());
-	});
-
-	setHotkeysContext({
-		hotkey: {
-			requireReset: true,
-		},
 	});
 
 	$effect(() => {
@@ -68,5 +62,13 @@
 <div class="flex h-screen flex-col overflow-hidden">
 	<TitleBar />
 
-	{@render children()}
+	<HotkeysProvider
+		defaultOptions={{
+			hotkey: {
+				requireReset: true,
+			},
+		}}
+	>
+		{@render children()}
+	</HotkeysProvider>
 </div>
