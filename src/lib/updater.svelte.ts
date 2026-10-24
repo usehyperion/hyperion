@@ -5,63 +5,77 @@ import { type Update, check } from "@tauri-apps/plugin-updater";
 
 import { log } from "./log.js";
 
-export type UpdateStatus = "idle" | "downloading" | "ready";
-
 class Updater {
 	readonly #platform = platform();
 	readonly #deferred = this.#platform !== "macos";
 
+	#pending = false;
 	#unlisten: (() => void) | null = null;
 
-	public status = $state<UpdateStatus>("idle");
+	/**
+	 * Whether an update has been downloaded and is waiting for a restart.
+	 */
+	public ready = $state(false);
 
 	/**
-	 * The update announced by the server, if any.
+	 * Whether the last attempt to restart into the update failed.
+	 */
+	public failed = $state(false);
+
+	/**
+	 * The downloaded update, if any.
 	 */
 	public update = $state.raw<Update | null>(null);
 
 	public async check() {
-		if (this.status !== "idle") return;
+		if (this.#pending || this.ready) return;
+		this.#pending = true;
+
+		let update: Update | null = null;
 
 		try {
-			this.update = await check();
-		} catch (error) {
-			await log.error(`Failed to check for updates: ${String(error)}`);
-			return;
-		}
+			update = await check();
+			if (!update) return;
 
-		if (!this.update) return;
+			await update.download();
 
-		this.status = "downloading";
-
-		try {
-			await this.update.download();
+			this.update = update;
 
 			if (this.#deferred) {
 				await this.#installOnClose();
 			} else {
-				await this.update.install();
+				await update.install();
 			}
 
-			this.status = "ready";
+			this.ready = true;
 		} catch (error) {
-			this.status = "idle";
-			await log.error(`Failed to install update: ${String(error)}`);
+			this.update = null;
+			await update?.close();
+			await log.error(`Failed to update: ${String(error)}`);
+		} finally {
+			this.#pending = false;
 		}
 	}
 
 	public async restart() {
-		if (this.#deferred) {
-			// Installing now, so don't install again when the window closes.
-			this.#unlisten?.();
-			this.#unlisten = null;
+		this.failed = false;
 
-			await this.update?.install();
-		}
+		try {
+			if (this.#deferred) {
+				// Installing now, so don't install again when the window closes.
+				this.#unlisten?.();
+				this.#unlisten = null;
 
-		// The Windows installer exits the app and relaunches it once it's done.
-		if (this.#platform !== "windows") {
-			await relaunch();
+				await this.update?.install();
+			}
+
+			// The Windows installer exits the app and relaunches it once it's done.
+			if (this.#platform !== "windows") {
+				await relaunch();
+			}
+		} catch (error) {
+			this.failed = true;
+			await log.error(`Failed to restart to update: ${String(error)}`);
 		}
 	}
 

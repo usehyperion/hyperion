@@ -38,6 +38,12 @@
 		app.user ? app.user.whispers.values().some((whisper) => whisper.unread > 0) : false,
 	);
 
+	const label = $derived(
+		updater.failed
+			? `Couldn't update to v${updater.update?.version}, click to try again`
+			: `Restart to update to v${updater.update?.version}`,
+	);
+
 	onMount(async () => {
 		if (!currentWindow) return;
 
@@ -138,7 +144,7 @@
 
 	<div class="flex items-center justify-end" data-tauri-drag-region>
 		<div class="flex items-center gap-1.5 pr-3">
-			{#if updater.status === "ready"}
+			{#if updater.ready}
 				<Tooltip>
 					{#snippet trigger(props)}
 						<Button
@@ -146,14 +152,14 @@
 							class="size-min p-1 text-orange-500"
 							size="icon"
 							variant="ghost"
-							aria-label="Restart to update to v{updater.update?.version}"
+							aria-label={label}
 							onclickwait={() => updater.restart()}
 						>
 							<Download />
 						</Button>
 					{/snippet}
 
-					Restart to update to v{updater.update?.version}
+					{label}
 				</Tooltip>
 			{/if}
 

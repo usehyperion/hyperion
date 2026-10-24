@@ -15,8 +15,7 @@
 	const { children } = $props();
 
 	onMount(async () => {
-		await app.connect();
-		await updater.check();
+		await Promise.all([app.connect(), updater.check()]);
 	});
 
 	createHotkey("Mod+,", () => openDialog("settings-dialog"));
