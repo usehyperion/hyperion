@@ -59,9 +59,9 @@ export async function load({ params, url, parent }) {
 	// Badges, emotes, and cheermotes are only needed to render message history,
 	// so the card is shown without waiting on them.
 	const ready = Promise.all([
-		channel.fetchBadges(),
+		channel.badges.fetch(),
 		channel.emotes.fetch(),
-		channel.fetchCheermotes(),
+		channel.cheermotes.fetch(),
 	]).then(() => {});
 
 	return { user, channel, relationship: user.relationships.get(channel.id), ready };
