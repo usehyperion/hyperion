@@ -2,10 +2,6 @@
 	import { AutoScroller } from "@dnd-kit/dom";
 	import { DragDropProvider, DragOverlay } from "@dnd-kit/svelte";
 	import { createHotkey } from "@tanstack/svelte-hotkeys";
-	import { ask } from "@tauri-apps/plugin-dialog";
-	import { relaunch } from "@tauri-apps/plugin-process";
-	import { check } from "@tauri-apps/plugin-updater";
-	import { Tooltip } from "bits-ui";
 	import { onMount } from "svelte";
 
 	import { app } from "#lib/app.svelte.js";
@@ -14,32 +10,12 @@
 	import { openDialog } from "#lib/components/ui/Dialog.svelte";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "#lib/splits/events.js";
 	import { storage } from "#lib/stores.js";
+	import { updater } from "#lib/updater.svelte.js";
 
 	const { children } = $props();
 
 	onMount(async () => {
-		await app.connect();
-
-		const update = await check();
-		if (!update) return;
-
-		const install = await ask(
-			`A new update is available. Would you like to install it now?`,
-			"Update Available",
-		);
-
-		if (!install) return;
-
-		await update.downloadAndInstall();
-
-		const restart = await ask(
-			`Update installed. Would you like to restart the app now?`,
-			"Restart Required",
-		);
-
-		if (restart) {
-			await relaunch();
-		}
+		await Promise.all([app.connect(), updater.check()]);
 	});
 
 	createHotkey("Mod+,", () => openDialog("settings-dialog"));
@@ -57,17 +33,15 @@
 	{onDragMove}
 	{onDragEnd}
 >
-	<Tooltip.Provider delayDuration={300}>
-		<div class="flex grow overflow-hidden">
-			{#if storage.state.user}
-				<Sidebar />
-			{/if}
+	<div class="flex grow overflow-hidden">
+		{#if storage.state.user}
+			<Sidebar />
+		{/if}
 
-			<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
-				{@render children()}
-			</main>
-		</div>
-	</Tooltip.Provider>
+		<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
+			{@render children()}
+		</main>
+	</div>
 
 	<DragOverlay>
 		{#snippet children(source)}

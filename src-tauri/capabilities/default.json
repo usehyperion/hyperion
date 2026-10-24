@@ -13,7 +13,6 @@
 		"core:window:allow-set-focus",
 		"core:webview:allow-create-webview-window",
 		"deep-link:default",
-		"dialog:default",
 		"fs:allow-exists",
 		"fs:allow-lstat",
 		"fs:allow-mkdir",
