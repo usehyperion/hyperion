@@ -8,11 +8,8 @@ import { log } from "./log.js";
 export type UpdateStatus = "idle" | "downloading" | "ready";
 
 class Updater {
-	/**
-	 * Whether the update is applied by launching an installer that exits the
-	 * app, rather than by swapping the bundle on disk.
-	 */
-	readonly #deferred = platform() === "windows";
+	readonly #platform = platform();
+	readonly #deferred = this.#platform !== "macos";
 
 	#unlisten: (() => void) | null = null;
 
@@ -55,9 +52,15 @@ class Updater {
 
 	public async restart() {
 		if (this.#deferred) {
-			// The installer exits the app and relaunches it once it's done.
+			// Installing now, so don't install again when the window closes.
+			this.#unlisten?.();
+			this.#unlisten = null;
+
 			await this.update?.install();
-		} else {
+		}
+
+		// The Windows installer exits the app and relaunches it once it's done.
+		if (this.#platform !== "windows") {
 			await relaunch();
 		}
 	}
