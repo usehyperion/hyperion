@@ -114,3 +114,7 @@ export const defaults: Settings = {
 export const settings = new RuneStore<Settings>("settings", defaults, {
 	autoStart: true,
 });
+
+export function deletedAppearance(message: { deleted: boolean }) {
+	return message.deleted ? settings.state["moderation.deleted.appearance"] : undefined;
+}

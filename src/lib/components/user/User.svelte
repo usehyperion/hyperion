@@ -1,25 +1,10 @@
 <script lang="ts">
-	import { Avatar } from "bits-ui";
-	import dayjs from "dayjs";
-	import localizedFormat from "dayjs/plugin/localizedFormat";
-
-	import Cake from "~icons/ph/cake-fill";
-	import Heart from "~icons/ph/heart-fill";
-	import StarOutline from "~icons/ph/star";
-	import Star from "~icons/ph/star-fill";
-	import UserIcon from "~icons/ph/user-bold";
-
 	import type { MentionNode } from "#lib/models/message/parse.js";
+	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
-	import { UserMessage } from "#lib/models/message/user-message.svelte.js";
-	import { User } from "#lib/models/user.svelte.js";
 	import { settings } from "#lib/settings/index.js";
 
-	import Message from "../message/Message.svelte";
-	import ReverseScroll from "../ReverseScroll.svelte";
-	import Popover from "../ui/Popover.svelte";
-
-	dayjs.extend(localizedFormat);
+	import UserCard from "./UserCard.svelte";
 
 	interface Props {
 		message: UserMessage;
@@ -32,28 +17,9 @@
 	const id = $props.id();
 
 	let opened = $state(false);
-	let loading = $state(false);
-	let showAllBadges = $state(false);
 
 	const user = $derived(mention?.data.user ?? message.author);
-	const relationship = $derived(user.relationships.get(message.channel.id));
 	const popoverId = $derived(`user-card-${user.id}-${id}`);
-
-	async function fetchInfo() {
-		try {
-			loading = true;
-
-			if (user.partial) {
-				await user.fetch();
-			}
-
-			if (!relationship) {
-				await user.fetchRelationship(message.channel);
-			}
-		} finally {
-			loading = false;
-		}
-	}
 
 	function getMentionStyle() {
 		switch (settings.state["chat.usernames.mentionStyle"]) {
@@ -92,160 +58,5 @@
 {/if}
 
 {#if !nested && opened}
-	<Popover
-		id={popoverId}
-		class="w-sm overflow-hidden p-0"
-		onbeforetoggle={async (event) => {
-			if (event.newState === "open") await fetchInfo();
-		}}
-		ontoggle={async (event) => {
-			if (event.newState !== "closed") return;
-
-			const popover = event.currentTarget;
-
-			await Promise.allSettled(
-				popover.getAnimations().map((animation) => animation.finished),
-			);
-
-			if (!popover.matches(":popover-open")) opened = false;
-		}}
-	>
-		{@render card(user)}
-	</Popover>
+	<UserCard id={popoverId} {user} channel={message.channel} onclose={() => (opened = false)} />
 {/if}
-
-{#snippet card(user: User)}
-	{@const history = message.channel.chat.messages.filter(
-		(m): m is UserMessage => m.isUser() && m.author.id === user.id,
-	)}
-
-	<div class="h-18 bg-twitch" style:background-color={user.color}>
-		{#if user.bannerUrl}
-			<img
-				class="size-full object-cover"
-				src={user.bannerUrl}
-				alt=""
-				loading="lazy"
-				decoding="async"
-			/>
-		{/if}
-	</div>
-
-	<div class="relative border-t p-4">
-		<Avatar.Root class="-mt-14">
-			<div
-				class="flex size-20 items-center justify-center overflow-hidden rounded-full border-4 border-popover bg-primary"
-			>
-				<Avatar.Image src={user.avatarUrl} alt={user.displayName} />
-
-				<Avatar.Fallback>
-					<UserIcon class="size-10 text-primary-foreground" />
-				</Avatar.Fallback>
-			</div>
-		</Avatar.Root>
-
-		<div class="absolute top-2 right-2 space-y-1 text-xs text-muted-foreground">
-			<div class="flex items-center gap-1">
-				<Cake class="mr-1 size-3" />
-
-				{#if loading}
-					Loading...
-				{:else}
-					<time datetime={user.createdAt.toISOString()}>
-						{dayjs(user.createdAt).format("LL")}
-					</time>
-				{/if}
-			</div>
-
-			<div class="flex items-center gap-1">
-				<Heart class="mr-1 size-3" />
-
-				{#if loading}
-					Loading...
-				{:else if relationship?.followedAt}
-					<time datetime={relationship.followedAt.toISOString()}>
-						{dayjs(relationship.followedAt).format("LL")}
-					</time>
-				{:else}
-					Not following
-				{/if}
-			</div>
-
-			<div class="flex items-center gap-1">
-				{#if !relationship?.subscription.tier}
-					<StarOutline class="mr-1 size-3" />
-				{:else}
-					<Star class="mr-1 size-3" />
-				{/if}
-
-				{#if loading}
-					Loading...
-				{:else if relationship?.subscription.months}
-					{@const { tier, type, months } = relationship.subscription}
-					{@const noun = `month${months > 1 ? "s" : ""}`}
-
-					{#if tier}
-						{type === "prime" ? "Prime" : `Tier ${tier}`} ({months} {noun})
-					{:else}
-						{months} {noun}
-					{/if}
-				{:else}
-					Subscription unknown
-				{/if}
-			</div>
-		</div>
-
-		<div class="mt-1 flex flex-col gap-y-2">
-			<span class="font-semibold" style={user.style}>{user.displayName}</span>
-
-			{#if relationship?.badges.length}
-				{@const badges = showAllBadges
-					? relationship.badges
-					: relationship.badges.slice(0, 10)}
-
-				<div class="flex flex-wrap items-center gap-1">
-					{#each badges as badge (badge.id)}
-						<img
-							class="size-4"
-							title={badge.title}
-							src={badge.imageUrl}
-							alt={badge.description}
-						/>
-					{/each}
-
-					{#if !showAllBadges && relationship.badges.length > 10}
-						<button
-							class="ml-1 text-xs text-twitch transition-colors hover:text-twitch-link"
-							type="button"
-							onclick={() => (showAllBadges = true)}
-							aria-label="Show {relationship.badges.length - 10} more badges"
-						>
-							+{relationship.badges.length - 10} more
-						</button>
-					{/if}
-				</div>
-			{/if}
-
-			{#if user.bio}
-				<p class="text-xs text-muted-foreground">{user.bio}</p>
-			{/if}
-		</div>
-	</div>
-
-	{#if history.length}
-		<div class="h-24 border-t">
-			<ReverseScroll
-				class="px-4"
-				data={history}
-				showJumpButton={false}
-				getKey={(message) => message.id}
-			>
-				{#snippet children(message)}
-					<div class="origin-left scale-80">
-						<Message {message} nested />
-					</div>
-				{/snippet}
-			</ReverseScroll>
-		</div>
-	{/if}
-{/snippet}
