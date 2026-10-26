@@ -13,7 +13,6 @@ import type { IrcMessage } from "./twitch/irc";
 import type { PubSubTopic } from "./twitch/pubsub";
 
 import { handlers } from "./handlers";
-import { History } from "./history.svelte";
 import { log } from "./log";
 import { BadgeManager } from "./managers/badge-manager";
 import { ChannelManager } from "./managers/channel-manager";
@@ -50,11 +49,6 @@ class App {
 	 * The current split layout.
 	 */
 	public readonly splits = new SplitController();
-
-	/**
-	 * Route history.
-	 */
-	public readonly history = new History();
 
 	/**
 	 * Provider-specific global emotes.
@@ -154,7 +148,6 @@ class App {
 		this.focused = null;
 		this.twitch.session = null;
 
-		this.history.reset();
 		this.channels.clear();
 		this.emotes.clear();
 		this.emoteSets.clear();

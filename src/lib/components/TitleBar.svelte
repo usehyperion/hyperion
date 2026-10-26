@@ -5,11 +5,8 @@
 	import { onDestroy, onMount } from "svelte";
 	import type { HTMLButtonAttributes } from "svelte/elements";
 
-	import { afterNavigate } from "$app/navigation";
 	import { resolve } from "$app/paths";
 
-	import ArrowLeft from "~icons/ph/arrow-left";
-	import ArrowRight from "~icons/ph/arrow-right";
 	import Chats from "~icons/ph/chats";
 	import Download from "~icons/ph/download-simple";
 	import Gear from "~icons/ph/gear";
@@ -56,22 +53,6 @@
 	});
 
 	onDestroy(() => unlisten?.());
-
-	afterNavigate((navigation) => {
-		if (navigation.shallow) return;
-
-		if (!navigation.to || navigation.to.route.id?.startsWith("/auth")) {
-			return;
-		}
-
-		if (navigation.type === "link" || navigation.type === "goto") {
-			const path = navigation.to.url.pathname;
-
-			if (path !== "/") {
-				app.history.pushRoute(path);
-			}
-		}
-	});
 </script>
 
 <div
@@ -91,26 +72,6 @@
 
 	{#if app.user}
 		<div class="flex items-center justify-center gap-1.5" data-tauri-drag-region>
-			<Button
-				class="size-min p-1 hover:text-foreground"
-				size="icon"
-				variant="ghost"
-				disabled={!app.history.canGoBack}
-				onclick={() => app.history.back()}
-			>
-				<ArrowLeft />
-			</Button>
-
-			<Button
-				class="size-min p-1 hover:text-foreground"
-				size="icon"
-				variant="ghost"
-				disabled={!app.history.canGoForward}
-				onclick={() => app.history.forward()}
-			>
-				<ArrowRight />
-			</Button>
-
 			<button
 				class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-[background-color,scale] hover:bg-accent active:scale-[0.96]"
 				command="show-modal"
