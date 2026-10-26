@@ -1,9 +1,5 @@
 <script lang="ts">
-	import { app } from "#lib/app.svelte.js";
-
 	const { children } = $props();
-
-	app.history.reset();
 </script>
 
 <div class="rails fixed inset-0 top-title-bar z-0 flex justify-center" aria-hidden="true">
