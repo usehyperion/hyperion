@@ -11,7 +11,6 @@
 	import UserIcon from "~icons/ph/user-bold";
 
 	import type { Channel } from "#lib/models/channel.svelte.js";
-	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 	import type { Relationship, User } from "#lib/models/user.svelte.js";
 
 	import { app } from "#lib/app.svelte.js";
@@ -43,10 +42,11 @@
 		relationship?: Relationship;
 
 		/**
-		 * Overrides the user's message history, e.g. when it is streamed from
-		 * the main window to a popout.
+		 * Overrides the user's message history, e.g. when its messages are
+		 * streamed from the main window to a popout. The card doesn't load an
+		 * overridden history itself.
 		 */
-		messages?: UserMessage[];
+		history?: MessageHistory;
 		onclose?: () => void;
 
 		/**
@@ -59,15 +59,14 @@
 	const { id, user, channel, onclose, onpopout, ...props }: Props = $props();
 
 	let loading = $state(false);
-	let loadingHistory = $state(false);
 	let pending = $state(false);
 	let showAllBadges = $state(false);
 
 	const relationship = $derived(props.relationship ?? user.relationships.get(channel.id));
 	const viewer = $derived(channel.viewers.get(user.id));
 
-	const history = $derived(!props.messages && viewer ? new MessageHistory(viewer) : null);
-	const messages = $derived(props.messages ?? history?.messages ?? []);
+	const history = $derived(props.history ?? (viewer ? new MessageHistory(viewer) : null));
+	const messages = $derived(history?.messages ?? []);
 
 	// Mirrors `UserMessage.actionable`: mods may act on themselves or on any
 	// viewer who is not themselves a moderator.
@@ -93,12 +92,9 @@
 		if (!history) return;
 
 		try {
-			loadingHistory = true;
 			await history.load();
 		} catch (error) {
 			void log.error(`Failed to load message history: ${String(error)}`).catch(() => {});
-		} finally {
-			loadingHistory = false;
 		}
 	}
 
@@ -141,11 +137,14 @@
 		{@render card()}
 	</Popover>
 {:else}
-	{@render card()}
+	<!-- Popouts give the message history whatever height the window has left -->
+	<div class="flex h-full flex-col">
+		{@render card()}
+	</div>
 {/if}
 
 {#snippet card()}
-	<div class="relative h-18 bg-twitch" style:background-color={user.color}>
+	<div class="relative h-18 shrink-0 bg-twitch" style:background-color={user.color}>
 		{#if onpopout}
 			<button
 				class="absolute top-2 left-2 z-10 rounded bg-black/40 p-1 text-white/80 transition-colors hover:bg-black/60 hover:text-white"
@@ -168,7 +167,7 @@
 		{/if}
 	</div>
 
-	<div class="relative border-t p-4">
+	<div class="relative shrink-0 border-t p-4">
 		<Avatar.Root class="-mt-14">
 			<div
 				class="flex size-20 items-center justify-center overflow-hidden rounded-full border-4 border-popover bg-primary"
@@ -304,7 +303,7 @@
 	</div>
 
 	{#if messages.length}
-		<div class="h-24 border-t">
+		<div class={["border-t", id ? "h-24" : "min-h-24 grow"]}>
 			<ReverseScroll
 				class="px-4"
 				data={messages}
@@ -320,7 +319,7 @@
 				{/snippet}
 			</ReverseScroll>
 		</div>
-	{:else if loadingHistory}
+	{:else if history?.loading}
 		<p class="border-t px-4 py-2 text-xs text-muted-foreground">Loading message history...</p>
 	{/if}
 {/snippet}

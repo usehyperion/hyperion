@@ -7,6 +7,7 @@
 	import { app } from "#lib/app.svelte.js";
 	import UserCard from "#lib/components/user/UserCard.svelte";
 	import { log } from "#lib/log.js";
+	import { MessageHistory } from "#lib/models/message-history.svelte.js";
 	import { UserMessage, type UserMessageInit } from "#lib/models/message/user-message.svelte.js";
 	import { Viewer } from "#lib/models/viewer.svelte.js";
 	import { mark, reportMarks } from "#lib/perf.js";
@@ -18,7 +19,8 @@
 	// window, so this data is read once rather than tracked.
 	const { user, channel, relationship, ready } = untrack(() => data);
 
-	let history = $state<UserMessage[]>([]);
+	// Messages received in the main window's chat, oldest first.
+	let received = $state<UserMessage[]>([]);
 	let unsubscribe: (() => Promise<void>) | undefined;
 	let destroyed = false;
 	let reported = false;
@@ -28,6 +30,10 @@
 	// otherwise synthesise from the raw payload.
 	const viewer = new Viewer(channel, user);
 	channel.viewers.set(user.id, viewer);
+
+	// Mod logs are merged in the same way as in the main window, only with the
+	// received messages coming from the main window rather than this one's chat.
+	const history = new MessageHistory(viewer, () => received);
 
 	function rebuild(init: UserMessageInit) {
 		return UserMessage.fromJSON(channel, init);
@@ -43,7 +49,7 @@
 			viewer.vip = sync.viewer.vip;
 		}
 
-		history = sync.messages.map(rebuild);
+		received = sync.messages.map(rebuild);
 
 		if (!reported) {
 			reported = true;
@@ -55,9 +61,9 @@
 	}
 
 	function onMessage(init: UserMessageInit) {
-		if (history.some((message) => message.id === init.id)) return;
+		if (received.some((message) => message.id === init.id)) return;
 
-		history.push(rebuild(init));
+		received.push(rebuild(init));
 	}
 
 	onMount(async () => {
@@ -85,6 +91,13 @@
 
 		if (destroyed) return;
 
+		// A no-op unless the current user moderates the channel
+		void history
+			.load()
+			.catch((error: unknown) =>
+				log.error(`Failed to load message history: ${String(error)}`).catch(() => {}),
+			);
+
 		mark("card:subscribe");
 
 		unsubscribe = await subscribeUserCard(
@@ -109,4 +122,4 @@
 	<title>{user.displayName}</title>
 </svelte:head>
 
-<UserCard {user} {channel} {relationship} messages={history} />
+<UserCard {user} {channel} {relationship} {history} />
