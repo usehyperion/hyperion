@@ -157,6 +157,16 @@ export default {
 						"Allows you to send identical messages even if you're not a moderator or a VIP.",
 				},
 				{
+					id: "chat.messages.limit",
+					type: "slider",
+					label: "Message limit",
+					description:
+						"Change how many messages to keep in each chat. Older messages are removed once the limit is reached, unless you're scrolled up.",
+					min: 100,
+					max: 2000,
+					step: 100,
+				},
+				{
 					type: "group",
 					label: "History",
 					fields: [
