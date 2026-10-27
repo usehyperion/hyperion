@@ -26,6 +26,7 @@ type ModLogMessage = NonNullable<
  */
 export class MessageHistory {
 	readonly #pager = new Pager<UserMessage>((after) => this.#fetchPage(after));
+	readonly #received: () => UserMessage[];
 
 	#history: Promise<void> | null = null;
 
@@ -33,13 +34,16 @@ export class MessageHistory {
 	#logged = $state.raw<UserMessage[]>([]);
 
 	/**
+	 * Whether the most recent page of messages is being loaded.
+	 */
+	public loading = $state(false);
+
+	/**
 	 * The messages sent by the viewer, oldest first. Only includes messages
 	 * received in chat until {@linkcode load} is called.
 	 */
 	public readonly messages = $derived.by(() => {
-		const received = this.viewer.channel.chat.messages.filter(
-			(m): m is UserMessage => m.isUser() && m.author.id === this.viewer.id,
-		);
+		const received = this.#received();
 
 		if (!this.#logged.length) return received;
 
@@ -52,7 +56,22 @@ export class MessageHistory {
 		);
 	});
 
-	public constructor(public readonly viewer: Viewer) {}
+	/**
+	 * @param received Returns the messages the viewer has sent in chat, oldest
+	 * first. Defaults to the viewer's messages in the channel's chat, which
+	 * popouts don't have since they receive messages from the main window.
+	 */
+	public constructor(
+		public readonly viewer: Viewer,
+		received?: () => UserMessage[],
+	) {
+		this.#received =
+			received ??
+			(() =>
+				this.viewer.channel.chat.messages.filter(
+					(m): m is UserMessage => m.isUser() && m.author.id === this.viewer.id,
+				));
+	}
 
 	/**
 	 * Whether there are older messages that can be loaded with
@@ -85,11 +104,14 @@ export class MessageHistory {
 
 	async #loadHistory() {
 		try {
+			this.loading = true;
 			this.#logged = await this.#pager.first();
 		} catch (error) {
 			this.#history = null;
 
 			throw error;
+		} finally {
+			this.loading = false;
 		}
 	}
 
