@@ -70,6 +70,25 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 		return this.#loaded.has(provider);
 	}
 
+	/**
+	 * The providers whose emotes have been loaded.
+	 */
+	public get providers() {
+		return [...this.#loaded];
+	}
+
+	/**
+	 * Adds emotes that were loaded elsewhere, e.g. in another window, and marks
+	 * their providers as loaded.
+	 */
+	public restore(emotes: Iterable<Emote>, providers: Iterable<EmoteProvider>) {
+		this.addAll(emotes);
+
+		for (const provider of providers) {
+			this.#loaded.add(provider);
+		}
+	}
+
 	public addAll(emotes: Iterable<Emote>) {
 		for (const emote of emotes) {
 			this.set(emote.displayName, emote);

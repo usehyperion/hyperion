@@ -1,7 +1,10 @@
 import { emit, emitTo, listen } from "@tauri-apps/api/event";
 import type { UnlistenFn } from "@tauri-apps/api/event";
 
-import type { User as ApiUser } from "./graphql/twitch";
+import type { Emote, EmoteProvider } from "./emotes";
+import type { User as ApiUser, Cheermote } from "./graphql/twitch";
+import type { BaseEmoteManager } from "./managers/base-emote-manager";
+import type { Channel } from "./models/channel.svelte";
 import type { Message } from "./models/message/message";
 import type { UserMessage, UserMessageInit } from "./models/message/user-message.svelte";
 import type { Relationship, RelationshipSubscription } from "./models/user.svelte";
@@ -40,10 +43,48 @@ export interface UserCardSubscription {
 	channelId: string;
 }
 
+export type SerializedBadge = ConstructorParameters<typeof Badge>[0];
+
 export interface SerializedRelationship {
-	badges: ConstructorParameters<typeof Badge>[0][];
+	badges: SerializedBadge[];
 	followedAt: string | null;
 	subscription: RelationshipSubscription;
+}
+
+export interface SerializedEmotes {
+	emotes: Emote[];
+
+	/**
+	 * The providers the emotes were loaded from.
+	 */
+	providers: EmoteProvider[];
+}
+
+/**
+ * The app-wide emotes and badges, which messages fall back to when resolving
+ * their own.
+ */
+export interface UserCardGlobals {
+	/**
+	 * Badge map entries. Keys aren't always the badge id, e.g. 7TV badges are
+	 * keyed by their cosmetic id.
+	 */
+	badges: [string, SerializedBadge][];
+	emotes: SerializedEmotes;
+
+	/**
+	 * The user's third-party badges. 7TV badges arrive over the 7TV socket, so a
+	 * popout cannot resolve them on its own.
+	 */
+	userBadges: SerializedBadge[];
+}
+
+export interface UserCardChannelData {
+	badges: SerializedBadge[];
+	emotes: SerializedEmotes;
+	cheermotes: Cheermote[];
+	seventvId: string | null;
+	emoteSetId: string | null;
 }
 
 /**
@@ -61,6 +102,9 @@ export interface UserCardBootstrap {
 	 * full list of moderated channels, so this is the only source for it.
 	 */
 	moderator: boolean;
+
+	globals: UserCardGlobals | null;
+	channel: UserCardChannelData | null;
 }
 
 /**
@@ -132,6 +176,46 @@ function buildBootstrap({ userId, channelId }: UserCardSubscription): UserCardBo
 		broadcaster: channel?.user.data ?? null,
 		relationship: relationship ? serializeRelationship(relationship) : null,
 		moderator: app.user?.moderates(channelId) ?? false,
+		globals: app.badges.size ? serializeGlobals(userId) : null,
+		// Channels are only loaded once joined, so an unjoined channel has
+		// nothing worth sending
+		channel: channel?.joined ? serializeChannelData(channel) : null,
+	};
+}
+
+function serializeGlobals(userId: string): UserCardGlobals {
+	return {
+		badges: app.badges
+			.entries()
+			.map(([key, badge]): [string, SerializedBadge] => [key, serializeBadge(badge)])
+			.toArray(),
+		emotes: serializeEmotes(app.emotes),
+		userBadges: app.badges.users.get(userId)?.map(serializeBadge) ?? [],
+	};
+}
+
+function serializeChannelData(channel: Channel): UserCardChannelData {
+	return {
+		badges: channel.badges.values().map(serializeBadge).toArray(),
+		emotes: serializeEmotes(channel.emotes),
+		cheermotes: [...channel.cheermotes.values()],
+		seventvId: channel.seventvId,
+		emoteSetId: channel.emoteSetId,
+	};
+}
+
+function serializeEmotes(manager: BaseEmoteManager): SerializedEmotes {
+	return { emotes: [...manager.values()], providers: manager.providers };
+}
+
+function serializeBadge(badge: Badge): SerializedBadge {
+	return {
+		setId: badge.setId,
+		version: badge.version,
+		title: badge.title,
+		description: badge.description,
+		color: badge.color,
+		imageUrl: badge.imageUrl,
 	};
 }
 
@@ -160,14 +244,7 @@ function buildSync({ userId, channelId }: UserCardSubscription): UserCardSync {
 
 function serializeRelationship(relationship: Relationship): SerializedRelationship {
 	return {
-		badges: relationship.badges.map((badge) => ({
-			setId: badge.setId,
-			version: badge.version,
-			title: badge.title,
-			description: badge.description,
-			color: badge.color,
-			imageUrl: badge.imageUrl,
-		})),
+		badges: relationship.badges.map(serializeBadge),
 		followedAt: relationship.followedAt?.toISOString() ?? null,
 		subscription: relationship.subscription,
 	};
@@ -179,6 +256,38 @@ export function deserializeRelationship(relationship: SerializedRelationship): R
 		followedAt: relationship.followedAt ? new Date(relationship.followedAt) : null,
 		subscription: relationship.subscription,
 	};
+}
+
+/**
+ * Restores the app-wide emotes and badges sent by the main window.
+ */
+export function restoreGlobals(globals: UserCardGlobals, userId: string) {
+	for (const [key, badge] of globals.badges) {
+		app.badges.set(key, new Badge(badge));
+	}
+
+	app.badges.users.set(
+		userId,
+		globals.userBadges.map((badge) => new Badge(badge)),
+	);
+	app.emotes.restore(globals.emotes.emotes, globals.emotes.providers);
+}
+
+/**
+ * Restores a channel's emotes, badges, and cheermotes sent by the main window.
+ */
+export function restoreChannelData(channel: Channel, data: UserCardChannelData) {
+	for (const badge of data.badges.map((badge) => new Badge(badge))) {
+		channel.badges.set(badge.id, badge);
+	}
+
+	for (const cheermote of data.cheermotes) {
+		channel.cheermotes.set(cheermote.prefix.toLowerCase(), cheermote);
+	}
+
+	channel.emotes.restore(data.emotes.emotes, data.emotes.providers);
+	channel.seventvId = data.seventvId;
+	channel.emoteSetId = data.emoteSetId;
 }
 
 /**

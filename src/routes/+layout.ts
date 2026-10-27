@@ -6,16 +6,21 @@ import { log } from "#lib/log.js";
 import { Channel } from "#lib/models/channel.svelte.js";
 import { CurrentUser } from "#lib/models/current-user.svelte.js";
 import { User } from "#lib/models/user.svelte.js";
+import { mark } from "#lib/perf.js";
 import { storage } from "#lib/stores.js";
 import { Session, getCredentials } from "#lib/twitch/session.js";
 
 export const ssr = false;
 
 export async function load({ url, route }) {
+	mark("layout:start");
+
 	if (!app.twitch.session) {
 		const credentials = await getCredentials();
 		app.twitch.session = credentials && new Session(credentials);
 	}
+
+	mark("layout:credentials");
 
 	if (!app.twitch.session) {
 		log.info("Stored token expired, clearing user");
@@ -69,8 +74,14 @@ export async function load({ url, route }) {
 		});
 	}
 
+	// Popouts get the global emotes and badges from the main window, and only
+	// fetch them in the background if it doesn't answer
+	if (popout) return;
+
 	await Promise.all([
 		app.emotes.size ? null : app.emotes.fetch(),
 		app.badges.size ? null : app.badges.fetch(),
 	]);
+
+	mark("layout:global-emotes-badges");
 }

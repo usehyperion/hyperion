@@ -2,11 +2,14 @@
 	import { getCurrentWindow } from "@tauri-apps/api/window";
 	import { onDestroy, onMount, untrack } from "svelte";
 
+	import { page } from "$app/state";
+
 	import { app } from "#lib/app.svelte.js";
 	import UserCard from "#lib/components/user/UserCard.svelte";
 	import { log } from "#lib/log.js";
 	import { UserMessage, type UserMessageInit } from "#lib/models/message/user-message.svelte.js";
 	import { Viewer } from "#lib/models/viewer.svelte.js";
+	import { mark, reportMarks } from "#lib/perf.js";
 	import { subscribeUserCard, type UserCardSync } from "#lib/user-cards.js";
 
 	const { data } = $props();
@@ -18,6 +21,7 @@
 	let history = $state<UserMessage[]>([]);
 	let unsubscribe: (() => Promise<void>) | undefined;
 	let destroyed = false;
+	let reported = false;
 
 	// Seeding the viewer up front means rebuilt messages resolve their author to
 	// the fully fetched user rather than the partial one `UserMessage` would
@@ -40,6 +44,14 @@
 		}
 
 		history = sync.messages.map(rebuild);
+
+		if (!reported) {
+			reported = true;
+			mark("card:history");
+
+			const openedAt = Number(page.url.searchParams.get("t")) || null;
+			reportMarks(`user card ${user.username}`, openedAt);
+		}
 	}
 
 	function onMessage(init: UserMessageInit) {
@@ -49,6 +61,8 @@
 	}
 
 	onMount(async () => {
+		mark("card:mounted");
+
 		// Messages resolve their badges and emotes when they are rebuilt, so
 		// history is only requested once the channel's metadata has loaded.
 		await ready.catch((error: unknown) =>
@@ -58,6 +72,8 @@
 		);
 
 		if (destroyed) return;
+
+		mark("card:subscribe");
 
 		unsubscribe = await subscribeUserCard(
 			{

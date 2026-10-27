@@ -36,7 +36,7 @@ export async function openUserCard(user: User, channel: Channel) {
 		return existing;
 	}
 
-	const url = `/user/${user.id}?channel=${channel.id}`;
+	const url = `/user/${user.id}?channel=${channel.id}&t=${Date.now()}`;
 
 	const popout = new WebviewWindow(label, {
 		url,
