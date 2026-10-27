@@ -63,6 +63,18 @@
 	onMount(async () => {
 		mark("card:mounted");
 
+		// Popouts start out as hidden spares, so they're only shown once there's
+		// a card to show
+		const popout = getCurrentWindow();
+
+		void popout
+			.setTitle(user.displayName)
+			.then(() => popout.show())
+			.then(() => popout.setFocus())
+			.catch((error: unknown) =>
+				log.error(`Failed to show user card: ${String(error)}`).catch(() => {}),
+			);
+
 		// Messages resolve their badges and emotes when they are rebuilt, so
 		// history is only requested once the channel's metadata has loaded.
 		await ready.catch((error: unknown) =>
@@ -77,7 +89,7 @@
 
 		unsubscribe = await subscribeUserCard(
 			{
-				label: getCurrentWindow().label,
+				label: popout.label,
 				userId: user.id,
 				channelId: channel.id,
 			},

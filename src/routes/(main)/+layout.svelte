@@ -12,20 +12,26 @@
 	import { storage } from "#lib/stores.js";
 	import { updater } from "#lib/updater.svelte.js";
 	import { serveUserCards } from "#lib/user-cards.js";
+	import { prepareUserCards } from "#lib/windows.js";
 
 	const { children } = $props();
 
 	let stopServingUserCards: (() => void) | undefined;
+	let stopPreparingUserCards: (() => void) | undefined;
 
 	onMount(async () => {
 		// The main window owns the chat connections, so it is the only source
 		// popouts can pull message history from.
 		stopServingUserCards = await serveUserCards();
+		stopPreparingUserCards = await prepareUserCards();
 
 		await Promise.all([app.connect(), updater.check()]);
 	});
 
-	onDestroy(() => stopServingUserCards?.());
+	onDestroy(() => {
+		stopServingUserCards?.();
+		stopPreparingUserCards?.();
+	});
 
 	createHotkey("Mod+,", () => openDialog("settings-dialog"));
 </script>

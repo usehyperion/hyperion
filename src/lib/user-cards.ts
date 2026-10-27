@@ -29,6 +29,16 @@ export const USER_CARD_SYNC = "user-card:sync";
 export const USER_CARD_MESSAGE = "user-card:message";
 
 /**
+ * Sent by a spare popout once it has booted and can be assigned a user.
+ */
+export const USER_CARD_IDLE = "user-card:idle";
+
+/**
+ * Sent to a spare popout to have it show a user's card.
+ */
+export const USER_CARD_ASSIGN = "user-card:assign";
+
+/**
  * How long a popout waits for the main window to answer a bootstrap request
  * before falling back to fetching everything itself.
  */
@@ -41,6 +51,16 @@ export interface UserCardSubscription {
 	label: string;
 	userId: string;
 	channelId: string;
+}
+
+export interface UserCardAssignment {
+	userId: string;
+	channelId: string;
+
+	/**
+	 * The epoch time the card was requested at.
+	 */
+	openedAt: number;
 }
 
 export type SerializedBadge = ConstructorParameters<typeof Badge>[0];
