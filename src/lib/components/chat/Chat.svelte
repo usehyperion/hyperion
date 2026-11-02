@@ -19,6 +19,14 @@
 	const { class: className, chat }: Props = $props();
 
 	let lastRead = $state<Message | null>(null);
+
+	$effect(() => {
+		const current = chat;
+
+		return () => {
+			current.paused = false;
+		};
+	});
 </script>
 
 <svelte:window

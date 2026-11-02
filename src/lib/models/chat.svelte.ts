@@ -63,7 +63,7 @@ interface MessageOptions {
 
 export class Chat {
 	#bypassNext = false;
-	#paused = false;
+	#paused = $state(false);
 	#lastRecentAt: number | null = null;
 
 	#ids = new Set<string>();
@@ -241,9 +241,11 @@ export class Chat {
 
 	public reset() {
 		this.#bypassNext = false;
+		this.#paused = false;
 		this.#lastRecentAt = null;
 		this.replyTarget = null;
 		this.messages = [];
+		this.received = 0;
 		this.history = [];
 
 		this.#ids.clear();
