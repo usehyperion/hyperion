@@ -5,7 +5,13 @@ import type { EmoteSet } from "#lib/emotes.js";
 import { app } from "#lib/app.svelte.js";
 import { transform7tvEmote } from "#lib/emotes.js";
 import { execute7tvQuery, userEmoteSetsQuery } from "#lib/graphql/7tv.js";
-import { emoteSetsQuery, followsQuery, whispersQuery } from "#lib/graphql/twitch.js";
+import {
+	emoteSetsQuery,
+	followsQuery,
+	moderatesQuery,
+	whispersQuery,
+} from "#lib/graphql/twitch.js";
+import { once } from "#lib/util.js";
 
 import { Channel } from "./channel.svelte";
 import { Stream } from "./stream.svelte";
@@ -13,8 +19,6 @@ import { User } from "./user.svelte";
 import { Whisper } from "./whisper.svelte";
 
 export class CurrentUser extends User {
-	#whispers: Promise<void> | null = null;
-
 	public seventvId: string | null = null;
 
 	/**
@@ -39,7 +43,40 @@ export class CurrentUser extends User {
 
 	public constructor(user: User) {
 		super(user.client, user.data);
+
+		// Users always moderate their own channel.
+		this.moderating.add(this.id);
 	}
+
+	/**
+	 * Loads the emote sets the current user is entitled to use.
+	 */
+	public readonly loadEmoteSets = once(() => this.fetchEmoteSets());
+
+	/**
+	 * Loads the channels the current user moderates.
+	 */
+	public readonly loadModerating = once(async () => {
+		const moderates = await this.client.paginate(
+			moderatesQuery,
+			{},
+			(data) => data.moderatedChannels,
+		);
+
+		for (const { id } of moderates) {
+			this.moderating.add(id);
+		}
+	});
+
+	/**
+	 * Loads the channels the current user follows.
+	 */
+	public readonly loadFollowing = once(() => this.#loadFollowing());
+
+	/**
+	 * Loads the whisper threads the current user is a part of.
+	 */
+	public readonly loadWhispers = once(() => this.#loadWhispers());
 
 	/**
 	 * Whether the current user moderates the given channel.
@@ -53,10 +90,7 @@ export class CurrentUser extends User {
 		void this.#fetchTwitchEmotes().catch(() => {});
 	}
 
-	/**
-	 * Loads the channels the current user follows.
-	 */
-	public async loadFollowing() {
+	async #loadFollowing() {
 		const follows = await this.client.paginate(
 			followsQuery,
 			{ id: this.id },
@@ -86,16 +120,6 @@ export class CurrentUser extends User {
 
 			app.channels.set(model.id, new Channel(this.client, model, stream));
 		}
-	}
-
-	/**
-	 * Loads the whisper threads the current user is a part of.
-	 */
-	public loadWhispers() {
-		return (this.#whispers ??= this.#loadWhispers().catch((error: unknown) => {
-			this.#whispers = null;
-			throw error;
-		}));
 	}
 
 	async #loadWhispers() {

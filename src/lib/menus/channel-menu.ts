@@ -41,7 +41,7 @@ export async function createChannelMenu(channel: Channel) {
 	const join = await MenuItem.new({
 		id: "join",
 		text: "Join",
-		enabled: !channel.joined,
+		enabled: channel.status === "idle",
 		async action() {
 			await app.open(channel);
 		},
@@ -50,7 +50,7 @@ export async function createChannelMenu(channel: Channel) {
 	const leave = await MenuItem.new({
 		id: "leave",
 		text: "Leave",
-		enabled: channel.joined,
+		enabled: channel.status === "joining" || channel.status === "joined",
 		async action() {
 			await channel.leave();
 

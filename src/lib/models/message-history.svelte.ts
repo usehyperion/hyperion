@@ -4,6 +4,7 @@ import type { NonNullableDeep } from "#lib/graphql/index.js";
 
 import { modLogMessagesQuery, toMessageFragments } from "#lib/graphql/twitch.js";
 import { Pager, prependUnique, toPage, type Page } from "#lib/pager.svelte.js";
+import { once } from "#lib/util.js";
 
 import type { Viewer } from "./viewer.svelte";
 
@@ -27,7 +28,9 @@ type ModLogMessage = NonNullable<
 export class MessageHistory {
 	readonly #pager = new Pager<UserMessage>((after) => this.#fetchPage(after));
 
-	#history: Promise<void> | null = null;
+	readonly #history = once(async () => {
+		this.#logged = await this.#pager.first();
+	});
 
 	// Messages loaded from the mod logs, oldest first.
 	#logged = $state.raw<UserMessage[]>([]);
@@ -71,7 +74,7 @@ export class MessageHistory {
 			return Promise.resolve();
 		}
 
-		return (this.#history ??= this.#loadHistory());
+		return this.#history();
 	}
 
 	/**
@@ -81,16 +84,6 @@ export class MessageHistory {
 		const older = await this.#pager.older();
 
 		this.#logged = prependUnique(this.#logged, older);
-	}
-
-	async #loadHistory() {
-		try {
-			this.#logged = await this.#pager.first();
-		} catch (error) {
-			this.#history = null;
-
-			throw error;
-		}
 	}
 
 	async #fetchPage(after: string | null): Promise<Page<UserMessage>> {

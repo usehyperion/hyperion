@@ -15,6 +15,16 @@ export function clamp(min: number, value: number, max: number) {
 	return Math.min(Math.max(min, value), max);
 }
 
+export function remainingLinger(endedAt: string | null, duration: number) {
+	const ended = endedAt ? new Date(endedAt).getTime() : Number.NaN;
+
+	if (Number.isNaN(ended)) {
+		return duration;
+	}
+
+	return clamp(0, ended + duration - Date.now(), duration);
+}
+
 export function formatDuration(seconds: number) {
 	if (seconds === 0) return "";
 
@@ -103,6 +113,54 @@ export function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
 	return (...args: Parameters<F>) => {
 		clearTimeout(id);
 		id = setTimeout(() => fn(...args), timeout);
+	};
+}
+
+export interface Once<T> {
+	(): Promise<T>;
+
+	/**
+	 * Forgets the result so the next call loads again.
+	 */
+	reset(): void;
+}
+
+export function once<T>(load: () => Promise<T>): Once<T> {
+	let pending: Promise<T> | null = null;
+
+	const run = () => {
+		if (pending) return pending;
+
+		const current = load().catch((error: unknown) => {
+			if (pending === current) pending = null;
+			throw error;
+		});
+
+		pending = current;
+
+		return current;
+	};
+
+	return Object.assign(run, {
+		reset() {
+			pending = null;
+		},
+	});
+}
+
+export function shared<T>(fn: () => Promise<T>): () => Promise<T> {
+	let pending: Promise<T> | null = null;
+
+	return () => {
+		if (pending) return pending;
+
+		const current = fn().finally(() => {
+			if (pending === current) pending = null;
+		});
+
+		pending = current;
+
+		return current;
 	};
 }
 

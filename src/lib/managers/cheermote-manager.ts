@@ -2,15 +2,21 @@ import type { Cheermote } from "#lib/graphql/twitch.js";
 import type { Channel } from "#lib/models/channel.svelte.js";
 
 import { cheermoteQuery } from "#lib/graphql/twitch.js";
+import { once } from "#lib/util.js";
 
 /**
  * The cheermotes in a channel keyed by their lowercased prefix.
  */
 export class CheermoteManager extends Map<string, Cheermote> {
-	#pending: Promise<void> | null = null;
+	readonly #load = once(() => this.#fetch());
 
 	public constructor(public readonly channel: Channel) {
 		super();
+	}
+
+	public override clear() {
+		this.#load.reset();
+		super.clear();
 	}
 
 	/**
@@ -18,21 +24,9 @@ export class CheermoteManager extends Map<string, Cheermote> {
 	 * retrieved yet.
 	 */
 	public async fetch(force = false) {
-		if (!force && this.size) {
-			return this;
-		}
+		if (force) this.#load.reset();
 
-		if (force || !this.#pending) {
-			this.#pending = this.#fetch();
-		}
-
-		const pending = this.#pending;
-
-		try {
-			await pending;
-		} finally {
-			if (this.#pending === pending) this.#pending = null;
-		}
+		await this.#load();
 
 		return this;
 	}
@@ -40,7 +34,8 @@ export class CheermoteManager extends Map<string, Cheermote> {
 	async #fetch() {
 		const { user } = await this.channel.client.gql(cheermoteQuery, { id: this.channel.id });
 
-		this.clear();
+		// Not this.clear(), which would forget the load in progress.
+		super.clear();
 
 		for (const cheermote of user?.cheer?.emotes ?? []) {
 			if (cheermote) this.set(cheermote.prefix.toLowerCase(), cheermote);

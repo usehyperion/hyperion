@@ -5,12 +5,17 @@ import {
 	lockPredictionMutation,
 	resolvePredictionMutation,
 } from "#lib/graphql/twitch.js";
+import { remainingLinger } from "#lib/util.js";
 
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";
 
 // Twitch keeps predictions visible for a minute after they resolve or cancel
 const LINGER_DURATION = 60 * 1000;
+
+function isEnded(status: PredictionStatus) {
+	return status === "RESOLVED" || status === "CANCELED";
+}
 
 export interface PredictionOutcome {
 	readonly id: string;
@@ -97,6 +102,10 @@ export class Prediction {
 
 		this.status = data.status;
 		this.winningOutcomeId = data.winning_outcome_id;
+
+		if (isEnded(this.status)) {
+			this.#linger(data.ended_at);
+		}
 	}
 
 	public update(payload: ApiPrediction) {
@@ -112,11 +121,8 @@ export class Prediction {
 			}
 		}
 
-		if (this.status === "RESOLVED" || this.status === "CANCELED") {
-			this.#expiryId ??= setTimeout(() => {
-				this.#expiryId = null;
-				this.channel.clearPrediction(this);
-			}, LINGER_DURATION);
+		if (isEnded(this.status)) {
+			this.#linger(payload.ended_at);
 		}
 	}
 
@@ -161,5 +167,15 @@ export class Prediction {
 			clearTimeout(this.#expiryId);
 			this.#expiryId = null;
 		}
+	}
+
+	#linger(endedAt: string | null) {
+		this.#expiryId ??= setTimeout(
+			() => {
+				this.#expiryId = null;
+				this.channel.clearPrediction(this);
+			},
+			remainingLinger(endedAt, LINGER_DURATION),
+		);
 	}
 }

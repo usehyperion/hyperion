@@ -18,9 +18,7 @@
 	let loading = $state(true);
 
 	onMount(async () => {
-		if (app.user && !app.user.emoteSets.size) {
-			await app.user.fetchEmoteSets();
-		}
+		await app.user?.loadEmoteSets();
 
 		if (app.splits.root) {
 			const pane = firstLeaf(app.splits.root);

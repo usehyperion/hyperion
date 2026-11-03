@@ -23,17 +23,26 @@ export interface WhisperMessage {
 	text: string;
 }
 
+/**
+ * Where a whisper is in loading its message history.
+ *
+ * - `unloaded`: only the preview is known; live messages update the preview.
+ * - `loading`: the history request is in flight; live messages are buffered so
+ *   they can be merged in once it resolves.
+ * - `loaded`: live messages are appended to the loaded messages.
+ */
+type HistoryState =
+	| { status: "unloaded" }
+	| { status: "loading"; request: Promise<void>; buffered: WhisperMessage[] }
+	| { status: "loaded" };
+
 export class Whisper {
 	readonly #pager = new Pager<WhisperMessage>((after) => this.#fetchPage(after));
 
-	// Live messages received while the history request is in flight.
-	#pending: WhisperMessage[] = [];
+	#history: HistoryState = { status: "unloaded" };
 
 	// The per-thread sequence number of the newest live message.
 	#sequence = 0;
-
-	#loaded = false;
-	#history: Promise<void> | null = null;
 
 	// The newest message id known to exist on Twitch.
 	#lastReadableId: string | null = null;
@@ -101,24 +110,36 @@ export class Whisper {
 		this.#sequence = Math.max(this.#sequence, sequence);
 		this.#lastReadableId = message.id;
 
-		if (this.#loaded) {
+		if (this.#history.status === "loaded") {
 			this.messages.push(message);
-		} else {
-			// Only buffer while history is in flight; anything earlier is
-			// already part of the returned history.
-			if (this.#history) {
-				this.#pending.push(message);
-			}
-
-			this.preview = message;
+			return;
 		}
+
+		// Only buffer while history is in flight; anything earlier is already
+		// part of the returned history.
+		if (this.#history.status === "loading") {
+			this.#history.buffered.push(message);
+		}
+
+		this.preview = message;
 	}
 
 	/**
 	 * Loads the most recent page of messages.
 	 */
 	public load() {
-		return (this.#history ??= this.#loadHistory());
+		if (this.#history.status === "loaded") return Promise.resolve();
+		if (this.#history.status === "loading") return this.#history.request;
+
+		// Anything received before the request is sent is already part of the
+		// returned history, so only messages that arrive while it's in flight
+		// need to be carried over.
+		const buffered: WhisperMessage[] = [];
+		const request = this.#loadHistory(buffered);
+
+		this.#history = { status: "loading", request, buffered };
+
+		return request;
 	}
 
 	/**
@@ -165,33 +186,28 @@ export class Whisper {
 		});
 	}
 
-	async #loadHistory() {
-		// Anything received before the request is sent is already part of the
-		// returned history, so only messages that arrive while it's in flight
-		// need to be carried over.
-		this.#pending = [];
+	async #loadHistory(buffered: WhisperMessage[]) {
+		let history: WhisperMessage[];
 
 		try {
-			const history = await this.#pager.first();
-			const last = history.at(-1);
-
-			if (last && !this.#pending.length) {
-				this.#lastReadableId = last.id;
-			}
-
-			const inFlight = this.#pending.filter(
-				(message) => !history.some((existing) => isSameMessage(existing, message)),
-			);
-
-			this.messages = [...history, ...inFlight];
-			this.#pending = [];
-			this.#loaded = true;
+			history = await this.#pager.first();
 		} catch (error) {
-			this.#pending = [];
-			this.#history = null;
-
+			this.#history = { status: "unloaded" };
 			throw error;
 		}
+
+		const last = history.at(-1);
+
+		if (last && !buffered.length) {
+			this.#lastReadableId = last.id;
+		}
+
+		const inFlight = buffered.filter(
+			(message) => !history.some((existing) => isSameMessage(existing, message)),
+		);
+
+		this.messages = [...history, ...inFlight];
+		this.#history = { status: "loaded" };
 	}
 
 	async #fetchPage(after: string | null): Promise<Page<WhisperMessage>> {

@@ -1,7 +1,6 @@
 import { redirect } from "@sveltejs/kit";
 
 import { app } from "#lib/app.svelte.js";
-import { moderatesQuery } from "#lib/graphql/twitch.js";
 import { log } from "#lib/log.js";
 import { Channel } from "#lib/models/channel.svelte.js";
 import { CurrentUser } from "#lib/models/current-user.svelte.js";
@@ -38,38 +37,28 @@ export async function load({ url }) {
 		app.user = new CurrentUser(user);
 	}
 
-	if (!app.user.moderating.size) {
-		app.user.moderating.add(app.user.id);
+	// Each of these loads once, and is retried on the next load if it failed.
+	await app.user.loadModerating();
 
-		const moderates = await app.twitch.paginate(
-			moderatesQuery,
-			{},
-			(data) => data.moderatedChannels,
-		);
-
-		for (const { id } of moderates) {
-			app.user.moderating.add(id);
-		}
-	}
-
-	if (!app.channels.size) {
+	if (!app.channels.has(app.user.id)) {
 		const self = new Channel(app.twitch, app.user);
 		app.channels.set(self.id, self);
-
-		void app.user.loadFollowing().catch((error) => {
-			void log.error(`Failed to load followed channels: ${String(error)}`).catch(() => {});
-		});
-
-		void app.user.loadWhispers().catch((error) => {
-			void log.error(`Failed to load whispers: ${String(error)}`).catch(() => {});
-		});
 	}
 
-	if (!app.emotes.size) {
-		await app.emotes.fetch();
-	}
+	void app.user.loadFollowing().catch((error) => {
+		void log.error(`Failed to load followed channels: ${String(error)}`).catch(() => {});
+	});
 
-	if (!app.badges.size) {
-		await app.badges.fetch();
-	}
+	void app.user.loadWhispers().catch((error) => {
+		void log.error(`Failed to load whispers: ${String(error)}`).catch(() => {});
+	});
+
+	await Promise.all([
+		app.emotes.fetch().catch((error) => {
+			void log.error(`Failed to load global emotes: ${String(error)}`).catch(() => {});
+		}),
+		app.badges.load().catch((error) => {
+			void log.error(`Failed to load global badges: ${String(error)}`).catch(() => {});
+		}),
+	]);
 }

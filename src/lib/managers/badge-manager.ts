@@ -7,6 +7,7 @@ import { app } from "#lib/app.svelte.js";
 import { ApiError } from "#lib/errors/api-error.js";
 import { globalBadgesQuery } from "#lib/graphql/twitch.js";
 import { Badge } from "#lib/models/badge.js";
+import { once } from "#lib/util.js";
 
 interface BttvUser {
 	providerId: string;
@@ -19,11 +20,29 @@ interface FfzResponse {
 }
 
 export class BadgeManager extends SvelteMap<string, Badge> {
+	readonly #load = once(() => this.fetch());
+
 	/**
 	 * A map of user ids to provider-specific badges.
 	 */
 	public readonly users = new SvelteMap<string, Badge[]>();
 
+	public override clear() {
+		this.#load.reset();
+		super.clear();
+	}
+
+	/**
+	 * Retrieves the global badges if they haven't been retrieved yet. Retried
+	 * on the next call if it fails.
+	 */
+	public load() {
+		return this.#load();
+	}
+
+	/**
+	 * Retrieves the global badges from every provider.
+	 */
 	public async fetch() {
 		await Promise.all([this.fetchTwitch(), this.fetchBttv(), this.fetchFfz()]);
 	}
