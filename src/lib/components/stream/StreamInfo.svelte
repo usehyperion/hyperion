@@ -56,7 +56,7 @@
 			<div class="min-w-0 space-y-2">
 				<p class="text-sm font-medium wrap-break-word">{stream.title}</p>
 
-				{#if !stream.game.slug}
+				{#if stream.game.slug}
 					<div class="flex items-center gap-1 text-xs text-twitch dark:text-twitch-link">
 						<GameController class="shrink-0" />
 
