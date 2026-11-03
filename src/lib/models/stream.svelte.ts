@@ -3,6 +3,11 @@ import { SvelteMap } from "svelte/reactivity";
 import type { Stream as ApiStream, GuestStarDetails } from "#lib/graphql/twitch.js";
 import type { TwitchClient } from "#lib/twitch/client.js";
 
+export interface Game {
+	slug: string;
+	name: string;
+}
+
 export interface Guest {
 	id: string;
 	color: string | null;
@@ -26,7 +31,17 @@ export class Stream {
 	/**
 	 * The game being played on the stream.
 	 */
-	public game: string;
+	public game: Game;
+
+	/**
+	 * The tags applied to the stream.
+	 */
+	public readonly tags: string[];
+
+	/**
+	 * The URL of the stream's preview thumbnail.
+	 */
+	public readonly thumbnailUrl: string | null;
 
 	/**
 	 * The number of viewers currently watching the stream.
@@ -49,8 +64,16 @@ export class Stream {
 		data: ApiStream | null,
 	) {
 		this.createdAt = new Date(data?.createdAt ?? 0);
+
 		this.title = $state(data?.title ?? "Untitled");
-		this.game = $state(data?.game?.displayName ?? "Unknown");
+		this.game = $state({
+			slug: data?.game?.slug ?? "",
+			name: data?.game?.displayName ?? "Unknown",
+		});
+
+		this.tags = data?.freeformTags?.flatMap((tag) => (tag.name ? [tag.name] : [])) ?? [];
+		this.thumbnailUrl = data?.previewImageURL ?? null;
+
 		this.viewers = $state(data?.viewersCount ?? 0);
 	}
 

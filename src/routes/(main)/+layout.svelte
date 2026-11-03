@@ -5,8 +5,8 @@
 	import { onMount } from "svelte";
 
 	import { app } from "#lib/app.svelte.js";
+	import ChannelIcon from "#lib/components/channel/ChannelIcon.svelte";
 	import Sidebar from "#lib/components/Sidebar.svelte";
-	import StreamInfo from "#lib/components/stream/StreamInfo.svelte";
 	import { openDialog } from "#lib/components/ui/Dialog.svelte";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "#lib/splits/events.js";
 	import { storage } from "#lib/stores.js";
@@ -68,7 +68,7 @@
 					</div>
 				{:else}
 					<div class="flex items-center gap-2">
-						<StreamInfo {channel} />
+						<ChannelIcon {channel} />
 					</div>
 				{/if}
 			{/if}

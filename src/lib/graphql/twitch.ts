@@ -142,8 +142,13 @@ const streamDetailsFragment = gql(`
 	fragment StreamDetails on Stream {
 		title
 		game {
+			slug
 			displayName
 		}
+		freeformTags {
+			name
+		}
+		previewImageURL(width: 640, height: 360)
 		viewersCount
 		createdAt
 	}

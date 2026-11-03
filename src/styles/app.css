@@ -179,7 +179,7 @@
 		cursor: pointer;
 	}
 
-	a[href^="http"] {
+	a[href^="http"]:not([data-bare]) {
 		@apply transition-colors;
 
 		cursor: pointer;
