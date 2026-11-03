@@ -278,20 +278,6 @@ export class SplitController {
 		}
 	}
 
-	/**
-	 * Closes any ephemeral tabs that are still open in the layout.
-	 */
-	public cleanup() {
-		const stale = tree
-			.leaves(this.root)
-			.flatMap((pane) => pane.tabs)
-			.filter((tab) => tab.ephemeral);
-
-		for (const tab of stale) {
-			this.closeTab(tab.id);
-		}
-	}
-
 	#insertPane(paneId: string, direction: SplitDirection, pane: Pane) {
 		this.root = this.root ? tree.splitLeaf(this.root, paneId, direction, pane) : pane;
 		this.focusedPaneId = pane.id;

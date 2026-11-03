@@ -37,13 +37,6 @@ export function firstLeaf(node: SplitNode): Pane {
 	return isLeaf(node) ? node : firstLeaf(node.before);
 }
 
-export function leaves(node: SplitNode | null): Pane[] {
-	if (!node) return [];
-	if (isLeaf(node)) return [node];
-
-	return [...leaves(node.before), ...leaves(node.after)];
-}
-
 export function findLeaf(node: SplitNode, predicate: (pane: Pane) => boolean): Pane | null {
 	if (isLeaf(node)) {
 		return predicate(node) ? node : null;
@@ -98,6 +91,44 @@ export function splitLeaf(
 	};
 
 	return transform(root);
+}
+
+/**
+ * Removes every tab matching `predicate`, closing any pane the removal leaves
+ * empty and collapsing its parent split. Panes that were already empty are
+ * kept.
+ */
+export function removeTabs(root: SplitNode, predicate: (tab: Tab) => boolean): SplitNode | null {
+	if (isLeaf(root)) {
+		const tabs = root.tabs.filter((tab) => !predicate(tab));
+
+		if (tabs.length === root.tabs.length) return root;
+		if (!tabs.length) return null;
+
+		let active = root.active;
+
+		if (!tabs.some((tab) => tab.id === active)) {
+			const index = root.tabs.findIndex((tab) => tab.id === active);
+			const next = root.tabs.slice(index + 1).find((tab) => tabs.includes(tab));
+
+			active = (next ?? tabs.at(-1))?.id ?? null;
+		}
+
+		return { ...root, tabs, active };
+	}
+
+	const before = removeTabs(root.before, predicate);
+	const after = removeTabs(root.after, predicate);
+
+	if (!before) {
+		return after && { ...after, size: root.size };
+	}
+
+	if (!after) {
+		return { ...before, size: root.size };
+	}
+
+	return { ...root, before, after };
 }
 
 /**
