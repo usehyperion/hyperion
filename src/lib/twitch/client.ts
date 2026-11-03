@@ -11,7 +11,7 @@ import { ApiError } from "#lib/errors/api-error.js";
 import { MutationError } from "#lib/errors/mutation-error.js";
 import { nodes } from "#lib/graphql/index.js";
 import { streamsQuery } from "#lib/graphql/twitch.js";
-import { log } from "#lib/log.js";
+import { logError } from "#lib/log.js";
 import { UserManager } from "#lib/managers/user-manager.js";
 import { Stream } from "#lib/models/stream.svelte.js";
 import { dedupe } from "#lib/util.js";
@@ -169,8 +169,6 @@ export class TwitchClient {
 	#handleRevoked() {
 		if (!this.session) return;
 
-		void expireSession().catch((error: unknown) => {
-			void log.error(`Failed to end the revoked session: ${String(error)}`).catch(() => {});
-		});
+		void expireSession().catch(logError("Failed to end the revoked session"));
 	}
 }

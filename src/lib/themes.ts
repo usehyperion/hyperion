@@ -164,7 +164,7 @@ export async function loadThemes(id?: string) {
 			try {
 				return await readTheme(dir, entry.name);
 			} catch (error) {
-				log.warn(`Skipping invalid theme folder "${entry.name}": ${String(error)}`);
+				log.warn(`Skipping invalid theme folder "${entry.name}"`, error);
 				return undefined;
 			}
 		}),

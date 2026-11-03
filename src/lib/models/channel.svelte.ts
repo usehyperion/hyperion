@@ -486,7 +486,7 @@ export class Channel {
 				await handlers.get(message.type)?.handle(message);
 			}
 		} catch (error) {
-			log.error(`Failed to load recent messages for ${this.user.username}: ${String(error)}`);
+			log.error(`Failed to load recent messages for ${this.user.username}`, error);
 		}
 	}
 }

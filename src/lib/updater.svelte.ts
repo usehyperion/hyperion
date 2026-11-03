@@ -51,7 +51,7 @@ class Updater {
 		} catch (error) {
 			this.update = null;
 			await update?.close();
-			await log.error(`Failed to update: ${String(error)}`);
+			await log.error("Failed to update", error);
 		} finally {
 			this.#pending = false;
 		}
@@ -75,7 +75,7 @@ class Updater {
 			}
 		} catch (error) {
 			this.failed = true;
-			await log.error(`Failed to restart to update: ${String(error)}`);
+			await log.error("Failed to restart to update", error);
 		}
 	}
 
@@ -89,7 +89,7 @@ class Updater {
 			try {
 				await this.update?.install({ restartAfterInstall: false });
 			} catch (error) {
-				await log.error(`Failed to install update on close: ${String(error)}`);
+				await log.error("Failed to install update on close", error);
 			}
 		});
 	}

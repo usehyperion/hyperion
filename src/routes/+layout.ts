@@ -1,7 +1,7 @@
 import { redirect } from "@sveltejs/kit";
 
 import { app } from "#lib/app.svelte.js";
-import { log } from "#lib/log.js";
+import { log, logError } from "#lib/log.js";
 import { Channel } from "#lib/models/channel.svelte.js";
 import { CurrentUser } from "#lib/models/current-user.svelte.js";
 import { User } from "#lib/models/user.svelte.js";
@@ -45,20 +45,11 @@ export async function load({ url }) {
 		app.channels.set(self.id, self);
 	}
 
-	void app.user.loadFollowing().catch((error) => {
-		void log.error(`Failed to load followed channels: ${String(error)}`).catch(() => {});
-	});
-
-	void app.user.loadWhispers().catch((error) => {
-		void log.error(`Failed to load whispers: ${String(error)}`).catch(() => {});
-	});
+	void app.user.loadFollowing().catch(logError("Failed to load followed channels"));
+	void app.user.loadWhispers().catch(logError("Failed to load whispers"));
 
 	await Promise.all([
-		app.emotes.fetch().catch((error) => {
-			void log.error(`Failed to load global emotes: ${String(error)}`).catch(() => {});
-		}),
-		app.badges.load().catch((error) => {
-			void log.error(`Failed to load global badges: ${String(error)}`).catch(() => {});
-		}),
+		app.emotes.fetch().catch(logError("Failed to load global emotes")),
+		app.badges.load().catch(logError("Failed to load global badges")),
 	]);
 }

@@ -1,7 +1,7 @@
 import { page } from "$app/state";
 
 import { app } from "#lib/app.svelte.js";
-import { log } from "#lib/log.js";
+import { logError } from "#lib/log.js";
 import { Whisper } from "#lib/models/whisper.svelte.js";
 
 import { defineHandler } from "../helper";
@@ -56,9 +56,7 @@ export default defineHandler({
 
 		// Keep the server in sync when the message is read as it arrives.
 		if (page.url.pathname === `/whispers/${other.id}`) {
-			void whisper.markRead().catch((error) => {
-				void log.error(`Failed to mark whisper as read: ${String(error)}`).catch(() => {});
-			});
+			void whisper.markRead().catch(logError("Failed to mark whisper as read"));
 		}
 	},
 });
