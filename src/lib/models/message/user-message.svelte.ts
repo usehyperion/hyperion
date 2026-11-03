@@ -49,7 +49,7 @@ function createPartialUser(channel: Channel, sender: BasicUser, color: string) {
 	return user;
 }
 
-interface UserMessageInit extends TextualMessageInit {
+export interface UserMessageInit extends TextualMessageInit {
 	id: string;
 	text: string;
 	sender: BasicUser;
@@ -91,6 +91,7 @@ export interface AutoModMetadata {
  * notifications received by `USERNOTICE` commands.
  */
 export class UserMessage extends TextualMessage {
+	#init: UserMessageInit;
 	#nodes: Node[] = [];
 	#badges: IrcBadge[];
 
@@ -174,6 +175,8 @@ export class UserMessage extends TextualMessage {
 	private constructor(channel: Channel, init: UserMessageInit) {
 		super(channel, init);
 
+		this.#init = init;
+
 		const viewer = channel.viewers.get(init.sender.id);
 
 		this.id = init.id;
@@ -222,6 +225,13 @@ export class UserMessage extends TextualMessage {
 			recent: data.is_recent,
 			timestamp: data.server_timestamp,
 		});
+	}
+
+	/**
+	 * Recreates a user message from the output of {@linkcode toJSON}.
+	 */
+	public static fromJSON(channel: Channel, init: UserMessageInit) {
+		return new this(channel, init);
 	}
 
 	public static from(channel: Channel, msg: FromMessage) {
@@ -330,6 +340,14 @@ export class UserMessage extends TextualMessage {
 
 	public async pin() {
 		await this.channel.chat.pin(this.id);
+	}
+
+	/**
+	 * Serializes the message into plain JSON that can be passed to
+	 * {@linkcode UserMessage.fromJSON}, e.g. to send it to another window.
+	 */
+	public toJSON(): UserMessageInit {
+		return { ...this.#init, deleted: this.deleted };
 	}
 
 	#populateBadges() {

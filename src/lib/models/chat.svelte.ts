@@ -16,6 +16,7 @@ import {
 import { log } from "#lib/log.js";
 import { settings } from "#lib/settings/index.js";
 import { sendPresence } from "#lib/seventv.js";
+import { publishUserCardMessage } from "#lib/user-cards.js";
 
 import type { Channel } from "./channel.svelte";
 import type { Message } from "./message/message";
@@ -135,6 +136,8 @@ export class Chat {
 		} else {
 			this.messages.push(message);
 		}
+
+		publishUserCardMessage(message);
 
 		return this;
 	}

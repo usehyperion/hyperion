@@ -7,9 +7,10 @@ import type { Channel } from "#lib/models/channel.svelte.js";
 import { transform7tvEmote, transformBttvEmote, transformFfzEmote } from "#lib/emotes.js";
 import { ApiError } from "#lib/errors/api-error.js";
 import { execute7tvQuery, activeEmoteSetQuery } from "#lib/graphql/7tv.js";
+import { mark } from "#lib/perf.js";
 import { settings } from "#lib/settings/index.js";
 
-import { BaseEmoteManager } from "./base-emote-manager";
+import { BaseEmoteManager, type ThirdPartyProvider } from "./base-emote-manager";
 
 interface Room {
 	room: { set: number };
@@ -36,6 +37,11 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 			// separately when 7TV emotes aren't being loaded
 			loading7tv ? null : this.#syncActiveSet().catch(() => null),
 		]);
+	}
+
+	public override async load(provider: ThirdPartyProvider) {
+		await super.load(provider);
+		mark(`channel:${provider}`);
 	}
 
 	/**

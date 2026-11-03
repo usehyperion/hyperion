@@ -2,7 +2,7 @@
 	import { AutoScroller } from "@dnd-kit/dom";
 	import { DragDropProvider, DragOverlay } from "@dnd-kit/svelte";
 	import { createHotkey } from "@tanstack/svelte-hotkeys";
-	import { onMount } from "svelte";
+	import { onDestroy, onMount } from "svelte";
 
 	import { app } from "#lib/app.svelte.js";
 	import Sidebar from "#lib/components/Sidebar.svelte";
@@ -11,11 +11,26 @@
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "#lib/splits/events.js";
 	import { storage } from "#lib/stores.js";
 	import { updater } from "#lib/updater.svelte.js";
+	import { serveUserCards } from "#lib/user-cards.js";
+	import { prepareUserCards } from "#lib/windows.js";
 
 	const { children } = $props();
 
+	let stopServingUserCards: (() => void) | undefined;
+	let stopPreparingUserCards: (() => void) | undefined;
+
 	onMount(async () => {
+		// The main window owns the chat connections, so it is the only source
+		// popouts can pull message history from.
+		stopServingUserCards = await serveUserCards();
+		stopPreparingUserCards = await prepareUserCards();
+
 		await Promise.all([app.connect(), updater.check()]);
+	});
+
+	onDestroy(() => {
+		stopServingUserCards?.();
+		stopPreparingUserCards?.();
 	});
 
 	createHotkey("Mod+,", () => openDialog("settings-dialog"));

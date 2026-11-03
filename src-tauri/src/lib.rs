@@ -131,6 +131,17 @@ pub fn run() {
 
             Ok(())
         })
+        .on_window_event(|window, event| {
+            // A spare user card popout is always kept hidden in the background,
+            // which would otherwise stop the app from exiting with the main window
+            if window.label() == "main" && matches!(event, tauri::WindowEvent::Destroyed) {
+                for (label, popout) in window.app_handle().webview_windows() {
+                    if label.starts_with("user-card:") && !popout.is_visible().unwrap_or(true) {
+                        let _ = popout.destroy();
+                    }
+                }
+            }
+        })
         .invoke_handler(get_handler())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

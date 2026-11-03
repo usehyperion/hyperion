@@ -3,6 +3,7 @@
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 	import { settings } from "#lib/settings/index.js";
+	import { openUserCard } from "#lib/windows.js";
 
 	import UserCard from "./UserCard.svelte";
 
@@ -58,5 +59,11 @@
 {/if}
 
 {#if !nested && opened}
-	<UserCard id={popoverId} {user} channel={message.channel} onclose={() => (opened = false)} />
+	<UserCard
+		id={popoverId}
+		{user}
+		channel={message.channel}
+		onclose={() => (opened = false)}
+		onpopout={() => openUserCard(user, message.channel)}
+	/>
 {/if}
