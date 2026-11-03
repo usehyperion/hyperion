@@ -1,6 +1,7 @@
 import type { Connection } from "#lib/graphql/index.js";
 
 import { nodes } from "#lib/graphql/index.js";
+import { shared } from "#lib/util.js";
 
 export interface Page<T> {
 	/**
@@ -46,7 +47,13 @@ export class Pager<T> {
 	readonly #fetch: (after: string | null) => Promise<Page<T>>;
 
 	#cursor: string | null = null;
-	#older: Promise<T[]> | null = null;
+
+	readonly #older = shared(async () => {
+		const page = await this.#fetch(this.#cursor);
+		this.#paginate(page);
+
+		return page.items;
+	});
 
 	/**
 	 * Whether there are older pages that can be fetched with
@@ -76,17 +83,7 @@ export class Pager<T> {
 	public older() {
 		if (!this.hasOlder) return Promise.resolve([]);
 
-		this.#older ??= this.#fetch(this.#cursor)
-			.then((page) => {
-				this.#paginate(page);
-
-				return page.items;
-			})
-			.finally(() => {
-				this.#older = null;
-			});
-
-		return this.#older;
+		return this.#older();
 	}
 
 	#paginate(page: Page<T>) {

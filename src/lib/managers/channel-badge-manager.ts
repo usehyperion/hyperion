@@ -2,17 +2,17 @@ import type { Channel } from "#lib/models/channel.svelte.js";
 
 import { channelBadgesQuery } from "#lib/graphql/twitch.js";
 import { Badge } from "#lib/models/badge.js";
+import { once } from "#lib/util.js";
 
 export class ChannelBadgeManager extends Map<string, Badge> {
-	#pending: Promise<void> | null = null;
-	#loaded = false;
+	readonly #load = once(() => this.#fetch());
 
 	public constructor(public readonly channel: Channel) {
 		super();
 	}
 
 	public override clear() {
-		this.#loaded = false;
+		this.#load.reset();
 		super.clear();
 	}
 
@@ -21,21 +21,9 @@ export class ChannelBadgeManager extends Map<string, Badge> {
 	 * retrieved yet.
 	 */
 	public async fetch(force = false) {
-		if (!force && this.#loaded) {
-			return this;
-		}
+		if (force) this.#load.reset();
 
-		if (force || !this.#pending) {
-			this.#pending = this.#fetch();
-		}
-
-		const pending = this.#pending;
-
-		try {
-			await pending;
-		} finally {
-			if (this.#pending === pending) this.#pending = null;
-		}
+		await this.#load();
 
 		return this;
 	}
@@ -45,7 +33,8 @@ export class ChannelBadgeManager extends Map<string, Badge> {
 			id: this.channel.id,
 		});
 
-		this.clear();
+		// Not this.clear(), which would forget the load in progress.
+		super.clear();
 
 		for (const data of user?.broadcastBadges ?? []) {
 			if (!data) continue;
@@ -53,7 +42,5 @@ export class ChannelBadgeManager extends Map<string, Badge> {
 			const badge = Badge.fromGql(data);
 			this.set(badge.id, badge);
 		}
-
-		this.#loaded = true;
 	}
 }

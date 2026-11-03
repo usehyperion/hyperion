@@ -11,21 +11,12 @@ import {
 	moderatesQuery,
 	whispersQuery,
 } from "#lib/graphql/twitch.js";
+import { once } from "#lib/util.js";
 
 import { Channel } from "./channel.svelte";
 import { Stream } from "./stream.svelte";
 import { User } from "./user.svelte";
 import { Whisper } from "./whisper.svelte";
-
-function once(load: () => Promise<void>) {
-	let pending: Promise<void> | null = null;
-
-	return () =>
-		(pending ??= load().catch((error: unknown) => {
-			pending = null;
-			throw error;
-		}));
-}
 
 export class CurrentUser extends User {
 	public seventvId: string | null = null;
