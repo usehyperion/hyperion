@@ -27,6 +27,11 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 	 */
 	public readonly users = new SvelteMap<string, Badge[]>();
 
+	public override clear() {
+		this.#load.reset();
+		super.clear();
+	}
+
 	/**
 	 * Retrieves the global badges if they haven't been retrieved yet. Retried
 	 * on the next call if it fails.
@@ -119,11 +124,6 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 				this.#insert(id.toString(), badge);
 			}
 		}
-	}
-
-	public override clear() {
-		this.#load.reset();
-		super.clear();
 	}
 
 	#insert(id: string, badge: Badge) {

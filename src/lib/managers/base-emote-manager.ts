@@ -23,6 +23,23 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	public abstract fetch7tv(): Promise<Emote[]>;
 
 	/**
+	 * Removes all emotes from the specified provider or all emotes if no
+	 * provider is given.
+	 */
+	public override clear(provider?: EmoteProvider) {
+		if (provider) {
+			this.#loaded.delete(provider);
+
+			for (const emote of this.values()) {
+				if (emote.provider === provider) this.delete(emote.displayName);
+			}
+		} else {
+			this.#loaded.clear();
+			super.clear();
+		}
+	}
+
+	/**
 	 * Loads the emotes from the providers enabled in the settings that haven't
 	 * been loaded yet and removes the emotes from disabled providers.
 	 */
@@ -76,22 +93,5 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 		}
 
 		return this;
-	}
-
-	/**
-	 * Removes all emotes from the specified provider or all emotes if no
-	 * provider is given.
-	 */
-	public override clear(provider?: EmoteProvider) {
-		if (provider) {
-			this.#loaded.delete(provider);
-
-			for (const emote of this.values()) {
-				if (emote.provider === provider) this.delete(emote.displayName);
-			}
-		} else {
-			this.#loaded.clear();
-			super.clear();
-		}
 	}
 }
