@@ -62,7 +62,7 @@
 					<div
 						class="overflow-hidden text-ellipsis whitespace-nowrap text-twitch dark:text-twitch-link"
 					>
-						{channel.user.displayName} &bullet; {channel.stream.game}
+						{channel.user.displayName} &bullet; {channel.stream.game.name}
 					</div>
 				</div>
 			{/if}

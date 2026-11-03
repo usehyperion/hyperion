@@ -5,6 +5,7 @@
 
 	interface Props extends WithElementRef<HTMLAttributes<HTMLDivElement>> {
 		id: string;
+		anchor?: HTMLElement | null;
 		side?: "top" | "right" | "bottom" | "left";
 		align?: "center" | "start" | "end";
 	}
@@ -12,6 +13,7 @@
 	let {
 		id,
 		class: className,
+		anchor,
 		side = "top",
 		align = "center",
 		ref = $bindable(null),
@@ -24,7 +26,10 @@
 
 	$effect(() => {
 		const trigger =
-			document.querySelector(`[popovertarget="${id}"]`) ?? ref?.previousElementSibling;
+			anchor ??
+			document.querySelector(`[popovertarget="${id}"]`) ??
+			ref?.previousElementSibling;
+
 		if (!(trigger instanceof HTMLElement)) return;
 
 		trigger.style.setProperty("anchor-name", anchorName);
