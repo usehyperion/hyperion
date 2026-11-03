@@ -3,8 +3,8 @@
 
 	import type { Channel } from "#lib/models/channel.svelte.js";
 
-	import StreamInfo from "../stream/StreamInfo.svelte";
 	import StreamTooltip from "../stream/StreamTooltip.svelte";
+	import ChannelIcon from "./ChannelIcon.svelte";
 
 	interface Props {
 		channel: Channel;
@@ -22,7 +22,7 @@
 
 	{#if dragging}
 		<div class="absolute inset-1.5 flex items-center gap-2 px-1.5 opacity-70">
-			<StreamInfo {channel} />
+			<ChannelIcon {channel} />
 		</div>
 	{/if}
 </div>

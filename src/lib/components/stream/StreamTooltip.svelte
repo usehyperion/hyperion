@@ -12,9 +12,9 @@
 	import { createChannelMenu } from "#lib/menus/channel-menu.js";
 	import { openMenu } from "#lib/util.js";
 
+	import ChannelIcon from "../channel/ChannelIcon.svelte";
 	import Tooltip from "../ui/Tooltip.svelte";
 	import GuestList from "./GuestList.svelte";
-	import StreamInfo from "./StreamInfo.svelte";
 
 	interface Props {
 		channel: Channel;
@@ -35,7 +35,7 @@
 			onclick={() => app.open(channel)}
 			oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}
 		>
-			<StreamInfo {channel} />
+			<ChannelIcon {channel} />
 		</div>
 	{/snippet}
 
