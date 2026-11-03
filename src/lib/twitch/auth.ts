@@ -33,6 +33,26 @@ export async function completeLogin(credentials: Credentials) {
 }
 
 export async function logOut() {
+	await endSession();
+	log.info("User logged out");
+}
+
+export async function expireSession() {
+	void log.warn("Twitch credentials were revoked, returning to login").catch(() => {});
+	await endSession();
+}
+
+let ending: Promise<void> | null = null;
+
+function endSession() {
+	return (ending ??= teardown().finally(() => {
+		ending = null;
+	}));
+}
+
+async function teardown() {
+	app.twitch.session = null;
+
 	await Promise.allSettled(app.channels.values().map((channel) => channel.leave()));
 
 	app.reset();
@@ -41,10 +61,11 @@ export async function logOut() {
 	await tick();
 	await storage.saveNow();
 
-	// Drop the keyring entry too, otherwise the next start up restores the
-	// session and logs straight back in.
-	await invoke("clear_session");
-
-	log.info("User logged out");
-	await goto("/auth/login");
+	try {
+		// Drop the backend credentials and keyring entry too, otherwise the
+		// next load restores the session and logs back in.
+		await invoke("clear_session");
+	} finally {
+		await goto("/auth/login");
+	}
 }

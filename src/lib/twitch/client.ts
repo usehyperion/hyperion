@@ -5,8 +5,6 @@ import type { TadaDocumentNode } from "gql.tada";
 import { print } from "graphql-web-lite";
 import { ofetch } from "ofetch";
 
-import { goto } from "$app/navigation";
-
 import type { Connection, GqlResponse } from "#lib/graphql/index.js";
 
 import { ApiError } from "#lib/errors/api-error.js";
@@ -19,6 +17,8 @@ import { Stream } from "#lib/models/stream.svelte.js";
 import { dedupe } from "#lib/util.js";
 
 import type { Session } from "./session";
+
+import { expireSession } from "./auth";
 
 interface PageVariables {
 	after?: string | null;
@@ -168,9 +168,9 @@ export class TwitchClient {
 
 	#handleRevoked() {
 		if (!this.session) return;
-		this.session = null;
 
-		void log.warn("Twitch credentials were revoked, returning to login").catch(() => {});
-		void goto("/auth/login");
+		void expireSession().catch((error: unknown) => {
+			void log.error(`Failed to end the revoked session: ${String(error)}`).catch(() => {});
+		});
 	}
 }
