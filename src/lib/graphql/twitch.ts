@@ -144,6 +144,11 @@ const streamDetailsFragment = gql(`
 		game {
 			displayName
 		}
+		tags {
+			id
+			localizedName
+		}
+		previewImageURL(width: 640, height: 360)
 		viewersCount
 		createdAt
 	}

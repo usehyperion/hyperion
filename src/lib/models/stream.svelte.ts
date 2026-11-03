@@ -29,6 +29,16 @@ export class Stream {
 	public game: string;
 
 	/**
+	 * The tags applied to the stream.
+	 */
+	public readonly tags: string[];
+
+	/**
+	 * The URL of the stream's preview thumbnail.
+	 */
+	public readonly thumbnailUrl: string | null;
+
+	/**
 	 * The number of viewers currently watching the stream.
 	 */
 	public viewers: number;
@@ -51,6 +61,8 @@ export class Stream {
 		this.createdAt = new Date(data?.createdAt ?? 0);
 		this.title = $state(data?.title ?? "Untitled");
 		this.game = $state(data?.game?.displayName ?? "Unknown");
+		this.tags = data?.tags?.map((tag) => tag.localizedName) ?? [];
+		this.thumbnailUrl = data?.previewImageURL ?? null;
 		this.viewers = $state(data?.viewersCount ?? 0);
 	}
 
