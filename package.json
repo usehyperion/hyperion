@@ -7,7 +7,7 @@
 		"#lib/*": "./src/lib/*"
 	},
 	"scripts": {
-		"dev": "vp dev transform",
+		"dev": "vp dev",
 		"build": "vp build",
 		"preview": "vp preview",
 		"sync": "svelte-kit sync && gql-tada generate-output && gql-tada turbo",
