@@ -19,11 +19,27 @@ interface FfzResponse {
 }
 
 export class BadgeManager extends SvelteMap<string, Badge> {
+	#loaded: Promise<void> | null = null;
+
 	/**
 	 * A map of user ids to provider-specific badges.
 	 */
 	public readonly users = new SvelteMap<string, Badge[]>();
 
+	/**
+	 * Retrieves the global badges if they haven't been retrieved yet. Retried
+	 * on the next call if it fails.
+	 */
+	public load() {
+		return (this.#loaded ??= this.fetch().catch((error: unknown) => {
+			this.#loaded = null;
+			throw error;
+		}));
+	}
+
+	/**
+	 * Retrieves the global badges from every provider.
+	 */
 	public async fetch() {
 		await Promise.all([this.fetchTwitch(), this.fetchBttv(), this.fetchFfz()]);
 	}
@@ -105,6 +121,11 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 				this.#insert(id.toString(), badge);
 			}
 		}
+	}
+
+	public override clear() {
+		this.#loaded = null;
+		super.clear();
 	}
 
 	#insert(id: string, badge: Badge) {

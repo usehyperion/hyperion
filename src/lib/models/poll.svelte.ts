@@ -1,12 +1,17 @@
 import type { Poll as ApiPoll, PollStatus } from "#lib/twitch/pubsub.js";
 
 import { terminatePollMutation } from "#lib/graphql/twitch.js";
+import { remainingLinger } from "#lib/util.js";
 
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";
 
 // Twitch keeps polls visible for a minute after they end
 const LINGER_DURATION = 60 * 1000;
+
+function isEnded(status: PollStatus) {
+	return status !== "ACTIVE" && status !== "UNKNOWN";
+}
 
 export interface PollChoice {
 	readonly id: string;
@@ -76,11 +81,21 @@ export class Poll {
 
 		this.totalVotes = data.total_voters;
 		this.status = data.status;
+
+		// Polls can already be over when first seen, e.g. when joining a
+		// channel within a minute of one ending.
+		if (isEnded(this.status)) {
+			this.#linger(data.ended_at);
+		}
 	}
 
 	public update(payload: ApiPoll) {
 		this.totalVotes = payload.total_voters;
 		this.status = payload.status;
+
+		if (isEnded(this.status)) {
+			this.#linger(payload.ended_at);
+		}
 
 		for (const choice of this.choices) {
 			const newVotes = payload.choices.find((c) => c.choice_id === choice.id)?.total_voters;
@@ -97,18 +112,14 @@ export class Poll {
 	 */
 	public complete(payload: ApiPoll) {
 		this.update(payload);
-
-		this.#expiryId ??= setTimeout(() => {
-			this.#expiryId = null;
-			this.channel.clearPoll(this);
-		}, LINGER_DURATION);
+		this.#linger(payload.ended_at);
 	}
 
 	/**
 	 * Ends this poll early.
 	 */
 	public async end() {
-		if (!this.channel.isMod) return;
+		if (!this.channel.isMod || this.status !== "ACTIVE") return;
 
 		await this.channel.client.gql(terminatePollMutation, {
 			poll: this.id,
@@ -120,5 +131,15 @@ export class Poll {
 			clearTimeout(this.#expiryId);
 			this.#expiryId = null;
 		}
+	}
+
+	#linger(endedAt: string | null) {
+		this.#expiryId ??= setTimeout(
+			() => {
+				this.#expiryId = null;
+				this.channel.clearPoll(this);
+			},
+			remainingLinger(endedAt, LINGER_DURATION),
+		);
 	}
 }

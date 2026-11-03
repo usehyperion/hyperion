@@ -80,17 +80,11 @@ class App {
 	 * shown).
 	 */
 	public async open(channel: Channel) {
-		let joining: Promise<void> | undefined;
+		this.focused = channel;
 
-		if (this.focused !== channel) {
-			if (channel.joined) {
-				this.focused = channel;
-			} else {
-				// Store the promise so we can make an optimistic UI update
-				// while the channel is joining.
-				joining = channel.join();
-			}
-		}
+		// Store the promise so we can make an optimistic UI update while the
+		// channel is joining.
+		const joining = channel.join();
 
 		this.splits.ensure({ id: channel.id, ephemeral: channel.ephemeral });
 

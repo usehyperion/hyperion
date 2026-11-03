@@ -5,9 +5,15 @@ import { Badge } from "#lib/models/badge.js";
 
 export class ChannelBadgeManager extends Map<string, Badge> {
 	#pending: Promise<void> | null = null;
+	#loaded = false;
 
 	public constructor(public readonly channel: Channel) {
 		super();
+	}
+
+	public override clear() {
+		this.#loaded = false;
+		super.clear();
 	}
 
 	/**
@@ -15,7 +21,7 @@ export class ChannelBadgeManager extends Map<string, Badge> {
 	 * retrieved yet.
 	 */
 	public async fetch(force = false) {
-		if (!force && this.size) {
+		if (!force && this.#loaded) {
 			return this;
 		}
 
@@ -47,5 +53,7 @@ export class ChannelBadgeManager extends Map<string, Badge> {
 			const badge = Badge.fromGql(data);
 			this.set(badge.id, badge);
 		}
+
+		this.#loaded = true;
 	}
 }

@@ -8,9 +8,15 @@ import { cheermoteQuery } from "#lib/graphql/twitch.js";
  */
 export class CheermoteManager extends Map<string, Cheermote> {
 	#pending: Promise<void> | null = null;
+	#loaded = false;
 
 	public constructor(public readonly channel: Channel) {
 		super();
+	}
+
+	public override clear() {
+		this.#loaded = false;
+		super.clear();
 	}
 
 	/**
@@ -18,7 +24,7 @@ export class CheermoteManager extends Map<string, Cheermote> {
 	 * retrieved yet.
 	 */
 	public async fetch(force = false) {
-		if (!force && this.size) {
+		if (!force && this.#loaded) {
 			return this;
 		}
 
@@ -45,5 +51,7 @@ export class CheermoteManager extends Map<string, Cheermote> {
 		for (const cheermote of user?.cheer?.emotes ?? []) {
 			if (cheermote) this.set(cheermote.prefix.toLowerCase(), cheermote);
 		}
+
+		this.#loaded = true;
 	}
 }

@@ -51,8 +51,26 @@ export interface PredictionOptions {
 
 const TTL = 20 * 60 * 1000; // 20 minutes
 
+/**
+ * Where a channel is in its join lifecycle.
+ *
+ * - `idle`: not joined; channel data may be cached until the TTL expires.
+ * - `joining`: channel data is being fetched; IRC has not been joined yet.
+ * - `joined`: IRC has been joined and channel data is loaded.
+ * - `leaving`: IRC is being left.
+ */
+export type ChannelStatus = "idle" | "joining" | "joined" | "leaving";
+
 export class Channel {
 	#ttlTimeout: ReturnType<typeof setTimeout> | undefined;
+
+	#status = $state<ChannelStatus>("idle");
+
+	// Identifies the join attempt that is allowed to complete.
+	#attempt: object | null = null;
+
+	#joining: Promise<void> | null = null;
+	#leaving: Promise<void> | null = null;
 
 	public readonly id: string;
 
@@ -104,11 +122,6 @@ export class Channel {
 	public prediction = $state<Prediction | null>(null);
 
 	/**
-	 * Whether the channel is joined.
-	 */
-	public joined = false;
-
-	/**
 	 * Whether the channel is ephemeral.
 	 */
 	public ephemeral = $state(false);
@@ -146,59 +159,51 @@ export class Channel {
 		return app.user?.moderates(this.id) ?? false;
 	}
 
-	public async join() {
-		if (this.joined) return;
-
-		clearTimeout(this.#ttlTimeout);
-
-		app.channels.set(this.id, this);
-		this.joined = true;
-
-		app.focused = this;
-
-		if (!this.viewers.has(this.id)) {
-			const viewer = new Viewer(this, this.user);
-			viewer.broadcaster = true;
-
-			this.viewers.set(this.id, viewer);
-		}
-
-		await Promise.all([
-			this.fetchStream(),
-			this.emotes.fetch(),
-			this.badges.fetch(),
-			this.cheermotes.fetch(),
-			this.chat.fetchPinned(),
-			this.fetchPoll(),
-			this.fetchPrediction(),
-		]);
-
-		// Don't resolve to avoid blocking the UI
-		void invoke("join", {
-			id: this.id,
-			stvId: this.seventvId,
-			setId: this.emoteSetId,
-			login: this.user.username,
-			isMod: this.isMod,
-		});
-
-		if (settings.state["chat.messages.history.enabled"]) {
-			void this.#loadRecentMessages();
-		}
+	/**
+	 * Where the channel is in its join lifecycle.
+	 */
+	public get status() {
+		return this.#status;
 	}
 
-	public async leave() {
-		if (!this.joined) return;
+	/**
+	 * Whether the channel is fully joined.
+	 */
+	public get joined() {
+		return this.#status === "joined";
+	}
 
-		try {
-			await invoke("leave", { channel: this.user.username });
-		} finally {
-			this.reset();
-
-			if (app.user) {
-				app.user.banned.delete(this.id);
-			}
+	public join() {
+		if (this.#status === "joined") {
+			return Promise.resolve();
 		}
+
+		if (!this.#joining) {
+			const joining = this.#join().finally(() => {
+				if (this.#joining === joining) this.#joining = null;
+			});
+
+			this.#joining = joining;
+		}
+
+		return this.#joining;
+	}
+
+	public leave() {
+		this.#attempt = null;
+		this.#joining = null;
+
+		if (this.#status === "joined") {
+			return (this.#leaving = this.#leave());
+		}
+
+		if (this.#status === "joining") {
+			// IRC isn't joined until the attempt completes, so there's nothing
+			// to leave on the backend.
+			this.#teardown();
+		}
+
+		return this.#leaving ?? Promise.resolve();
 	}
 
 	public async rejoin() {
@@ -221,22 +226,6 @@ export class Channel {
 			this.prediction?.dispose();
 			this.prediction = null;
 		}
-	}
-
-	public reset() {
-		this.joined = false;
-
-		this.clearPoll();
-		this.clearPrediction();
-
-		this.chat.reset();
-		this.viewers.clear();
-
-		this.#ttlTimeout = setTimeout(() => {
-			this.badges.clear();
-			this.emotes.clear();
-			this.cheermotes.clear();
-		}, TTL);
 	}
 
 	/**
@@ -382,6 +371,106 @@ export class Channel {
 			caller: app.user.username,
 			target: to,
 		});
+	}
+
+	async #join() {
+		const attempt = {};
+		this.#attempt = attempt;
+
+		await this.#leaving?.catch(() => {});
+		if (this.#attempt !== attempt) return;
+
+		clearTimeout(this.#ttlTimeout);
+		this.#status = "joining";
+
+		app.channels.set(this.id, this);
+		app.focused = this;
+
+		if (!this.viewers.has(this.id)) {
+			const viewer = new Viewer(this, this.user);
+			viewer.broadcaster = true;
+
+			this.viewers.set(this.id, viewer);
+		}
+
+		const results = await Promise.allSettled([
+			this.fetchStream(),
+			this.emotes.fetch(),
+			this.badges.fetch(),
+			this.cheermotes.fetch(),
+			this.chat.fetchPinned(),
+			this.fetchPoll(),
+			this.fetchPrediction(),
+		]);
+
+		if (this.#attempt !== attempt) {
+			// Left while joining. Drop anything the requests attached unless
+			// a newer attempt has taken over.
+			if (this.status === "idle") {
+				this.#clearLive();
+			}
+
+			return;
+		}
+
+		this.#attempt = null;
+
+		const failure = results.find((result) => result.status === "rejected");
+
+		if (failure) {
+			this.#teardown();
+			throw failure.reason;
+		}
+
+		this.#status = "joined";
+
+		// Don't resolve to avoid blocking the UI
+		void invoke("join", {
+			id: this.id,
+			stvId: this.seventvId,
+			setId: this.emoteSetId,
+			login: this.user.username,
+			isMod: this.isMod,
+		});
+
+		if (settings.state["chat.messages.history.enabled"]) {
+			void this.#loadRecentMessages();
+		}
+	}
+
+	async #leave() {
+		this.#status = "leaving";
+
+		try {
+			await invoke("leave", { channel: this.user.username });
+		} finally {
+			this.#leaving = null;
+			this.#teardown();
+		}
+	}
+
+	#teardown() {
+		this.#status = "idle";
+
+		this.#clearLive();
+		this.chat.reset();
+		this.viewers.clear();
+
+		app.user?.banned.delete(this.id);
+
+		clearTimeout(this.#ttlTimeout);
+
+		this.#ttlTimeout = setTimeout(() => {
+			this.badges.clear();
+			this.emotes.clear();
+			this.cheermotes.clear();
+		}, TTL);
+	}
+
+	#clearLive() {
+		this.clearPoll();
+		this.clearPrediction();
+		this.chat.clearPin();
 	}
 
 	async #loadRecentMessages() {

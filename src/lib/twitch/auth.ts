@@ -33,12 +33,7 @@ export async function completeLogin(credentials: Credentials) {
 }
 
 export async function logOut() {
-	await Promise.allSettled(
-		app.channels
-			.values()
-			.filter((channel) => channel.joined)
-			.map((channel) => channel.leave()),
-	);
+	await Promise.allSettled(app.channels.values().map((channel) => channel.leave()));
 
 	app.reset();
 	storage.state.user = null;
