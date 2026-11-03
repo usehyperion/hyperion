@@ -146,7 +146,6 @@ const streamDetailsFragment = gql(`
 			displayName
 		}
 		freeformTags {
-			id
 			name
 		}
 		previewImageURL(width: 640, height: 360)

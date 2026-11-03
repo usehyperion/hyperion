@@ -56,18 +56,22 @@
 			<div class="min-w-0 space-y-2">
 				<p class="text-sm font-medium wrap-break-word">{stream.title}</p>
 
-				<div class="flex items-center gap-1 text-xs text-twitch dark:text-twitch-link">
-					<GameController class="shrink-0" />
+				{#if !stream.game.slug}
+					<div class="flex items-center gap-1 text-xs text-twitch dark:text-twitch-link">
+						<GameController class="shrink-0" />
 
-					<a
-						class="truncate hover:underline"
-						title={stream.game.name}
-						href="https://www.twitch.tv/directory/category/{stream.game.slug}"
-						data-bare
-					>
-						{stream.game.name}
-					</a>
-				</div>
+						<a
+							class="truncate hover:underline"
+							title={stream.game.name}
+							href="https://www.twitch.tv/directory/category/{stream.game.slug}"
+							target="_blank"
+							rel="noopener noreferrer"
+							data-bare
+						>
+							{stream.game.name}
+						</a>
+					</div>
+				{/if}
 
 				{@render tags()}
 			</div>
@@ -83,6 +87,8 @@
 					<a
 						class="block rounded-full bg-muted px-2 py-0.5 text-[0.625rem] text-muted-foreground transition-colors hover:bg-orange-500 hover:text-foreground"
 						href="https://www.twitch.tv/directory/all/tags/{tag}"
+						target="_blank"
+						rel="noopener noreferrer"
 						data-bare
 					>
 						{tag}
