@@ -4,16 +4,28 @@ import { defineHandler } from "../helper";
 
 export default defineHandler({
 	name: "broadcast-settings-update",
-	handle(data) {
+	async handle(data) {
 		const channel = app.channels.get(data.channel_id);
 		if (!channel) return;
 
-		if (data.old_status !== data.status) {
-			channel.chat.notice(`The stream title has been updated to "${data.status}"`);
+		const titleChanged = data.old_status !== data.status;
+		const gameChanged = data.old_game_id !== data.game_id;
 
-			if (channel.stream) {
-				channel.stream.title = data.status;
-			}
+		if (!titleChanged && !gameChanged) return;
+
+		if (titleChanged) {
+			channel.chat.notice(`The stream title has been updated to "${data.status}"`);
 		}
+
+		if (gameChanged) {
+			channel.chat.notice(`The stream game has been updated to "${data.game}"`);
+		}
+
+		if (!channel.stream) return;
+
+		channel.stream.title = data.status;
+		channel.stream.game = { slug: "", name: data.game };
+
+		await channel.fetchStream().catch(() => {});
 	},
 });
