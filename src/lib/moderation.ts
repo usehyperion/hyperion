@@ -1,6 +1,6 @@
 import { parseDuration } from "./commands/util";
 import { settings } from "./settings";
-import { formatDuration } from "./util";
+import { formatDuration } from "./util/time.js";
 
 const MAX_TIMEOUT = 1_209_600;
 const DEFAULT_TIMEOUT = 600;

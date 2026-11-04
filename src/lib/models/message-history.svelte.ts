@@ -4,7 +4,7 @@ import type { NonNullableDeep } from "#lib/graphql/index.js";
 
 import { modLogMessagesQuery, toMessageFragments } from "#lib/graphql/twitch.js";
 import { Pager, prependUnique, toPage, type Page } from "#lib/pager.svelte.js";
-import { once } from "#lib/util.js";
+import { once } from "#lib/util/resource.js";
 
 import type { Viewer } from "./viewer.svelte";
 

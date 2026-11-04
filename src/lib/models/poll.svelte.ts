@@ -1,7 +1,7 @@
 import type { Poll as ApiPoll, PollStatus } from "#lib/twitch/pubsub.js";
 
 import { terminatePollMutation } from "#lib/graphql/twitch.js";
-import { remainingLinger } from "#lib/util.js";
+import { remainingLinger } from "#lib/util/time.js";
 
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";

@@ -11,7 +11,7 @@ import {
 	moderatesQuery,
 	whispersQuery,
 } from "#lib/graphql/twitch.js";
-import { once } from "#lib/util.js";
+import { once } from "#lib/util/resource.js";
 
 import { Channel } from "./channel.svelte";
 import { Stream } from "./stream.svelte";

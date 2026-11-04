@@ -6,7 +6,7 @@
 
 	import type { Prediction } from "#lib/models/prediction.svelte.js";
 
-	import { formatDuration } from "#lib/util.js";
+	import { formatDuration } from "#lib/util/time.js";
 
 	import Progress from "../ui/Progress.svelte";
 	import Tooltip from "../ui/Tooltip.svelte";

@@ -12,7 +12,7 @@ import {
 	userQuery,
 } from "#lib/graphql/twitch.js";
 import { User } from "#lib/models/user.svelte.js";
-import { chunk } from "#lib/util.js";
+import { chunk } from "#lib/util/index.js";
 
 export interface UserFetchOptions {
 	by?: "id" | "login";

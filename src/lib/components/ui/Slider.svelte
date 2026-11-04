@@ -2,7 +2,9 @@
 	import { Slider } from "bits-ui";
 	import { cn } from "tailwind-variants";
 
-	import { clamp, type WithoutChildrenOrChild } from "#lib/util.js";
+	import type { WithoutChildrenOrChild } from "#lib/util/index.js";
+
+	import { clamp } from "#lib/util/math.js";
 
 	const THUMB_SIZE = 20;
 	const TRACK_INSET = 1;

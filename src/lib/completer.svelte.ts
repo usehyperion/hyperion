@@ -7,7 +7,7 @@ import type { Viewer } from "./models/viewer.svelte";
 
 import { app } from "./app.svelte";
 import { commands } from "./commands";
-import { debounce } from "./util";
+import { debounce } from "./util/index.js";
 
 interface SearchOptions<T> {
 	source: () => T[];

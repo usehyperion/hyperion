@@ -9,7 +9,7 @@ import { app } from "#lib/app.svelte.js";
 import { relationshipQuery } from "#lib/graphql/twitch.js";
 import { settings } from "#lib/settings/index.js";
 import { COLORS } from "#lib/twitch/index.js";
-import { makeReadable } from "#lib/util.js";
+import { makeReadable } from "#lib/util/color.js";
 
 import type { Channel } from "./channel.svelte";
 

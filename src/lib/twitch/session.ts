@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 
 import { log } from "#lib/log.js";
-import { dedupe } from "#lib/util.js";
+import { dedupe } from "#lib/util/resource.js";
 
 export interface Integrity {
 	token: string;
