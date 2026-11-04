@@ -8,6 +8,7 @@
 	import ChannelIcon from "#lib/components/channel/ChannelIcon.svelte";
 	import Sidebar from "#lib/components/Sidebar.svelte";
 	import { openDialog } from "#lib/components/ui/Dialog.svelte";
+	import { measure } from "#lib/perf.js";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "#lib/splits/events.js";
 	import { storage } from "#lib/stores.js";
 	import { updater } from "#lib/updater.svelte.js";
@@ -15,7 +16,10 @@
 	const { children } = $props();
 
 	onMount(async () => {
-		await Promise.all([app.connect(), updater.check()]);
+		await Promise.all([
+			measure("startup:connect", () => app.connect()),
+			measure("startup:updater", () => updater.check()),
+		]);
 	});
 
 	createHotkey("Mod+,", () => openDialog("settings-dialog"));

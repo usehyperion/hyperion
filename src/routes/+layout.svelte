@@ -8,6 +8,7 @@
 
 	import TitleBar from "#lib/components/TitleBar.svelte";
 	import { log } from "#lib/log.js";
+	import { sinceOrigin } from "#lib/perf.js";
 	import { settings } from "#lib/settings/index.js";
 	import { injectTheme } from "#lib/themes.js";
 
@@ -16,6 +17,8 @@
 	onMount(() => {
 		// The root load has resolved by the time this mounts, so the splash can
 		// be removed
+		sinceOrigin("startup:ready");
+
 		const splash = document.getElementById("splash");
 
 		void splash

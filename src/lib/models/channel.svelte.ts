@@ -25,6 +25,7 @@ import { ChannelBadgeManager } from "#lib/managers/channel-badge-manager.js";
 import { ChannelEmoteManager } from "#lib/managers/channel-emote-manager.js";
 import { CheermoteManager } from "#lib/managers/cheermote-manager.js";
 import { ViewerManager } from "#lib/managers/viewer-manager.js";
+import * as perf from "#lib/perf.js";
 import { settings } from "#lib/settings/index.js";
 import { storage } from "#lib/stores.js";
 
@@ -179,9 +180,11 @@ export class Channel {
 		}
 
 		if (!this.#joining) {
-			const joining = this.#join().finally(() => {
-				if (this.#joining === joining) this.#joining = null;
-			});
+			const joining = perf
+				.measure(`join:${this.user.username}`, () => this.#join())
+				.finally(() => {
+					if (this.#joining === joining) this.#joining = null;
+				});
 
 			this.#joining = joining;
 		}
@@ -393,15 +396,19 @@ export class Channel {
 			this.viewers.set(this.id, viewer);
 		}
 
-		const results = await Promise.allSettled([
-			this.fetchStream(),
-			this.emotes.fetch(),
-			this.badges.fetch(),
-			this.cheermotes.fetch(),
-			this.chat.fetchPinned(),
-			this.fetchPoll(),
-			this.fetchPrediction(),
-		]);
+		const name = (step: string) => `join:${this.user.username}:${step}`;
+
+		const results = await perf.measure(name("fetch"), () =>
+			Promise.allSettled([
+				perf.measure(name("stream"), () => this.fetchStream()),
+				perf.measure(name("emotes"), () => this.emotes.fetch()),
+				perf.measure(name("badges"), () => this.badges.fetch()),
+				perf.measure(name("cheermotes"), () => this.cheermotes.fetch()),
+				perf.measure(name("pinned"), () => this.chat.fetchPinned()),
+				perf.measure(name("poll"), () => this.fetchPoll()),
+				perf.measure(name("prediction"), () => this.fetchPrediction()),
+			]),
+		);
 
 		if (this.#attempt !== attempt) {
 			// Left while joining. Drop anything the requests attached unless
@@ -475,15 +482,25 @@ export class Channel {
 
 	async #loadRecentMessages() {
 		try {
-			const messages = await invoke<IrcMessage[]>("fetch_recent_messages", {
-				channel: this.user.username,
-				limit: settings.state["chat.messages.history.limit"],
-			});
+			const name = (step: string) => `join:${this.user.username}:history:${step}`;
 
-			for (const message of messages) {
-				// Needs to be sequential
-				// oxlint-disable-next-line no-await-in-loop
-				await handlers.get(message.type)?.handle(message);
+			const messages = await perf.measure(name("fetch"), () =>
+				invoke<IrcMessage[]>("fetch_recent_messages", {
+					channel: this.user.username,
+					limit: settings.state["chat.messages.history.limit"],
+				}),
+			);
+
+			const endReplay = perf.start(name("replay"));
+
+			try {
+				for (const message of messages) {
+					// Needs to be sequential
+					// oxlint-disable-next-line no-await-in-loop
+					await handlers.get(message.type)?.handle(message);
+				}
+			} finally {
+				endReplay();
 			}
 		} catch (error) {
 			log.error(`Failed to load recent messages for ${this.user.username}: ${String(error)}`);

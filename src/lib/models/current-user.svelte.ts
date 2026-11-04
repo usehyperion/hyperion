@@ -11,6 +11,7 @@ import {
 	moderatesQuery,
 	whispersQuery,
 } from "#lib/graphql/twitch.js";
+import { measure } from "#lib/perf.js";
 import { once } from "#lib/util.js";
 
 import { Channel } from "./channel.svelte";
@@ -57,10 +58,8 @@ export class CurrentUser extends User {
 	 * Loads the channels the current user moderates.
 	 */
 	public readonly loadModerating = once(async () => {
-		const moderates = await this.client.paginate(
-			moderatesQuery,
-			{},
-			(data) => data.moderatedChannels,
+		const moderates = await measure("user:moderating", () =>
+			this.client.paginate(moderatesQuery, {}, (data) => data.moderatedChannels),
 		);
 
 		for (const { id } of moderates) {
@@ -71,12 +70,14 @@ export class CurrentUser extends User {
 	/**
 	 * Loads the channels the current user follows.
 	 */
-	public readonly loadFollowing = once(() => this.#loadFollowing());
+	public readonly loadFollowing = once(() =>
+		measure("user:following", () => this.#loadFollowing()),
+	);
 
 	/**
 	 * Loads the whisper threads the current user is a part of.
 	 */
-	public readonly loadWhispers = once(() => this.#loadWhispers());
+	public readonly loadWhispers = once(() => measure("user:whispers", () => this.#loadWhispers()));
 
 	/**
 	 * Whether the current user moderates the given channel.

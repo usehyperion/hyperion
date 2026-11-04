@@ -5,6 +5,7 @@ import { log } from "#lib/log.js";
 import { Channel } from "#lib/models/channel.svelte.js";
 import { CurrentUser } from "#lib/models/current-user.svelte.js";
 import { User } from "#lib/models/user.svelte.js";
+import { measure } from "#lib/perf.js";
 import { storage } from "#lib/stores.js";
 import { Session, getCredentials } from "#lib/twitch/session.js";
 
@@ -12,7 +13,7 @@ export const ssr = false;
 
 export async function load({ url }) {
 	if (!app.twitch.session) {
-		const credentials = await getCredentials();
+		const credentials = await measure("startup:credentials", getCredentials);
 		app.twitch.session = credentials && new Session(credentials);
 	}
 
@@ -54,10 +55,10 @@ export async function load({ url }) {
 	});
 
 	await Promise.all([
-		app.emotes.fetch().catch((error) => {
+		measure("startup:global-emotes", () => app.emotes.fetch()).catch((error) => {
 			void log.error(`Failed to load global emotes: ${String(error)}`).catch(() => {});
 		}),
-		app.badges.load().catch((error) => {
+		measure("startup:global-badges", () => app.badges.load()).catch((error) => {
 			void log.error(`Failed to load global badges: ${String(error)}`).catch(() => {});
 		}),
 	]);
