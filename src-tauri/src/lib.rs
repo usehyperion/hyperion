@@ -90,6 +90,7 @@ pub fn run() {
     }
 
     builder
+        .runtime(tauri_runtime_cef::Cef::default())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_notification::init())

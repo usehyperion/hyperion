@@ -1,0 +1,12 @@
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
+#![doc(html_favicon_url = "https://tb.dev.br/tauri-store/favicon.ico")]
+
+mod manager;
+mod task;
+mod time;
+mod version;
+
+pub use task::RemoteCallable;
+pub use time::{set_interval, Debounce, Throttle};
+pub use version::Semver;

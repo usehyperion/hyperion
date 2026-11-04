@@ -17,7 +17,7 @@
 		"fs:allow-lstat",
 		"fs:allow-mkdir",
 		"fs:allow-read-dir",
-		"fs:allow-read-text-file",
+		"fs:allow-read-file",
 		{
 			"identifier": "fs:scope",
 			"allow": [

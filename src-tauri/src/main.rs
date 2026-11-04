@@ -6,6 +6,8 @@ use mimalloc::MiMalloc;
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
+// Runs CEF helper processes (renderer, GPU, etc.) before anything else.
+#[tauri_runtime_cef::cef_entry_point]
 fn main() {
     rustls::crypto::ring::default_provider()
         .install_default()

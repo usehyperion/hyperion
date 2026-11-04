@@ -82,13 +82,8 @@ pub fn get_about_info(app_handle: AppHandle) -> AboutInfo {
         tauri_version: tauri::VERSION.to_string(),
         os: format!("{} {}", os::platform(), os::version()),
         webview: format!(
-            "{} {}",
-            if std::env::consts::FAMILY == "windows" {
-                "WebView2"
-            } else {
-                "WebKit"
-            },
-            tauri::webview_version().unwrap_or_default()
+            "Chromium {}",
+            app_handle.webview_version().unwrap_or_default()
         ),
     }
 }

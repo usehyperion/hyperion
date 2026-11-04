@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schema.tauri.app/config/2",
+	"$schema": "https://schema.tauri.app/config/3",
 	"productName": "Hyperion",
 	"identifier": "com.hyperion.chat",
 	"mainBinaryName": "Hyperion",

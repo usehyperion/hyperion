@@ -22,7 +22,7 @@ debug = false
 incremental = true
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "3.0.0-alpha.4", features = [] }
 
 [dependencies]
 anyhow = "1.0.104"
@@ -36,13 +36,14 @@ serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 thiserror = "2.0.21"
 time = { version = "0.3", features = ["formatting", "local-offset"] }
-tauri = { version = "2", features = ["protocol-asset"] }
-tauri-plugin-deep-link = "2"
-tauri-plugin-fs = "2"
-tauri-plugin-notification = "2"
-tauri-plugin-opener = "2"
-tauri-plugin-os = "2"
-tauri-plugin-process = "2"
+tauri = { version = "3.0.0-alpha.5", features = ["protocol-asset"] }
+tauri-runtime-cef = "3.0.0-alpha.6"
+tauri-plugin-deep-link = "3.0.0-alpha.3"
+tauri-plugin-fs = "3.0.0-alpha.3"
+tauri-plugin-notification = "3.0.0-alpha.3"
+tauri-plugin-opener = "3.0.0-alpha.3"
+tauri-plugin-os = "3.0.0-alpha.3"
+tauri-plugin-process = "3.0.0-alpha.3"
 tauri-plugin-svelte = { version = "3", features = ["preserve-order"] }
 tokio = { version = "1.54.1", features = ["macros", "time"] }
 tokio-stream = { version = "0.1", features = ["sync"] }
@@ -54,6 +55,13 @@ twitch_api = { version = "0.7.2", features = ["beta", "client", "helix", "reqwes
 keyring = "4.2.0"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
-tauri-plugin-updater = "2"
-tauri-plugin-window-state = "2"
+tauri-plugin-single-instance = { version = "3.0.0-alpha.3", features = ["deep-link"] }
+tauri-plugin-updater = "3.0.0-alpha.3"
+tauri-plugin-window-state = "3.0.0-alpha.2"
+
+# tauri-store is unmaintained and pinned to Tauri 2, so it's vendored with its
+# Tauri dependency bumped. See vendor/README.md.
+[patch.crates-io]
+tauri-plugin-svelte = { path = "vendor/tauri-plugin-svelte" }
+tauri-store = { path = "vendor/tauri-store" }
+tauri-store-utils = { path = "vendor/tauri-store-utils" }

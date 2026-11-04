@@ -87,7 +87,7 @@ export default defineConfig({
 				},
 			],
 		},
-		ignorePatterns: [".claude/**", "skills-lock.json", "src/assets/**"],
+		ignorePatterns: [".claude/**", "skills-lock.json", "src-tauri/vendor/**", "src/assets/**"],
 		overrides: [
 			{
 				files: ["*.yml", "*.yaml"],
