@@ -31,19 +31,9 @@ export function toPage<N, T>(
 }
 
 /**
- * Prepends a page of older items, skipping any that are already present.
- * Pages can overlap if items arrive between requests.
+ * The items of a connection paginated backwards, oldest first.
  */
-export function prependUnique<T extends { id: string }>(items: T[], older: T[]) {
-	const known = new Set(items.map((item) => item.id));
-
-	return [...older.filter((item) => !known.has(item.id)), ...items];
-}
-
-/**
- * Tracks the cursor of a backwards paginated connection.
- */
-export class Pager<T> {
+export class Pager<T extends { id: string }> {
 	readonly #fetch: (after: string | null) => Promise<Page<T>>;
 
 	#cursor: string | null = null;
@@ -52,8 +42,15 @@ export class Pager<T> {
 		const page = await this.#fetch(this.#cursor);
 		this.#paginate(page);
 
-		return page.items;
+		// Pages can overlap if items arrive between requests.
+		const known = new Set(this.items.map((item) => item.id));
+		this.items = [...page.items.filter((item) => !known.has(item.id)), ...this.items];
 	});
+
+	/**
+	 * The loaded items, oldest first.
+	 */
+	public items = $state.raw<T[]>([]);
 
 	/**
 	 * Whether there are older pages that can be fetched with
@@ -70,20 +67,17 @@ export class Pager<T> {
 	 */
 	public async first() {
 		const page = await this.#fetch(null);
-
 		this.#paginate(page);
 
 		return page.items;
 	}
 
 	/**
-	 * Fetches the page before the oldest fetched page. Concurrent calls share
+	 * Prepends the page before the oldest fetched page. Concurrent calls share
 	 * the same request.
 	 */
-	public older() {
-		if (!this.hasOlder) return Promise.resolve([]);
-
-		return this.#older();
+	public async older() {
+		if (this.hasOlder) await this.#older();
 	}
 
 	#paginate(page: Page<T>) {
