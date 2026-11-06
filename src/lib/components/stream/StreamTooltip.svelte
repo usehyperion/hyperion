@@ -10,7 +10,7 @@
 	import { app } from "#lib/app.svelte.js";
 	import { useSidebar } from "#lib/hooks/use-sidebar.svelte.js";
 	import { createChannelMenu } from "#lib/menus/channel-menu.js";
-	import { openMenu } from "#lib/util.js";
+	import { openMenu } from "#lib/util/index.js";
 
 	import ChannelIcon from "../channel/ChannelIcon.svelte";
 	import Tooltip from "../ui/Tooltip.svelte";

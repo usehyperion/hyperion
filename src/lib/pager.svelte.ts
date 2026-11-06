@@ -1,7 +1,7 @@
 import type { Connection } from "#lib/graphql/index.js";
 
 import { nodes } from "#lib/graphql/index.js";
-import { shared } from "#lib/util.js";
+import { shared } from "#lib/util/resource.js";
 
 export interface Page<T> {
 	/**

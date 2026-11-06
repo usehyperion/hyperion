@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { Pin } from "#lib/models/pin.svelte.js";
 
-	import { clamp, formatDuration } from "#lib/util.js";
+	import { clamp } from "#lib/util/math.js";
+	import { formatDuration } from "#lib/util/time.js";
 
 	import Button from "../ui/Button.svelte";
 	import Dialog from "../ui/Dialog.svelte";

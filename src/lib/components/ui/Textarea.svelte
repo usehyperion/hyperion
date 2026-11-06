@@ -2,7 +2,7 @@
 	import type { HTMLTextareaAttributes } from "svelte/elements";
 	import { cn } from "tailwind-variants";
 
-	import { type WithElementRef, type WithoutChildren } from "#lib/util.js";
+	import { type WithElementRef, type WithoutChildren } from "#lib/util/index.js";
 
 	let {
 		ref = $bindable(null),

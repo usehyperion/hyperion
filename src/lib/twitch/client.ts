@@ -14,7 +14,7 @@ import { streamsQuery } from "#lib/graphql/twitch.js";
 import { log } from "#lib/log.js";
 import { UserManager } from "#lib/managers/user-manager.js";
 import { Stream } from "#lib/models/stream.svelte.js";
-import { dedupe } from "#lib/util.js";
+import { dedupe } from "#lib/util/resource.js";
 
 import type { Session } from "./session";
 

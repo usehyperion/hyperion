@@ -4,7 +4,7 @@
 
 	import type { Poll } from "#lib/models/poll.svelte.js";
 
-	import { formatDuration } from "#lib/util.js";
+	import { formatDuration } from "#lib/util/time.js";
 
 	import Progress from "../ui/Progress.svelte";
 	import Username from "../user/Username.svelte";

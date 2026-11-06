@@ -4,7 +4,7 @@ import { print } from "graphql-web-lite";
 import { ofetch } from "ofetch";
 
 import { ApiError } from "#lib/errors/api-error.js";
-import { dedupe } from "#lib/util.js";
+import { dedupe } from "#lib/util/resource.js";
 
 import type { GqlResponse, NonNullableDeep } from ".";
 

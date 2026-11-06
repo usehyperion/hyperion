@@ -2,7 +2,7 @@
 	import type { Viewer } from "#lib/models/viewer.svelte.js";
 
 	import Username from "#lib/components/user/Username.svelte";
-	import { formatDuration } from "#lib/util.js";
+	import { formatDuration } from "#lib/util/time.js";
 
 	interface Props {
 		seconds: number;

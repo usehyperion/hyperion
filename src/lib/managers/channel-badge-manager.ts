@@ -2,7 +2,7 @@ import type { Channel } from "#lib/models/channel.svelte.js";
 
 import { channelBadgesQuery } from "#lib/graphql/twitch.js";
 import { Badge } from "#lib/models/badge.js";
-import { once } from "#lib/util.js";
+import { once } from "#lib/util/resource.js";
 
 export class ChannelBadgeManager extends Map<string, Badge> {
 	readonly #load = once(() => this.#fetch());

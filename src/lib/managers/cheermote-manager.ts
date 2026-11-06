@@ -2,7 +2,7 @@ import type { Cheermote } from "#lib/graphql/twitch.js";
 import type { Channel } from "#lib/models/channel.svelte.js";
 
 import { cheermoteQuery } from "#lib/graphql/twitch.js";
-import { once } from "#lib/util.js";
+import { once } from "#lib/util/resource.js";
 
 /**
  * The cheermotes in a channel keyed by their lowercased prefix.

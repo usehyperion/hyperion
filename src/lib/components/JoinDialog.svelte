@@ -14,7 +14,7 @@
 	import { app } from "#lib/app.svelte.js";
 	import { searchSuggestionsQuery } from "#lib/graphql/twitch.js";
 	import { storage } from "#lib/stores.js";
-	import { debounce } from "#lib/util.js";
+	import { debounce } from "#lib/util/index.js";
 
 	import Dialog from "./ui/Dialog.svelte";
 

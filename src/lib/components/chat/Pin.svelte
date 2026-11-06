@@ -5,7 +5,8 @@
 
 	import type { Pin } from "#lib/models/pin.svelte.js";
 
-	import { clamp, formatDuration } from "#lib/util.js";
+	import { clamp } from "#lib/util/math.js";
+	import { formatDuration } from "#lib/util/time.js";
 
 	import Message from "../message/Message.svelte";
 	import Username from "../user/Username.svelte";

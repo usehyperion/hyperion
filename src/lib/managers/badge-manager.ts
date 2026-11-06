@@ -7,7 +7,7 @@ import { app } from "#lib/app.svelte.js";
 import { ApiError } from "#lib/errors/api-error.js";
 import { globalBadgesQuery } from "#lib/graphql/twitch.js";
 import { Badge } from "#lib/models/badge.js";
-import { once } from "#lib/util.js";
+import { once } from "#lib/util/resource.js";
 
 interface BttvUser {
 	providerId: string;

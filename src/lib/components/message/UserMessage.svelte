@@ -7,7 +7,7 @@
 	import { app } from "#lib/app.svelte.js";
 	import { createMessageMenu } from "#lib/menus/message-menu.js";
 	import { deletedAppearance, settings } from "#lib/settings/index.js";
-	import { openMenu } from "#lib/util.js";
+	import { openMenu } from "#lib/util/index.js";
 
 	import Highlight from "./Highlight.svelte";
 	import Message from "./Message.svelte";
