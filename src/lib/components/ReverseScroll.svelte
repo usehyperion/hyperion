@@ -14,6 +14,19 @@
 		showJumpButton?: boolean;
 
 		/**
+		 * The total number of items received, used to count new items while
+		 * paused. Defaults to the length of {@linkcode data}, but should be
+		 * provided if items can be removed from the list.
+		 */
+		total?: number;
+
+		/**
+		 * Whether scrolling is paused because the list isn't scrolled to the
+		 * bottom.
+		 */
+		paused?: boolean;
+
+		/**
 		 * Whether older items should be loaded with {@linkcode onloadmore} when
 		 * scrolled near the top.
 		 */
@@ -30,10 +43,12 @@
 	// Distance from the top of the list at which older items start loading.
 	const LOAD_THRESHOLD = 200;
 
-	const {
+	let {
 		class: className,
 		data,
 		showJumpButton = true,
+		total,
+		paused = $bindable(false),
 		lazy = false,
 		getKey,
 		onloadmore,
@@ -41,7 +56,6 @@
 	}: Props = $props();
 
 	let list = $state<VList<T>>();
-	let scrollingPaused = $state(false);
 	let lastSeen = $state.raw<T>();
 	let countSnapshot = $state(0);
 	let shifting = $state(false);
@@ -49,24 +63,26 @@
 	let loading = false;
 
 	const observer = new ResizeObserver(() => {
-		if (!scrollingPaused) scrollToEnd();
+		if (!paused) scrollToEnd();
 	});
 
+	const received = $derived(total ?? data.length);
+
 	const newCount = $derived.by(() => {
-		if (!scrollingPaused) return 0;
+		if (!paused) return 0;
 
 		// Counted from the last item seen when older items can be loaded so
 		// that they aren't counted as new. Otherwise, the length is compared
 		// so that items moved to the end aren't miscounted.
 		return onloadmore
 			? data.length - 1 - data.lastIndexOf(lastSeen!)
-			: data.length - countSnapshot;
+			: received - countSnapshot;
 	});
 
 	const hasNew = $derived(newCount > 0);
 
 	$effect(() => {
-		if (data.length && !scrollingPaused) {
+		if (data.length && !paused) {
 			scrollToEnd();
 		}
 	});
@@ -80,12 +96,12 @@
 
 		const atBottom = offset >= list.getScrollSize() - list.getViewportSize() - TOLERANCE;
 
-		if (!atBottom && !scrollingPaused) {
+		if (!atBottom && !paused) {
 			lastSeen = data.at(-1);
-			countSnapshot = data.length;
+			countSnapshot = received;
 		}
 
-		scrollingPaused = !atBottom;
+		paused = !atBottom;
 
 		if (lazy && offset < LOAD_THRESHOLD) {
 			void loadMore();
@@ -119,7 +135,7 @@
 		return () => observer.disconnect();
 	}}
 >
-	{#if showJumpButton && scrollingPaused}
+	{#if showJumpButton && paused}
 		<div class="absolute inset-x-0 bottom-4 z-10 flex justify-center">
 			<button
 				class={[

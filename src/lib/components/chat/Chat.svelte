@@ -19,6 +19,14 @@
 	const { class: className, chat }: Props = $props();
 
 	let lastRead = $state<Message | null>(null);
+
+	$effect(() => {
+		const current = chat;
+
+		return () => {
+			current.paused = false;
+		};
+	});
 </script>
 
 <svelte:window
@@ -32,7 +40,13 @@
 	}}
 />
 
-<ReverseScroll class="{className} text-sm" data={chat.messages} getKey={(message) => message.id}>
+<ReverseScroll
+	class="{className} text-sm"
+	data={chat.messages}
+	total={chat.received}
+	getKey={(message) => message.id}
+	bind:paused={chat.paused}
+>
 	{#snippet children(message, i)}
 		{#if message.isEvent() || message.isUser()}
 			{@const prev = chat.messages[i - 1]}
