@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
-type LogLevel = "trace" | "debug" | "info" | "warn" | "error";
+export type LogLevel = "trace" | "debug" | "info" | "warn" | "error";
 
 const fallback = {
 	trace: console.debug,
