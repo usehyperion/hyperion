@@ -61,7 +61,7 @@ class App {
 	/**
 	 * Provider-specific global badges.
 	 */
-	public readonly badges = new BadgeManager();
+	public readonly badges = new BadgeManager(this.twitch);
 
 	/**
 	 * 7TV paints.
