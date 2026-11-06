@@ -1,4 +1,5 @@
 import { app } from "#lib/app.svelte.js";
+import { BADGE_PROVIDERS, type BadgeProvider } from "#lib/managers/badge-manager.js";
 
 import { defineCommand } from "../util";
 
@@ -12,23 +13,16 @@ export default defineCommand({
 		const providers = args[0]?.split(",") ?? [];
 
 		if (providers.includes("all")) {
-			await Promise.all([app.badges.fetch(), channel.badges.fetch(true)]);
+			await Promise.all([
+				app.badges.fetch(BADGE_PROVIDERS, true),
+				channel.badges.fetch(true),
+			]);
 		} else {
-			const promises: Promise<unknown>[] = [channel.badges.fetch(true)];
+			const names = providers.filter((name): name is BadgeProvider =>
+				(BADGE_PROVIDERS as readonly string[]).includes(name),
+			);
 
-			if (providers.includes("twitch")) {
-				promises.push(app.badges.fetchTwitch());
-			}
-
-			if (providers.includes("bttv")) {
-				promises.push(app.badges.fetchBttv());
-			}
-
-			if (providers.includes("ffz")) {
-				promises.push(app.badges.fetchFfz());
-			}
-
-			await Promise.all(promises);
+			await Promise.all([channel.badges.fetch(true), app.badges.fetch(names, true)]);
 		}
 
 		channel.chat.notice("Reloaded badges.");

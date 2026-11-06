@@ -50,6 +50,6 @@ export async function load({ url }) {
 
 	await Promise.all([
 		app.emotes.fetch().catch(log.catch("Failed to load global emotes")),
-		app.badges.load().catch(log.catch("Failed to load global badges")),
+		app.badges.fetch().catch(log.catch("Failed to load global badges")),
 	]);
 }
