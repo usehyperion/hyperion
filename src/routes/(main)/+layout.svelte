@@ -8,6 +8,7 @@
 	import ChannelIcon from "#lib/components/channel/ChannelIcon.svelte";
 	import Sidebar from "#lib/components/Sidebar.svelte";
 	import { openDialog } from "#lib/components/ui/Dialog.svelte";
+	import { dialogs } from "#lib/dialog.js";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "#lib/splits/events.js";
 	import { storage } from "#lib/stores.js";
 	import { updater } from "#lib/updater.svelte.js";
@@ -18,7 +19,7 @@
 		await Promise.all([app.connect(), updater.check()]);
 	});
 
-	createHotkey("Mod+,", () => openDialog("settings-dialog"));
+	createHotkey("Mod+,", () => openDialog(dialogs.settings));
 </script>
 
 <DragDropProvider

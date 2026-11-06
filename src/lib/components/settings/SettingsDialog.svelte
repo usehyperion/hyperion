@@ -11,6 +11,7 @@
 	import Dialog from "#lib/components/ui/Dialog.svelte";
 	import * as InputGroup from "#lib/components/ui/input-group/index.js";
 	import Separator from "#lib/components/ui/Separator.svelte";
+	import { dialogs } from "#lib/dialog.js";
 	import { log } from "#lib/log.js";
 	import { settings } from "#lib/settings/index.js";
 	import { countFields, filterCategory } from "#lib/settings/search.js";
@@ -173,7 +174,7 @@
 
 				<Button
 					command="close"
-					commandfor="settings-dialog"
+					commandfor={dialogs.settings}
 					size="icon-sm"
 					variant="ghost"
 					aria-label="Close settings"

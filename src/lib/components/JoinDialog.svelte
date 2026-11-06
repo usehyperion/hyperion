@@ -12,6 +12,7 @@
 	import type { RecentSearch } from "#lib/stores.js";
 
 	import { app } from "#lib/app.svelte.js";
+	import { closeDialog, dialogs } from "#lib/dialog.js";
 	import { searchSuggestionsQuery } from "#lib/graphql/twitch.js";
 	import { storage } from "#lib/stores.js";
 	import { debounce } from "#lib/util/index.js";
@@ -178,12 +179,12 @@
 	}
 
 	function handleClose() {
-		document.querySelector<HTMLDialogElement>("#join-dialog")?.close();
+		closeDialog(dialogs.join);
 		reset();
 	}
 </script>
 
-<Dialog id="join-dialog" class="overflow-hidden p-0 sm:max-w-xl">
+<Dialog id={dialogs.join} class="overflow-hidden p-0 sm:max-w-xl">
 	<div class="flex flex-col">
 		<div class="flex items-center gap-3 border-b px-5 py-4">
 			<!-- svelte-ignore a11y_autofocus -- palette should be typeable on open -->
