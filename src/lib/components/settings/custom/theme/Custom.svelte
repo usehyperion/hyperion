@@ -1,22 +1,17 @@
 <script lang="ts">
 	import { openPath } from "@tauri-apps/plugin-opener";
 
-	import { app } from "#lib/app.svelte.js";
 	import Button from "#lib/components/ui/Button.svelte";
 	import * as Field from "#lib/components/ui/field/index.js";
 	import * as RadioGroup from "#lib/components/ui/radio-group/index.js";
 	import Separator from "#lib/components/ui/Separator.svelte";
 	import { settings } from "#lib/settings/index.js";
-	import { getThemesDir, reloadThemes } from "#lib/themes.js";
+	import { getThemesDir, loadThemes, themes } from "#lib/themes.js";
 
 	const selected = $derived(settings.state["appearance.theme"]);
 
 	async function openThemeDir() {
 		await openPath(await getThemesDir());
-	}
-
-	async function reload() {
-		await reloadThemes(settings.state["appearance.theme"]);
 	}
 </script>
 
@@ -32,12 +27,12 @@
 		Clear selection
 	</Button>
 
-	<Button size="sm" variant="outline" onclickwait={reload}>Reload themes</Button>
+	<Button size="sm" variant="outline" onclickwait={loadThemes}>Reload themes</Button>
 </div>
 
-{#if app.themes.size}
+{#if themes.size}
 	<RadioGroup.Root bind:value={settings.state["appearance.theme"]}>
-		{#each app.themes as [id, theme] (id)}
+		{#each themes as [id, theme] (id)}
 			<Field.Label for={id}>
 				<Field.Field orientation="horizontal">
 					<Field.Content>
