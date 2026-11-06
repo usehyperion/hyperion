@@ -6,7 +6,7 @@
 	import ReverseScroll from "#lib/components/ReverseScroll.svelte";
 	import Timestamp from "#lib/components/Timestamp.svelte";
 	import Input from "#lib/components/ui/Input.svelte";
-	import { logError } from "#lib/log.js";
+	import { log } from "#lib/log.js";
 
 	const { data } = $props();
 
@@ -14,7 +14,7 @@
 		const { whisper } = data;
 
 		untrack(() => {
-			void whisper.markRead().catch(logError("Failed to mark whisper as read"));
+			void whisper.markRead().catch(log.catch("Failed to mark whisper as read"));
 		});
 	});
 
