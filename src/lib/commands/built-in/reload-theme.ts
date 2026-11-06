@@ -1,5 +1,4 @@
-import { settings } from "#lib/settings/index.js";
-import { reloadThemes } from "#lib/themes.js";
+import { loadThemes } from "#lib/themes.js";
 
 import { defineCommand } from "../util";
 
@@ -8,7 +7,7 @@ export default defineCommand({
 	name: "reload-theme",
 	description: "Reload the current custom theme to apply any changes.",
 	async exec(_, channel) {
-		await reloadThemes(settings.state["appearance.theme"]);
+		await loadThemes();
 
 		channel.chat.notice("Reloaded theme.");
 	},
