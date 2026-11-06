@@ -6,6 +6,7 @@
 
 	import type { Prediction } from "#lib/models/prediction.svelte.js";
 
+	import { everySecond } from "#lib/clock.js";
 	import { percent } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
 
@@ -36,16 +37,10 @@
 	];
 
 	let expanded = $state(true);
-	let now = $state(Date.now());
 
-	$effect(() => {
-		if (prediction.status !== "ACTIVE") return;
-
-		const id = setInterval(() => (now = Date.now()), 1000);
-		return () => clearInterval(id);
-	});
-
-	const remaining = $derived(Math.max(0, Math.ceil((prediction.locksTimestamp - now) / 1000)));
+	const remaining = $derived(
+		Math.max(0, Math.ceil((prediction.locksTimestamp - everySecond.now) / 1000)),
+	);
 
 	const status = $derived.by(() => {
 		switch (prediction.status) {

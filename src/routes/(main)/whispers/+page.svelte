@@ -1,13 +1,13 @@
 <script lang="ts">
 	import dayjs from "dayjs";
 	import relativeTime from "dayjs/plugin/relativeTime";
-	import type { Attachment } from "svelte/attachments";
 
 	import { resolve } from "$app/paths";
 
 	import ChatDots from "~icons/ph/chat-dots";
 
 	import { app } from "#lib/app.svelte.js";
+	import { everyMinute } from "#lib/clock.js";
 	import * as Empty from "#lib/components/ui/empty/index.js";
 
 	dayjs.extend(relativeTime);
@@ -24,28 +24,6 @@
 	);
 
 	const unread = $derived(whispers.reduce((total, [, whisper]) => total + whisper.unread, 0));
-
-	function relative(date: Date): Attachment {
-		return (element) => {
-			let interval: ReturnType<typeof setInterval> | undefined;
-
-			const now = new Date();
-			const offset = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
-
-			const timeout = setTimeout(() => {
-				element.textContent = dayjs(date).fromNow();
-
-				interval = setInterval(() => {
-					element.textContent = dayjs(date).fromNow();
-				}, 60 * 1000);
-			}, offset);
-
-			return () => {
-				clearTimeout(timeout);
-				clearInterval(interval);
-			};
-		};
-	}
 </script>
 
 <div class="h-full overflow-y-auto">
@@ -95,9 +73,8 @@
 												: "text-muted-foreground",
 										]}
 										datetime={message.createdAt.toISOString()}
-										{@attach relative(message.createdAt)}
 									>
-										{dayjs(message.createdAt).fromNow()}
+										{dayjs(message.createdAt).from(everyMinute.now)}
 									</time>
 								</div>
 

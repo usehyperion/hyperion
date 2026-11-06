@@ -1,7 +1,13 @@
 <script lang="ts" module>
+	const HOUR_FORMATS = {
+		12: "h:mm A",
+		24: "HH:mm",
+	} as const;
+
+	// Cache the locale instance
 	const localeFormat = new Intl.Locale(navigator.language).getHourCycles().includes("h12")
-		? "h:mm A"
-		: "HH:mm";
+		? HOUR_FORMATS[12]
+		: HOUR_FORMATS[24];
 </script>
 
 <script lang="ts">
@@ -16,21 +22,18 @@
 	const { date }: Props = $props();
 
 	const format = $derived.by(() => {
-		let format = settings.state["chat.messages.timestamps.format"];
+		const format = settings.state["chat.messages.timestamps.format"];
+		const customFormat = settings.state["chat.messages.timestamps.customFormat"];
 
-		if (format === "custom") {
-			if (settings.state["chat.messages.timestamps.customFormat"]) {
-				return settings.state["chat.messages.timestamps.customFormat"];
-			}
-
-			format = "auto";
+		if (format === "custom" && customFormat) {
+			return customFormat;
 		}
 
-		if (format === "auto") {
-			return localeFormat;
+		if (format === "12" || format === "24") {
+			return HOUR_FORMATS[format];
 		}
 
-		return format === "12" ? "h:mm A" : "HH:mm";
+		return localeFormat;
 	});
 
 	const formatted = $derived(dayjs(date).format(format));
