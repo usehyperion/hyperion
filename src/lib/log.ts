@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
-type Level = "trace" | "debug" | "info" | "warn" | "error";
+type LogLevel = "trace" | "debug" | "info" | "warn" | "error";
 
 const fallback = {
 	trace: console.debug,
@@ -8,7 +8,7 @@ const fallback = {
 	info: console.info,
 	warn: console.warn,
 	error: console.error,
-} satisfies Record<Level, (...data: unknown[]) => void>;
+} satisfies Record<LogLevel, (...data: unknown[]) => void>;
 
 function describe(cause: unknown): string {
 	if (cause instanceof Error) return cause.toString();
@@ -21,7 +21,7 @@ function describe(cause: unknown): string {
 	}
 }
 
-async function emit(level: Level, message: string, cause?: unknown): Promise<void> {
+async function emit(level: LogLevel, message: string, cause?: unknown): Promise<void> {
 	const text = cause === undefined ? message : `${message}: ${describe(cause)}`;
 
 	try {
@@ -32,18 +32,12 @@ async function emit(level: Level, message: string, cause?: unknown): Promise<voi
 	}
 }
 
-export const trace = (message: string) => emit("trace", message);
-export const debug = (message: string) => emit("debug", message);
-export const info = (message: string) => emit("info", message);
-export const warn = (message: string, cause?: unknown) => emit("warn", message, cause);
-export const error = (message: string, cause?: unknown) => emit("error", message, cause);
-
 export const log = {
-	trace,
-	debug,
-	info,
-	warn,
-	error,
+	trace: (message: string) => emit("trace", message),
+	debug: (message: string) => emit("debug", message),
+	info: (message: string) => emit("info", message),
+	warn: (message: string, cause?: unknown) => emit("warn", message, cause),
+	error: (message: string, cause?: unknown) => emit("error", message, cause),
 };
 
 export function logError(message: string) {
