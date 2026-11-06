@@ -5,6 +5,7 @@
 
 	import type { Pin } from "#lib/models/pin.svelte.js";
 
+	import { everySecond } from "#lib/clock.js";
 	import { dialogs } from "#lib/dialog.js";
 	import { clamp } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
@@ -22,16 +23,7 @@
 
 	let expanded = $state(true);
 
-	let now = $state(Date.now());
-
-	$effect(() => {
-		if (pin.expirationTimestamp === null) return;
-
-		const id = setInterval(() => (now = Date.now()), 1000);
-		return () => clearInterval(id);
-	});
-
-	const remaining = $derived(Math.max(0, (pin.expirationTimestamp ?? 0) - now));
+	const remaining = $derived(Math.max(0, (pin.expirationTimestamp ?? 0) - everySecond.now));
 	const fraction = $derived(pin.duration ? clamp(0, remaining / (pin.duration * 1000), 1) : 0);
 </script>
 

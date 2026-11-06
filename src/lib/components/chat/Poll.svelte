@@ -4,6 +4,7 @@
 
 	import type { Poll } from "#lib/models/poll.svelte.js";
 
+	import { everySecond } from "#lib/clock.js";
 	import { percent } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
 
@@ -18,16 +19,10 @@
 	const { poll }: Props = $props();
 
 	let expanded = $state(true);
-	let now = $state(Date.now());
 
-	$effect(() => {
-		if (poll.status !== "ACTIVE") return;
-
-		const id = setInterval(() => (now = Date.now()), 1000);
-		return () => clearInterval(id);
-	});
-
-	const remaining = $derived(Math.max(0, Math.ceil((poll.endsTimestamp - now) / 1000)));
+	const remaining = $derived(
+		Math.max(0, Math.ceil((poll.endsTimestamp - everySecond.now) / 1000)),
+	);
 
 	const status = $derived(
 		poll.status === "ACTIVE" && remaining > 0 ? `${formatDuration(remaining)} left` : "Ended",
