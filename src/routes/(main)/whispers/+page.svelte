@@ -1,6 +1,5 @@
 <script lang="ts">
 	import dayjs from "dayjs";
-	import relativeTime from "dayjs/plugin/relativeTime";
 
 	import { resolve } from "$app/paths";
 
@@ -9,8 +8,6 @@
 	import { app } from "#lib/app.svelte.js";
 	import { everyMinute } from "#lib/clock.js";
 	import * as Empty from "#lib/components/ui/empty/index.js";
-
-	dayjs.extend(relativeTime);
 
 	const { data } = $props();
 

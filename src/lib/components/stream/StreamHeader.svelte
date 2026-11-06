@@ -1,7 +1,6 @@
 <script lang="ts">
 	import NumberFlow from "@number-flow/svelte";
 	import dayjs from "dayjs";
-	import duration from "dayjs/plugin/duration";
 
 	import Clock from "~icons/ph/clock";
 	import Users from "~icons/ph/users";
@@ -11,8 +10,6 @@
 	import { everySecond } from "#lib/clock.js";
 
 	import StreamInfo from "./StreamInfo.svelte";
-
-	dayjs.extend(duration);
 
 	interface Props {
 		stream: Stream;

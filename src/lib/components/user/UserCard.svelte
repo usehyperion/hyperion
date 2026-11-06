@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Avatar } from "bits-ui";
 	import dayjs from "dayjs";
-	import localizedFormat from "dayjs/plugin/localizedFormat";
 
 	import Cake from "~icons/ph/cake-fill";
 	import Heart from "~icons/ph/heart-fill";
@@ -19,8 +18,6 @@
 	import Message from "../message/Message.svelte";
 	import ReverseScroll from "../ReverseScroll.svelte";
 	import Popover from "../ui/Popover.svelte";
-
-	dayjs.extend(localizedFormat);
 
 	interface Props {
 		id: string;
