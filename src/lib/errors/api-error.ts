@@ -12,26 +12,18 @@ function isAbort(error: unknown): boolean {
 
 export class ApiError extends Error {
 	public constructor(
+		/**
+		 * The HTTP status code of the failed request. A value of `0` indicates
+		 * a network failure with no response.
+		 */
 		public readonly status: number,
 		message: string,
-
-		/**
-		 * The raw, parsed response body if one was present. Useful for reading
-		 * endpoint-specific error fields beyond the human-readable message.
-		 */
-		public readonly body?: unknown,
 	) {
 		super(message);
 
 		this.name = "ApiError";
 	}
 
-	/**
-	 * Normalizes an unknown thrown value into an `ApiError` so callers only ever
-	 * deal with a single error type. HTTP failures keep their real status; an
-	 * abort/timeout becomes `408`, and a network failure with no response
-	 * becomes `0`.
-	 */
 	public static from(error: unknown): ApiError {
 		if (error instanceof ApiError) return error;
 
@@ -53,7 +45,7 @@ export class ApiError extends Error {
 				const message =
 					ApiError.#messageFrom(http.data) ?? http.statusText ?? error.message;
 
-				return new ApiError(status, message, http.data);
+				return new ApiError(status, message);
 			}
 		}
 

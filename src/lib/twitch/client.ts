@@ -2,19 +2,15 @@
 // oxlint-disable no-await-in-loop
 
 import type { TadaDocumentNode } from "gql.tada";
-import { print } from "graphql-web-lite";
-import { ofetch } from "ofetch";
 
-import type { Connection, GqlResponse } from "#lib/graphql/index.js";
+import type { Connection } from "#lib/graphql/index.js";
 
 import { ApiError } from "#lib/errors/api-error.js";
-import { MutationError } from "#lib/errors/mutation-error.js";
-import { nodes } from "#lib/graphql/index.js";
+import { nodes, request } from "#lib/graphql/index.js";
 import { streamsQuery } from "#lib/graphql/twitch.js";
 import { log } from "#lib/log.js";
 import { UserManager } from "#lib/managers/user-manager.js";
 import { Stream } from "#lib/models/stream.svelte.js";
-import { dedupe } from "#lib/util/resource.js";
 
 import type { Session } from "./session";
 
@@ -24,38 +20,7 @@ interface PageVariables {
 	after?: string | null;
 }
 
-function findMutationError(data: unknown): MutationError | null {
-	if (!data || typeof data !== "object") return null;
-
-	for (const [field, payload] of Object.entries(data)) {
-		if (!payload || typeof payload !== "object" || !("error" in payload)) continue;
-
-		const { error } = payload as { error: unknown };
-		if (!error) continue;
-
-		if (typeof error === "string") return new MutationError(error, field);
-
-		const code =
-			typeof error === "object" && "code" in error && typeof error.code === "string"
-				? error.code
-				: "UNKNOWN";
-
-		return new MutationError(code, field);
-	}
-
-	return null;
-}
-
-function isQuery<T, U>(document: TadaDocumentNode<T, U>): boolean {
-	return document.definitions.every(
-		(definition) =>
-			definition.kind !== "OperationDefinition" || definition.operation === "query",
-	);
-}
-
 export class TwitchClient {
-	public static readonly DEFAULT_TIMEOUT = 15_000;
-
 	// This should only be null between the time of app start up and settings
 	// synchronization because of browser restrictions; however, any subsequent
 	// API calls SHOULD have a valid session as it's set at first layout load.
@@ -70,53 +35,17 @@ export class TwitchClient {
 			throw new ApiError(401, "OAuth token is not set");
 		}
 
-		// @ts-expect-error - outdated types
-		const queryStr = print(query);
-		const varStr = JSON.stringify(variables ?? {});
-
-		const read = isQuery(query);
-
-		const send = async () => {
-			let response: GqlResponse<T>;
-
-			try {
-				response = await ofetch<GqlResponse<T>>("https://gql.twitch.tv/gql", {
-					method: "POST",
-					headers: await session.headers(),
-					body: {
-						query: queryStr,
-						variables,
-					},
-					signal: AbortSignal.timeout(TwitchClient.DEFAULT_TIMEOUT),
-				});
-			} catch (error) {
-				const apiError = ApiError.from(error);
-
-				if (apiError.status === 401) {
-					this.#handleRevoked();
-				}
-
-				throw apiError;
+		try {
+			return await request("https://gql.twitch.tv/gql", query, variables, () =>
+				session.headers(),
+			);
+		} catch (error) {
+			if (error instanceof ApiError && error.status === 401) {
+				this.#handleRevoked();
 			}
 
-			if (response.errors) {
-				throw new AggregateError(
-					response.errors.map((err) => new ApiError(400, err.message)),
-					"GraphQL request failed",
-				);
-			}
-
-			if (!read) {
-				const mutationError = findMutationError(response.data);
-				if (mutationError) throw mutationError;
-			}
-
-			return response.data;
-		};
-
-		if (!read) return send();
-
-		return dedupe(`twitch:${queryStr}:${varStr}`, send);
+			throw error;
+		}
 	}
 
 	public async paginate<T, U extends PageVariables, N>(

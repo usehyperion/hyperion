@@ -1,3 +1,11 @@
+import type { TadaDocumentNode } from "gql.tada";
+import { print } from "graphql-web-lite";
+
+import { ApiError } from "#lib/errors/api-error.js";
+import { MutationError } from "#lib/errors/mutation-error.js";
+import { fetchJson } from "#lib/http.js";
+import { dedupe } from "#lib/util/resource.js";
+
 export type NonNullableDeep<T, P extends string> = P extends `${infer K}.${infer R}`
 	? K extends keyof T
 		? NonNullableDeep<NonNullable<T[K]>, R>
@@ -38,4 +46,74 @@ export function nodes<T>(connection: Connection<T> | null | undefined): T[] {
 	}
 
 	return result;
+}
+
+function findMutationError(data: unknown): MutationError | null {
+	if (!data || typeof data !== "object") return null;
+
+	for (const [field, payload] of Object.entries(data)) {
+		if (!payload || typeof payload !== "object" || !("error" in payload)) {
+			continue;
+		}
+
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion
+		const { error } = payload as { error: unknown };
+		if (!error) continue;
+
+		if (typeof error === "string") {
+			return new MutationError(error, field);
+		}
+
+		const code =
+			typeof error === "object" && "code" in error && typeof error.code === "string"
+				? error.code
+				: "UNKNOWN";
+
+		return new MutationError(code, field);
+	}
+
+	return null;
+}
+
+function isQuery(document: TadaDocumentNode<any, any>) {
+	return document.definitions.every(
+		(definition) =>
+			definition.kind !== "OperationDefinition" || definition.operation === "query",
+	);
+}
+
+export function request<T, U>(
+	url: string,
+	document: TadaDocumentNode<T, U>,
+	variables?: U,
+	headers?: () => Promise<HeadersInit>,
+): Promise<T> {
+	// @ts-expect-error - outdated types
+	const query: string = print(document);
+	const mutation = !isQuery(document);
+
+	const send = async () => {
+		const response = await fetchJson<GqlResponse<T>>(url, {
+			method: "POST",
+			headers: await headers?.(),
+			body: {
+				query,
+				variables,
+			},
+		});
+
+		if (response.errors) {
+			throw new AggregateError(
+				response.errors.map((err) => new ApiError(400, err.message)),
+				"GraphQL request failed",
+			);
+		}
+
+		const mutationError = mutation && findMutationError(response.data);
+		if (mutationError) throw mutationError;
+
+		return response.data;
+	};
+
+	return mutation ? send() : dedupe(`${url}:${query}:${JSON.stringify(variables ?? {})}`, send);
 }
