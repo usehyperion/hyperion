@@ -11,7 +11,7 @@ export async function load({ parent, params }) {
 	try {
 		await whisper.load();
 	} catch (err) {
-		void log.error(`Failed to load whisper history: ${String(err)}`);
+		log.error("Failed to load whisper history", err);
 	}
 
 	return { whisper };

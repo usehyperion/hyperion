@@ -1,5 +1,7 @@
 import { RuneStore } from "@tauri-store/svelte";
 
+import type { LogLevel } from "#lib/log.js";
+
 export type HighlightType =
 	| "mention"
 	| "new"
@@ -62,7 +64,7 @@ export type Settings = {
 	"moderation.quickActions.show": boolean;
 	"moderation.deleted.appearance": DeletedAppearance;
 
-	"advanced.logs.level": "error" | "warn" | "info" | "debug" | "trace";
+	"advanced.logs.level": LogLevel;
 };
 
 export const defaultHighlightTypes: Record<HighlightType, HighlightConfig> = {

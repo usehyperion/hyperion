@@ -64,7 +64,7 @@
 			loadingHistory = true;
 			await history.load();
 		} catch (error) {
-			void log.error(`Failed to load message history: ${String(error)}`).catch(() => {});
+			log.error("Failed to load message history", error);
 		} finally {
 			loadingHistory = false;
 		}

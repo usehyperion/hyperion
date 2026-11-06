@@ -1,29 +1,42 @@
 import { invoke } from "@tauri-apps/api/core";
 
-export async function trace(message: string) {
-	await invoke("log", { level: "trace", message });
+export type LogLevel = "trace" | "debug" | "info" | "warn" | "error";
+
+const fallback = {
+	trace: console.debug,
+	debug: console.debug,
+	info: console.info,
+	warn: console.warn,
+	error: console.error,
+} satisfies Record<LogLevel, (...data: unknown[]) => void>;
+
+function describe(cause: unknown): string {
+	if (cause instanceof Error) return cause.toString();
+	if (typeof cause === "string") return cause;
+
+	try {
+		return JSON.stringify(cause);
+	} catch {
+		return Object.prototype.toString.call(cause);
+	}
 }
 
-export async function debug(message: string) {
-	await invoke("log", { level: "debug", message });
-}
+async function emit(level: LogLevel, message: string, cause?: unknown): Promise<void> {
+	const text = cause === undefined ? message : `${message}: ${describe(cause)}`;
 
-export async function info(message: string) {
-	await invoke("log", { level: "info", message });
-}
-
-export async function warn(message: string) {
-	await invoke("log", { level: "warn", message });
-}
-
-export async function error(message: string) {
-	await invoke("log", { level: "error", message });
+	try {
+		return await invoke<void>("log", { level, message: text });
+	} catch (invokeError) {
+		fallback[level](text);
+		console.error("Failed to forward log to backend:", invokeError);
+	}
 }
 
 export const log = {
-	trace,
-	debug,
-	info,
-	warn,
-	error,
+	trace: (message: string) => emit("trace", message),
+	debug: (message: string) => emit("debug", message),
+	info: (message: string) => emit("info", message),
+	warn: (message: string, cause?: unknown) => emit("warn", message, cause),
+	error: (message: string, cause?: unknown) => emit("error", message, cause),
+	catch: (message: string) => (cause: unknown) => emit("error", message, cause),
 };

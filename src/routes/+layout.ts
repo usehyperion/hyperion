@@ -45,20 +45,11 @@ export async function load({ url }) {
 		app.channels.set(self.id, self);
 	}
 
-	void app.user.loadFollowing().catch((error) => {
-		void log.error(`Failed to load followed channels: ${String(error)}`).catch(() => {});
-	});
-
-	void app.user.loadWhispers().catch((error) => {
-		void log.error(`Failed to load whispers: ${String(error)}`).catch(() => {});
-	});
+	void app.user.loadFollowing().catch(log.catch("Failed to load followed channels"));
+	void app.user.loadWhispers().catch(log.catch("Failed to load whispers"));
 
 	await Promise.all([
-		app.emotes.fetch().catch((error) => {
-			void log.error(`Failed to load global emotes: ${String(error)}`).catch(() => {});
-		}),
-		app.badges.load().catch((error) => {
-			void log.error(`Failed to load global badges: ${String(error)}`).catch(() => {});
-		}),
+		app.emotes.fetch().catch(log.catch("Failed to load global emotes")),
+		app.badges.load().catch(log.catch("Failed to load global badges")),
 	]);
 }

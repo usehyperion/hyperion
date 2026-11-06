@@ -61,9 +61,7 @@ export class Session {
 		).catch((error) => {
 			this.#retryAfter = Date.now() + INTEGRITY_RETRY_DELAY;
 
-			void log
-				.error(`Failed to refresh the integrity token: ${String(error)}`)
-				.catch(() => {});
+			log.error("Failed to refresh the integrity token", error);
 
 			return null;
 		});

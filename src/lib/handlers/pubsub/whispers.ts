@@ -56,9 +56,7 @@ export default defineHandler({
 
 		// Keep the server in sync when the message is read as it arrives.
 		if (page.url.pathname === `/whispers/${other.id}`) {
-			void whisper.markRead().catch((error) => {
-				void log.error(`Failed to mark whisper as read: ${String(error)}`).catch(() => {});
-			});
+			void whisper.markRead().catch(log.catch("Failed to mark whisper as read"));
 		}
 	},
 });

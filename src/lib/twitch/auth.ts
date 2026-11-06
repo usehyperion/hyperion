@@ -38,7 +38,7 @@ export async function logOut() {
 }
 
 export async function expireSession() {
-	void log.warn("Twitch credentials were revoked, returning to login").catch(() => {});
+	log.warn("Twitch credentials were revoked, returning to login");
 	await endSession();
 }
 

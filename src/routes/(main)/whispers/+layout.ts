@@ -9,7 +9,7 @@ export async function load() {
 	try {
 		await app.user.loadWhispers();
 	} catch (err) {
-		void log.error(`Failed to load whispers: ${String(err)}`);
+		log.error("Failed to load whispers", err);
 	}
 
 	return {

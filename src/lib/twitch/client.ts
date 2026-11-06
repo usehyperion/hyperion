@@ -169,8 +169,6 @@ export class TwitchClient {
 	#handleRevoked() {
 		if (!this.session) return;
 
-		void expireSession().catch((error: unknown) => {
-			void log.error(`Failed to end the revoked session: ${String(error)}`).catch(() => {});
-		});
+		void expireSession().catch(log.catch("Failed to end the revoked session"));
 	}
 }
