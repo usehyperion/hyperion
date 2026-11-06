@@ -2,9 +2,6 @@ use std::fmt;
 use std::fmt::Write;
 
 use rustc_hash::{FxBuildHasher, FxHashMap};
-use serde::{Deserialize, Serialize};
-
-use super::AsRawIrc;
 
 fn decode_tag_value(raw: &str) -> String {
     if !raw.contains('\\') {
@@ -17,16 +14,16 @@ fn decode_tag_value(raw: &str) -> String {
     while let Some(c) = iter.next() {
         if c == '\\' {
             match iter.next() {
-                Some(':') => output.push(';'),   // \: escapes to ;
-                Some('s') => output.push(' '),   // \s decodes to a space
-                Some('\\') => output.push('\\'), // \\ decodes to \
-                Some('r') => output.push('\r'),  // \r decodes to CR
-                Some('n') => output.push('\n'),  // \n decodes to LF
-                Some(c) => output.push(c),       // E.g. a\bc escapes to abc
-                None => {}                       // Dangling \ at the end of the string
+                Some(':') => output.push(';'),
+                Some('s') => output.push(' '),
+                Some('\\') => output.push('\\'),
+                Some('r') => output.push('\r'),
+                Some('n') => output.push('\n'),
+                // Unknown escapes drop the backslash, a dangling one is dropped
+                Some(c) => output.push(c),
+                None => {}
             }
         } else {
-            // No escape sequence here
             output.push(c);
         }
     }
@@ -55,21 +52,11 @@ fn encode_tag_value(raw: &str) -> String {
     output
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default)]
 pub struct IrcTags(pub FxHashMap<String, String>);
 
 impl IrcTags {
-    /// Creates a new empty map of tags.
-    pub fn new() -> IrcTags {
-        IrcTags(FxHashMap::default())
-    }
-
-    /// Panics if `source` is an empty string.
     pub fn parse(source: &str) -> IrcTags {
-        if source.is_empty() {
-            panic!("invalid input")
-        }
-
         let tag_count = source.as_bytes().iter().filter(|&&b| b == b';').count() + 1;
         let mut tags = IrcTags(FxHashMap::with_capacity_and_hasher(
             tag_count,
@@ -91,14 +78,8 @@ impl IrcTags {
     }
 }
 
-impl From<FxHashMap<String, String>> for IrcTags {
-    fn from(map: FxHashMap<String, String>) -> Self {
-        IrcTags(map)
-    }
-}
-
-impl AsRawIrc for IrcTags {
-    fn format_as_raw_irc(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl fmt::Display for IrcTags {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut add_separator = false;
 
         for (key, value) in self.0.iter() {
@@ -117,17 +98,5 @@ impl AsRawIrc for IrcTags {
         }
 
         Ok(())
-    }
-}
-
-impl PartialEq<FxHashMap<String, String>> for IrcTags {
-    fn eq(&self, other: &FxHashMap<String, String>) -> bool {
-        &self.0 == other
-    }
-}
-
-impl PartialEq<IrcTags> for FxHashMap<String, String> {
-    fn eq(&self, other: &IrcTags) -> bool {
-        self == &other.0
     }
 }

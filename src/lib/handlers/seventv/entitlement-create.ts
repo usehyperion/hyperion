@@ -1,42 +1,29 @@
 import { app } from "#lib/app.svelte.js";
+import { BADGE_SETS, Badge } from "#lib/models/badge.js";
+import { twitchConnection } from "#lib/seventv.js";
 
 import { defineHandler } from "../helper";
 
-export default defineHandler({
+export default defineHandler("seventv", {
 	name: "entitlement.create",
-	async handle(data) {
-		const twitch = data.user.connections.find((c) => c.platform === "TWITCH");
+	handle(data) {
+		const twitch = twitchConnection(data.user);
 		if (!twitch) return;
-
-		const user = await app.twitch.users.fetch(twitch.id);
 
 		switch (data.kind) {
 			case "BADGE": {
-				const badge = app.badges.get(data.ref_id);
-				if (!badge) return;
-
-				const badges = app.badges.users.getOrInsert(user.id, []);
-
-				if (!badges.some((b) => b.id === badge.id)) {
-					badges.push(badge);
-				}
-
+				const badge = app.badges.get(Badge.key(BADGE_SETS.seventv, data.ref_id));
+				if (badge) app.badges.give(twitch.id, badge);
 				break;
 			}
 
 			case "PAINT": {
-				app.u2p.set(user.id, app.paints.get(data.ref_id));
+				app.seventv.userPaints.set(twitch.id, app.seventv.paints.get(data.ref_id));
 				break;
 			}
 
 			case "EMOTE_SET": {
-				const emoteSet = app.emoteSets.get(data.ref_id);
-				if (!emoteSet) return;
-
-				for (const emote of emoteSet.emotes) {
-					user.emotes.set(emote.name, emote);
-				}
-
+				app.seventv.userPersonalSets.set(twitch.id, data.ref_id);
 				break;
 			}
 		}

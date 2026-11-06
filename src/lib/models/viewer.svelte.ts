@@ -1,3 +1,15 @@
+import type { TadaDocumentNode } from "gql.tada";
+
+import {
+	banUserMutation,
+	grantVipMutation,
+	modUserMutation,
+	revokeVipMutation,
+	unbanUserMutation,
+	unmodUserMutation,
+	warnUserMutation,
+} from "#lib/graphql/twitch.js";
+
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";
 
@@ -7,9 +19,6 @@ export interface TimeoutOptions {
 	 */
 	duration: number;
 
-	/**
-	 * The reason for the timeout.
-	 */
 	reason?: string;
 }
 
@@ -18,24 +27,10 @@ export class Viewer {
 	public readonly username: string;
 	public readonly displayName: string;
 
-	/**
-	 * Whether the viewer is the broadcaster.
-	 */
-	public broadcaster = $state(false);
+	#moderator = $state(false);
 
-	/**
-	 * Whether the viewer is a moderator in the channel.
-	 */
-	public moderator = $state(false);
-
-	/**
-	 * Whether the viewer is a subscriber in the channel.
-	 */
 	public subscriber = $state(false);
 
-	/**
-	 * Whether the viewer is a VIP in the channel.
-	 */
 	public vip = $state(false);
 
 	/**
@@ -64,20 +59,11 @@ export class Viewer {
 	 */
 	public restricted = $state(false);
 
-	/**
-	 * Whether there's a possibility that the viewer is ban evading.
-	 */
 	public possibleBanEvader = $state(false);
 
 	public constructor(
-		/**
-		 * The channel the viewer is in.
-		 */
 		public readonly channel: Channel,
 
-		/**
-		 * The user representing the viewer.
-		 */
 		public readonly user: User,
 	) {
 		this.id = user.id;
@@ -85,24 +71,69 @@ export class Viewer {
 		this.displayName = user.displayName;
 	}
 
+	public get broadcaster() {
+		return this.id === this.channel.id;
+	}
+
 	/**
-	 * Whether the viewer is considered suspicious in a channel i.e. their
-	 * messages are being monitored or restricted, or they are suspected of ban
-	 * evasion.
+	 * Whether the viewer moderates the channel, which broadcasters always do.
 	 */
+	public get moderator() {
+		return this.broadcaster || this.#moderator;
+	}
+
+	public set moderator(moderator: boolean) {
+		this.#moderator = moderator;
+	}
+
 	public get suspicious() {
 		return this.monitored || this.restricted || this.possibleBanEvader;
 	}
 
-	public ban(reason?: string) {
-		return this.channel.viewers.ban(this.username, reason);
+	public async ban(reason?: string) {
+		await this.#gql(banUserMutation, { target: this.username, reason });
 	}
 
-	public timeout(options: TimeoutOptions) {
-		return this.channel.viewers.timeout(this.username, options);
+	public async unban() {
+		await this.#gql(unbanUserMutation, { target: this.username });
 	}
 
-	public warn(reason: string) {
-		return this.channel.viewers.warn(this.username, reason);
+	public async timeout(options: TimeoutOptions) {
+		await this.#gql(banUserMutation, {
+			target: this.username,
+			duration: `${options.duration}s`,
+			reason: options.reason,
+		});
+	}
+
+	public async warn(reason: string) {
+		await this.#gql(warnUserMutation, { target: this.username, reason });
+	}
+
+	public async mod() {
+		await this.#gql(modUserMutation, { target: this.id });
+	}
+
+	public async unmod() {
+		await this.#gql(unmodUserMutation, { target: this.id });
+	}
+
+	public async grantVip() {
+		await this.#gql(grantVipMutation, { target: this.id });
+	}
+
+	public async revokeVip() {
+		await this.#gql(revokeVipMutation, { target: this.id });
+	}
+
+	/**
+	 * Sends a moderation mutation scoped to the viewer's channel.
+	 */
+	#gql<T, U extends { channel: string }>(
+		mutation: TadaDocumentNode<T, U>,
+		variables: Omit<U, "channel">,
+	) {
+		// oxlint-disable-next-line typescript/no-unsafe-type-assertion
+		return this.channel.client.gql(mutation, { ...variables, channel: this.channel.id } as U);
 	}
 }

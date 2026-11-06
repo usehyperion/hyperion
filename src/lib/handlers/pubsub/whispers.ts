@@ -1,12 +1,10 @@
-import { page } from "$app/state";
-
 import { app } from "#lib/app.svelte.js";
-import { log } from "#lib/log.js";
+import { Badge } from "#lib/models/badge.js";
 import { Whisper } from "#lib/models/whisper.svelte.js";
 
 import { defineHandler } from "../helper";
 
-export default defineHandler({
+export default defineHandler("pubsub", {
 	name: "whispers",
 	async handle(payload) {
 		const user = app.user;
@@ -42,7 +40,7 @@ export default defineHandler({
 				id: data.message_id,
 				createdAt: new Date(data.sent_ts * 1000),
 				badges: data.tags.badges
-					.map((badge) => app.badges.get(`${badge.id}:${badge.version}`))
+					.map((badge) => app.badges.get(Badge.key(badge.id, badge.version)))
 					.filter((badge) => badge != null),
 				user: incoming ? other : user,
 				text: data.body,
@@ -50,15 +48,6 @@ export default defineHandler({
 			data.id,
 		);
 
-		if (!incoming) return;
-
-		whisper.unread++;
-
-		// Keep the server in sync when the message is read as it arrives.
-		if (page.url.pathname === `/whispers/${other.id}`) {
-			void whisper.markRead().catch((error) => {
-				void log.error(`Failed to mark whisper as read: ${String(error)}`).catch(() => {});
-			});
-		}
+		if (incoming) whisper.unread++;
 	},
 });

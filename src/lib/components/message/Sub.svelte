@@ -13,6 +13,7 @@
 	} from "#lib/twitch/irc.js";
 
 	import Username from "../user/Username.svelte";
+	import Callout from "./Callout.svelte";
 	import Message from "./Message.svelte";
 
 	interface Props {
@@ -28,7 +29,15 @@
 	const { message, sub }: Props = $props();
 </script>
 
-<div class="my-0.5 border-l-4 bg-muted/50 p-2" style:border-color={message.source.user.color}>
+{#snippet tier(plan: string)}
+	<span class="font-semibold">Tier {plan[0]}</span>
+{/snippet}
+
+{#snippet prime()}
+	<a href="https://gaming.amazon.com/home" target="_blank">Prime</a>
+{/snippet}
+
+<Callout color={message.source.user.color}>
 	<div class="flex gap-1">
 		{#if sub.type === "sub_or_resub" || sub.type === "prime_paid_upgrade" || sub.type === "gift_paid_upgrade"}
 			{#if sub.type === "sub_or_resub" && sub.sub_plan === "Prime"}
@@ -53,9 +62,9 @@
 					Subscribed with
 
 					{#if sub.sub_plan === "Prime"}
-						<a href="https://gaming.amazon.com/home" target="_blank">Prime</a>
+						{@render prime()}
 					{:else}
-						<span class="font-semibold">Tier {sub.sub_plan[0]}</span>
+						{@render tier(sub.sub_plan)}
 					{/if}{#if !isMultimonth && !message.shared}.{/if}
 
 					{#if isMultimonth}
@@ -90,7 +99,7 @@
 				<p>
 					Gifted
 					{singular ? "a" : sub.mass_gift_count}
-					<span class="font-semibold"> Tier {sub.sub_plan[0]}</span>
+					{@render tier(sub.sub_plan)}
 					sub{singular ? null : "s"}{#if !message.shared}!{/if}
 
 					{#if message.shared}
@@ -108,11 +117,7 @@
 				<Username user={message.author} />
 
 				<p>
-					Converted their <a href="https://gaming.amazon.com/home" target="_blank">
-						Prime
-					</a>
-					sub to a
-					<span class="font-semibold">Tier {sub.sub_plan[0]}</span> sub!
+					Converted their {@render prime()} sub to a {@render tier(sub.sub_plan)} sub!
 				</p>
 			</div>
 		{:else if sub.type === "gift_paid_upgrade"}
@@ -124,19 +129,12 @@
 				<Username user={message.author} />
 
 				<p>
-					Continued the gifted sub they got from {#if gifter}
-						<Username user={gifter.user} />
-					{:else}
-						<span class="font-semibold">{sub.gifter_name}</span>
-					{/if}
+					Continued the gifted sub they got from
+					<Username user={gifter?.user} name={sub.gifter_name} />
 				</p>
 			</div>
 		{:else}
 			{@const recipient = message.channel.viewers.get(sub.recipient.id)}
-
-			{#snippet tier()}
-				<span class="font-semibold">Tier {sub.sub_plan[0]}</span>
-			{/snippet}
 
 			<p>
 				{#if sub.is_sender_anonymous}
@@ -146,16 +144,15 @@
 				{/if}
 
 				gifted {#if sub.num_gifted_months > 1}
-					{sub.num_gifted_months} months of a {@render tier()} sub
+					{sub.num_gifted_months} months of a {@render tier(sub.sub_plan)} sub
 				{:else}
-					a {@render tier()} sub
+					a {@render tier(sub.sub_plan)} sub
 				{/if}
 
-				to {#if recipient}
-					<Username user={recipient.user} />
-				{:else}
-					<span class="font-semibold">{sub.recipient.name}</span>
-				{/if}{#if !message.shared}!{/if}
+				to <Username
+					user={recipient?.user}
+					name={sub.recipient.name}
+				/>{#if !message.shared}!{/if}
 
 				{#if message.shared}
 					in <Username user={message.source.user} />'s channel!
@@ -175,4 +172,4 @@
 			<Message {message} />
 		</div>
 	{/if}
-</div>
+</Callout>

@@ -1,21 +1,24 @@
 <script lang="ts">
 	import Users from "~icons/ph/users-bold";
 
-	import type { Channel } from "#lib/models/channel.svelte.js";
-	import type { Guest } from "#lib/models/stream.svelte.js";
+	import type { Guest, Stream } from "#lib/models/stream.svelte.js";
+	import type { User } from "#lib/models/user.svelte.js";
 
+	import Avatar from "../ui/Avatar.svelte";
 	import Button from "../ui/Button.svelte";
 	import Popover from "../ui/Popover.svelte";
 
 	interface Props {
+		stream: Stream;
+
+		/**
+		 * The broadcaster, listed above the guests when given.
+		 */
+		host?: User;
 		tooltip?: boolean;
-		channel: Channel;
 	}
 
-	const { tooltip = false, channel }: Props = $props();
-
-	// This was already checked in <TitleBar />
-	const stream = $derived(channel.stream!);
+	const { stream, host, tooltip = false }: Props = $props();
 </script>
 
 {#if tooltip}
@@ -25,20 +28,20 @@
 		class="size-min p-1 text-xs"
 		size="sm"
 		variant="ghost"
-		popovertarget="guest-list-{channel.id}"
+		popovertarget="guest-list-{stream.channelId}"
 		aria-label="View guests"
 	>
 		+{stream.guests.size}
 	</Button>
 
-	<Popover id="guest-list-{channel.id}" class="w-fit">
+	<Popover id="guest-list-{stream.channelId}" class="w-fit">
 		{@render content()}
 	</Popover>
 {/if}
 
 {#snippet content()}
-	{#if !tooltip}
-		{@render participant(channel.user, stream.viewers)}
+	{#if host}
+		{@render participant(host, stream.viewers)}
 	{/if}
 
 	<span
@@ -62,13 +65,10 @@
 {#snippet participant(guest: Omit<Guest, "viewers">, viewers: number | null)}
 	<div class="flex items-center justify-between gap-x-8">
 		<div class={["flex items-center", tooltip ? "gap-x-1 text-xs" : "gap-x-2 text-sm"]}>
-			<img
+			<Avatar
+				class={tooltip ? "size-5" : "size-6"}
 				src={guest.avatarUrl}
 				alt={guest.displayName}
-				class={[
-					"rounded-full ring-1 ring-black/10 dark:ring-white/10",
-					tooltip ? "size-5" : "size-6",
-				]}
 				width="50"
 				height="50"
 			/>

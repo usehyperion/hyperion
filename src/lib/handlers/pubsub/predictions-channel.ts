@@ -3,7 +3,7 @@ import { Prediction } from "#lib/models/prediction.svelte.js";
 
 import { defineHandler } from "../helper";
 
-export default defineHandler({
+export default defineHandler("pubsub", {
 	name: "predictions-channel-v1",
 	async handle(data) {
 		const channel = app.channels.get(data.target_id);
@@ -11,7 +11,6 @@ export default defineHandler({
 
 		const { event } = data.data;
 
-		// Update the existing prediction in place when it matches.
 		if (data.type === "event-updated" && channel.prediction?.id === event.id) {
 			channel.prediction.update(event);
 			return;
@@ -19,13 +18,11 @@ export default defineHandler({
 
 		// Otherwise (re)create it — covers both new predictions and updates that
 		// arrive for a prediction we aren't yet tracking.
-		channel.prediction?.dispose();
-
 		const creator =
 			event.created_by.type === "USER"
 				? await channel.client.users.fetch(event.created_by.user_id!)
 				: null;
 
-		channel.prediction = new Prediction(channel, creator, event);
+		channel.setPrediction(new Prediction(channel, creator, event));
 	},
 });

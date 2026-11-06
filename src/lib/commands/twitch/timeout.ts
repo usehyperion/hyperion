@@ -1,39 +1,29 @@
-import { CommandError } from "#lib/errors/command-error.js";
 import { ErrorMessage } from "#lib/errors/messages.js";
 
-import { defineCommand, getTarget, mapErrors, parseDuration } from "../util";
+import { command } from "../define";
+import { DEFAULT_TIMEOUT, durationRangeMessage, MAX_TIMEOUT, MIN_TIMEOUT } from "../parse";
 
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "timeout",
 	description: "Temporarily restrict a user from sending messages",
-	modOnly: true,
-	args: ["username", "duration", "reason"],
-	async exec(args, channel) {
-		const target = await getTarget(args[0], channel);
-		const duration = parseDuration(args[1]) ?? 600;
-
-		if (duration < 0 || duration > 1_209_600) {
-			throw new CommandError(ErrorMessage.INVALID_TIMEOUT_DURATION);
-		}
-
-		await mapErrors(
-			() => target.timeout({ duration, reason: args.slice(2).join(" ") }),
-			[
-				{
-					code: "TARGET_ALREADY_BANNED",
-					message: ErrorMessage.USER_ALREADY_BANNED(target.displayName),
-				},
-				{
-					code: "DURATION_INVALID",
-					message: ErrorMessage.INVALID_TIMEOUT_DURATION,
-				},
-				{
-					code: "TARGET_NOT_FOUND",
-					message: ErrorMessage.USER_NOT_FOUND(target.username),
-				},
-			],
-			ErrorMessage.USER_CANNOT_BE_TIMED_OUT(target.displayName),
-		);
+	permission: "mod",
+	args: [
+		{ type: "viewer", name: "username" },
+		{
+			type: "duration",
+			name: "duration",
+			min: MIN_TIMEOUT,
+			max: MAX_TIMEOUT,
+			default: DEFAULT_TIMEOUT,
+		},
+		{ type: "text", name: "reason", optional: true },
+	],
+	errors: ({ username }) => ({
+		TARGET_ALREADY_BANNED: ErrorMessage.USER_ALREADY_BANNED(username.displayName),
+		DURATION_INVALID: durationRangeMessage(MIN_TIMEOUT, MAX_TIMEOUT),
+	}),
+	fallback: ({ username }) => `${username.displayName} cannot be timed out.`,
+	async exec({ username, duration, reason }) {
+		await username.timeout({ duration, reason });
 	},
 });

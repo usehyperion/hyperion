@@ -2,13 +2,14 @@
 	import ArrowBendUpRight from "~icons/ph/arrow-bend-up-right";
 
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
-	import type { Viewer } from "#lib/models/viewer.svelte.js";
 
 	import { app } from "#lib/app.svelte.js";
+	import { highlightOf, matchesKeyword } from "#lib/highlights.js";
 	import { createMessageMenu } from "#lib/menus/message-menu.js";
 	import { deletedAppearance, settings } from "#lib/settings/index.js";
 	import { openMenu } from "#lib/util.js";
 
+	import Callout from "./Callout.svelte";
 	import Highlight from "./Highlight.svelte";
 	import Message from "./Message.svelte";
 	import QuickActions from "./QuickActions.svelte";
@@ -21,51 +22,19 @@
 	const { message }: Props = $props();
 
 	const customMatched = $derived(
-		settings.state["highlights.keywords"].find((cfg) => {
-			if (!cfg.pattern.trim()) return false;
-
-			let pattern = cfg.regex ? cfg.pattern : RegExp.escape(cfg.pattern);
-
-			if (cfg.wholeWord) {
-				pattern = `\\b${pattern}\\b`;
-			}
-
-			return new RegExp(pattern, cfg.matchCase ? "g" : "gi").test(message.text);
-		}),
+		settings.state["highlights.keywords"].find((config) =>
+			matchesKeyword(message.text, config),
+		),
 	);
 
-	const hlType = $derived.by(() => {
-		const hasMention = message.text.toLowerCase().includes(`@${app.user?.username}`);
-		if (hasMention) return "mention";
-
-		if (message.viewer?.new) return "new";
-		if (message.viewer?.returning) return "returning";
-		if (message.viewer?.broadcaster) return "broadcaster";
-		if (message.viewer?.moderator) return "moderator";
-		if (message.viewer?.suspicious) return "suspicious";
-		if (message.viewer?.vip) return "vip";
-		if (message.viewer?.subscriber) return "subscriber";
-	});
+	const hlType = $derived(highlightOf(message.text, message.viewer, app.user?.username));
 
 	function getSuspicionInfo() {
-		if (!message.viewer?.suspicious) return;
+		if (!message.viewer.suspicious) return;
 
 		if (message.viewer.monitored) return "Monitoring";
 		if (message.viewer.restricted) return "Restricted";
 		if (message.viewer.possibleBanEvader) return "Possible Ban Evader";
-	}
-
-	function getMentionStyle(viewer?: Viewer) {
-		if (!viewer) return null;
-
-		switch (settings.state["chat.usernames.mentionStyle"]) {
-			case "none":
-				return null;
-			case "colored":
-				return `color: ${viewer.user.color}`;
-			case "painted":
-				return viewer.user.style;
-		}
 	}
 </script>
 
@@ -76,19 +45,16 @@
 	data-deleted={deletedAppearance(message)}
 	oncontextmenu={(event) => openMenu(event, () => createMessageMenu(message))}
 >
-	{#if !message.deleted && !app.user?.banned.has(message.channel.id)}
+	{#if !message.deleted && !message.channel.banned}
 		<QuickActions class="absolute top-0 right-2 z-10 -translate-y-1/2" {message} />
 	{/if}
 
 	{#if message.redemption}
-		<Redemption reward={message.redemption} {message} viewer={message.viewer} />
+		<Redemption reward={message.redemption} {message} />
 	{:else if message.highlighted}
-		<div
-			class="my-0.5 border-l-4 bg-muted/50 p-2"
-			style:border-color={message.source.user.color}
-		>
+		<Callout color={message.source.user.color}>
 			<Message {message} />
-		</div>
+		</Callout>
 	{:else if settings.state["highlights.enabled"]}
 		{@const config = hlType ? settings.state["highlights.viewers"][hlType] : null}
 
@@ -117,7 +83,7 @@
 				<ArrowBendUpRight class="ml-1 shrink-0 scale-x-125 text-muted-foreground" />
 
 				<div class="line-clamp-1 text-xs">
-					<span style={getMentionStyle(viewer)}>
+					<span style={viewer?.user.mentionStyle}>
 						@{message.reply.parent.user.name}
 					</span>:
 

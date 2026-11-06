@@ -14,12 +14,6 @@ export class ApiError extends Error {
 	public constructor(
 		public readonly status: number,
 		message: string,
-
-		/**
-		 * The raw, parsed response body if one was present. Useful for reading
-		 * endpoint-specific error fields beyond the human-readable message.
-		 */
-		public readonly body?: unknown,
 	) {
 		super(message);
 
@@ -53,7 +47,7 @@ export class ApiError extends Error {
 				const message =
 					ApiError.#messageFrom(http.data) ?? http.statusText ?? error.message;
 
-				return new ApiError(status, message, http.data);
+				return new ApiError(status, message);
 			}
 		}
 

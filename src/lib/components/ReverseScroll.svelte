@@ -6,20 +6,29 @@
 
 	import ArrowDown from "~icons/ph/arrow-down";
 
-	import { settings } from "#lib/settings/index.js";
+	import { log } from "#lib/log.js";
+
+	interface OlderItems {
+		readonly hasOlder: boolean;
+		loadOlder(): Promise<unknown>;
+	}
 
 	interface Props {
 		class?: string;
 		data: T[];
-		showJumpButton?: boolean;
+		scrollbar?: boolean;
 
 		/**
-		 * Whether older items should be loaded with {@linkcode onloadmore} when
-		 * scrolled near the top.
+		 * Labels the number of items added while scrolled up. A button to jump
+		 * to the end is only shown when given.
 		 */
-		lazy?: boolean;
+		jumpLabel?: (count: number) => string;
+
+		/**
+		 * Where older items are loaded from when scrolled near the top.
+		 */
+		older?: OlderItems;
 		getKey: (item: T, index: number) => string | number;
-		onloadmore?: () => Promise<unknown>;
 		children: Snippet<[item: T, index: number]>;
 	}
 
@@ -27,16 +36,15 @@
 	// visible (smaller = more, larger = less).
 	const TOLERANCE = 15;
 
-	// Distance from the top of the list at which older items start loading.
 	const LOAD_THRESHOLD = 200;
 
 	const {
 		class: className,
 		data,
-		showJumpButton = true,
-		lazy = false,
+		scrollbar = true,
+		jumpLabel,
+		older,
 		getKey,
-		onloadmore,
 		children,
 	}: Props = $props();
 
@@ -58,9 +66,7 @@
 		// Counted from the last item seen when older items can be loaded so
 		// that they aren't counted as new. Otherwise, the length is compared
 		// so that items moved to the end aren't miscounted.
-		return onloadmore
-			? data.length - 1 - data.lastIndexOf(lastSeen!)
-			: data.length - countSnapshot;
+		return older ? data.length - 1 - data.lastIndexOf(lastSeen!) : data.length - countSnapshot;
 	});
 
 	const hasNew = $derived(newCount > 0);
@@ -87,22 +93,24 @@
 
 		scrollingPaused = !atBottom;
 
-		if (lazy && offset < LOAD_THRESHOLD) {
+		if (older?.hasOlder && offset < LOAD_THRESHOLD) {
 			void loadMore();
 		}
 	}
 
 	async function loadMore() {
-		if (loading || !onloadmore) return;
+		if (loading || !older) return;
 
 		loading = true;
 		shifting = true;
 
 		try {
-			await onloadmore();
+			await older.loadOlder();
 
 			// Keep the current items in place as older ones are prepended.
 			await tick();
+		} catch (error) {
+			log.error(`Failed to load older items: ${String(error)}`);
 		} finally {
 			shifting = false;
 			loading = false;
@@ -112,14 +120,14 @@
 
 <div
 	class="reverse-scroll group/scroll relative h-full"
-	data-scrollbar={!settings.state["chat.hideScrollbar"]}
+	data-scrollbar={scrollbar}
 	{@attach (element) => {
 		observer.observe(element);
 
 		return () => observer.disconnect();
 	}}
 >
-	{#if showJumpButton && scrollingPaused}
+	{#if jumpLabel && scrollingPaused}
 		<div class="absolute inset-x-0 bottom-4 z-10 flex justify-center">
 			<button
 				class={[
@@ -137,7 +145,7 @@
 					style:grid-template-columns={hasNew ? "minmax(0, 1fr)" : "minmax(0, 0fr)"}
 				>
 					<span class="overflow-hidden pl-1.5 whitespace-nowrap">
-						{newCount} new {newCount === 1 ? "message" : "messages"}
+						{jumpLabel(newCount)}
 					</span>
 				</span>
 			</button>

@@ -7,25 +7,21 @@ use tokio::sync::{mpsc, oneshot};
 use tokio::time::{Duration, Instant, interval_at};
 
 use super::ConnectionIncomingMessage;
-use crate::irc;
 use crate::irc::message::{IrcMessage, ServerMessage};
-use crate::irc::websocket::WsTransport;
+use crate::irc::websocket::{self, Incoming, Outgoing};
 use crate::irc::{ClientConfig, Error};
+use crate::{irc, ws};
+
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(20);
+
+const PING_EVERY: Duration = Duration::from_secs(30);
+const PONG_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// How long a connection holds the client's rate limiter after connecting.
+const NEW_CONNECTION_EVERY: Duration = Duration::from_secs(2);
 
 pub(crate) type ReplySender = oneshot::Sender<Result<(), Error>>;
 pub(crate) type PendingMessage = (IrcMessage, Option<ReplySender>);
-
-pub(crate) struct ConnectionLoopWorker;
-
-impl ConnectionLoopWorker {
-    pub fn spawn(
-        config: Arc<ClientConfig>,
-        connection_incoming_tx: mpsc::UnboundedSender<ConnectionIncomingMessage>,
-        connection_loop_rx: mpsc::UnboundedReceiver<PendingMessage>,
-    ) {
-        tokio::spawn(run(config, connection_incoming_tx, connection_loop_rx));
-    }
-}
 
 async fn close_with_error(
     err: Error,
@@ -53,39 +49,44 @@ async fn close_with_error(
     }
 }
 
-async fn establish_transport(
-    config: Arc<ClientConfig>,
-) -> Result<(WsTransport, String, String), Error> {
-    let login = config.login.clone();
-    let token = config.token.clone();
-
-    let rate_limit_permit = Arc::clone(&config.connection_rate_limiter)
-        .acquire_owned()
+async fn establish_transport(config: Arc<ClientConfig>) -> Result<(Incoming, Outgoing), Error> {
+    let mut backoff = Arc::clone(&config.connection_rate_limiter)
+        .lock_owned()
         .await;
 
-    let connect_attempt = WsTransport::new();
-    let timeout = tokio::time::sleep(config.connect_timeout);
-
     let transport = tokio::select! {
-        t_result = connect_attempt => {
+        t_result = websocket::connect() => {
             t_result.map_err(Arc::new).map_err(Error::Connect)
         },
-        _ = timeout => {
+        _ = tokio::time::sleep(CONNECT_TIMEOUT) => {
             Err(Error::ConnectTimeout)
         }
-    }?;
+    };
 
-    let new_connection_every = config.new_connection_every;
+    // The next connection waits for the limiter, so holding it is what spaces
+    // out connects, and what keeps a failing one from being retried at once
+    let hold = match &transport {
+        Ok(_) => {
+            backoff.reset();
+            NEW_CONNECTION_EVERY
+        }
+        Err(err) => {
+            let retry_in = backoff.next_delay().max(NEW_CONNECTION_EVERY);
+            tracing::error!(%err, ?retry_in, "Failed to connect to IRC");
+
+            retry_in
+        }
+    };
 
     tokio::spawn(async move {
-        tokio::time::sleep(new_connection_every).await;
-        drop(rate_limit_permit);
+        tokio::time::sleep(hold).await;
+        drop(backoff);
     });
 
-    Ok((transport, login, token))
+    transport
 }
 
-async fn run(
+pub(crate) async fn run(
     config: Arc<ClientConfig>,
     connection_incoming_tx: mpsc::UnboundedSender<ConnectionIncomingMessage>,
     mut connection_loop_rx: mpsc::UnboundedReceiver<PendingMessage>,
@@ -114,18 +115,14 @@ async fn run(
         }
     };
 
-    let (transport, login, token) = match init_result {
-        Ok(t) => t,
+    let (mut transport_incoming, mut transport_outgoing) = match init_result {
+        Ok(transport) => transport,
         Err(err) => {
             close_with_error(err, pending, connection_loop_rx, &connection_incoming_tx).await;
             return;
         }
     };
 
-    let (mut transport_incoming, mut transport_outgoing) = transport.split();
-
-    // Send handshake + any buffered commands
-    // Helper to push a message out; close on transport error
     macro_rules! send_or_close {
         ($msg:expr, $reply:expr) => {{
             let res = transport_outgoing.send($msg).await.map_err(Arc::new);
@@ -154,8 +151,8 @@ async fn run(
 
     let handshake = [
         irc!["CAP", "REQ", "twitch.tv/tags twitch.tv/commands"],
-        irc!["PASS", format!("oauth:{}", token)],
-        irc!["NICK", login],
+        irc!["PASS", format!("oauth:{}", config.token)],
+        irc!["NICK", config.login.as_str()],
     ];
 
     for msg in handshake {
@@ -172,31 +169,18 @@ async fn run(
         }
     }
 
-    // Main pump
-    let ping_every = Duration::from_secs(30);
-    let check_pong_after = Duration::from_secs(5);
-
-    let mut send_ping_interval = interval_at(Instant::now() + ping_every, ping_every);
-    let mut check_pong_interval =
-        interval_at(Instant::now() + ping_every + check_pong_after, ping_every);
-
-    let mut pong_received = false;
-    let mut awaiting_pong = false;
+    let mut ping_interval = interval_at(Instant::now() + PING_EVERY, PING_EVERY);
+    let mut pong_deadline = None;
 
     let close_reason: Error = loop {
         tokio::select! {
             biased;
-            _ = send_ping_interval.tick() => {
-                pong_received = false;
-                awaiting_pong = true;
+            () = ws::deadline_elapsed(pong_deadline) => break Error::PingTimeout,
+            _ = ping_interval.tick() => {
+                pong_deadline = Some(Instant::now() + PONG_TIMEOUT);
 
                 if let Err(err) = send_or_close!(irc!["PING", "tmi.twitch.tv"], None) {
                     break err;
-                }
-            }
-            _ = check_pong_interval.tick() => {
-                if awaiting_pong && !pong_received {
-                    break Error::PingTimeout;
                 }
             }
             cmd = connection_loop_rx.recv() => {
@@ -224,32 +208,29 @@ async fn run(
                         break err;
                     }
                     Some(Ok(irc_message)) => {
-                        match ServerMessage::try_from(irc_message) {
-                            Ok(server_message) => {
-                                let should_close =
-                                    matches!(&server_message, ServerMessage::Reconnect(_));
+                        tracing::trace!(
+                            tags = ?irc_message.tags,
+                            "Received {} message",
+                            irc_message.command
+                        );
 
+                        match ServerMessage::parse(irc_message) {
+                            Ok(None) => {}
+                            Ok(Some(server_message)) => {
                                 match &server_message {
-                                    ServerMessage::Ping(_) => {
+                                    ServerMessage::Ping => {
                                         if let Err(err) = send_or_close!(
                                             irc!["PONG", "tmi.twitch.tv"],
                                             None
                                         ) {
-                                            // Forward the ping to consumers before exiting
-                                            connection_incoming_tx
-                                                .send(ConnectionIncomingMessage::IncomingMessage(
-                                                    Box::new(server_message),
-                                                ))
-                                                .ok();
-
                                             break err;
                                         }
                                     }
-                                    ServerMessage::Pong(_) => {
-                                        pong_received = true;
-                                    }
+                                    ServerMessage::Pong => pong_deadline = None,
                                     _ => {}
                                 }
+
+                                let should_close = matches!(server_message, ServerMessage::Reconnect);
 
                                 connection_incoming_tx
                                     .send(ConnectionIncomingMessage::IncomingMessage(Box::new(
@@ -261,12 +242,8 @@ async fn run(
                                     break Error::ReconnectCmd;
                                 }
                             }
-                            Err(parse_error) => {
-                                connection_incoming_tx
-                                    .send(ConnectionIncomingMessage::IncomingMessage(Box::new(
-                                        ServerMessage::new_generic(IrcMessage::from(parse_error)),
-                                    )))
-                                    .ok();
+                            Err(err) => {
+                                tracing::warn!(%err, "Failed to parse IRC message");
                             }
                         }
                     }

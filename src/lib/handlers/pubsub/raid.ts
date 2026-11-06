@@ -4,14 +4,12 @@ import Unraid from "#lib/components/message/events/Unraid.svelte";
 
 import { defineHandler } from "../helper";
 
-// Only the first `update` is allowed to go through for the initial message
-const announced = new Set<string>();
+// Only the first `update` of a raid is announced, and `cancel` events are
+// sent multiple times, so each raid's last announced state is tracked per raid
+// id. Raid ids are unique, so this never needs clearing.
+const announced = new Map<string, "started" | "canceled">();
 
-// `cancel` events are sent multiple times for some reason so it needs to be
-// tracked
-const canceled = new Set<string>();
-
-export default defineHandler({
+export default defineHandler("pubsub", {
 	name: "raid",
 	async handle(payload) {
 		const channel = app.channels.get(payload.target_id);
@@ -19,16 +17,11 @@ export default defineHandler({
 
 		const { raid } = payload;
 
-		if (payload.type === "raid_cancel_v2") {
-			if (canceled.has(raid.id)) return;
+		const state = payload.type === "raid_cancel_v2" ? "canceled" : "started";
+		const previous = announced.get(raid.id);
 
-			canceled.add(raid.id);
-			announced.delete(raid.id);
-		} else {
-			if (announced.has(raid.id) || canceled.has(raid.id)) return;
-
-			announced.add(raid.id);
-		}
+		if (previous === state || previous === "canceled") return;
+		announced.set(raid.id, state);
 
 		const moderator = await channel.viewers.fetch(raid.creator_id);
 		const user = await channel.client.users.fetch(raid.target_id);

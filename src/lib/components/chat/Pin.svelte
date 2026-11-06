@@ -5,6 +5,8 @@
 
 	import type { Pin } from "#lib/models/pin.svelte.js";
 
+	import { everySecond } from "#lib/clock.svelte.js";
+	import { dialogs } from "#lib/dialogs.js";
 	import { clamp, formatDuration } from "#lib/util.js";
 
 	import Message from "../message/Message.svelte";
@@ -20,16 +22,7 @@
 
 	let expanded = $state(true);
 
-	let now = $state(Date.now());
-
-	$effect(() => {
-		if (pin.expirationTimestamp === null) return;
-
-		const id = setInterval(() => (now = Date.now()), 1000);
-		return () => clearInterval(id);
-	});
-
-	const remaining = $derived(Math.max(0, (pin.expirationTimestamp ?? 0) - now));
+	const remaining = $derived(Math.max(0, (pin.expirationTimestamp ?? 0) - everySecond.now));
 	const fraction = $derived(pin.duration ? clamp(0, remaining / (pin.duration * 1000), 1) : 0);
 </script>
 
@@ -45,7 +38,7 @@
 					icon={Clock}
 					tooltip="Change duration"
 					command="show-modal"
-					commandfor="pin-duration-dialog-{pin.message.id}"
+					commandfor={dialogs.pinDuration(pin.message.id)}
 				/>
 
 				<NoticeAction icon={PushPinSlash} tooltip="Unpin" onclick={() => pin.unpin()} />

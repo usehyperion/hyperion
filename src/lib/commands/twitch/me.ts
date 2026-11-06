@@ -1,10 +1,11 @@
-import { defineCommand } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "me",
 	description: "Express an action in the third person",
-	args: ["message"],
-	// no-op since /me is the only command that Twitch allows to be sent
-	async exec() {},
+	args: [{ type: "text", name: "message" }],
+	async exec({ message }, channel) {
+		// /me is the only slash command Twitch still accepts in a chat message.
+		await channel.chat.send(`/me ${message}`);
+	},
 });

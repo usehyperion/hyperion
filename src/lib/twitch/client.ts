@@ -1,122 +1,60 @@
-// oxlint-disable typescript/no-unsafe-type-assertion
-// oxlint-disable no-await-in-loop
+// oxlint-disable no-await-in-loop, typescript/no-unsafe-type-assertion
 
+import { invoke } from "@tauri-apps/api/core";
 import type { TadaDocumentNode } from "gql.tada";
-import { print } from "graphql-web-lite";
-import { ofetch } from "ofetch";
 
-import type { Connection, GqlResponse } from "#lib/graphql/index.js";
+import type { Connection } from "#lib/graphql/index.js";
 
 import { ApiError } from "#lib/errors/api-error.js";
-import { MutationError } from "#lib/errors/mutation-error.js";
-import { nodes } from "#lib/graphql/index.js";
-import { streamsQuery } from "#lib/graphql/twitch.js";
+import { nodes, request } from "#lib/graphql/index.js";
 import { log } from "#lib/log.js";
 import { UserManager } from "#lib/managers/user-manager.js";
-import { Stream } from "#lib/models/stream.svelte.js";
 import { dedupe } from "#lib/util.js";
 
-import type { Session } from "./session";
+// Twitch's own web client id; GQL rejects third-party ids.
+const CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 
-import { expireSession } from "./auth";
+interface Integrity {
+	token: string;
+	deviceId: string;
+}
 
 interface PageVariables {
 	after?: string | null;
 }
 
-function findMutationError(data: unknown): MutationError | null {
-	if (!data || typeof data !== "object") return null;
-
-	for (const [field, payload] of Object.entries(data)) {
-		if (!payload || typeof payload !== "object" || !("error" in payload)) continue;
-
-		const { error } = payload as { error: unknown };
-		if (!error) continue;
-
-		if (typeof error === "string") return new MutationError(error, field);
-
-		const code =
-			typeof error === "object" && "code" in error && typeof error.code === "string"
-				? error.code
-				: "UNKNOWN";
-
-		return new MutationError(code, field);
-	}
-
-	return null;
-}
-
-function isQuery<T, U>(document: TadaDocumentNode<T, U>): boolean {
-	return document.definitions.every(
-		(definition) =>
-			definition.kind !== "OperationDefinition" || definition.operation === "query",
-	);
-}
-
 export class TwitchClient {
-	public static readonly DEFAULT_TIMEOUT = 15_000;
-
-	// This should only be null between the time of app start up and settings
-	// synchronization because of browser restrictions; however, any subsequent
-	// API calls SHOULD have a valid session as it's set at first layout load.
-	public session: Session | null = null;
+	/**
+	 * The OAuth token of the signed in user; `null` while signed out.
+	 */
+	public token: string | null = null;
 
 	public readonly users = new UserManager(this);
 
-	public async gql<T, U>(query: TadaDocumentNode<T, U>, variables?: U): Promise<T> {
-		const session = this.session;
+	/**
+	 * @param onRevoked Called when Twitch rejects the token, e.g. because the
+	 * user revoked it.
+	 */
+	public constructor(private readonly onRevoked: () => void) {}
 
-		if (!session) {
+	public async gql<T, U>(query: TadaDocumentNode<T, U>, variables?: U): Promise<T> {
+		const token = this.token;
+
+		if (!token) {
 			throw new ApiError(401, "OAuth token is not set");
 		}
 
-		// @ts-expect-error - outdated types
-		const queryStr = print(query);
-		const varStr = JSON.stringify(variables ?? {});
-
-		const read = isQuery(query);
-
-		const send = async () => {
-			let response: GqlResponse<T>;
-
-			try {
-				response = await ofetch<GqlResponse<T>>("https://gql.twitch.tv/gql", {
-					method: "POST",
-					headers: await session.headers(),
-					body: {
-						query: queryStr,
-						variables,
-					},
-					signal: AbortSignal.timeout(TwitchClient.DEFAULT_TIMEOUT),
-				});
-			} catch (error) {
-				const apiError = ApiError.from(error);
-
-				if (apiError.status === 401) {
-					this.#handleRevoked();
-				}
-
-				throw apiError;
+		try {
+			return await request("https://gql.twitch.tv/gql", query, variables, () =>
+				this.#headers(token),
+			);
+		} catch (error) {
+			if (error instanceof ApiError && error.status === 401 && this.token === token) {
+				this.onRevoked();
 			}
 
-			if (response.errors) {
-				throw new AggregateError(
-					response.errors.map((err) => new ApiError(400, err.message)),
-					"GraphQL request failed",
-				);
-			}
-
-			if (!read) {
-				const mutationError = findMutationError(response.data);
-				if (mutationError) throw mutationError;
-			}
-
-			return response.data;
-		};
-
-		if (!read) return send();
-
-		return dedupe(`twitch:${queryStr}:${varStr}`, send);
+			throw error;
+		}
 	}
 
 	public async paginate<T, U extends PageVariables, N>(
@@ -144,33 +82,25 @@ export class TwitchClient {
 		return results;
 	}
 
-	/**
-	 * Retrieves the streams of the specified channels if they're live.
-	 */
-	public async fetchStreams(ids: string[]) {
-		if (!ids.length) return [];
+	async #headers(token: string) {
+		const headers = new Headers({
+			Authorization: `OAuth ${token}`,
+			"Client-Id": CLIENT_ID,
+		});
 
-		const { users } = await this.gql(streamsQuery, { ids });
-		const streams: Stream[] = [];
+		// The backend caches the token and backs off after failures.
+		const integrity = await dedupe("twitch:integrity", () =>
+			invoke<Integrity | null>("get_integrity"),
+		).catch((error: unknown) => {
+			log.error(`Failed to get the integrity token: ${String(error)}`);
+			return null;
+		});
 
-		for (const user of users ?? []) {
-			const stream = user?.stream;
-			if (!stream) continue;
-
-			const instance = new Stream(this, user.id, stream);
-			instance.setGuests(user.channel);
-
-			streams.push(instance);
+		if (integrity) {
+			headers.set("Client-Integrity", integrity.token);
+			headers.set("X-Device-Id", integrity.deviceId);
 		}
 
-		return streams;
-	}
-
-	#handleRevoked() {
-		if (!this.session) return;
-
-		void expireSession().catch((error: unknown) => {
-			void log.error(`Failed to end the revoked session: ${String(error)}`).catch(() => {});
-		});
+		return headers;
 	}
 }

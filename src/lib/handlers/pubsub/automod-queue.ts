@@ -1,33 +1,13 @@
 import { tick } from "svelte";
 
-import type { MessageFragment } from "#lib/models/message/fragment.js";
-import type { AutoModCaughtMessage, AutoModFragment } from "#lib/twitch/pubsub.js";
-
 import { app } from "#lib/app.svelte.js";
 import AutoMod from "#lib/components/message/events/AutoMod.svelte";
+import { fromPubSubFragments } from "#lib/models/message/fragment.js";
 import { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 import { defineHandler } from "../helper";
 
-function fragments(list: AutoModFragment[]) {
-	return list.map<MessageFragment>((fragment) =>
-		fragment.emoticon
-			? { type: "emote", text: fragment.text, id: fragment.emoticon.emoticonID }
-			: { type: "text", text: fragment.text },
-	);
-}
-
-function category(data: AutoModCaughtMessage) {
-	if (data.reason_code === "BlockedTermCaughtMessageReason") {
-		return "for using blocked terms";
-	}
-
-	const { category } = data.caught_message_reason.automod_failure;
-
-	return category === "smartdetection" ? "by smart detection" : `for ${category}`;
-}
-
-export default defineHandler({
+export default defineHandler("pubsub", {
 	name: "automod-queue",
 	async handle(payload) {
 		const channel = app.channels.get(payload.target_id);
@@ -36,7 +16,7 @@ export default defineHandler({
 		const { message, status, resolver_id } = payload.data;
 
 		if (status !== "PENDING") {
-			const held = channel.chat.messages.find((m): m is UserMessage => m.id === message.id);
+			const held = channel.chat.messages.find((m) => m.id === message.id);
 
 			if (held) {
 				held.deleted = true;
@@ -62,7 +42,7 @@ export default defineHandler({
 		const held = UserMessage.from(channel, {
 			id: message.id,
 			text: content.text,
-			fragments: fragments(content.fragments),
+			fragments: fromPubSubFragments(content.fragments),
 			sender: {
 				id: sender.user_id,
 				login: sender.login,
@@ -72,15 +52,17 @@ export default defineHandler({
 			badges: sender.badges.map((badge) => ({ name: badge.id, version: badge.version })),
 		});
 
-		const isBlockedTerm = payload.data.reason_code === "BlockedTermCaughtMessageReason";
+		const { automod_failure } = payload.data.caught_message_reason;
 
-		held.autoMod = {
-			category: category(payload.data),
-			level: isBlockedTerm
-				? Number.NaN
-				: payload.data.caught_message_reason.automod_failure.level,
-			fragments: content.fragments,
-		};
+		held.autoMod =
+			payload.data.reason_code === "BlockedTermCaughtMessageReason"
+				? { reason: "blocked-term", fragments: content.fragments }
+				: {
+						reason: "automod",
+						category: automod_failure.category,
+						level: automod_failure.level,
+						fragments: content.fragments,
+					};
 
 		channel.chat.add(held);
 	},

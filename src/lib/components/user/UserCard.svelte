@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { Avatar } from "bits-ui";
-	import dayjs from "dayjs";
-	import localizedFormat from "dayjs/plugin/localizedFormat";
 
 	import Cake from "~icons/ph/cake-fill";
 	import Heart from "~icons/ph/heart-fill";
@@ -12,15 +10,14 @@
 	import type { Channel } from "#lib/models/channel.svelte.js";
 	import type { User } from "#lib/models/user.svelte.js";
 
+	import dayjs from "#lib/dayjs.js";
 	import { log } from "#lib/log.js";
 	import { MessageHistory } from "#lib/models/message-history.svelte.js";
-	import { deletedAppearance } from "#lib/settings/index.js";
+	import { deletedAppearance, settings } from "#lib/settings/index.js";
 
 	import Message from "../message/Message.svelte";
 	import ReverseScroll from "../ReverseScroll.svelte";
 	import Popover from "../ui/Popover.svelte";
-
-	dayjs.extend(localizedFormat);
 
 	interface Props {
 		id: string;
@@ -52,6 +49,8 @@
 			if (!relationship) {
 				await user.fetchRelationship(channel);
 			}
+		} catch (error) {
+			log.error(`Failed to fetch user info: ${String(error)}`);
 		} finally {
 			loading = false;
 		}
@@ -64,7 +63,7 @@
 			loadingHistory = true;
 			await history.load();
 		} catch (error) {
-			void log.error(`Failed to load message history: ${String(error)}`).catch(() => {});
+			log.error(`Failed to load message history: ${String(error)}`);
 		} finally {
 			loadingHistory = false;
 		}
@@ -121,10 +120,12 @@
 
 				{#if loading}
 					Loading...
-				{:else}
+				{:else if user.createdAt}
 					<time datetime={user.createdAt.toISOString()}>
 						{dayjs(user.createdAt).format("LL")}
 					</time>
+				{:else}
+					Unknown
 				{/if}
 			</div>
 
@@ -208,10 +209,9 @@
 			<ReverseScroll
 				class="px-4"
 				data={messages}
-				showJumpButton={false}
+				scrollbar={!settings.state["chat.hideScrollbar"]}
+				older={history}
 				getKey={(message) => message.id}
-				lazy={history.hasOlder}
-				onloadmore={() => history.loadOlder()}
 			>
 				{#snippet children(message)}
 					<div class="origin-left scale-80" data-deleted={deletedAppearance(message)}>

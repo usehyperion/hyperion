@@ -1,6 +1,4 @@
 use serde::{Serialize, Serializer};
-use tokio_tungstenite::tungstenite;
-use twitch_api::helix::ClientRequestError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -11,19 +9,13 @@ pub enum Error {
     Http(#[from] reqwest::Error),
 
     #[error(transparent)]
-    Helix(#[from] ClientRequestError<reqwest::Error>),
-
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
-
-    #[error(transparent)]
     Json(#[from] serde_json::Error),
 
     #[error(transparent)]
     Keyring(#[from] keyring::Error),
 
     #[error(transparent)]
-    WebSocket(#[from] tungstenite::Error),
+    Tauri(#[from] tauri::Error),
 }
 
 impl Serialize for Error {

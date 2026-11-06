@@ -1,133 +1,49 @@
 <script lang="ts">
-	import Plus from "~icons/ph/plus";
-	import X from "~icons/ph/x";
-
 	import type { Channel } from "#lib/models/channel.svelte.js";
 
-	import Button from "../ui/Button.svelte";
-	import Dialog from "../ui/Dialog.svelte";
+	import { dialogs } from "#lib/dialogs.js";
+
 	import * as Field from "../ui/field";
 	import Input from "../ui/Input.svelte";
-	import Select from "../ui/Select.svelte";
 	import Switch from "../ui/Switch.svelte";
+	import NoticeDialog from "./NoticeDialog.svelte";
 
-	const TITLE_MAX = 60;
-	const CHOICE_MAX = 25;
-	const MIN_CHOICES = 2;
-	const MAX_CHOICES = 5;
 	const POINTS_MAX = 1_000_000;
-
-	const DURATIONS = [
-		{ label: "1 minute", value: 60 },
-		{ label: "2 minutes", value: 120 },
-		{ label: "3 minutes", value: 180 },
-		{ label: "5 minutes", value: 300 },
-		{ label: "10 minutes", value: 600 },
-		{ label: "30 minutes", value: 1800 },
-	];
 
 	interface Props {
 		channel: Channel;
 	}
 
-	let { channel }: Props = $props();
+	const { channel }: Props = $props();
 	const id = $props.id();
 
-	let title = $state("");
-	let choices = $state(["", ""]);
-	let duration = $state(120);
 	let pointsEnabled = $state(false);
 	let pointsPerVote = $state(100);
-
-	const validChoices = $derived(choices.map((c) => c.trim()).filter(Boolean));
-	const canSubmit = $derived(title.trim().length > 0 && validChoices.length >= MIN_CHOICES);
-
-	function reset() {
-		title = "";
-		choices = ["", ""];
-		duration = 120;
-		pointsEnabled = false;
-		pointsPerVote = 100;
-	}
-
-	function addChoice() {
-		if (choices.length < MAX_CHOICES) choices.push("");
-	}
-
-	function removeChoice(index: number) {
-		if (choices.length > MIN_CHOICES) choices.splice(index, 1);
-	}
-
-	async function start() {
-		if (!canSubmit) return;
-
-		await channel.startPoll({
-			title: title.trim(),
-			choices: validChoices,
-			duration,
-			channelPointsPerVote: pointsEnabled ? pointsPerVote : undefined,
-		});
-
-		reset();
-	}
 </script>
 
-<Dialog id="poll-dialog-{channel.id}">
-	{#snippet header()}
-		<h2>Create poll</h2>
-		<p>Ask your community a question.</p>
-	{/snippet}
-
-	<Field.Field>
-		<Field.Label for="title-{id}">Question</Field.Label>
-
-		<Input
-			id="title-{id}"
-			placeholder="What should we play next?"
-			maxlength={TITLE_MAX}
-			bind:value={title}
-		/>
-	</Field.Field>
-
-	<Field.Field>
-		<Field.Label>Choices</Field.Label>
-
-		{#each choices as _, index (index)}
-			<div class="flex items-center gap-1">
-				<Input
-					placeholder="Choice {index + 1}"
-					maxlength={CHOICE_MAX}
-					bind:value={choices[index]}
-				/>
-
-				{#if choices.length > MIN_CHOICES}
-					<Button
-						class="shrink-0"
-						size="icon"
-						variant="ghost"
-						aria-label="Remove choice"
-						onclick={() => removeChoice(index)}
-					>
-						<X />
-					</Button>
-				{/if}
-			</div>
-		{/each}
-
-		{#if choices.length < MAX_CHOICES}
-			<Button class="self-start" size="sm" variant="ghost" onclick={addChoice}>
-				<Plus />
-				Add choice
-			</Button>
-		{/if}
-	</Field.Field>
-
-	<Field.Field>
-		<Field.Label for="duration-{id}">Duration</Field.Label>
-
-		<Select id="duration-{id}" options={DURATIONS} bind:value={duration} />
-	</Field.Field>
-
+<NoticeDialog
+	id={dialogs.poll(channel.id)}
+	heading="Create poll"
+	description="Ask your community a question."
+	placeholder="What should we play next?"
+	titleMax={60}
+	noun="choice"
+	maxOptions={5}
+	durationLabel="Duration"
+	durations={[60, 120, 180, 300, 600, 1800]}
+	submitLabel="Start poll"
+	onstart={({ title, options, duration }) =>
+		channel.startPoll({
+			title,
+			choices: options,
+			duration,
+			channelPointsPerVote: pointsEnabled ? pointsPerVote : undefined,
+		})}
+	onreset={() => {
+		pointsEnabled = false;
+		pointsPerVote = 100;
+	}}
+>
 	<Field.Field orientation="horizontal">
 		<Field.Content>
 			<Field.Label for="points-{id}">Channel points voting</Field.Label>
@@ -151,8 +67,4 @@
 			/>
 		</Field.Field>
 	{/if}
-
-	{#snippet footer()}
-		<Button disabled={!canSubmit} onclickwait={start}>Start poll</Button>
-	{/snippet}
-</Dialog>
+</NoticeDialog>

@@ -1,38 +1,9 @@
+/**
+ * Error messages shown by more than one command.
+ */
 export const ErrorMessage = {
-	MISSING_ARG: (name: string) => `Missing ${name} argument`,
-	BANNED_USER_CANNOT_BE_MOD: (user: string) =>
-		`${user} is banned and cannot be made a moderator.`,
-	ALREADY_RAIDING: "The channel is already raiding another channel.",
-	ARCHIVES_DISABLED: "Markers require VOD archiving to be enabled for the channel.",
-	BANNED_USER_CANNOT_BE_VIP: (user: string) => `${user} is banned and cannot be made a VIP.`,
 	CANNOT_TARGET_SELF: "This command cannot target the channel it's being sent in.",
 	CHANNEL_MUST_BE_LIVE: "This command can only be sent when the channel is live.",
-	COMMAND_FAILED: "Something went wrong. Please try again.",
-	INVALID_BOOL_ARG: "Invalid boolean value. Use 'on/off' or 'true/false'.",
-	INVALID_FOLLOWER_DURATION: "Duration must be between 0 and 129,600 minutes (3 months).",
-	INVALID_SLOW_DURATION: "Duration must be between 3 and 120 seconds (2 minutes).",
-	INVALID_TIMEOUT_DURATION: "Duration must be between 1 and 1,209,600 seconds (14 days).",
-	MARKER_DESC_TOO_LONG: "Marker description must be 140 characters or less.",
-	NO_PENDING_RAID: "The channel does not have a pending raid to cancel.",
-	NO_PERMISSION: "You do not have permission to do that.",
-	NO_VIP_SLOTS: "The channel does not have any available VIP slots",
-	PREDICTION_ENDED: "The prediction has already ended.",
-	PREDICTION_NOT_ACTIVE: "The prediction is no longer active.",
-	SETTINGS_DO_NOT_ALLOW_RAIDS: (user: string) =>
-		`${user}'s channel settings do not allow raids at this time.`,
-	TOO_MANY_VIEWERS_TO_RAID: "The channel has too many viewers to raid right now.",
 	USER_ALREADY_BANNED: (user: string) => `${user} is already banned.`,
-	USER_ALREADY_MOD: (user: string) => `${user} is already a moderator.`,
-	USER_ALREADY_VIP: (user: string) => `${user} is already a VIP.`,
-	USER_CANNOT_BE_BANNED: (user: string) => `${user} cannot be banned.`,
-	USER_CANNOT_BE_RAIDED: (user: string) => `${user} cannot be raided.`,
-	USER_CANNOT_BE_TIMED_OUT: (user: string) => `${user} cannot be timed out.`,
-	USER_CANNOT_BE_WARNED: (user: string) => `${user} cannot be warned.`,
-	USER_NOT_BANNED: (user: string) => `${user} is not banned.`,
-	USER_NOT_MOD: (user: string) => `${user} is not a moderator.`,
-	USER_NOT_VIP: (user: string) => `${user} is not a VIP.`,
 	USER_NOT_FOUND: (user: string) => `User ${user} not found.`,
-	VIP_ACHIEVEMENT_INCOMPLETE:
-		"The channel must complete the VIP achievement before granting VIP status.",
-	VOD_NOT_READY: "The broadcast's VOD is not ready yet.",
 } as const;

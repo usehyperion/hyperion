@@ -4,21 +4,30 @@ import BanStatus from "#lib/components/message/events/BanStatus.svelte";
 import Clear from "#lib/components/message/events/Clear.svelte";
 import Timeout from "#lib/components/message/events/Timeout.svelte";
 
-import { defineHandler } from "../helper";
+import { defineHandler, reportedByPubSub } from "../helper";
 
-export default defineHandler({
+export default defineHandler("irc", {
 	name: "clearchat",
 	async handle(data) {
 		const channel = app.channels.get(data.channel_id);
 		if (!channel) return;
 
-		// Return early if the message isn't recent and the user is a moderator
-		// in the channel to prevent showing two different messages.
-		if (!data.is_recent && channel.isMod) return;
+		const meta = { recent: data.is_recent, timestamp: data.server_timestamp };
+
+		// PubSub doesn't tell users about their own ban.
+		if (data.action.type === "ban" && !data.is_recent && data.action.user_id === app.user?.id) {
+			channel.chat.deleteMessages(app.user.id);
+			channel.banned = true;
+			channel.chat.event(Banned, { channel }, meta);
+
+			return;
+		}
+
+		if (reportedByPubSub(channel, data.is_recent)) return;
 
 		if (data.action.type === "clear") {
 			channel.chat.deleteMessages();
-			channel.chat.event(Clear, {}, data);
+			channel.chat.event(Clear, {}, meta);
 
 			return;
 		}
@@ -27,17 +36,12 @@ export default defineHandler({
 		channel.chat.deleteMessages(target.id);
 
 		if (data.action.type === "ban") {
-			if (!data.is_recent && target.id === app.user?.id) {
-				app.user.banned.add(channel.id);
-				channel.chat.event(Banned, { channel }, data);
-			} else {
-				channel.chat.event(BanStatus, { banned: true, reason: null, viewer: target }, data);
-			}
+			channel.chat.event(BanStatus, { banned: true, reason: null, viewer: target }, meta);
 		} else {
 			channel.chat.event(
 				Timeout,
-				{ seconds: data.action.duration.secs, reason: null, viewer: target },
-				data,
+				{ seconds: data.action.duration, reason: null, viewer: target },
+				meta,
 			);
 		}
 	},

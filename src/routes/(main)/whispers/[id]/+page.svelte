@@ -1,33 +1,41 @@
 <script lang="ts">
-	import { untrack } from "svelte";
 	import type { KeyboardEventHandler } from "svelte/elements";
 
 	import ChatSeparator from "#lib/components/chat/ChatSeparator.svelte";
 	import ReverseScroll from "#lib/components/ReverseScroll.svelte";
 	import Timestamp from "#lib/components/Timestamp.svelte";
+	import Avatar from "#lib/components/ui/Avatar.svelte";
 	import Input from "#lib/components/ui/Input.svelte";
 	import { log } from "#lib/log.js";
+	import { settings } from "#lib/settings/index.js";
 
 	const { data } = $props();
 
+	// Messages are read as they arrive while the thread is open.
 	$effect(() => {
-		const { whisper } = data;
+		if (!data.whisper.unread) return;
 
-		untrack(() => {
-			void whisper.markRead().catch((error) => {
-				void log.error(`Failed to mark whisper as read: ${String(error)}`).catch(() => {});
-			});
+		data.whisper.markRead().catch((error: unknown) => {
+			log.error(`Failed to mark whisper as read: ${String(error)}`);
 		});
 	});
+
+	let sendError = $state<string | null>(null);
 
 	const send: KeyboardEventHandler<HTMLInputElement> = async (event) => {
 		if (event.key !== "Enter") return;
 
 		const input = event.currentTarget;
 		const value = input.value.trim();
-		input.value = "";
 
-		await data.whisper.send(value);
+		try {
+			await data.whisper.send(value);
+			input.value = "";
+			sendError = null;
+		} catch (error) {
+			log.error(`Failed to send whisper: ${String(error)}`);
+			sendError = "Your whisper could not be sent.";
+		}
 	};
 </script>
 
@@ -38,9 +46,10 @@
 			<ReverseScroll
 				class="text-sm"
 				data={data.whisper.messages}
+				scrollbar={!settings.state["chat.hideScrollbar"]}
+				jumpLabel={(count) => `${count} new ${count === 1 ? "message" : "messages"}`}
+				older={data.whisper}
 				getKey={(message) => message.id}
-				lazy={data.whisper.hasOlder}
-				onloadmore={() => data.whisper.loadOlder()}
 			>
 				{#snippet children(message, i)}
 					{@const prev = data.whisper.messages[i - 1]}
@@ -63,8 +72,7 @@
 							!isNewDay && "border-t",
 						]}
 					>
-						<img
-							class="rounded-full ring-1 ring-black/10 dark:ring-white/10"
+						<Avatar
 							src={message.user.avatarUrl}
 							alt={message.user.displayName}
 							width="40"
@@ -89,6 +97,10 @@
 	</div>
 
 	<div class="p-2">
+		{#if sendError}
+			<p class="mb-1 text-sm text-destructive">{sendError}</p>
+		{/if}
+
 		<Input
 			class="h-12"
 			autocapitalize="off"

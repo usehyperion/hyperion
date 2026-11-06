@@ -3,6 +3,8 @@
 
 	import Username from "#lib/components/user/Username.svelte";
 
+	import { reasonSuffix } from "./reason";
+
 	interface Props {
 		banned: boolean;
 		reason: string | null;
@@ -19,4 +21,4 @@
 	<Username user={moderator.user} /> {action} <Username user={viewer.user} />
 {:else}
 	<Username user={viewer.user} /> has been {action}
-{/if}{reason ? `: ${reason}` : "."}
+{/if}{reasonSuffix(reason)}

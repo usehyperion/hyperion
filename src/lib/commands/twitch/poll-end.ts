@@ -1,18 +1,16 @@
 import { CommandError } from "#lib/errors/command-error.js";
-import { ErrorMessage } from "#lib/errors/messages.js";
 
-import { defineCommand, mapErrors } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "poll-end",
 	description: "End the active poll in the channel",
-	modOnly: true,
+	permission: "mod",
 	async exec(_, channel) {
-		if (!channel.poll || channel.poll.status !== "ACTIVE") {
+		if (!channel.poll?.active) {
 			throw new CommandError("There is no active poll to end.");
 		}
 
-		await mapErrors(() => channel.poll!.end(), [], ErrorMessage.COMMAND_FAILED);
+		await channel.poll.end();
 	},
 });

@@ -1,9 +1,6 @@
-import { parseDuration } from "./commands/util";
+import { DEFAULT_TIMEOUT, MAX_TIMEOUT, MIN_TIMEOUT, parseDuration } from "./commands/parse";
 import { settings } from "./settings";
-import { formatDuration } from "./util";
-
-const MAX_TIMEOUT = 1_209_600;
-const DEFAULT_TIMEOUT = 600;
+import { clamp, formatDuration } from "./util";
 
 export const timeoutPresets = [
 	{ label: "1 second", value: "1s" },
@@ -24,7 +21,7 @@ export function timeoutDuration() {
 	const parsed = parseDuration(settings.state["moderation.timeout.duration"]);
 	if (parsed === null || parsed <= 0) return DEFAULT_TIMEOUT;
 
-	return Math.min(Math.round(parsed), MAX_TIMEOUT);
+	return clamp(MIN_TIMEOUT, Math.round(parsed), MAX_TIMEOUT);
 }
 
 export function timeoutLabel() {

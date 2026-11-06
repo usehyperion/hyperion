@@ -22,10 +22,7 @@ pub fn init_tracing(app: &App) {
         .app_log_dir()
         .expect("failed to get app log directory");
 
-    if !path.exists() {
-        let _ = std::fs::create_dir_all(&path);
-    }
-
+    // The appender creates the directory if it is missing
     let appender = RollingFileAppender::builder()
         .rotation(Rotation::DAILY)
         .filename_prefix("hyperion")

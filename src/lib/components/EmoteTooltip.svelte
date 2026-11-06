@@ -12,23 +12,15 @@
 </script>
 
 <script lang="ts">
-	import SevenTV from "~icons/logos/7tv";
-	import BetterTTV from "~icons/logos/bttv";
-	import FrankerFaceZ from "~icons/logos/ffz";
-	import Twitch from "~icons/logos/twitch";
+	import { PROVIDER_ICONS } from "#lib/emotes.js";
+
+	import EmoteLayers from "./EmoteLayers.svelte";
 
 	interface Props {
 		tether: EmoteTether;
 	}
 
 	const { tether }: Props = $props();
-
-	const PROVIDER_ICONS = {
-		Twitch,
-		"7TV": SevenTV,
-		BetterTTV: BetterTTV,
-		FrankerFaceZ: FrankerFaceZ,
-	};
 </script>
 
 <Tooltip.Root {tether}>
@@ -46,30 +38,11 @@
 </Tooltip.Root>
 
 {#snippet details({ emote, layers }: EmotePayload)}
-	{@const srcset = emote.srcset.join(", ")}
 	{@const ProviderIcon = PROVIDER_ICONS[emote.provider]}
 
 	<div class="flex items-center justify-center p-2">
 		<div class="inline-grid">
-			<img
-				class="col-start-1 row-start-1 max-h-16 max-w-full object-contain"
-				{srcset}
-				alt={emote.displayName}
-				width={emote.width}
-				height={emote.height}
-				decoding="async"
-			/>
-
-			{#each layers as layer}
-				<img
-					class="col-start-1 row-start-1 m-auto max-h-16 max-w-full object-contain"
-					srcset={layer.srcset.join(", ")}
-					alt={layer.displayName}
-					width={layer.width}
-					height={layer.height}
-					decoding="async"
-				/>
-			{/each}
+			<EmoteLayers {emote} {layers} size="natural" class="max-h-16 max-w-full" />
 		</div>
 	</div>
 

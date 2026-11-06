@@ -5,9 +5,10 @@
 	import { formatDuration } from "#lib/util.js";
 
 	interface Props {
-		mode: string;
+		mode: "emote-only" | "unique-mode" | "subscriber-only" | "follower-only" | "slow";
 		enabled: boolean;
-		seconds: number;
+
+		seconds?: number;
 		moderator: Viewer;
 	}
 
@@ -16,5 +17,5 @@
 
 <Username user={moderator.user} />
 {enabled ? "enabled" : "disabled"}
-{Number.isNaN(seconds) ? "" : formatDuration(seconds)}
+{seconds === undefined ? "" : formatDuration(seconds)}
 {mode === "slow" ? "slow mode." : `${mode} chat.`}

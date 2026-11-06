@@ -5,18 +5,15 @@
 
 	interface Props {
 		active: boolean;
-		previous: "monitoring" | "restricting" | null;
+		treatment: "monitoring" | "restricting";
 		viewer: Viewer;
 		moderator: Viewer;
 	}
 
-	const { active, previous, viewer, moderator }: Props = $props();
-
-	const monitored = $derived(viewer.monitored);
-	const restricted = $derived(viewer.restricted);
+	const { active, treatment, viewer, moderator }: Props = $props();
 </script>
 
 <Username user={moderator.user} />
 {active ? "started" : "stopped"}
-{monitored ? "monitoring" : restricted ? "restricting" : previous}
+{treatment}
 <Username user={viewer.user} />'s messages.

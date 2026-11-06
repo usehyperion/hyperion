@@ -1,7 +1,6 @@
 import { error } from "@sveltejs/kit";
 
 import { app } from "#lib/app.svelte.js";
-import { log } from "#lib/log.js";
 
 export async function load() {
 	if (!app.user) error(401);
@@ -9,7 +8,7 @@ export async function load() {
 	try {
 		await app.user.loadWhispers();
 	} catch (err) {
-		void log.error(`Failed to load whispers: ${String(err)}`);
+		error(502, `Failed to load whispers: ${String(err)}`);
 	}
 
 	return {

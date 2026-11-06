@@ -2,23 +2,53 @@
 	import { AutoScroller } from "@dnd-kit/dom";
 	import { DragDropProvider, DragOverlay } from "@dnd-kit/svelte";
 	import { createHotkey } from "@tanstack/svelte-hotkeys";
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
 
 	import { app } from "#lib/app.svelte.js";
 	import ChannelIcon from "#lib/components/channel/ChannelIcon.svelte";
 	import Sidebar from "#lib/components/Sidebar.svelte";
-	import { openDialog } from "#lib/components/ui/Dialog.svelte";
+	import Avatar from "#lib/components/ui/Avatar.svelte";
+	import { dialogs, openDialog } from "#lib/dialogs.js";
+	import { THIRD_PARTY_PROVIDERS } from "#lib/emotes.js";
+	import { log } from "#lib/log.js";
+	import { settings } from "#lib/settings/index.js";
+	import { DND } from "#lib/splits/dnd.js";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "#lib/splits/events.js";
-	import { storage } from "#lib/stores.js";
 	import { updater } from "#lib/updater.svelte.js";
 
 	const { children } = $props();
 
-	onMount(async () => {
-		await Promise.all([app.connect(), updater.check()]);
+	const STREAM_REFRESH_INTERVAL = 5 * 60 * 1000;
+
+	onMount(() => {
+		void app.connect();
+
+		void updater.check();
+
+		const id = setInterval(() => {
+			app.channels.refreshStreams().catch((error: unknown) => {
+				log.error(`Failed to refresh streams: ${String(error)}`);
+			});
+		}, STREAM_REFRESH_INTERVAL);
+
+		return () => clearInterval(id);
 	});
 
-	createHotkey("Mod+,", () => openDialog("settings-dialog"));
+	// Apply emote provider settings: loads newly enabled providers and drops
+	// disabled ones.
+	$effect(() => {
+		for (const { emotesSetting } of THIRD_PARTY_PROVIDERS) void settings.state[emotesSetting];
+
+		untrack(() => {
+			void app.emotes.fetch();
+
+			for (const channel of app.channels.values()) {
+				if (channel.joined) void channel.emotes.fetch();
+			}
+		});
+	});
+
+	createHotkey("Mod+,", () => openDialog(dialogs.settings));
 </script>
 
 <DragDropProvider
@@ -34,11 +64,11 @@
 	{onDragEnd}
 >
 	<div class="flex grow overflow-hidden">
-		{#if storage.state.user}
+		{#if app.user}
 			<Sidebar />
 		{/if}
 
-		<main class={["grow overflow-hidden bg-accent/15", storage.state.user && "border-l"]}>
+		<main class={["grow overflow-hidden bg-accent/15", app.user && "border-l"]}>
 			{@render children()}
 		</main>
 	</div>
@@ -46,18 +76,15 @@
 	<DragOverlay>
 		{#snippet children(source)}
 			{@const channel = app.channels.get(source.data.id)}
-			{@const isTab = source.type === "tab"}
+			{@const isTab = source.type === DND.tab}
 
 			{#if channel}
 				{#if isTab}
 					<div
 						class="mx-auto flex max-w-max items-center gap-2 rounded bg-background px-2 py-1"
 					>
-						<img
-							class={[
-								"size-6 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10",
-								!channel.stream && "grayscale",
-							]}
+						<Avatar
+							class={["size-6", !channel.stream && "grayscale"]}
 							src={channel.user.avatarUrl}
 							alt={channel.user.displayName}
 							width="150"

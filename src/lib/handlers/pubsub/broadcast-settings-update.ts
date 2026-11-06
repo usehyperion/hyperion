@@ -1,8 +1,9 @@
 import { app } from "#lib/app.svelte.js";
+import { log } from "#lib/log.js";
 
 import { defineHandler } from "../helper";
 
-export default defineHandler({
+export default defineHandler("pubsub", {
 	name: "broadcast-settings-update",
 	async handle(data) {
 		const channel = app.channels.get(data.channel_id);
@@ -26,6 +27,9 @@ export default defineHandler({
 		channel.stream.title = data.status;
 		channel.stream.game = { slug: "", name: data.game };
 
-		await channel.fetchStream().catch(() => {});
+		// Refresh what the event doesn't carry, such as the game's slug.
+		await channel.fetchStream().catch((error: unknown) => {
+			log.warn(`Failed to refresh the stream of ${channel.id}: ${String(error)}`);
+		});
 	},
 });

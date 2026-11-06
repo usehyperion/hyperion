@@ -9,7 +9,7 @@
 
 	import { app } from "#lib/app.svelte.js";
 	import Button from "#lib/components/ui/Button.svelte";
-	import { settings } from "#lib/settings/index.js";
+	import { DND, TAB_SOURCES, tabBarDrop } from "#lib/splits/dnd.js";
 
 	import GuestList from "../stream/GuestList.svelte";
 	import Tab from "./Tab.svelte";
@@ -27,26 +27,15 @@
 	);
 
 	const droppable = createDroppable({
-		type: "tab-bar",
-		accept: ["tab", "channel"],
+		type: DND.tabBar,
+		accept: TAB_SOURCES,
 		get id() {
 			return `tab-bar:${pane.id}`;
 		},
 		get data() {
-			return { kind: "tab-bar", paneId: pane.id };
+			return tabBarDrop(pane.id);
 		},
 	});
-
-	async function closePane() {
-		const tabs = [...pane.tabs];
-
-		app.splits.closePane(pane.id);
-		app.refocus(channel);
-
-		if (settings.state["splits.leaveOnClose"]) {
-			await Promise.all(tabs.map((tab) => app.channels.get(tab.id)?.leave()));
-		}
-	}
 </script>
 
 <div class="flex h-8 shrink-0 items-center border-b bg-sidebar" data-slot="tab-bar">
@@ -67,7 +56,7 @@
 
 	<div class="flex shrink-0 items-center gap-x-1 px-1 text-muted-foreground">
 		{#if channel?.stream?.guests.size}
-			<GuestList {channel} />
+			<GuestList stream={channel.stream} host={channel.user} />
 		{/if}
 
 		<Button
@@ -99,7 +88,7 @@
 			size="icon-sm"
 			variant="ghost"
 			title="Close split"
-			onclick={closePane}
+			onclick={() => app.closePane(pane.id)}
 		>
 			<X />
 		</Button>

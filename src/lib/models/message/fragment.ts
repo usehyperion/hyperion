@@ -1,19 +1,20 @@
+import type { MessageContent } from "#lib/graphql/twitch.js";
 import type { Emote } from "#lib/twitch/irc.js";
 
 export type MessageFragment = TextFragment | EmoteFragment | CheermoteFragment;
 
-export interface TextFragment {
+interface TextFragment {
 	type: "text";
 	text: string;
 }
 
-export interface EmoteFragment {
+interface EmoteFragment {
 	type: "emote";
 	text: string;
 	id: string;
 }
 
-export interface CheermoteFragment {
+interface CheermoteFragment {
 	type: "cheermote";
 	text: string;
 	bits: number;
@@ -41,4 +42,33 @@ export function extractEmotes(fragments: MessageFragment[]): Emote[] {
 	}
 
 	return emotes;
+}
+
+export function fromGqlContent(content: MessageContent): MessageFragment[] {
+	return content.fragments.map((fragment) => {
+		const text = fragment.text ?? "";
+		const inner = fragment.content;
+
+		switch (inner?.__typename) {
+			case "Emote":
+				return { type: "emote", text, id: inner.emoteID ?? "" };
+			case "CheermoteToken":
+				return { type: "cheermote", text, bits: inner.bitsAmount };
+			default:
+				return { type: "text", text };
+		}
+	});
+}
+
+interface PubSubFragment {
+	text: string;
+	emoticon?: { emoticonID: string };
+}
+
+export function fromPubSubFragments(fragments: PubSubFragment[]): MessageFragment[] {
+	return fragments.map((fragment) =>
+		fragment.emoticon
+			? { type: "emote", text: fragment.text, id: fragment.emoticon.emoticonID }
+			: { type: "text", text: fragment.text },
+	);
 }

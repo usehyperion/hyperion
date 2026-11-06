@@ -1,34 +1,23 @@
 import { CommandError } from "#lib/errors/command-error.js";
 import { ErrorMessage } from "#lib/errors/messages.js";
 
-import { defineCommand, getTarget, mapErrors } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "shoutout",
 	description: "Highlight a channel for viewers to follow",
-	modOnly: true,
-	args: ["channel"],
-	async exec(args, channel) {
-		const target = await getTarget(args[0], channel);
-
+	permission: "mod",
+	args: [{ type: "user", name: "channel" }],
+	errors: () => ({ OFFLINE_BROADCASTER: ErrorMessage.CHANNEL_MUST_BE_LIVE }),
+	async exec({ channel: target }, channel) {
 		if (!channel.stream) {
 			throw new CommandError(ErrorMessage.CHANNEL_MUST_BE_LIVE);
 		}
 
-		if (channel.user.id === target.id) {
+		if (channel.id === target.id) {
 			throw new CommandError(ErrorMessage.CANNOT_TARGET_SELF);
 		}
 
-		await mapErrors(
-			() => channel.shoutout(target.username),
-			[
-				{
-					code: "OFFLINE_BROADCASTER",
-					message: ErrorMessage.CHANNEL_MUST_BE_LIVE,
-				},
-			],
-			ErrorMessage.COMMAND_FAILED,
-		);
+		await channel.shoutout(target.username);
 	},
 });

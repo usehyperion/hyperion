@@ -1,12 +1,13 @@
-import { app } from "./app.svelte";
-import { log } from "./log";
+import { SvelteMap } from "svelte/reactivity";
+
+import type { Emote as ChatEmote } from "./emotes";
 
 interface EventObject {
 	id: string;
 	name: string;
 }
 
-interface HostFile {
+export interface HostFile {
 	format: string;
 	frame_count: number;
 	width: number;
@@ -15,7 +16,7 @@ interface HostFile {
 	static_name: string;
 }
 
-interface Host {
+export interface Host {
 	url: string;
 	files: HostFile[];
 }
@@ -25,7 +26,7 @@ interface Emote {
 	listed: boolean;
 	flags: number;
 	host: Host;
-	owner: User;
+	owner: SevenTvUser;
 }
 
 export interface EmoteChange extends EventObject {
@@ -50,7 +51,7 @@ interface UserStyle {
 	paint_id: string;
 }
 
-interface User {
+export interface SevenTvUser {
 	id: string;
 	avatar_url: string;
 	username: string;
@@ -108,14 +109,14 @@ interface EmoteSetCreate extends EventObject {
 	immutable: boolean;
 	privileged: boolean;
 	tags: string;
-	owner: User;
+	owner: SevenTvUser;
 }
 
 interface EntitlementCreate {
 	id: string;
 	kind: "BADGE" | "PAINT" | "EMOTE_SET";
 	ref_id: string;
-	user: User;
+	user: SevenTvUser;
 }
 
 interface ChangeField<K, T, N> {
@@ -127,7 +128,7 @@ interface ChangeField<K, T, N> {
 interface ChangeMap<T, N = false> {
 	id: string;
 	kind: number;
-	actor: User;
+	actor: SevenTvUser;
 	pushed?: ChangeField<"pushed", T, N>[];
 	pulled?: ChangeField<"pulled", T, N>[];
 	updated?: ChangeField<"updated", T, N>[];
@@ -146,29 +147,58 @@ export interface SevenTvEventMap {
 	"user.update": ChangeMap<EventObject | null, true>;
 }
 
-export async function sendPresence(id: string) {
-	if (!app.user?.seventvId) return;
+/**
+ * The Twitch account linked to a 7TV user, if any.
+ */
+export function twitchConnection(user: SevenTvUser) {
+	return user.connections.find((c) => c.platform === "TWITCH");
+}
 
-	const response = await fetch(`https://7tv.io/v3/users/${app.user.seventvId}/presences`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({
-			kind: 1,
-			passive: false,
-			session_id: null,
-			data: {
-				platform: "TWITCH",
-				id,
-			},
-		}),
-	});
+/**
+ * The url of a file hosted by 7TV's event API, whose host urls lack a scheme.
+ */
+export function sevenTvFileUrl(host: Host, file: HostFile) {
+	return `https:${host.url}/${file.name}`;
+}
 
-	if (response.ok) {
-		log.info(`Presence sent in ${id}`);
-	} else {
-		const body = await response.text();
-		log.error(`Failed to send presence: ${body}`);
+/**
+ * What 7TV events say about users: their paints and personal emote sets.
+ */
+export class SevenTvCosmetics {
+	/**
+	 * Paints by id.
+	 */
+	public readonly paints = new Map<string, Paint>();
+
+	/**
+	 * The paint each user has equipped, by user id.
+	 */
+	public readonly userPaints = new SvelteMap<string, Paint | undefined>();
+
+	/**
+	 * The emotes of personal emote sets, by set id.
+	 */
+	public readonly personalSets = new SvelteMap<string, ChatEmote[]>();
+
+	/**
+	 * The personal emote set each user has, by user id.
+	 */
+	public readonly userPersonalSets = new SvelteMap<string, string>();
+
+	/**
+	 * The emote with the given name in the user's personal emote set.
+	 */
+	public personalEmote(userId: string, name: string) {
+		const setId = this.userPersonalSets.get(userId);
+		return setId
+			? this.personalSets.get(setId)?.find((emote) => emote.displayName === name)
+			: undefined;
+	}
+
+	public clear() {
+		this.paints.clear();
+		this.userPaints.clear();
+		this.personalSets.clear();
+		this.userPersonalSets.clear();
 	}
 }

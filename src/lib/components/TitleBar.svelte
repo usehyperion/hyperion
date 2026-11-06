@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { UnlistenFn } from "@tauri-apps/api/event";
 	import { getCurrentWindow } from "@tauri-apps/api/window";
-	import { platform as getPlatform } from "@tauri-apps/plugin-os";
 	import { onDestroy, onMount } from "svelte";
 	import type { HTMLButtonAttributes } from "svelte/elements";
 
@@ -13,6 +12,8 @@
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
 
 	import { app } from "#lib/app.svelte.js";
+	import { dialogs } from "#lib/dialogs.js";
+	import { platform } from "#lib/platform.js";
 	import { updater } from "#lib/updater.svelte.js";
 
 	import JoinDialog from "./JoinDialog.svelte";
@@ -24,16 +25,13 @@
 	type ControlType = "minimize" | "maximize" | "close";
 
 	const currentWindow = getCurrentWindow();
-	const platform = getPlatform();
 
 	let unlisten: UnlistenFn | undefined;
 
 	let maximized = $state(false);
 	let fullscreen = $state(false);
 
-	const hasUnread = $derived(
-		app.user ? app.user.whispers.values().some((whisper) => whisper.unread > 0) : false,
-	);
+	const hasUnread = $derived(Boolean(app.user?.unreadWhispers));
 
 	const label = $derived(
 		updater.failed
@@ -42,8 +40,7 @@
 	);
 
 	onMount(async () => {
-		if (!currentWindow) return;
-
+		maximized = await currentWindow.isMaximized();
 		fullscreen = await currentWindow.isFullscreen();
 
 		unlisten = await currentWindow.onResized(async () => {
@@ -75,7 +72,7 @@
 			<button
 				class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-[background-color,scale] hover:bg-accent active:scale-[0.96]"
 				command="show-modal"
-				commandfor="join-dialog"
+				commandfor={dialogs.join}
 			>
 				<MagnifyingGlass /> Search channels
 			</button>
@@ -127,7 +124,7 @@
 			<Button
 				class="size-min p-1 text-muted-foreground"
 				command="show-modal"
-				commandfor="settings-dialog"
+				commandfor={dialogs.settings}
 				size="icon"
 				variant="ghost"
 				aria-label="Open settings"
@@ -139,15 +136,15 @@
 		{#if platform === "windows"}
 			<div class="flex">
 				{@render control("minimize", {
-					onclick: () => currentWindow?.minimize(),
+					onclick: () => currentWindow.minimize(),
 				})}
 
 				{@render control("maximize", {
-					onclick: () => currentWindow?.toggleMaximize(),
+					onclick: () => currentWindow.toggleMaximize(),
 				})}
 
 				{@render control("close", {
-					onclick: () => currentWindow?.close(),
+					onclick: () => currentWindow.close(),
 				})}
 			</div>
 		{/if}

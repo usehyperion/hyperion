@@ -1,21 +1,17 @@
 import { app } from "#lib/app.svelte.js";
-import { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 import { defineHandler } from "../helper";
 
-export default defineHandler({
+export default defineHandler("pubsub", {
 	name: "user-moderation-notifications",
 	handle(payload) {
 		const channel = app.channels.get(payload.target_id);
 		if (!channel) return;
 
-		const { message_id, status } = payload.data;
+		const { status } = payload.data;
 
-		// This is delayed compared to receiving a drop reason
+		// Sending already reported that the message is held.
 		if (status === "PENDING") return;
-
-		const held = channel.chat.messages.find((m): m is UserMessage => m.id === message_id);
-		if (held) held.deleted = true;
 
 		channel.chat.notice(`A moderator ${status.toLowerCase()} your message.`);
 	},

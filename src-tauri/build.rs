@@ -1,5 +1,4 @@
 fn emit_commit_hash() {
-    // Rebuild when the checked out commit changes
     println!("cargo:rerun-if-changed=../.git/HEAD");
     println!("cargo:rerun-if-changed=../.git/refs");
 

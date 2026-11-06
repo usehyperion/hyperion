@@ -1,26 +1,15 @@
 import { SvelteMap } from "svelte/reactivity";
 
-import type { Emote, EmoteProvider } from "#lib/emotes.js";
+import type { Emote, EmoteProvider, ThirdPartyProvider } from "#lib/emotes.js";
 
+import { THIRD_PARTY_PROVIDERS } from "#lib/emotes.js";
+import { log } from "#lib/log.js";
 import { settings } from "#lib/settings/index.js";
 
-const PROVIDERS = [
-	["FrankerFaceZ", "chat.emotes.ffz"],
-	["BetterTTV", "chat.emotes.bttv"],
-	["7TV", "chat.emotes.seventv"],
-] as const;
-
-export type ThirdPartyProvider = (typeof PROVIDERS)[number][0];
-
 export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
-	/**
-	 * The providers whose emotes have been loaded successfully.
-	 */
 	readonly #loaded = new Set<EmoteProvider>();
 
-	public abstract fetchFfz(): Promise<Emote[]>;
-	public abstract fetchBttv(): Promise<Emote[]>;
-	public abstract fetch7tv(): Promise<Emote[]>;
+	protected abstract readonly loaders: Record<ThirdPartyProvider, () => Promise<Emote[]>>;
 
 	/**
 	 * Removes all emotes from the specified provider or all emotes if no
@@ -41,57 +30,46 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 
 	/**
 	 * Loads the emotes from the providers enabled in the settings that haven't
-	 * been loaded yet and removes the emotes from disabled providers.
+	 * been loaded yet and removes the emotes from disabled providers. A
+	 * provider that fails to load is skipped and retried on the next call.
 	 */
 	public async fetch(force = false) {
 		if (force) this.clear();
 
-		const promises: Promise<void>[] = [];
+		await Promise.all(
+			THIRD_PARTY_PROVIDERS.map(async ({ id, emotesSetting }) => {
+				if (!settings.state[emotesSetting]) {
+					this.clear(id);
+					return;
+				}
 
-		for (const [provider, key] of PROVIDERS) {
-			if (!settings.state[key]) {
-				this.clear(provider);
-			} else if (!this.#loaded.has(provider)) {
-				promises.push(this.load(provider));
-			}
-		}
+				if (this.#loaded.has(id)) return;
 
-		await Promise.all(promises);
+				try {
+					await this.load(id);
+				} catch (error) {
+					log.warn(`Failed to load ${id} emotes: ${String(error)}`);
+				}
+			}),
+		);
 	}
 
 	/**
 	 * Replaces the emotes from the specified provider with newly fetched ones.
 	 */
-	public async load(provider: ThirdPartyProvider) {
+	protected async load(provider: ThirdPartyProvider) {
+		const emotes = await this.loaders[provider]();
+
 		this.clear(provider);
 
-		switch (provider) {
-			case "FrankerFaceZ":
-				await this.fetchFfz();
-				break;
-			case "BetterTTV":
-				await this.fetchBttv();
-				break;
-			case "7TV":
-				await this.fetch7tv();
-				break;
+		for (const emote of emotes) {
+			this.set(emote.displayName, emote);
 		}
 
 		this.#loaded.add(provider);
 	}
 
-	/**
-	 * Whether the emotes from the specified provider have been loaded.
-	 */
 	public isLoaded(provider: EmoteProvider) {
 		return this.#loaded.has(provider);
-	}
-
-	public addAll(emotes: Iterable<Emote>) {
-		for (const emote of emotes) {
-			this.set(emote.displayName, emote);
-		}
-
-		return this;
 	}
 }

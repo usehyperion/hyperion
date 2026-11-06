@@ -1,27 +1,16 @@
-import { CommandError } from "#lib/errors/command-error.js";
-import { ErrorMessage } from "#lib/errors/messages.js";
+import { command } from "../define";
 
-import { defineCommand, getTarget, mapErrors } from "../util";
-
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "warn",
 	description:
 		"Issue a warning to a user that they must acknowledge before sending more messages",
-	modOnly: true,
-	args: ["username", "reason"],
-	async exec(args, channel) {
-		const target = await getTarget(args[0], channel);
-		const reason = args.slice(1).join(" ");
-
-		if (!reason) {
-			throw new CommandError(ErrorMessage.MISSING_ARG(this.args[1]));
-		}
-
-		await mapErrors(
-			() => target.warn(reason),
-			[],
-			ErrorMessage.USER_CANNOT_BE_WARNED(target.displayName),
-		);
+	permission: "mod",
+	args: [
+		{ type: "viewer", name: "username" },
+		{ type: "text", name: "reason" },
+	],
+	fallback: ({ username }) => `${username.displayName} cannot be warned.`,
+	async exec({ username, reason }) {
+		await username.warn(reason);
 	},
 });

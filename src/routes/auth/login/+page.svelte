@@ -5,25 +5,33 @@
 
 	import Twitch from "~icons/local/twitch";
 
-	import type { Credentials } from "#lib/twitch/session.js";
+	import type { SignedIn } from "#lib/app.svelte.js";
 
+	import { app } from "#lib/app.svelte.js";
 	import Button from "#lib/components/ui/Button.svelte";
 	import { log } from "#lib/log.js";
-	import { completeLogin } from "#lib/twitch/auth.js";
 
 	let error = $state<string | null>(null);
 
 	onMount(() => {
-		const unlisten = listen<Credentials>("twitch-auth-success", async ({ payload }) => {
+		const unlistenError = listen<string>("twitch-auth-error", ({ payload }) => {
+			error = "Could not complete sign in. Please try again.";
+			log.error(`Failed to sign in: ${payload}`);
+		});
+
+		const unlisten = listen<SignedIn>("twitch-auth-success", async ({ payload }) => {
 			try {
-				await completeLogin(payload);
+				await app.completeLogin(payload);
 			} catch (err) {
 				error = "Could not complete sign in. Please try again.";
 				log.error(`Failed to complete login: ${err}`);
 			}
 		});
 
-		return () => void unlisten.then((fn) => fn());
+		return () => {
+			void unlisten.then((fn) => fn());
+			void unlistenError.then((fn) => fn());
+		};
 	});
 
 	async function handleLogIn() {

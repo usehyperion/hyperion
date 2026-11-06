@@ -23,20 +23,19 @@ interface BadgeData {
 	imageUrl: string;
 }
 
+/**
+ * The badge set ids of third-party providers.
+ */
+export const BADGE_SETS = { seventv: "7tv", bttv: "bttv", ffz: "ffz" } as const;
+
 export class Badge {
 	/**
 	 * The id of the badge. This is in the form of `{setId}:{version}`.
 	 */
 	public readonly id: string;
 
-	/**
-	 * The id of the set the badge belongs to.
-	 */
 	public readonly setId: string;
 
-	/**
-	 * The version of the badge within its set.
-	 */
 	public readonly version: string;
 
 	/**
@@ -56,19 +55,23 @@ export class Badge {
 	 */
 	public readonly color?: string;
 
-	/**
-	 * The url of the badge image.
-	 */
 	public readonly imageUrl: string;
 
 	public constructor(data: BadgeData) {
-		this.id = `${data.setId}:${data.version}`;
+		this.id = Badge.key(data.setId, data.version);
 		this.setId = data.setId;
 		this.version = data.version;
 		this.title = data.title;
 		this.description = data.description;
 		this.color = data.color;
 		this.imageUrl = data.imageUrl;
+	}
+
+	/**
+	 * The id of the badge with the given set and version.
+	 */
+	public static key(setId: string, version: string) {
+		return `${setId}:${version}`;
 	}
 
 	public static fromGql(this: void, data: ApiBadge) {

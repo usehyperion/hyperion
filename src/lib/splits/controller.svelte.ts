@@ -21,9 +21,6 @@ type Point = { x: number; y: number } | undefined;
 export class SplitController {
 	readonly #paneRefs = new Map<string, HTMLElement>();
 
-	/**
-	 * The id of the focused pane.
-	 */
 	public focusedPaneId = $state<string | null>(null);
 
 	/**
@@ -57,9 +54,6 @@ export class SplitController {
 		return this.root ? tree.findLeaf(this.root, (p) => p.id === id) : null;
 	}
 
-	/**
-	 * The pane containing the given channel tab, if any.
-	 */
 	public paneOf(tabId: string): Pane | null {
 		return this.root
 			? tree.findLeaf(this.root, (p) => p.tabs.some((t) => t.id === tabId))
@@ -103,7 +97,7 @@ export class SplitController {
 	 * Opens the given channel as a tab of the given pane, moving it there if it
 	 * is already open elsewhere.
 	 */
-	public addTab(paneId: string, tab: Tab, index?: number) {
+	#addTab(paneId: string, tab: Tab, index?: number) {
 		const pane = this.pane(paneId);
 		if (!pane) return;
 
@@ -127,10 +121,7 @@ export class SplitController {
 		if (pane) this.#focus(pane, id);
 	}
 
-	/**
-	 * Reorders a tab within its own pane to the given index.
-	 */
-	public reorderTab(id: string, paneId: string, index: number) {
+	#reorderTab(id: string, paneId: string, index: number) {
 		const pane = this.pane(paneId);
 		if (!pane) return;
 
@@ -145,11 +136,7 @@ export class SplitController {
 		this.#focus(pane, id);
 	}
 
-	/**
-	 * Moves a tab to the given pane at an optional index, removing it from its
-	 * source pane.
-	 */
-	public moveTab(tab: Tab, paneId: string, index?: number) {
+	#moveTab(tab: Tab, paneId: string, index?: number) {
 		const source = this.paneOf(tab.id);
 		const target = this.pane(paneId);
 
@@ -204,9 +191,6 @@ export class SplitController {
 		}
 	}
 
-	/**
-	 * Applies new sibling sizes to a split.
-	 */
 	public resize(splitId: string, [before, after]: number[]) {
 		const split = this.#findSplit(splitId);
 		if (!split) return;
@@ -224,9 +208,6 @@ export class SplitController {
 		return neighbor(bounds(this.root), startId, direction);
 	}
 
-	/**
-	 * Begins tracking a tab or channel drag.
-	 */
 	public startDrag(data: DragData) {
 		this.drag = {
 			channelId: data.id,
@@ -235,9 +216,6 @@ export class SplitController {
 		};
 	}
 
-	/**
-	 * Recomputes the highlighted drop target for the given droppable + pointer.
-	 */
 	public updateDropTarget(data: DropData | null, point: Point) {
 		if (!this.drag || !data || this.#isSelfNoop(data.paneId)) {
 			this.dropTarget = null;
@@ -272,9 +250,9 @@ export class SplitController {
 			this.#dropIntoZone(tab, data.paneId, this.#zoneForPane(data.paneId, point));
 		} else if (drag.sourcePaneId === data.paneId) {
 			const index = data.index ?? this.pane(data.paneId)?.tabs.length ?? 0;
-			this.reorderTab(drag.channelId, data.paneId, index);
+			this.#reorderTab(drag.channelId, data.paneId, index);
 		} else {
-			this.moveTab(tab, data.paneId, data.index);
+			this.#moveTab(tab, data.paneId, data.index);
 		}
 	}
 
@@ -375,7 +353,7 @@ export class SplitController {
 	 */
 	#dropIntoZone(tab: Tab, paneId: string, zone: SplitDropPosition) {
 		if (zone === "center") {
-			this.addTab(paneId, tab);
+			this.#addTab(paneId, tab);
 		} else {
 			this.splitWithTab(paneId, tree.edgeToDirection(zone), tab);
 		}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from "svelte";
 	import type { HTMLInputAttributes, KeyboardEventHandler } from "svelte/elements";
 
 	import ChartBarHorizontal from "~icons/ph/chart-bar-horizontal";
@@ -7,7 +8,9 @@
 	import type { Chat } from "#lib/models/chat.svelte.js";
 
 	import { app } from "#lib/app.svelte.js";
+	import { submit } from "#lib/commands/index.js";
 	import { Completer } from "#lib/completer.svelte.js";
+	import { dialogs } from "#lib/dialogs.js";
 	import { CommandError } from "#lib/errors/command-error.js";
 
 	import EmotePicker from "../emote-picker/EmotePicker.svelte";
@@ -30,7 +33,7 @@
 	let historyIdx = $state(-1);
 	let error = $state<string>("");
 
-	const banned = $derived(app.user?.banned.has(chat.channel.id) ?? false);
+	const banned = $derived(chat.channel.banned);
 	const showSuggestions = $derived(!!completer?.suggestions.length && completer.prefixed);
 
 	$effect(() => {
@@ -54,8 +57,10 @@
 		} else if (event.key === "Escape") {
 			chat.replyTarget = null;
 		} else if (event.key === "ArrowUp") {
+			// Keep the caret from jumping to the start of the input.
+			event.preventDefault();
+
 			if (showSuggestions) {
-				event.preventDefault();
 				completer.prev();
 			} else {
 				if (!chat.history.length) return;
@@ -68,9 +73,8 @@
 
 				chat.value = chat.history[historyIdx];
 
-				setTimeout(() => {
-					input.setSelectionRange(chat.value.length, chat.value.length);
-				}, 0);
+				await tick();
+				input.setSelectionRange(chat.value.length, chat.value.length);
 			}
 		} else if (event.key === "ArrowDown") {
 			if (showSuggestions) {
@@ -104,7 +108,7 @@
 				chat.history.push(message);
 
 				try {
-					await chat.send(message);
+					await submit(chat, message);
 				} catch (err) {
 					if (err instanceof CommandError) {
 						error = err.message;
@@ -165,7 +169,7 @@
 				<InputGroup.Button
 					size="icon-sm"
 					command="show-modal"
-					commandfor="poll-dialog-{chat.channel.id}"
+					commandfor={dialogs.poll(chat.channel.id)}
 				>
 					<ChartBarHorizontal />
 				</InputGroup.Button>
@@ -173,7 +177,7 @@
 				<InputGroup.Button
 					size="icon-sm"
 					command="show-modal"
-					commandfor="prediction-dialog-{chat.channel.id}"
+					commandfor={dialogs.prediction(chat.channel.id)}
 				>
 					<SealQuestion />
 				</InputGroup.Button>

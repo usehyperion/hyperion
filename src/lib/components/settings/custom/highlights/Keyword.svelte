@@ -6,10 +6,9 @@
 	import Plus from "~icons/ph/plus";
 	import Trash from "~icons/ph/trash";
 
-	import type { KeywordHighlightConfig } from "#lib/settings/index.js";
-
 	import Button from "#lib/components/ui/Button.svelte";
 	import * as Empty from "#lib/components/ui/empty/index.js";
+	import { KEYWORD_HIGHLIGHT } from "#lib/highlights.js";
 	import { settings } from "#lib/settings/index.js";
 
 	import Edit from "./Edit.svelte";
@@ -18,15 +17,7 @@
 	const keywords = $derived(settings.state["highlights.keywords"]);
 
 	function add() {
-		keywords.push({
-			enabled: true,
-			pattern: "",
-			style: "default",
-			color: "#ff0000",
-			regex: false,
-			wholeWord: false,
-			matchCase: false,
-		} satisfies KeywordHighlightConfig);
+		keywords.push({ ...KEYWORD_HIGHLIGHT.defaults });
 	}
 </script>
 
@@ -47,7 +38,7 @@
 		</Empty.Root>
 	{/if}
 
-	{#each keywords as config, i}
+	{#each keywords as config, i (config)}
 		<Row
 			type="custom"
 			id="keyword-{i}"

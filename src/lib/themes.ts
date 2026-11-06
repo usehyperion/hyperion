@@ -1,9 +1,9 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { appConfigDir, join } from "@tauri-apps/api/path";
 import * as fs from "@tauri-apps/plugin-fs";
+import { SvelteMap } from "svelte/reactivity";
 import * as v from "valibot";
 
-import { app } from "./app.svelte";
 import { log } from "./log";
 
 const MANIFEST_FILE = "manifest.json";
@@ -45,7 +45,7 @@ const ManifestSchema = v.object({
 	repository: v.fallback(v.optional(RepositorySchema), undefined),
 });
 
-export type ThemeManifest = v.InferOutput<typeof ManifestSchema>;
+type ThemeManifest = v.InferOutput<typeof ManifestSchema>;
 
 export interface Theme extends ThemeManifest {
 	id: string;
@@ -141,18 +141,22 @@ async function readTheme(dir: string, id: string): Promise<Theme | undefined> {
 	return { ...manifest.output, id, path };
 }
 
-export async function loadThemes(id?: string) {
-	if (id !== undefined && !isThemeId(id)) {
-		log.warn(`Refusing to load theme with unsupported id "${id}"`);
-		return;
-	}
+/**
+ * The themes found in the themes folder, by id, sorted by name.
+ */
+export const themes = new SvelteMap<string, Theme>();
 
+/**
+ * Loads every theme from disk; the selected one is re-applied by
+ * {@linkcode injectTheme}'s effect.
+ */
+export async function loadThemes() {
 	const dir = await getThemesDir();
 	const entries = await fs.readDir(dir);
 
 	// readDir reports a symlinked folder as neither file nor directory, so this
 	// also drops folders that link elsewhere on disk.
-	const candidates = entries.filter((entry) => entry.isDirectory && (!id || entry.name === id));
+	const candidates = entries.filter((entry) => entry.isDirectory);
 
 	if (candidates.length > MAX_THEMES) {
 		log.warn(`Found ${candidates.length} theme folders, only loading the first ${MAX_THEMES}`);
@@ -170,43 +174,33 @@ export async function loadThemes(id?: string) {
 		}),
 	);
 
-	if (id) {
-		app.themes.delete(id);
-	} else {
-		app.themes.clear();
-	}
+	themes.clear();
 
-	for (const theme of loaded) {
-		if (!theme) continue;
-
-		app.themes.set(theme.id, theme);
+	for (const theme of loaded
+		.filter((theme) => theme !== undefined)
+		.toSorted((a, b) => a.name.localeCompare(b.name))) {
+		themes.set(theme.id, theme);
 		log.trace(`Loaded theme "${theme.id}" (${theme.name} v${theme.version})`);
 	}
 
-	const sorted = [...app.themes.values()].toSorted((a, b) => a.name.localeCompare(b.name));
-
-	app.themes.clear();
-
-	for (const theme of sorted) {
-		app.themes.set(theme.id, theme);
-	}
-
-	log.info(`Loaded ${app.themes.size} themes`);
+	log.info(`Loaded ${themes.size} themes`);
 }
 
 // Identifies the most recent injectTheme call so a slower one cannot overwrite
 // a newer selection when their path lookups interleave.
 let generation = 0;
 
-// Used for cache invalidation.
 let revision = Date.now();
 
-function clearTheme(link: HTMLLinkElement) {
-	link.removeAttribute("href");
-	link.dataset.themeId = "";
-}
+// The theme whose stylesheet is applied; reloading replaces the theme objects,
+// which re-applies them.
+let applied: Theme | null = null;
 
-export async function injectTheme(id: string, force = false) {
+/**
+ * Applies the theme's stylesheet, or none if it isn't installed. Reads
+ * {@linkcode themes}, so an effect calling it re-runs when themes reload.
+ */
+export async function injectTheme(id: string) {
 	const element = document.getElementById("hyperion-custom-theme");
 
 	if (!(element instanceof HTMLLinkElement)) {
@@ -215,42 +209,24 @@ export async function injectTheme(id: string, force = false) {
 	}
 
 	const token = ++generation;
+	const theme = (id && themes.get(id)) || null;
 
-	if (!id) {
-		clearTheme(element);
-		return;
-	}
-
-	if (!isThemeId(id)) {
-		log.warn(`Refusing to apply theme with unsupported id "${id}"`);
-		clearTheme(element);
-		return;
-	}
-
-	const theme = app.themes.get(id);
+	if (id && !theme) log.warn(`Theme with id "${id}" not found`);
+	if (theme === applied) return;
 
 	if (!theme) {
-		log.warn(`Theme with id "${id}" not found`);
-		clearTheme(element);
+		applied = null;
+		element.removeAttribute("href");
 		return;
 	}
-
-	if (!force && element.dataset.themeId === id) return;
 
 	const href = convertFileSrc(await join(theme.path, STYLESHEET_FILE));
 
 	// A newer call landed while the path was resolving, so leave its result be.
 	if (token !== generation) return;
 
+	applied = theme;
+
 	// Bypass the webview stylesheet cache.
 	element.href = `${href}?v=${++revision}`;
-	element.dataset.themeId = id;
-}
-
-/**
- * Reloads every theme from disk and re-applies the selected one.
- */
-export async function reloadThemes(id: string) {
-	await loadThemes();
-	await injectTheme(id, true);
 }

@@ -6,6 +6,8 @@ import { storage } from "#lib/stores.js";
 
 import type { DragData, DropData } from "./types";
 
+import { DND } from "./dnd";
+
 function dropData(target: DragOverEvent["operation"]["target"]): DropData | null {
 	// oxlint-disable-next-line typescript/no-unsafe-type-assertion
 	return target ? (target.data as DropData) : null;
@@ -18,7 +20,7 @@ function point(event: DragOverEvent | DragMoveEvent | DragEndEvent) {
 export function onDragStart(event: DragStartEvent) {
 	const source = event.operation.source;
 
-	if (source?.type === "tab" || source?.type === "channel") {
+	if (source?.type === DND.tab || source?.type === DND.channel) {
 		// oxlint-disable-next-line typescript/no-unsafe-type-assertion
 		app.splits.startDrag(source.data as DragData);
 	}
@@ -27,8 +29,8 @@ export function onDragStart(event: DragStartEvent) {
 export function onDragOver(event: DragOverEvent) {
 	const { source, target } = event.operation;
 
-	if (source?.type === "pinned") {
-		if (target?.type === "pinned") {
+	if (source?.type === DND.pinned) {
+		if (target?.type === DND.pinned) {
 			storage.state.pinned = move(storage.state.pinned, event);
 		}
 
@@ -41,7 +43,7 @@ export function onDragOver(event: DragOverEvent) {
 export function onDragMove(event: DragMoveEvent) {
 	// A pane is a single droppable, so moving between its edge zones does not
 	// fire `dragover`
-	if (event.operation.source?.type === "pinned") return;
+	if (event.operation.source?.type === DND.pinned) return;
 
 	app.splits.updateDropTarget(dropData(event.operation.target), point(event));
 }

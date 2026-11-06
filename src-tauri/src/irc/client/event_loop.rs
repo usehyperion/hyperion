@@ -1,22 +1,18 @@
 use std::collections::VecDeque;
 use std::sync::Arc;
 
-use tokio::sync::{mpsc, oneshot};
+use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_stream::{StreamExt, StreamMap};
 
 use super::pool_connection::PoolConnection;
 use crate::irc;
 use crate::irc::ClientConfig;
-use crate::irc::connection::event_loop::ReplySender;
-use crate::irc::connection::{Connection, ConnectionIncomingMessage};
+use crate::irc::connection::{self, ConnectionIncomingMessage, ReplySender};
 use crate::irc::message::{JoinMessage, PartMessage, ServerMessage};
 
 #[derive(Debug)]
 pub(crate) enum ClientLoopCommand {
-    Connect {
-        return_sender: oneshot::Sender<()>,
-    },
     Join {
         channel_login: String,
     },
@@ -33,7 +29,6 @@ pub(crate) enum ClientLoopCommand {
 pub(crate) struct ClientLoopWorker {
     config: Arc<ClientConfig>,
     next_connection_id: usize,
-    current_whisper_connection_id: Option<usize>,
     client_loop_rx: mpsc::UnboundedReceiver<ClientLoopCommand>,
     connections: VecDeque<PoolConnection>,
     connection_incoming: StreamMap<usize, UnboundedReceiverStream<ConnectionIncomingMessage>>,
@@ -49,7 +44,6 @@ impl ClientLoopWorker {
         let worker = ClientLoopWorker {
             config,
             next_connection_id: 0,
-            current_whisper_connection_id: None,
             client_loop_rx,
             connections: VecDeque::new(),
             connection_incoming: StreamMap::new(),
@@ -60,6 +54,9 @@ impl ClientLoopWorker {
     }
 
     async fn run(mut self) {
+        let first_connection = self.make_new_connection();
+        self.connections.push_back(first_connection);
+
         loop {
             tokio::select! {
                 command = self.client_loop_rx.recv() => {
@@ -75,14 +72,6 @@ impl ClientLoopWorker {
 
     fn process_command(&mut self, command: ClientLoopCommand) {
         match command {
-            ClientLoopCommand::Connect { return_sender } => {
-                if self.connections.is_empty() {
-                    let new_connection = self.make_new_connection();
-                    self.connections.push_back(new_connection);
-                }
-
-                return_sender.send(()).ok();
-            }
             ClientLoopCommand::Join { channel_login } => self.join(channel_login),
             ClientLoopCommand::Part { channel_login } => self.part(channel_login),
             ClientLoopCommand::Privmsg {
@@ -98,15 +87,14 @@ impl ClientLoopWorker {
         let connection_id = self.next_connection_id;
         self.next_connection_id = self.next_connection_id.wrapping_add(1);
 
-        let (connection_incoming_messages_rx, connection) =
-            Connection::new(Arc::clone(&self.config));
+        let (connection_incoming_messages_rx, tx) = connection::spawn(Arc::clone(&self.config));
 
         self.connection_incoming.insert(
             connection_id,
             UnboundedReceiverStream::new(connection_incoming_messages_rx),
         );
 
-        PoolConnection::new(Arc::clone(&self.config), connection_id, connection)
+        PoolConnection::new(connection_id, tx)
     }
 
     fn join(&mut self, channel_login: String) {
@@ -131,12 +119,10 @@ impl ClientLoopWorker {
             .unwrap_or_else(|| self.make_new_connection());
 
         pool_connection
-            .connection
-            .connection_loop_tx
+            .tx
             .send((irc!["JOIN", format!("#{}", channel_login)], None))
             .unwrap();
 
-        pool_connection.register_sent_message();
         pool_connection.wanted_channels.insert(channel_login);
 
         self.connections.push_back(pool_connection);
@@ -159,12 +145,10 @@ impl ClientLoopWorker {
             .unwrap();
 
         pool_connection
-            .connection
-            .connection_loop_tx
+            .tx
             .send((irc!["PART", format!("#{}", channel_login)], None))
             .unwrap();
 
-        pool_connection.register_sent_message();
         pool_connection.wanted_channels.remove(&channel_login);
 
         self.connections.push_back(pool_connection);
@@ -173,7 +157,7 @@ impl ClientLoopWorker {
     fn privmsg(&mut self, channel_login: String, message: String, return_sender: ReplySender) {
         // Prefer the connection that joined the channel so the server has room
         // state for it, otherwise fall back to any open connection.
-        let mut pool_connection = self
+        let pool_connection = self
             .connections
             .iter()
             .position(|c| c.wanted_channels.contains(&channel_login))
@@ -182,15 +166,12 @@ impl ClientLoopWorker {
             .unwrap_or_else(|| self.make_new_connection());
 
         pool_connection
-            .connection
-            .connection_loop_tx
+            .tx
             .send((
                 irc!["PRIVMSG", format!("#{}", channel_login), message],
                 Some(return_sender),
             ))
             .unwrap();
-
-        pool_connection.register_sent_message();
 
         self.connections.push_back(pool_connection);
     }
@@ -202,19 +183,6 @@ impl ClientLoopWorker {
     ) {
         match message {
             ConnectionIncomingMessage::IncomingMessage(message) => {
-                let is_whisper = matches!(*message, ServerMessage::Whisper(_));
-
-                if is_whisper {
-                    match self.current_whisper_connection_id {
-                        Some(current_whisper_connection_id) => {
-                            if current_whisper_connection_id != source_connection_id {
-                                return;
-                            }
-                        }
-                        None => self.current_whisper_connection_id = Some(source_connection_id),
-                    }
-                }
-
                 match &*message {
                     ServerMessage::Join(JoinMessage { channel_login, .. }) => {
                         let conn = self
@@ -251,10 +219,6 @@ impl ClientLoopWorker {
 
                 for channel in pool_connection.wanted_channels.drain() {
                     self.join(channel);
-                }
-
-                if self.current_whisper_connection_id == Some(source_connection_id) {
-                    self.current_whisper_connection_id = None;
                 }
 
                 if self.connections.is_empty() {

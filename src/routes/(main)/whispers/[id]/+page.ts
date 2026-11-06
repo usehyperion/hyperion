@@ -1,7 +1,5 @@
 import { error } from "@sveltejs/kit";
 
-import { log } from "#lib/log.js";
-
 export async function load({ parent, params }) {
 	const { whispers } = await parent();
 	const whisper = whispers.get(params.id);
@@ -11,7 +9,7 @@ export async function load({ parent, params }) {
 	try {
 		await whisper.load();
 	} catch (err) {
-		void log.error(`Failed to load whisper history: ${String(err)}`);
+		error(502, `Failed to load whisper history: ${String(err)}`);
 	}
 
 	return { whisper };

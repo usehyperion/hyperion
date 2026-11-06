@@ -13,6 +13,27 @@
 
 	const { children } = $props();
 
+	function onError(event: ErrorEvent) {
+		// Benign browser warning when a resize observer's callback causes
+		// another resize within the same frame; nothing is lost.
+		if (event.message.startsWith("ResizeObserver loop")) {
+			event.preventDefault();
+			return;
+		}
+
+		log.error(`[${event.filename}@${event.lineno}:${event.colno}] ${event.message}`);
+	}
+
+	function onRejection(event: PromiseRejectionEvent) {
+		log.error(`Unhandled promise rejection: ${event.reason}`);
+
+		if (event.reason instanceof AggregateError) {
+			for (const error of event.reason.errors) {
+				log.error(`\t- ${error.message}`);
+			}
+		}
+	}
+
 	onMount(() => {
 		// The root load has resolved by the time this mounts, so the splash can
 		// be removed
@@ -25,6 +46,14 @@
 				fill: "forwards",
 			})
 			.finished.then(() => splash.remove());
+
+		addEventListener("error", onError);
+		addEventListener("unhandledrejection", onRejection);
+
+		return () => {
+			removeEventListener("error", onError);
+			removeEventListener("unhandledrejection", onRejection);
+		};
 	});
 
 	$effect(() => {
@@ -33,25 +62,6 @@
 
 	$effect(() => {
 		injectTheme(settings.state["appearance.theme"]);
-	});
-
-	addEventListener("error", (event) => {
-		if (event.message.startsWith("ResizeObserver loop")) {
-			event.preventDefault();
-			return;
-		}
-
-		log.error(`[${event.filename}@${event.lineno}:${event.colno}] ${event.message}`);
-	});
-
-	addEventListener("unhandledrejection", (event) => {
-		log.error(`Unhandled promise rejection: ${event.reason}`);
-
-		if (event.reason instanceof AggregateError) {
-			for (const error of event.reason.errors) {
-				log.error(`\t- ${error.message}`);
-			}
-		}
 	});
 </script>
 

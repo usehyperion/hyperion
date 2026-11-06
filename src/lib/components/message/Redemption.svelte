@@ -1,34 +1,27 @@
 <script lang="ts">
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
-	import type { Viewer } from "#lib/models/viewer.svelte.js";
 	import type { ChannelPointReward } from "#lib/twitch/pubsub.js";
 
 	import Username from "../user/Username.svelte";
+	import Callout from "./Callout.svelte";
 	import Message from "./Message.svelte";
 
 	interface Props {
-		reward: ChannelPointReward | null;
-		message?: UserMessage | null;
-		viewer: Viewer | null;
+		reward: ChannelPointReward;
+		message: UserMessage;
 	}
 
-	const { reward, message, viewer }: Props = $props();
+	const { reward, message }: Props = $props();
 </script>
 
-{#if reward}
-	<div class="my-0.5 border-l-4 bg-muted/50 p-2" style:border-color={reward.background_color}>
-		{#if viewer}
-			<p>
-				<Username user={viewer.user} />
-				used <span class="font-medium">{reward.cost}</span> channel points to redeem
-				<span class="font-medium">{reward.title}</span>
-			</p>
-		{/if}
+<Callout color={reward.background_color}>
+	<p>
+		<Username user={message.viewer.user} />
+		used <span class="font-medium">{reward.cost}</span> channel points to redeem
+		<span class="font-medium">{reward.title}</span>
+	</p>
 
-		{#if reward.is_user_input_required && message}
-			<div class="mt-2">
-				<Message {message} />
-			</div>
-		{/if}
+	<div class="mt-2">
+		<Message {message} />
 	</div>
-{/if}
+</Callout>

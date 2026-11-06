@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Pencil from "~icons/ph/pencil";
 
-	import type { KeywordHighlightConfig } from "#lib/settings/index.js";
+	import type { KeywordHighlightConfig } from "#lib/highlights.js";
 
 	import Button from "#lib/components/ui/Button.svelte";
 	import Checkbox from "#lib/components/ui/Checkbox.svelte";

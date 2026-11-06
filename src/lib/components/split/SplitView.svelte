@@ -7,6 +7,7 @@
 
 	import { app } from "#lib/app.svelte.js";
 	import * as Empty from "#lib/components/ui/empty/index.js";
+	import { DND, TAB_SOURCES, paneDrop } from "#lib/splits/dnd.js";
 
 	import Channel from "../channel/Channel.svelte";
 	import TabBar from "./TabBar.svelte";
@@ -23,14 +24,10 @@
 		get id() {
 			return `pane:${pane.id}`;
 		},
-		get type() {
-			return "pane";
-		},
-		get accept() {
-			return ["tab", "channel"];
-		},
+		type: DND.pane,
+		accept: TAB_SOURCES,
 		get data() {
-			return { kind: "pane", paneId: pane.id };
+			return paneDrop(pane.id);
 		},
 	});
 

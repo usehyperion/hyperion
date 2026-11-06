@@ -4,6 +4,8 @@
 
 	import Username from "#lib/components/user/Username.svelte";
 
+	import { reasonSuffix } from "./reason";
+
 	interface Props {
 		request: UnbanRequestCreate | UnbanRequestUpdate;
 		viewer: Viewer;
@@ -21,9 +23,7 @@
 	{:else}
 		<Username user={moderator.user} />
 		{status}
-		<Username user={viewer.user} />'s unban request{request.resolver_message
-			? `: ${request.resolver_message}`
-			: "."}
+		<Username user={viewer.user} />'s unban request{reasonSuffix(request.resolver_message)}
 	{/if}
 {:else}
 	<Username user={viewer.user} /> submitted an unban request: {request.requester_message}

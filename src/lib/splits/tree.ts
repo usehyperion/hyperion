@@ -1,4 +1,13 @@
-import type { Pane, SplitAxis, SplitDirection, SplitEdge, SplitNode, Tab } from "./types";
+import {
+	LAYOUT_VERSION,
+	type Layout,
+	type Pane,
+	type SplitAxis,
+	type SplitDirection,
+	type SplitEdge,
+	type SplitNode,
+	type Tab,
+} from "./types";
 
 const EDGE_DIRECTION: Record<SplitEdge, SplitDirection> = {
 	top: "up",
@@ -49,7 +58,7 @@ export function edgeToDirection(edge: SplitEdge): SplitDirection {
 	return EDGE_DIRECTION[edge];
 }
 
-export function directionAxis(direction: SplitDirection): SplitAxis {
+function directionAxis(direction: SplitDirection): SplitAxis {
 	return direction === "left" || direction === "right" ? "horizontal" : "vertical";
 }
 
@@ -98,7 +107,7 @@ export function splitLeaf(
  * empty and collapsing its parent split. Panes that were already empty are
  * kept.
  */
-export function removeTabs(root: SplitNode, predicate: (tab: Tab) => boolean): SplitNode | null {
+function removeTabs(root: SplitNode, predicate: (tab: Tab) => boolean): SplitNode | null {
 	if (isLeaf(root)) {
 		const tabs = root.tabs.filter((tab) => !predicate(tab));
 
@@ -159,4 +168,16 @@ export function removeLeaf(root: SplitNode, paneId: string): SplitNode | null {
 	};
 
 	return transform(root);
+}
+
+/**
+ * The part of a persisted layout that can be restored: nothing from an older
+ * layout version, and no tabs of ephemeral channels, which aren't kept
+ * across restarts.
+ */
+export function restorableLayout(layout: Layout | null): Layout | null {
+	if (layout?.version !== LAYOUT_VERSION || !layout.root) return null;
+
+	const root = removeTabs(layout.root, (tab) => !!tab.ephemeral);
+	return root ? { ...layout, root } : null;
 }

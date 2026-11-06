@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { AutoModMetadata } from "#lib/models/message/user-message.svelte.js";
+	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
-	import { UserMessage } from "#lib/models/message/user-message.svelte.js";
 	import { deletedAppearance } from "#lib/settings/index.js";
 
 	import Button from "../ui/Button.svelte";
+	import Callout from "./Callout.svelte";
 	import Message from "./Message.svelte";
 
 	interface Props {
@@ -15,10 +16,7 @@
 	const { message, metadata }: Props = $props();
 </script>
 
-<div
-	class="my-0.5 border-l-4 border-red-500 bg-muted/50 p-2"
-	data-deleted={deletedAppearance(message)}
->
+<Callout class="border-red-500" data-deleted={deletedAppearance(message)}>
 	<div class="mb-2 flex w-full items-start justify-between gap-x-4">
 		<div>
 			<img
@@ -31,36 +29,35 @@
 
 			<span class="font-semibold text-twitch">AutoMod</span>:
 
-			{#if metadata.category === "msg_hold"}
-				Your message is being held for review by the moderators and has not been sent.
+			{#if metadata.reason === "blocked-term"}
+				Message held for using blocked terms
+			{:else if metadata.category === "smartdetection"}
+				Message held by smart detection (Level {metadata.level})
 			{:else}
-				Message held {metadata.category}
-				{Number.isNaN(metadata.level) ? null : `(Level ${metadata.level})`}
+				Message held for {metadata.category} (Level {metadata.level})
 			{/if}
 		</div>
 
-		{#if metadata.category !== "msg_hold"}
-			<div class="flex gap-x-4">
-				<Button
-					class="text-green-400"
-					variant="inline"
-					disabled={message.deleted}
-					onclick={() => message.allow()}
-				>
-					Allow
-				</Button>
+		<div class="flex gap-x-4">
+			<Button
+				class="text-green-400"
+				variant="inline"
+				disabled={message.deleted}
+				onclick={() => message.allow()}
+			>
+				Allow
+			</Button>
 
-				<Button
-					class="text-destructive"
-					variant="inline"
-					disabled={message.deleted}
-					onclick={() => message.deny()}
-				>
-					Deny
-				</Button>
-			</div>
-		{/if}
+			<Button
+				class="text-destructive"
+				variant="inline"
+				disabled={message.deleted}
+				onclick={() => message.deny()}
+			>
+				Deny
+			</Button>
+		</div>
 	</div>
 
 	<Message {message} />
-</div>
+</Callout>

@@ -1,13 +1,12 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { platform } from "@tauri-apps/plugin-os";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { type Update, check } from "@tauri-apps/plugin-updater";
 
 import { log } from "./log.js";
+import { platform } from "./platform.js";
 
 class Updater {
-	readonly #platform = platform();
-	readonly #deferred = this.#platform !== "macos";
+	readonly #deferred = platform !== "macos";
 
 	#pending = false;
 	#unlisten: (() => void) | null = null;
@@ -51,7 +50,7 @@ class Updater {
 		} catch (error) {
 			this.update = null;
 			await update?.close();
-			await log.error(`Failed to update: ${String(error)}`);
+			log.error(`Failed to update: ${String(error)}`);
 		} finally {
 			this.#pending = false;
 		}
@@ -66,16 +65,21 @@ class Updater {
 				this.#unlisten?.();
 				this.#unlisten = null;
 
-				await this.update?.install();
+				try {
+					await this.update?.install();
+				} catch (error) {
+					await this.#installOnClose();
+					throw error;
+				}
 			}
 
 			// The Windows installer exits the app and relaunches it once it's done.
-			if (this.#platform !== "windows") {
+			if (platform !== "windows") {
 				await relaunch();
 			}
 		} catch (error) {
 			this.failed = true;
-			await log.error(`Failed to restart to update: ${String(error)}`);
+			log.error(`Failed to restart to update: ${String(error)}`);
 		}
 	}
 
@@ -89,7 +93,7 @@ class Updater {
 			try {
 				await this.update?.install({ restartAfterInstall: false });
 			} catch (error) {
-				await log.error(`Failed to install update on close: ${String(error)}`);
+				log.error(`Failed to install update on close: ${String(error)}`);
 			}
 		});
 	}

@@ -12,10 +12,12 @@
 	import type { RecentSearch } from "#lib/stores.js";
 
 	import { app } from "#lib/app.svelte.js";
+	import { closeDialog, dialogs } from "#lib/dialogs.js";
 	import { searchSuggestionsQuery } from "#lib/graphql/twitch.js";
 	import { storage } from "#lib/stores.js";
 	import { debounce } from "#lib/util.js";
 
+	import Avatar from "./ui/Avatar.svelte";
 	import Dialog from "./ui/Dialog.svelte";
 
 	type Filter = "all" | "live";
@@ -54,12 +56,10 @@
 	});
 
 	function toRow(suggestion: ChannelSuggestion): RecentSearch {
-		const displayName = suggestion.user?.displayName ?? "";
-
 		return {
 			id: suggestion.id,
-			login: displayName.toLowerCase(),
-			displayName,
+			login: suggestion.user?.login ?? "",
+			displayName: suggestion.user?.displayName ?? "",
 			profileImageURL: suggestion.profileImageURL ?? "",
 			isLive: suggestion.isLive,
 			streamTitle: suggestion.user?.stream?.title ?? null,
@@ -98,6 +98,8 @@
 			}
 
 			suggestions = channels;
+		} catch (err) {
+			if (current === token) error = err instanceof Error ? err.message : String(err);
 		} finally {
 			if (current === token) searching = false;
 		}
@@ -110,16 +112,7 @@
 		try {
 			loading = true;
 
-			let channel = app.channels.getByLogin(login);
-
-			if (!channel) {
-				channel = await app.channels.fetch(login, { by: "login" });
-				channel.ephemeral = true;
-
-				app.channels.set(channel.id, channel);
-			}
-
-			await app.open(channel);
+			const channel = await app.openByLogin(login);
 			record(channel, meta);
 			handleClose();
 		} catch (err) {
@@ -178,12 +171,12 @@
 	}
 
 	function handleClose() {
-		document.querySelector<HTMLDialogElement>("#join-dialog")?.close();
+		closeDialog(dialogs.join);
 		reset();
 	}
 </script>
 
-<Dialog id="join-dialog" class="overflow-hidden p-0 sm:max-w-xl">
+<Dialog id={dialogs.join} class="overflow-hidden p-0 sm:max-w-xl">
 	<div class="flex flex-col">
 		<div class="flex items-center gap-3 border-b px-5 py-4">
 			<!-- svelte-ignore a11y_autofocus -- palette should be typeable on open -->
@@ -263,8 +256,8 @@
 							type="button"
 							onclick={() => join(item.login, item)}
 						>
-							<img
-								class="size-9 shrink-0 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10"
+							<Avatar
+								class="size-9 shrink-0"
 								src={item.profileImageURL}
 								alt={item.displayName}
 							/>

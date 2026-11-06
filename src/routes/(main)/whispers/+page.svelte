@@ -1,16 +1,13 @@
 <script lang="ts">
-	import dayjs from "dayjs";
-	import relativeTime from "dayjs/plugin/relativeTime";
-	import type { Attachment } from "svelte/attachments";
-
 	import { resolve } from "$app/paths";
 
 	import ChatDots from "~icons/ph/chat-dots";
 
 	import { app } from "#lib/app.svelte.js";
+	import { everyMinute } from "#lib/clock.svelte.js";
+	import Avatar from "#lib/components/ui/Avatar.svelte";
 	import * as Empty from "#lib/components/ui/empty/index.js";
-
-	dayjs.extend(relativeTime);
+	import dayjs from "#lib/dayjs.js";
 
 	const { data } = $props();
 
@@ -23,29 +20,7 @@
 			),
 	);
 
-	const unread = $derived(whispers.reduce((total, [, whisper]) => total + whisper.unread, 0));
-
-	function relative(date: Date): Attachment {
-		return (element) => {
-			let interval: ReturnType<typeof setInterval> | undefined;
-
-			const now = new Date();
-			const offset = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
-
-			const timeout = setTimeout(() => {
-				element.textContent = dayjs(date).fromNow();
-
-				interval = setInterval(() => {
-					element.textContent = dayjs(date).fromNow();
-				}, 60 * 1000);
-			}, offset);
-
-			return () => {
-				clearTimeout(timeout);
-				clearInterval(interval);
-			};
-		};
-	}
+	const unread = $derived(app.user?.unreadWhispers ?? 0);
 </script>
 
 <div class="h-full overflow-y-auto">
@@ -70,8 +45,8 @@
 							href={resolve("/(main)/whispers/[id]", { id })}
 						>
 							{#if sender.avatarUrl}
-								<img
-									class="size-10 shrink-0 rounded-full bg-muted object-cover ring-1 ring-black/10 dark:ring-white/10"
+								<Avatar
+									class="size-10 shrink-0 bg-muted"
 									src={sender.avatarUrl}
 									alt=""
 									width="40"
@@ -95,9 +70,8 @@
 												: "text-muted-foreground",
 										]}
 										datetime={message.createdAt.toISOString()}
-										{@attach relative(message.createdAt)}
 									>
-										{dayjs(message.createdAt).fromNow()}
+										{dayjs(message.createdAt).from(everyMinute.now)}
 									</time>
 								</div>
 

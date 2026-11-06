@@ -4,6 +4,8 @@
 	import Username from "#lib/components/user/Username.svelte";
 	import { formatDuration } from "#lib/util.js";
 
+	import { reasonSuffix } from "./reason";
+
 	interface Props {
 		seconds: number;
 		reason: string | null;
@@ -20,4 +22,4 @@
 	<Username user={moderator.user} /> timed out <Username user={viewer.user} /> for {duration}
 {:else}
 	<Username user={viewer.user} /> has been timed out for {duration}
-{/if}{reason ? `: ${reason}` : "."}
+{/if}{reasonSuffix(reason)}

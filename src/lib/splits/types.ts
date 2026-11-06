@@ -24,9 +24,6 @@ export interface Tab {
 	 */
 	id: string;
 
-	/**
-	 * Whether the channel was joined ephemerally.
-	 */
 	ephemeral?: boolean;
 }
 
@@ -36,9 +33,6 @@ export interface Tab {
 export interface Pane extends Node {
 	readonly type: "pane";
 
-	/**
-	 * The tabs in tab order.
-	 */
 	tabs: Tab[];
 
 	/**

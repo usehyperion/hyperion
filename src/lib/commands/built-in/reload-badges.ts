@@ -1,35 +1,35 @@
 import { app } from "#lib/app.svelte.js";
+import { CommandError } from "#lib/errors/command-error.js";
+import { BADGE_PROVIDERS, type BadgeProvider } from "#lib/managers/badge-manager.js";
 
-import { defineCommand } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Built-in",
+function isProvider(name: string): name is BadgeProvider {
+	return (BADGE_PROVIDERS as readonly string[]).includes(name);
+}
+
+export default command({
 	name: "reload-badges",
 	description:
 		"Reload all badges for the channel and optionally badges from a comma-separated list of providers",
-	args: ["providers"],
-	async exec(args, channel) {
-		const providers = args[0]?.split(",") ?? [];
+	args: [{ type: "string", name: "providers", optional: true }],
+	async exec({ providers }, channel) {
+		const names = providers?.toLowerCase().split(",").filter(Boolean) ?? [];
+		const unknown = names.filter((name) => name !== "all" && !isProvider(name));
 
-		if (providers.includes("all")) {
-			await Promise.all([app.badges.fetch(), channel.badges.fetch(true)]);
-		} else {
-			const promises: Promise<unknown>[] = [channel.badges.fetch(true)];
+		if (unknown.length) {
+			const valid = [...BADGE_PROVIDERS, "all"].join(", ");
 
-			if (providers.includes("twitch")) {
-				promises.push(app.badges.fetchTwitch());
-			}
-
-			if (providers.includes("bttv")) {
-				promises.push(app.badges.fetchBttv());
-			}
-
-			if (providers.includes("ffz")) {
-				promises.push(app.badges.fetchFfz());
-			}
-
-			await Promise.all(promises);
+			throw new CommandError(`Unknown badge provider: ${unknown.join(", ")}. Use ${valid}.`);
 		}
+
+		await Promise.all([
+			channel.badges.fetch(true),
+			app.badges.fetch(
+				names.includes("all") ? BADGE_PROVIDERS : names.filter(isProvider),
+				true,
+			),
+		]);
 
 		channel.chat.notice("Reloaded badges.");
 	},

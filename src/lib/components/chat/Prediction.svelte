@@ -6,12 +6,15 @@
 
 	import type { Prediction } from "#lib/models/prediction.svelte.js";
 
+	import { everySecond } from "#lib/clock.svelte.js";
+	import { duelColor } from "#lib/models/prediction.svelte.js";
 	import { formatDuration } from "#lib/util.js";
 
 	import Progress from "../ui/Progress.svelte";
 	import Tooltip from "../ui/Tooltip.svelte";
 	import Username from "../user/Username.svelte";
 	import NoticeAction, { details, hide } from "./NoticeAction.svelte";
+	import { percent } from "./percent";
 
 	interface Props {
 		prediction: Prediction;
@@ -19,7 +22,7 @@
 
 	const { prediction }: Props = $props();
 
-	const DUO = ["bg-blue-500", "bg-pink-500"];
+	const DUEL = { BLUE: "bg-blue-500", PINK: "bg-pink-500" };
 
 	const RAINBOW = [
 		"bg-red-500",
@@ -35,16 +38,10 @@
 	];
 
 	let expanded = $state(true);
-	let now = $state(Date.now());
 
-	$effect(() => {
-		if (prediction.status !== "ACTIVE") return;
-
-		const id = setInterval(() => (now = Date.now()), 1000);
-		return () => clearInterval(id);
-	});
-
-	const remaining = $derived(Math.max(0, Math.ceil((prediction.locksTimestamp - now) / 1000)));
+	const remaining = $derived(
+		Math.max(0, Math.ceil((prediction.locksTimestamp - everySecond.now) / 1000)),
+	);
 
 	const status = $derived.by(() => {
 		switch (prediction.status) {
@@ -64,11 +61,9 @@
 	});
 
 	function colorFor(index: number) {
-		return prediction.outcomes.length <= 2 ? DUO[index] : RAINBOW[index];
-	}
+		const duel = duelColor(index, prediction.outcomes.length);
 
-	function percent(points: number) {
-		return prediction.totalPoints > 0 ? Math.round((points / prediction.totalPoints) * 100) : 0;
+		return duel ? DUEL[duel] : RAINBOW[index];
 	}
 
 	function ratio(points: number) {
@@ -96,7 +91,7 @@
 					/>
 				{/if}
 
-				{#if prediction.status === "ACTIVE" || prediction.status === "LOCKED"}
+				{#if prediction.open}
 					<NoticeAction
 						icon={Prohibit}
 						tooltip="Cancel prediction"
@@ -115,7 +110,7 @@
 	{#if expanded}
 		<ul class="flex flex-col gap-1.5">
 			{#each prediction.outcomes as outcome, i (outcome.id)}
-				{@const pct = percent(outcome.points)}
+				{@const pct = percent(outcome.points, prediction.totalPoints)}
 				{@const won =
 					prediction.status === "RESOLVED" && prediction.winningOutcomeId === outcome.id}
 				{@const lost =
@@ -135,7 +130,7 @@
 							{pct}% ({outcome.points.toLocaleString()})
 						</span>
 
-						{#if prediction.channel.isMod && (prediction.status === "ACTIVE" || prediction.status === "LOCKED")}
+						{#if prediction.channel.isMod && prediction.open}
 							<NoticeAction
 								icon={Crown}
 								tooltip="Resolve as winner"

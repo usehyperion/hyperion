@@ -1,17 +1,13 @@
 <script lang="ts">
 	import { Tabs } from "bits-ui";
 
-	import SevenTV from "~icons/logos/7tv";
-	import BetterTTV from "~icons/logos/bttv";
-	import FrankerFaceZ from "~icons/logos/ffz";
-	import Twitch from "~icons/logos/twitch";
 	import Smiley from "~icons/ph/smiley";
 
 	import type { Emote, EmoteProvider, EmoteSet } from "#lib/emotes.js";
 	import type { Channel } from "#lib/models/channel.svelte.js";
 
 	import { app } from "#lib/app.svelte.js";
-	import { GLOBAL_PROVIDERS, toProviderSets } from "#lib/emotes.js";
+	import { PROVIDER_ICONS, THIRD_PARTY_PROVIDERS, toProviderSets } from "#lib/emotes.js";
 
 	import * as InputGroup from "../ui/input-group";
 	import Input from "../ui/Input.svelte";
@@ -25,32 +21,31 @@
 
 	const { channel }: Props = $props();
 
-	const TABS = [
-		{ provider: "Twitch", icon: Twitch },
-		{ provider: "7TV", icon: SevenTV },
-		{ provider: "BetterTTV", icon: BetterTTV },
-		{ provider: "FrankerFaceZ", icon: FrankerFaceZ },
-	] as const;
+	const TABS = (["Twitch", ...THIRD_PARTY_PROVIDERS.map((p) => p.id)] as const).map(
+		(provider) => ({
+			provider,
+			icon: PROVIDER_ICONS[provider],
+		}),
+	);
 
 	let query = $state("");
 	let activeProvider = $state<EmoteProvider>("Twitch");
 
 	const providerSets = $derived.by(() => {
 		const sets = [
-			...toProviderSets(channel.emotes.values(), (provider) => ({
+			...toProviderSets(channel.emotes.values(), ({ id: provider }) => ({
 				id: `${provider}:${channel.id}`,
 				name: `${channel.user.displayName}: ${provider}`,
 				owner: channel.user,
 				global: false,
 			})),
 			...(app.user?.emoteSets.values() ?? []),
-			...toProviderSets(app.emotes.values(), (provider) => {
-				const meta = provider === "Twitch" ? null : GLOBAL_PROVIDERS[provider];
-
-				return meta
-					? { id: meta.owner.id, name: meta.name, owner: meta.owner, global: true }
-					: null;
-			}),
+			...toProviderSets(app.emotes.values(), ({ global: { name, owner } }) => ({
+				id: owner.id,
+				name,
+				owner,
+				global: true,
+			})),
 		];
 
 		const grouped: Partial<Record<EmoteProvider, EmoteSet[]>> = {};
@@ -90,7 +85,7 @@
 <InputGroup.Button
 	size="icon-sm"
 	popovertarget="emote-picker-{channel.id}"
-	disabled={app.user?.banned.has(channel.id)}
+	disabled={channel.banned}
 	aria-label="Toggle emote picker"
 >
 	<Smiley />

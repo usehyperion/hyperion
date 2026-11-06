@@ -1,19 +1,24 @@
 import { app } from "#lib/app.svelte.js";
 import BlockStatus from "#lib/components/message/events/BlockStatus.svelte";
 
-import { defineCommand, getTarget } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Twitch",
-	name: "block",
-	description: "Block a user from interacting with you on Twitch",
-	args: ["username"],
-	async exec(args, channel) {
-		const target = await getTarget(args[0], channel);
-		if (!target) return;
+function block(name: string, description: string, blocked: boolean) {
+	return command({
+		name,
+		description,
+		args: [{ type: "user", name: "username" }],
+		async exec({ username }, channel) {
+			await (blocked
+				? app.twitch.users.block(username.id)
+				: app.twitch.users.unblock(username.id));
 
-		await app.twitch.users.block(target.id);
+			channel.chat.event(BlockStatus, { blocked, user: username });
+		},
+	});
+}
 
-		channel.chat.event(BlockStatus, { blocked: true, user: target.user });
-	},
-});
+export default [
+	block("block", "Block a user from interacting with you on Twitch", true),
+	block("unblock", "Remove a user from your block list", false),
+];

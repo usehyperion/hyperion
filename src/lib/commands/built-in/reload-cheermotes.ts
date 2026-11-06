@@ -1,7 +1,6 @@
-import { defineCommand } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Built-in",
+export default command({
 	name: "reload-cheermotes",
 	description: "Reload cheermotes for the channel",
 	async exec(_, channel) {

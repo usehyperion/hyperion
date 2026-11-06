@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Tooltip } from "bits-ui";
 
-	import { UserMessage } from "#lib/models/message/user-message.svelte.js";
+	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 	import Emote from "../Emote.svelte";
 	import EmoteTooltip, { type EmotePayload } from "../EmoteTooltip.svelte";
@@ -32,7 +32,9 @@
 				<a href={node.data.url.toString()} target="_blank">{node.value}</a>
 			{/if}
 		{:else if node.type === "mention"}
-			{#if !message.reply || (message.reply && i > 0)}
+			<!-- Twitch prefixes reply text with a mention of the parent's author,
+			which the reply header already shows. -->
+			{#if !message.reply || i > 0}
 				{#if node.marked}
 					<mark class="font-semibold wrap-break-word">
 						@{node.data.user?.displayName ?? node.value.slice(1)}
@@ -42,7 +44,7 @@
 						{node.value}
 					</span>
 				{:else}
-					<User {message} mention={node} {nested} />
+					<User {message} mention={node.data.user} {nested} />
 				{/if}
 			{/if}
 		{:else if node.type === "cheer"}

@@ -1,8 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { Component, ComponentProps } from "svelte";
 
-import type { Command } from "#lib/commands/index.js";
-
 import { app } from "#lib/app.svelte.js";
 import {
 	pinMessageMutation,
@@ -15,20 +13,15 @@ import {
 } from "#lib/graphql/twitch.js";
 import { log } from "#lib/log.js";
 import { settings } from "#lib/settings/index.js";
-import { sendPresence } from "#lib/seventv.js";
 
 import type { Channel } from "./channel.svelte";
-import type { Message } from "./message/message";
+import type { Message } from "./message/message.svelte";
 
-import { commands } from "../commands";
 import Notice from "../components/message/events/Notice.svelte";
 import { RedemptionManager } from "../managers/redemption-manager";
-import { ComponentMessage } from "./message/component-message";
-import { EventMessage, type EventMessageData } from "./message/event-message";
-import { TextualMessage } from "./message/textual-message.svelte";
+import { EventMessage, type EventMeta } from "./message/event-message";
 import { UserMessage } from "./message/user-message.svelte";
 import { Pin } from "./pin.svelte";
-import { Viewer } from "./viewer.svelte";
 
 const RATE_LIMIT_WINDOW = 30 * 1000;
 const RATE_LIMIT_GRACE = 1000;
@@ -37,25 +30,29 @@ export interface ChatMode {
 	unique: boolean;
 	subOnly: boolean;
 	emoteOnly: boolean;
-	followerOnly: number | boolean;
-	slow: number | boolean;
+	/**
+	 * Minutes an account must have followed to chat (0 for any follower), or
+	 * `null` when follower-only mode is off.
+	 */
+	followerOnly: number | null;
+
+	/**
+	 * Seconds between messages; 0 when slow mode is off.
+	 */
+	slow: number;
 }
 
 export interface ChatSettings {
 	unique?: boolean;
-	subOnly?: boolean;
 	emoteOnly?: boolean;
 	followerOnly?: boolean;
 	followerOnlyDuration?: number;
 	slow?: number;
 }
 
-interface MessageOptions {
-	pin?: boolean;
-}
-
 export class Chat {
 	#bypassNext = false;
+	#lastSent: string | null = null;
 	#lastRecentAt: number | null = null;
 
 	#ids = new Set<string>();
@@ -64,29 +61,14 @@ export class Chat {
 	#lastMessage: number[] = [];
 	#lastMessageElevated: number[] = [];
 
-	// Timestamps of the last rate limit hits by speed/amount.
-	#lastHitSpdAt: number;
-	#lastHitAmtAt: number;
-
-	/**
-	 * The commands available in the chat.
-	 */
-	public readonly commands = new Map<string, Command>();
-
-	/**
-	 * Correlates channel point redemptions with their chat messages.
-	 */
 	public readonly redemptions = new RedemptionManager();
 
 	public mode: ChatMode;
 
-	/**
-	 * An array of messages sent in the chat.
-	 */
 	public messages = $state<Message[]>([]);
 
 	/**
-	 * An array of messages the current user has sent in the chat.
+	 * What the current user has entered in the chat, for recalling it.
 	 */
 	public history: string[] = [];
 
@@ -101,20 +83,13 @@ export class Chat {
 	public replyTarget = $state<UserMessage | null>(null);
 
 	public constructor(public readonly channel: Channel) {
-		const now = performance.now();
-
-		this.#lastHitSpdAt = now - RATE_LIMIT_WINDOW * 2;
-		this.#lastHitAmtAt = now - RATE_LIMIT_WINDOW * 2;
-
 		this.mode = $state({
 			emoteOnly: false,
 			unique: false,
-			slow: false,
-			followerOnly: false,
+			slow: 0,
+			followerOnly: null,
 			subOnly: false,
 		});
-
-		this.addCommands(commands);
 	}
 
 	public add(message: Message) {
@@ -124,7 +99,7 @@ export class Chat {
 
 		this.#ids.add(message.id);
 
-		if (message instanceof TextualMessage && message.recent) {
+		if (message.recent) {
 			if (this.#lastRecentAt === null) {
 				this.messages.unshift(message);
 				this.#lastRecentAt = 0;
@@ -159,48 +134,27 @@ export class Chat {
 	public event<C extends Component<any>>(
 		component: C,
 		props: ComponentProps<C>,
-		data?: Partial<EventMessageData>,
+		meta?: Partial<EventMeta>,
 	) {
-		return this.add(new EventMessage(this.channel, component, props, data));
+		return this.add(new EventMessage(this.channel, component, props, meta));
 	}
 
 	/**
 	 * Adds a plain text system notice.
 	 */
-	public notice(text: string, data?: Partial<EventMessageData>) {
-		return this.event(Notice, { text }, data);
-	}
-
-	/**
-	 * Adds an arbitrary, chrome-less component to the chat.
-	 */
-	public component<C extends Component<any>>(component: C, props: ComponentProps<C>) {
-		return this.add(new ComponentMessage(component, props));
-	}
-
-	public addCommands(commands: Command[]) {
-		for (const command of commands) {
-			this.commands.set(command.name, command);
-		}
-
-		return this;
+	public notice(text: string, meta?: Partial<EventMeta>) {
+		return this.event(Notice, { text }, meta);
 	}
 
 	public deleteMessages(id?: string) {
 		for (const message of this.messages) {
-			if (
-				message instanceof TextualMessage &&
-				message.isUser() &&
-				(!id || message.author.id === id)
-			) {
+			if (message.isUser() && (!id || message.author.id === id)) {
 				message.deleted = true;
 			}
 		}
 	}
 
 	public async clear() {
-		if (!app.user || !this.channel.isMod) return;
-
 		await invoke("privmsg", {
 			channel: this.channel.user.username,
 			message: "/clear",
@@ -209,6 +163,7 @@ export class Chat {
 
 	public reset() {
 		this.#bypassNext = false;
+		this.#lastSent = null;
 		this.#lastRecentAt = null;
 		this.replyTarget = null;
 		this.messages = [];
@@ -216,14 +171,12 @@ export class Chat {
 
 		this.#ids.clear();
 
-		this.clearPin();
+		this.setPin(null);
 
 		this.redemptions.clear();
 	}
 
 	public async announce(message: string) {
-		if (!app.user || !this.channel.isMod) return;
-
 		await this.channel.client.gql(sendAnnouncementMutation, {
 			channel: this.channel.id,
 			message,
@@ -231,12 +184,12 @@ export class Chat {
 	}
 
 	public async pin(id: string) {
-		if (!app.user || !this.channel.isMod) return;
-
 		await this.channel.client.gql(pinMessageMutation, {
 			channel: this.channel.id,
 			message: id,
 		});
+
+		await this.fetchPinned();
 	}
 
 	public async fetchPinned() {
@@ -246,112 +199,63 @@ export class Chat {
 			pin.hidden = this.pinned.hidden;
 		}
 
-		this.#setPinned(pin);
+		this.setPin(pin);
 	}
 
-	public clearPin(pin = this.pinned) {
-		if (this.pinned === pin) this.#setPinned(null);
+	/**
+	 * Replaces the pinned message, discarding the previous one.
+	 */
+	public setPin(pin: Pin | null) {
+		this.pinned?.dispose();
+		this.pinned = pin;
+	}
+
+	/**
+	 * Removes the pinned message if it is still the given one.
+	 */
+	public clearPin(pin: Pin) {
+		if (this.pinned === pin) this.setPin(null);
 	}
 
 	public async setShieldMode(active = true) {
-		if (!app.user || !this.channel.isMod) return;
-
 		await this.channel.client.gql(shieldModeMutation, {
 			channel: this.channel.id,
 			mode: active ? "SHIELD" : "DEFAULT",
 		});
 	}
 
+	public async setSubOnly(subOnly: boolean) {
+		await this.channel.client.gql(updateChatSubOnlyMode, {
+			channel: this.channel.id,
+			subOnly,
+		});
+	}
+
 	public async updateSettings(settings: ChatSettings) {
-		if (!app.user || !this.channel.isMod) return;
-
-		if (typeof settings.subOnly === "boolean") {
-			await this.channel.client.gql(updateChatSubOnlyMode, {
-				channel: this.channel.id,
-				subOnly: settings.subOnly,
-			});
-
-			return;
-		}
-
-		const followDuration =
-			typeof this.mode.followerOnly === "number" ? this.mode.followerOnly : 0;
-
 		const slowDuration = settings.slow ?? this.mode.slow;
-		const isSlow = typeof slowDuration === "number" && slowDuration > 0;
-
-		const isFollowerOnly = settings.followerOnly ?? this.mode.followerOnly !== false;
+		const isFollowerOnly = settings.followerOnly ?? this.mode.followerOnly !== null;
 
 		await this.channel.client.gql(updateChatSettingsMutation, {
 			input: {
 				channelID: this.channel.id,
 				followersOnlyDurationMinutes: isFollowerOnly
-					? (settings.followerOnlyDuration ?? followDuration)
+					? (settings.followerOnlyDuration ?? this.mode.followerOnly ?? 0)
 					: -1,
-				slowModeDurationSeconds: isSlow ? slowDuration : 0,
+				slowModeDurationSeconds: slowDuration,
 				isEmoteOnlyModeEnabled: settings.emoteOnly ?? this.mode.emoteOnly,
 				isUniqueChatModeEnabled: settings.unique ?? this.mode.unique,
 			},
 		});
 	}
 
-	public async send(message: string, options?: MessageOptions) {
-		if (!app.user) return;
+	/**
+	 * Sends a message as is; slash commands are handled by the caller.
+	 */
+	public async send(message: string) {
+		const text = this.#prepare(message);
+		if (text === null) return;
 
-		const viewer = this.channel.viewers.get(app.user.id) ?? new Viewer(this.channel, app.user);
-		const elevated = viewer.moderator || viewer.vip;
-
-		if (message.startsWith("/")) {
-			const [name, ...args] = message.slice(1).split(" ");
-
-			const command = this.commands.get(name);
-			if (!command || (command.modOnly && !this.channel.isMod)) return;
-
-			try {
-				await command.exec(args, this.channel, viewer.user);
-			} catch (error) {
-				if (error instanceof Error) {
-					log.error(
-						`Error executing command ${name} in channel ${this.channel.user.username}: ${error.message}`,
-					);
-				}
-
-				throw error;
-			}
-
-			return;
-		}
-
-		const rateLimited = this.#checkRateLimit(elevated);
-		if (rateLimited) return;
-
-		if (
-			!elevated &&
-			settings.state["chat.messages.duplicateBypass"] &&
-			this.history.at(-1) === message
-		) {
-			this.#bypassNext = !this.#bypassNext;
-
-			if (this.#bypassNext) {
-				message = `${message} \u{E0000}`;
-			}
-		} else {
-			this.#bypassNext = false;
-		}
-
-		log.info(`Sending message in ${this.channel.user.username} (${this.channel.id})`);
-
-		if (options?.pin) {
-			await this.channel.client.gql(sendPinnedMessageMutation, {
-				channel: this.channel.id,
-				message,
-			});
-
-			await sendPresence(this.channel.id);
-			return;
-		}
-
-		// Optimistically reset replyTarget to avoid UI delay
+		// Clear the reply before sending so the UI doesn't wait on it.
 		const replyId = this.replyTarget?.id;
 		this.replyTarget = null;
 
@@ -359,7 +263,7 @@ export class Chat {
 			input: {
 				channelID: this.channel.id,
 				replyParentMessageID: replyId,
-				message,
+				message: text,
 				nonce: crypto.randomUUID(),
 			},
 		});
@@ -382,8 +286,60 @@ export class Chat {
 
 		if (sent?.message) {
 			log.info("Message sent");
-			await sendPresence(this.channel.id);
+			void app.user?.sendPresence(this.channel.id);
 		}
+	}
+
+	/**
+	 * Sends a message and pins it.
+	 */
+	public async sendPinned(message: string) {
+		const text = this.#prepare(message);
+		if (text === null) return;
+
+		await this.channel.client.gql(sendPinnedMessageMutation, {
+			channel: this.channel.id,
+			message: text,
+		});
+
+		void app.user?.sendPresence(this.channel.id);
+	}
+
+	/**
+	 * The text to send for a message, or `null` if it can't be sent yet.
+	 */
+	#prepare(message: string) {
+		if (!app.user) return null;
+
+		const viewer = this.channel.viewers.get(app.user.id);
+		const elevated = this.channel.isMod || !!viewer?.vip;
+
+		if (this.#checkRateLimit(elevated)) {
+			this.notice("You are sending messages too quickly. Your message was not sent.");
+			return null;
+		}
+
+		if (
+			!elevated &&
+			settings.state["chat.messages.duplicateBypass"] &&
+			this.#lastSent === message
+		) {
+			this.#bypassNext = !this.#bypassNext;
+		} else {
+			this.#bypassNext = false;
+		}
+
+		this.#lastSent = message;
+
+		if (this.#bypassNext) {
+			// Twitch drops a message identical to the previous one, so make it
+			// differ by an invisible tag character.
+			message = `${message} \u{E0000}`;
+		}
+
+		log.info(`Sending message in ${this.channel.user.username} (${this.channel.id})`);
+
+		return message;
 	}
 
 	#checkRateLimit(elevated: boolean) {
@@ -395,32 +351,15 @@ export class Chat {
 
 		const last = queue.at(-1);
 
-		if (last && last + minMsgOffset > now) {
-			if (this.#lastHitSpdAt + RATE_LIMIT_WINDOW < now) {
-				this.#lastHitSpdAt = now;
-			}
-
-			return true;
-		}
+		if (last && last + minMsgOffset > now) return true;
 
 		while (queue.length && queue[0] + RATE_LIMIT_WINDOW + RATE_LIMIT_GRACE < now) {
 			queue.shift();
 		}
 
-		if (queue.length >= maxMsgCount) {
-			if (this.#lastHitAmtAt + RATE_LIMIT_WINDOW < now) {
-				this.#lastHitAmtAt = now;
-			}
-
-			return true;
-		}
+		if (queue.length >= maxMsgCount) return true;
 
 		queue.push(now);
 		return false;
-	}
-
-	#setPinned(pin: Pin | null) {
-		this.pinned?.dispose();
-		this.pinned = pin;
 	}
 }

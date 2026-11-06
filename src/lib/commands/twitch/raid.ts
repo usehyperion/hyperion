@@ -1,42 +1,25 @@
 import { CommandError } from "#lib/errors/command-error.js";
 import { ErrorMessage } from "#lib/errors/messages.js";
 
-import { defineCommand, getTarget, mapErrors } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "raid",
 	description: "Send viewers to another channel when the stream ends",
-	modOnly: true,
-	args: ["channel"],
-	async exec(args, channel) {
-		const target = await getTarget(args[0], channel);
-
-		if (channel.user.id === target.id) {
+	permission: "mod",
+	args: [{ type: "user", name: "channel" }],
+	errors: ({ channel }) => ({
+		CANNOT_RAID_THIS_CHANNEL: `${channel.displayName}'s channel settings do not allow raids at this time.`,
+		CANNOT_RAID_YOURSELF: ErrorMessage.CANNOT_TARGET_SELF,
+		ALREADY_RAIDING: "The channel is already raiding another channel.",
+		TOO_MANY_VIEWERS_TO_RAID: "The channel has too many viewers to raid right now.",
+	}),
+	fallback: ({ channel }) => `${channel.displayName} cannot be raided.`,
+	async exec({ channel: target }, channel) {
+		if (channel.id === target.id) {
 			throw new CommandError(ErrorMessage.CANNOT_TARGET_SELF);
 		}
 
-		await mapErrors(
-			() => channel.startRaid(target.id),
-			[
-				{
-					code: "CANNOT_RAID_THIS_CHANNEL",
-					message: ErrorMessage.SETTINGS_DO_NOT_ALLOW_RAIDS(target.displayName),
-				},
-				{
-					code: "CANNOT_RAID_YOURSELF",
-					message: ErrorMessage.CANNOT_TARGET_SELF,
-				},
-				{
-					code: "ALREADY_RAIDING",
-					message: ErrorMessage.ALREADY_RAIDING,
-				},
-				{
-					code: "TOO_MANY_VIEWERS_TO_RAID",
-					message: ErrorMessage.TOO_MANY_VIEWERS_TO_RAID,
-				},
-			],
-			ErrorMessage.USER_CANNOT_BE_RAIDED(target.displayName),
-		);
+		await channel.startRaid(target.id);
 	},
 });

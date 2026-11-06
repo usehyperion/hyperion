@@ -10,7 +10,7 @@ import {
 	sendWhisperMutation,
 	whisperMessagesQuery,
 } from "#lib/graphql/twitch.js";
-import { Pager, prependUnique, toPage, type Page } from "#lib/pager.svelte.js";
+import { Pager, toPage, type Page } from "#lib/pager.svelte.js";
 
 import type { Badge } from "./badge";
 import type { User } from "./user.svelte";
@@ -48,12 +48,6 @@ export class Whisper {
 	#lastReadableId: string | null = null;
 
 	/**
-	 * The loaded messages in the whisper, oldest first. Empty until
-	 * {@linkcode load} is called.
-	 */
-	public messages = $state<WhisperMessage[]>([]);
-
-	/**
 	 * The most recent message reported by the thread list.
 	 */
 	public preview = $state<WhisperMessage | null>(null);
@@ -71,20 +65,22 @@ export class Whisper {
 		return last.createdAt >= this.preview.createdAt ? last : this.preview;
 	});
 
-	/**
-	 * The number of unread messages in the whisper.
-	 */
 	public unread = $state(0);
 
 	public constructor(
 		public readonly client: TwitchClient,
 
-		/**
-		 * The id of the whisper thread.
-		 */
 		public readonly id: string,
 		public readonly sender: User,
 	) {}
+
+	/**
+	 * The loaded messages in the whisper, oldest first. Empty until
+	 * {@linkcode load} is called.
+	 */
+	public get messages() {
+		return this.#pager.items;
+	}
 
 	/**
 	 * Whether there are older messages that can be loaded with
@@ -111,7 +107,7 @@ export class Whisper {
 		this.#lastReadableId = message.id;
 
 		if (this.#history.status === "loaded") {
-			this.messages.push(message);
+			this.#pager.items = [...this.#pager.items, message];
 			return;
 		}
 
@@ -146,9 +142,7 @@ export class Whisper {
 	 * Loads the page of messages before the oldest loaded message.
 	 */
 	public async loadOlder() {
-		const older = await this.#pager.older();
-
-		this.messages = prependUnique(this.messages, older);
+		await this.#pager.older();
 	}
 
 	/**
@@ -171,9 +165,6 @@ export class Whisper {
 		});
 	}
 
-	/**
-	 * Sends a message in the whisper thread.
-	 */
 	public async send(message: string) {
 		if (!message) return;
 
@@ -206,7 +197,7 @@ export class Whisper {
 			(message) => !history.some((existing) => isSameMessage(existing, message)),
 		);
 
-		this.messages = [...history, ...inFlight];
+		this.#pager.items = [...history, ...inFlight];
 		this.#history = { status: "loaded" };
 	}
 

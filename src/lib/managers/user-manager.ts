@@ -4,7 +4,6 @@ import type { User as ApiUser } from "#lib/graphql/twitch.js";
 import type { TwitchClient } from "#lib/twitch/client.js";
 
 import { ApiError } from "#lib/errors/api-error.js";
-import { ErrorMessage } from "#lib/errors/messages.js";
 import {
 	blockUserMutation,
 	unblockUserMutation,
@@ -16,7 +15,6 @@ import { chunk } from "#lib/util.js";
 
 export interface UserFetchOptions {
 	by?: "id" | "login";
-	force?: boolean;
 }
 
 export class UserManager extends SvelteMap<string, User> {
@@ -26,33 +24,27 @@ export class UserManager extends SvelteMap<string, User> {
 		super();
 	}
 
-	public async fetch(idOrLogin: string, { by = "id", force = false }: UserFetchOptions = {}) {
-		const variables = {
-			id: null as string | null,
-			login: null as string | null,
-		};
+	public getByLogin(login: string) {
+		return this.values().find((user) => user.username === login);
+	}
 
-		if (by === "id") {
-			if (!force) {
-				const cached = this.get(idOrLogin);
-				if (cached) return cached;
-			}
+	/**
+	 * Retrieves the user, from the cache if they've been seen before.
+	 */
+	public async fetch(idOrLogin: string, { by = "id" }: UserFetchOptions = {}) {
+		const cached = by === "id" ? this.get(idOrLogin) : this.getByLogin(idOrLogin);
+		if (cached) return cached;
 
-			variables.id = idOrLogin;
-		} else {
-			variables.login = idOrLogin;
-		}
-
-		const { user: data } = await this.client.gql(userQuery, variables);
+		const { user: data } = await this.client.gql(userQuery, {
+			id: by === "id" ? idOrLogin : null,
+			login: by === "login" ? idOrLogin : null,
+		});
 
 		if (!data) {
-			throw new ApiError(404, ErrorMessage.USER_NOT_FOUND(idOrLogin));
+			throw new ApiError(404, `User ${idOrLogin} not found.`);
 		}
 
-		const user = new User(this.client, data);
-		if (by === "id") this.set(idOrLogin, user);
-
-		return user;
+		return this.from(data);
 	}
 
 	public from(data: ApiUser) {

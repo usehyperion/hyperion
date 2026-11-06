@@ -2,12 +2,13 @@ import type { ResultOf } from "gql.tada";
 
 import type { NonNullableDeep } from "#lib/graphql/index.js";
 
-import { modLogMessagesQuery, toMessageFragments } from "#lib/graphql/twitch.js";
-import { Pager, prependUnique, toPage, type Page } from "#lib/pager.svelte.js";
+import { modLogMessagesQuery } from "#lib/graphql/twitch.js";
+import { Pager, toPage, type Page } from "#lib/pager.svelte.js";
 import { once } from "#lib/util.js";
 
 import type { Viewer } from "./viewer.svelte";
 
+import { fromGqlContent } from "./message/fragment";
 import { UserMessage } from "./message/user-message.svelte";
 
 type ModLogsResult = NonNullableDeep<
@@ -29,11 +30,8 @@ export class MessageHistory {
 	readonly #pager = new Pager<UserMessage>((after) => this.#fetchPage(after));
 
 	readonly #history = once(async () => {
-		this.#logged = await this.#pager.first();
+		this.#pager.items = await this.#pager.first();
 	});
-
-	// Messages loaded from the mod logs, oldest first.
-	#logged = $state.raw<UserMessage[]>([]);
 
 	/**
 	 * The messages sent by the viewer, oldest first. Only includes messages
@@ -44,13 +42,14 @@ export class MessageHistory {
 			(m): m is UserMessage => m.isUser() && m.author.id === this.viewer.id,
 		);
 
-		if (!this.#logged.length) return received;
+		const logged = this.#pager.items;
+		if (!logged.length) return received;
 
 		// Prefer messages received in chat since they're kept up to date.
 		const ids = new Set(received.map((message) => message.id));
 
 		return merge(
-			this.#logged.filter((message) => !ids.has(message.id)),
+			logged.filter((message) => !ids.has(message.id)),
 			received,
 		);
 	});
@@ -81,9 +80,7 @@ export class MessageHistory {
 	 * Loads the page of messages before the oldest loaded message.
 	 */
 	public async loadOlder() {
-		const older = await this.#pager.older();
-
-		this.#logged = prependUnique(this.#logged, older);
+		await this.#pager.older();
 	}
 
 	async #fetchPage(after: string | null): Promise<Page<UserMessage>> {
@@ -110,13 +107,13 @@ export class MessageHistory {
 		const message = UserMessage.from(this.viewer.channel, {
 			id: data.id,
 			text: data.content.text,
-			fragments: toMessageFragments(data.content),
+			fragments: fromGqlContent(data.content),
 			sender: data.sender ?? {
 				id: this.viewer.id,
 				login: this.viewer.username,
 				name: this.viewer.displayName,
 			},
-			color: data.sender?.chatColor ?? "",
+			color: data.sender?.chatColor ?? null,
 			badges: data.senderBadges ?? [],
 			timestamp: new Date(data.sentAt).getTime(),
 		});
