@@ -4,6 +4,7 @@
 
 	import type { Poll } from "#lib/models/poll.svelte.js";
 
+	import { percent } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
 
 	import Progress from "../ui/Progress.svelte";
@@ -33,10 +34,6 @@
 	);
 
 	const leading = $derived(Math.max(0, ...poll.choices.map((c) => c.votes)));
-
-	function percent(votes: number) {
-		return poll.totalVotes > 0 ? Math.round((votes / poll.totalVotes) * 100) : 0;
-	}
 </script>
 
 <div class="p-2 text-sm">
@@ -64,7 +61,7 @@
 	{#if expanded}
 		<ul class="flex flex-col gap-1.5">
 			{#each poll.choices as choice (choice.id)}
-				{@const pct = percent(choice.votes)}
+				{@const pct = percent(choice.votes, poll.totalVotes)}
 				{@const winner =
 					poll.status !== "ACTIVE" && choice.votes === leading && leading > 0}
 

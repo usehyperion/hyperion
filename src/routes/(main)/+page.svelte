@@ -12,6 +12,7 @@
 	import SplitNode from "#lib/components/split/SplitNode.svelte";
 	import Button from "#lib/components/ui/Button.svelte";
 	import * as Empty from "#lib/components/ui/empty/index.js";
+	import { dialogs } from "#lib/dialog.js";
 	import { settings } from "#lib/settings/index.js";
 	import { createPane, firstLeaf } from "#lib/splits/tree.js";
 
@@ -136,7 +137,7 @@
 			</Empty.Header>
 
 			<Empty.Content>
-				<Button command="show-modal" commandfor="join-dialog">Search channels</Button>
+				<Button command="show-modal" commandfor={dialogs.join}>Search channels</Button>
 			</Empty.Content>
 		</Empty.Root>
 

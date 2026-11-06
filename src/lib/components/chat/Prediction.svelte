@@ -6,6 +6,7 @@
 
 	import type { Prediction } from "#lib/models/prediction.svelte.js";
 
+	import { percent } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
 
 	import Progress from "../ui/Progress.svelte";
@@ -67,10 +68,6 @@
 		return prediction.outcomes.length <= 2 ? DUO[index] : RAINBOW[index];
 	}
 
-	function percent(points: number) {
-		return prediction.totalPoints > 0 ? Math.round((points / prediction.totalPoints) * 100) : 0;
-	}
-
 	function ratio(points: number) {
 		return points > 0 ? prediction.totalPoints / points : 0;
 	}
@@ -115,7 +112,7 @@
 	{#if expanded}
 		<ul class="flex flex-col gap-1.5">
 			{#each prediction.outcomes as outcome, i (outcome.id)}
-				{@const pct = percent(outcome.points)}
+				{@const pct = percent(outcome.points, prediction.totalPoints)}
 				{@const won =
 					prediction.status === "RESOLVED" && prediction.winningOutcomeId === outcome.id}
 				{@const lost =

@@ -7,6 +7,7 @@
 
 	import Button from "#lib/components/ui/Button.svelte";
 	import Dialog from "#lib/components/ui/Dialog.svelte";
+	import { dialogs } from "#lib/dialog.js";
 
 	interface AboutInfo {
 		name: string;
@@ -92,6 +93,6 @@
 			<span class="text-sm">Copy info</span>
 		</Button>
 
-		<Button command="close" commandfor="about-dialog">Close</Button>
+		<Button command="close" commandfor={dialogs.about}>Close</Button>
 	{/snippet}
 </Dialog>

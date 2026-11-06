@@ -8,6 +8,7 @@
 
 	import { app } from "#lib/app.svelte.js";
 	import { Completer } from "#lib/completer.svelte.js";
+	import { dialogs } from "#lib/dialog.js";
 	import { CommandError } from "#lib/errors/command-error.js";
 
 	import EmotePicker from "../emote-picker/EmotePicker.svelte";
@@ -165,7 +166,7 @@
 				<InputGroup.Button
 					size="icon-sm"
 					command="show-modal"
-					commandfor="poll-dialog-{chat.channel.id}"
+					commandfor={dialogs.poll(chat.channel.id)}
 				>
 					<ChartBarHorizontal />
 				</InputGroup.Button>
@@ -173,7 +174,7 @@
 				<InputGroup.Button
 					size="icon-sm"
 					command="show-modal"
-					commandfor="prediction-dialog-{chat.channel.id}"
+					commandfor={dialogs.prediction(chat.channel.id)}
 				>
 					<SealQuestion />
 				</InputGroup.Button>

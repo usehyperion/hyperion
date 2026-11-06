@@ -8,9 +8,9 @@
 
 	import { app } from "#lib/app.svelte.js";
 	import Button from "#lib/components/ui/Button.svelte";
+	import { closeDialog, dialogs } from "#lib/dialog.js";
 	import { logOut } from "#lib/twitch/auth.js";
 
-	import { closeDialog } from "../ui/Dialog.svelte";
 	import AboutDialog from "./AboutDialog.svelte";
 
 	async function openLogDir() {
@@ -27,7 +27,7 @@
 	<Button
 		class="text-muted-foreground"
 		command="show-modal"
-		commandfor="about-dialog"
+		commandfor={dialogs.about}
 		variant="ghost"
 	>
 		<Info />
@@ -40,7 +40,7 @@
 			variant="ghost"
 			onclick={() => {
 				logOut();
-				closeDialog("settings-dialog");
+				closeDialog(dialogs.settings);
 			}}
 		>
 			<SignOut />

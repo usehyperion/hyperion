@@ -5,6 +5,7 @@
 
 	import type { Pin } from "#lib/models/pin.svelte.js";
 
+	import { dialogs } from "#lib/dialog.js";
 	import { clamp } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
 
@@ -46,7 +47,7 @@
 					icon={Clock}
 					tooltip="Change duration"
 					command="show-modal"
-					commandfor="pin-duration-dialog-{pin.message.id}"
+					commandfor={dialogs.pinDuration(pin.message.id)}
 				/>
 
 				<NoticeAction icon={PushPinSlash} tooltip="Unpin" onclick={() => pin.unpin()} />

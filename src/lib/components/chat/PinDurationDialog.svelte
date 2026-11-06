@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Pin } from "#lib/models/pin.svelte.js";
 
+	import { dialogs } from "#lib/dialog.js";
 	import { clamp } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
 
@@ -28,7 +29,7 @@
 	}
 </script>
 
-<Dialog id="pin-duration-dialog-{pin.message.id}">
+<Dialog id={dialogs.pinDuration(pin.message.id)}>
 	{#snippet header()}
 		<h2>Pin duration</h2>
 		<p>Choose how long this message stays pinned</p>

@@ -13,6 +13,7 @@
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
 
 	import { app } from "#lib/app.svelte.js";
+	import { dialogs } from "#lib/dialog.js";
 	import { updater } from "#lib/updater.svelte.js";
 
 	import JoinDialog from "./JoinDialog.svelte";
@@ -75,7 +76,7 @@
 			<button
 				class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-[background-color,scale] hover:bg-accent active:scale-[0.96]"
 				command="show-modal"
-				commandfor="join-dialog"
+				commandfor={dialogs.join}
 			>
 				<MagnifyingGlass /> Search channels
 			</button>
@@ -127,7 +128,7 @@
 			<Button
 				class="size-min p-1 text-muted-foreground"
 				command="show-modal"
-				commandfor="settings-dialog"
+				commandfor={dialogs.settings}
 				size="icon"
 				variant="ghost"
 				aria-label="Open settings"
