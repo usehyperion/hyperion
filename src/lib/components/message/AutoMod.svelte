@@ -5,6 +5,7 @@
 	import { deletedAppearance } from "#lib/settings/index.js";
 
 	import Button from "../ui/Button.svelte";
+	import Callout from "./Callout.svelte";
 	import Message from "./Message.svelte";
 
 	interface Props {
@@ -15,10 +16,7 @@
 	const { message, metadata }: Props = $props();
 </script>
 
-<div
-	class="my-0.5 border-l-4 border-red-500 bg-muted/50 p-2"
-	data-deleted={deletedAppearance(message)}
->
+<Callout class="border-red-500" data-deleted={deletedAppearance(message)}>
 	<div class="mb-2 flex w-full items-start justify-between gap-x-4">
 		<div>
 			<img
@@ -63,4 +61,4 @@
 	</div>
 
 	<Message {message} />
-</div>
+</Callout>

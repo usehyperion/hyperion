@@ -9,6 +9,7 @@
 	import { deletedAppearance, settings } from "#lib/settings/index.js";
 	import { openMenu } from "#lib/util/index.js";
 
+	import Callout from "./Callout.svelte";
 	import Highlight from "./Highlight.svelte";
 	import Message from "./Message.svelte";
 	import QuickActions from "./QuickActions.svelte";
@@ -83,12 +84,9 @@
 	{#if message.redemption}
 		<Redemption reward={message.redemption} {message} viewer={message.viewer} />
 	{:else if message.highlighted}
-		<div
-			class="my-0.5 border-l-4 bg-muted/50 p-2"
-			style:border-color={message.source.user.color}
-		>
+		<Callout color={message.source.user.color}>
 			<Message {message} />
-		</div>
+		</Callout>
 	{:else if settings.state["highlights.enabled"]}
 		{@const config = hlType ? settings.state["highlights.viewers"][hlType] : null}
 

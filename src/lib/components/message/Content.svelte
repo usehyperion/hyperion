@@ -3,8 +3,8 @@
 
 	import { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
-	import Emote from "../Emote.svelte";
-	import EmoteTooltip, { type EmotePayload } from "../EmoteTooltip.svelte";
+	import Emote from "../emote/Emote.svelte";
+	import EmoteTooltip, { type EmotePayload } from "../emote/EmoteTooltip.svelte";
 	import User from "../user/User.svelte";
 
 	interface Props {

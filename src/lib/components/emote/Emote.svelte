@@ -7,6 +7,8 @@
 
 	import type { EmoteTether } from "./EmoteTooltip.svelte";
 
+	import EmoteLayers from "./EmoteLayers.svelte";
+
 	interface Props {
 		emote: Emote;
 		layers?: Emote[];
@@ -26,25 +28,7 @@
 			style:padding="{settings.state['chat.emotes.padding']}px"
 			{...props}
 		>
-			<img
-				class="col-start-1 row-start-1 object-contain"
-				srcset={emote.srcset.join(", ")}
-				alt={emote.displayName}
-				width={emote.displayWidth}
-				height={emote.displayHeight}
-				decoding="async"
-			/>
-
-			{#each layers as layer}
-				<img
-					class="col-start-1 row-start-1 m-auto object-contain"
-					srcset={layer.srcset.join(", ")}
-					alt={layer.displayName}
-					width={layer.displayWidth}
-					height={layer.displayHeight}
-					decoding="async"
-				/>
-			{/each}
+			<EmoteLayers {emote} {layers} size="display" />
 		</button>
 	{/snippet}
 </Tooltip.Trigger>

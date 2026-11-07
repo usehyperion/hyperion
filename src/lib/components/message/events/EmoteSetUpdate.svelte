@@ -4,8 +4,8 @@
 	import type { Emote as EmoteType } from "#lib/emotes.js";
 	import type { Viewer } from "#lib/models/viewer.svelte.js";
 
-	import Emote from "#lib/components/Emote.svelte";
-	import EmoteTooltip, { type EmotePayload } from "#lib/components/EmoteTooltip.svelte";
+	import Emote from "#lib/components/emote/Emote.svelte";
+	import EmoteTooltip, { type EmotePayload } from "#lib/components/emote/EmoteTooltip.svelte";
 	import Username from "#lib/components/user/Username.svelte";
 
 	interface Props {

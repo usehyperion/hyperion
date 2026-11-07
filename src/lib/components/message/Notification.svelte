@@ -7,6 +7,7 @@
 	import { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 	import Username from "../user/Username.svelte";
+	import Callout from "./Callout.svelte";
 	import Message from "./Message.svelte";
 	import Sub from "./Sub.svelte";
 
@@ -55,10 +56,7 @@
 	{:else if type === "sub_or_resub" || type === "sub_mystery_gift" || type === "sub_gift" || type === "prime_paid_upgrade" || type === "gift_paid_upgrade"}
 		<Sub {message} sub={message.event} />
 	{:else}
-		<div
-			class="my-0.5 border-l-4 bg-muted/50 p-2"
-			style:border-color={message.source.user.color}
-		>
+		<Callout color={message.source.user.color}>
 			{#if type === "bits_badge_tier"}
 				<div class="flex gap-1">
 					<Confetti class="mt-0.5 shrink-0" />
@@ -101,17 +99,11 @@
 
 					{#if message.event.is_prior_gifter_anonymous}
 						an anonymous gifter
-					{:else if gifter}
-						<Username user={gifter.user} />
 					{:else}
-						<span class="font-semibold">{message.event.prior_gifter.name}</span>
+						<Username user={gifter?.user} name={message.event.prior_gifter.name} />
 					{/if} to
 
-					{#if recipient}
-						<Username user={recipient.user} />
-					{:else}
-						<span class="font-semibold">{message.event.recipient.name}</span>
-					{/if}!
+					<Username user={recipient?.user} name={message.event.recipient.name} />!
 				</p>
 			{:else if type === "community_pay_forward"}
 				{@const gifter = message.channel.viewers.get(message.event.gifter.id)}
@@ -120,11 +112,7 @@
 					<Username user={message.author} />
 					is paying forward the gifted sub they received from
 
-					{#if gifter}
-						<Username user={gifter.user} />
-					{:else}
-						<span class="font-semibold">{message.event.gifter.name}</span>
-					{/if}!
+					<Username user={gifter?.user} name={message.event.gifter.name} />!
 				</p>
 			{:else if type === "raid"}
 				<p class="inline">
@@ -169,6 +157,6 @@
 					</div>
 				{/if}
 			{/if}
-		</div>
+		</Callout>
 	{/if}
 {/if}
