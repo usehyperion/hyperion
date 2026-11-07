@@ -6,6 +6,7 @@
 
 	import type { EmoteSet } from "#lib/emotes.js";
 
+	import Avatar from "../ui/Avatar.svelte";
 	import EmoteGrid from "./EmoteGrid.svelte";
 	import ProviderRail from "./ProviderRail.svelte";
 
@@ -76,8 +77,8 @@
 				<Accordion.Header class="sticky top-0 z-10 bg-sidebar p-2">
 					<Accordion.Trigger class="group flex w-full items-center justify-between">
 						<div class="flex items-center">
-							<img
-								class="mr-2 size-5 rounded-full object-contain ring-1 ring-black/10 dark:ring-white/10"
+							<Avatar
+								class="mr-2 size-5 object-contain"
 								src={set.owner.avatarUrl}
 								alt={set.owner.displayName}
 								decoding="async"

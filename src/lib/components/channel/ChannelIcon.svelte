@@ -5,6 +5,8 @@
 
 	import { useSidebar } from "#lib/hooks/use-sidebar.svelte.js";
 
+	import Avatar from "../ui/Avatar.svelte";
+
 	interface Props {
 		channel: Channel;
 	}
@@ -14,9 +16,9 @@
 	const sidebar = useSidebar();
 </script>
 
-<img
+<Avatar
 	class={[
-		"ease size-8 rounded-full object-cover ring-1 ring-black/10 transition-opacity duration-200 dark:ring-white/10",
+		"ease size-8 transition-opacity duration-200",
 		sidebar.collapsed && "opacity-0",
 		!channel.stream && "grayscale",
 	]}

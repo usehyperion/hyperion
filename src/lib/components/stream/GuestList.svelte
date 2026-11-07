@@ -4,6 +4,7 @@
 	import type { Channel } from "#lib/models/channel.svelte.js";
 	import type { Guest } from "#lib/models/stream.svelte.js";
 
+	import Avatar from "../ui/Avatar.svelte";
 	import Button from "../ui/Button.svelte";
 	import Popover from "../ui/Popover.svelte";
 
@@ -62,13 +63,10 @@
 {#snippet participant(guest: Omit<Guest, "viewers">, viewers: number | null)}
 	<div class="flex items-center justify-between gap-x-8">
 		<div class={["flex items-center", tooltip ? "gap-x-1 text-xs" : "gap-x-2 text-sm"]}>
-			<img
+			<Avatar
+				class={tooltip ? "size-5" : "size-6"}
 				src={guest.avatarUrl}
 				alt={guest.displayName}
-				class={[
-					"rounded-full ring-1 ring-black/10 dark:ring-white/10",
-					tooltip ? "size-5" : "size-6",
-				]}
 				width="50"
 				height="50"
 			/>

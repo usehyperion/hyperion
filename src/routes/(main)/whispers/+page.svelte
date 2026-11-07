@@ -7,6 +7,7 @@
 
 	import { app } from "#lib/app.svelte.js";
 	import { everyMinute } from "#lib/clock.js";
+	import Avatar from "#lib/components/ui/Avatar.svelte";
 	import * as Empty from "#lib/components/ui/empty/index.js";
 
 	const { data } = $props();
@@ -45,8 +46,8 @@
 							href={resolve("/(main)/whispers/[id]", { id })}
 						>
 							{#if sender.avatarUrl}
-								<img
-									class="size-10 shrink-0 rounded-full bg-muted object-cover ring-1 ring-black/10 dark:ring-white/10"
+								<Avatar
+									class="size-10 shrink-0 bg-muted"
 									src={sender.avatarUrl}
 									alt=""
 									width="40"

@@ -17,6 +17,7 @@
 	import { storage } from "#lib/stores.js";
 	import { debounce } from "#lib/util/index.js";
 
+	import Avatar from "./ui/Avatar.svelte";
 	import Dialog from "./ui/Dialog.svelte";
 
 	type Filter = "all" | "live";
@@ -264,8 +265,8 @@
 							type="button"
 							onclick={() => join(item.login, item)}
 						>
-							<img
-								class="size-9 shrink-0 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10"
+							<Avatar
+								class="size-9 shrink-0"
 								src={item.profileImageURL}
 								alt={item.displayName}
 							/>

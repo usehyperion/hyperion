@@ -5,6 +5,7 @@
 	import ChatSeparator from "#lib/components/chat/ChatSeparator.svelte";
 	import ReverseScroll from "#lib/components/ReverseScroll.svelte";
 	import Timestamp from "#lib/components/Timestamp.svelte";
+	import Avatar from "#lib/components/ui/Avatar.svelte";
 	import Input from "#lib/components/ui/Input.svelte";
 	import { log } from "#lib/log.js";
 
@@ -61,8 +62,7 @@
 							!isNewDay && "border-t",
 						]}
 					>
-						<img
-							class="rounded-full ring-1 ring-black/10 dark:ring-white/10"
+						<Avatar
 							src={message.user.avatarUrl}
 							alt={message.user.displayName}
 							width="40"

@@ -7,6 +7,7 @@
 	import { app } from "#lib/app.svelte.js";
 	import ChannelIcon from "#lib/components/channel/ChannelIcon.svelte";
 	import Sidebar from "#lib/components/Sidebar.svelte";
+	import Avatar from "#lib/components/ui/Avatar.svelte";
 	import { dialogs, openDialog } from "#lib/dialog.js";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "#lib/splits/events.js";
 	import { storage } from "#lib/stores.js";
@@ -53,11 +54,8 @@
 					<div
 						class="mx-auto flex max-w-max items-center gap-2 rounded bg-background px-2 py-1"
 					>
-						<img
-							class={[
-								"size-6 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10",
-								!channel.stream && "grayscale",
-							]}
+						<Avatar
+							class={["size-6", !channel.stream && "grayscale"]}
 							src={channel.user.avatarUrl}
 							alt={channel.user.displayName}
 							width="150"
