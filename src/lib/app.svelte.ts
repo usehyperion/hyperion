@@ -142,7 +142,7 @@ class App {
 	 */
 	public async load(user: CurrentUser) {
 		// Without it no channel counts as moderated until the next load.
-		await user.loadModerating().catch(log.catch("Failed to load moderated channels"));
+		await user.loadModerating().catch(log.swallow("Failed to load moderated channels"));
 
 		if (!this.channels.has(user.id)) {
 			this.channels.add(user);
@@ -154,9 +154,9 @@ class App {
 					this.channels.add(followed.user, followed.stream);
 				}
 			}
-		}, log.catch("Failed to load followed channels"));
+		}, log.swallow("Failed to load followed channels"));
 
-		user.loadWhispers().catch(log.catch("Failed to load whispers"));
+		user.loadWhispers().catch(log.swallow("Failed to load whispers"));
 
 		await Promise.all([this.emotes.fetch(), this.badges.fetch()]);
 	}

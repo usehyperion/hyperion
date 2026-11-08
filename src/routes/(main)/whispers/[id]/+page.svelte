@@ -14,7 +14,7 @@
 	$effect(() => {
 		if (!data.whisper.unread) return;
 
-		data.whisper.markRead().catch(log.catch("Failed to mark whisper as read"));
+		data.whisper.markRead().catch(log.swallow("Failed to mark whisper as read"));
 	});
 
 	let sendError = $state<string | null>(null);

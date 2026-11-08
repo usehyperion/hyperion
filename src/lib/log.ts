@@ -38,5 +38,5 @@ export const log = {
 	info: (message: string) => emit("info", message),
 	warn: (message: string, cause?: unknown) => emit("warn", message, cause),
 	error: (message: string, cause?: unknown) => emit("error", message, cause),
-	catch: (message: string) => (cause: unknown) => emit("error", message, cause),
+	swallow: (message: string) => (cause: unknown) => emit("error", message, cause),
 };
