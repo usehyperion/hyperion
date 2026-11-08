@@ -41,8 +41,6 @@ struct Hello {
     heartbeat_interval: Option<u64>,
 }
 
-/// The events the app wants from 7TV, keyed by channel login and event type,
-/// with the condition that picks out the object the event is about.
 pub struct SeventTvClient {
     subscriptions: SubscriptionStore<serde_json::Value>,
 }
@@ -80,8 +78,6 @@ impl SeventTvClient {
     }
 }
 
-/// Owns the connection-side state, and the sender for its events so they end
-/// when the connection is stopped.
 struct SeventTvDriver {
     client: Arc<SeventTvClient>,
     events: mpsc::UnboundedSender<serde_json::Value>,

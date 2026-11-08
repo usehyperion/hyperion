@@ -63,8 +63,6 @@ async fn establish_transport(config: Arc<ClientConfig>) -> Result<(Incoming, Out
         }
     };
 
-    // The next connection waits for the limiter, so holding it is what spaces
-    // out connects, and what keeps a failing one from being retried at once
     let hold = match &transport {
         Ok(_) => {
             backoff.reset();

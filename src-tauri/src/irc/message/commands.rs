@@ -10,10 +10,10 @@ use thiserror::Error;
 use super::prefix::IrcPrefix;
 use super::{Badge, BasicUser, Emote, Gif, IrcMessage, Reply, ReplyParent, ReplyThread, Source};
 
-/// Twitch's AnAnonymousGifter account, which sends anonymous gifts.
+/// Twitch's AnAnonymousGifter account.
 const ANONYMOUS_GIFTER_ID: &str = "274598607";
 
-/// The tags a user's id, login and display name are read from.
+/// The tags a user's id, login, and display name are read from.
 struct UserTags {
     id: &'static str,
     login: &'static str,

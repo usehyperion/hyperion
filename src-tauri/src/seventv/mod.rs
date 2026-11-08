@@ -12,9 +12,6 @@ use crate::connection::{self, Client, Connection};
 use crate::error::Error;
 
 impl SeventTvClient {
-    /// Subscribes to the events for a joined channel, keyed by its login.
-    /// `user_id` and `emote_set_id` are the channel's 7TV user and active
-    /// emote set, if it has them.
     pub fn join(
         &self,
         login: &str,
@@ -66,8 +63,8 @@ pub async fn connect_seventv(
     connection::connect(app_handle, channel, |_| Ok(SeventTvClient::start())).await
 }
 
-/// Recomputes the 7TV subscriptions for a joined channel, after its 7TV user
-/// or active emote set changed.
+/// Recomputes the 7TV subscriptions for a joined channel after its 7TV user or
+/// active emote set changed.
 #[tracing::instrument(skip(state))]
 #[tauri::command]
 pub async fn sync_seventv(

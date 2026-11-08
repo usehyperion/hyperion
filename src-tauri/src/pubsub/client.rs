@@ -15,10 +15,9 @@ const MAX_TOPICS_PER_LISTEN: usize = 50;
 
 #[derive(Debug, Serialize)]
 pub struct PubSubMessage {
-    /// The topic's name without its ids, e.g. `chat_moderator_actions`.
+    /// The topic's name without its ids.
     topic: String,
-    /// The last id of the full topic, i.e. the channel for channel topics and
-    /// the user for user topics.
+    /// The last id of the full topic.
     target_id: String,
     message: serde_json::Value,
 }
@@ -42,8 +41,7 @@ impl PubSubMessage {
         }
     }
 
-    /// Tells the frontend that the server stopped sending `full_topic`, e.g.
-    /// after the user was banned or lost moderator status in the channel.
+    /// Tells the frontend that the server stopped sending `full_topic`.
     fn auth_revoked(full_topic: &str) -> Self {
         let (topic, target_id) = split_topic(full_topic);
 
@@ -86,9 +84,6 @@ enum Incoming {
     AuthRevoked { data: AuthRevokedData },
 }
 
-/// The topics the app wants to listen to. Keyed by owner (the session or a
-/// channel login) and full topic, which is all a listen needs, so there is no
-/// value.
 pub struct PubSubClient {
     user_id: String,
     subscriptions: SubscriptionStore<()>,
@@ -122,9 +117,8 @@ impl PubSubClient {
         }
     }
 
-    /// Listens to the channel topics for `channel_id`, keyed by the channel's
-    /// login. Calling it again recomputes them, e.g. after `is_mod` changed or
-    /// topics were revoked.
+    /// Listens to the channel topics for `channel_id` keyed by the channel's
+    /// login. Calling it again recomputes them.
     #[tracing::instrument(name = "pubsub_listen", skip(self))]
     pub fn listen(&self, channel: &str, channel_id: &str, is_mod: bool) {
         let topics = channel_topics(&self.user_id, channel_id, is_mod);
@@ -141,8 +135,6 @@ impl PubSubClient {
     }
 }
 
-/// Owns the connection-side state, and the sender for its events so they end
-/// when the connection is stopped.
 struct PubSubDriver {
     client: Arc<PubSubClient>,
     token: UserToken,

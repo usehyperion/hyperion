@@ -22,8 +22,6 @@ use crate::auth::get_access_token;
 use crate::connection::{Client, Connection, Started};
 use crate::error::Error as AppError;
 
-/// Only messages the frontend has handlers for are forwarded, to avoid
-/// unnecessary IPC traffic.
 fn forwarded(message: &ServerMessage) -> bool {
     matches!(
         message,
@@ -56,7 +54,6 @@ impl Client for IrcClient {
     }
 }
 
-/// The current IRC client, which every channel command needs.
 pub fn client(state: &AppState) -> Result<Arc<IrcClient>, AppError> {
     state.irc.as_ref().map(Connection::client).ok_or_else(|| {
         tracing::error!("No IRC connection");

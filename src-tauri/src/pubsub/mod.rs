@@ -10,19 +10,16 @@ use crate::auth::get_access_token;
 use crate::connection::{self, Client, Connection};
 use crate::error::Error;
 
-/// Who a topic is about, which decides the ids that follow its name.
 enum Scope {
     /// `{name}.{channel_id}`
     Channel,
-    /// `{name}.{user_id}.{channel_id}`, for the current user in a channel.
+    /// `{name}.{user_id}.{channel_id}` for the current user in a channel.
     UserInChannel,
-    /// Like [`Scope::UserInChannel`], but only listened to as a moderator.
     ModeratorInChannel,
     /// `{name}.{user_id}`, listened to for the whole session.
     User,
 }
 
-/// Every PubSub topic the app listens to, named exactly as Twitch names them.
 const TOPICS: &[(&str, Scope)] = &[
     ("broadcast-settings-update", Scope::Channel),
     ("community-points-channel-v1", Scope::Channel),

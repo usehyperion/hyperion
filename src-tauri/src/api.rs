@@ -5,8 +5,6 @@ use tokio::sync::Mutex;
 use crate::error::Error;
 use crate::{AppState, irc};
 
-/// Rejects an empty channel login, which no channel has and which the clients
-/// key their per-channel state by.
 pub fn ensure_login(login: &str) -> Result<(), Error> {
     if login.is_empty() {
         tracing::error!("Received an empty channel login");
@@ -16,9 +14,6 @@ pub fn ensure_login(login: &str) -> Result<(), Error> {
     Ok(())
 }
 
-/// Joins a channel, or updates what is followed in a joined one, e.g. after
-/// being unbanned or after moderator status changed. Each client only sends
-/// what differs from what it already has.
 #[tracing::instrument(skip(state, is_mod))]
 #[tauri::command]
 pub async fn join(
