@@ -172,6 +172,7 @@ function classify(base: BaseNode, message: UserMessage, ircEmotes: IrcEmote[]): 
 		};
 	}
 
+	// Priority: personal emotes -> global emotes -> channel emotes
 	const emote =
 		personalEmote(message.author.id, part) ??
 		app.emotes.get(part) ??
@@ -188,7 +189,11 @@ function classify(base: BaseNode, message: UserMessage, ircEmotes: IrcEmote[]): 
 		};
 	}
 
-	return { ...base, type: "text", data: part };
+	return {
+		...base,
+		type: "text",
+		data: part,
+	};
 }
 
 function fold(nodes: Node[]): Node[] {
@@ -229,11 +234,8 @@ function precedingEmote(nodes: Node[]): EmoteNode | null {
 	return null;
 }
 
-/**
- * The emote with the given name in the user's 7TV personal emote set.
- */
 function personalEmote(userId: string, name: string) {
-	if (!settings.state["chat.emotes.seventv"]) return undefined;
-
-	return app.cosmetics.personalEmote(userId, name);
+	return settings.state["chat.emotes.seventv"]
+		? app.cosmetics.personalEmote(userId, name)
+		: undefined;
 }

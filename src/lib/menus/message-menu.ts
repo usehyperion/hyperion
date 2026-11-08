@@ -35,7 +35,9 @@ export async function createMessageMenu(message: UserMessage) {
 
 	const copyId = await MenuItem.new({
 		text: "Copy Message ID",
-		action: () => void navigator.clipboard.writeText(message.id),
+		async action() {
+			await navigator.clipboard.writeText(message.id);
+		},
 	});
 
 	items.push(separator, copyId);

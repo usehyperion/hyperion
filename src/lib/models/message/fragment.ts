@@ -51,11 +51,22 @@ export function fromGqlContent(content: MessageContent): MessageFragment[] {
 
 		switch (inner?.__typename) {
 			case "Emote":
-				return { type: "emote", text, id: inner.emoteID ?? "" };
+				return {
+					type: "emote",
+					text,
+					id: inner.emoteID ?? "",
+				};
 			case "CheermoteToken":
-				return { type: "cheermote", text, bits: inner.bitsAmount };
+				return {
+					type: "cheermote",
+					text,
+					bits: inner.bitsAmount,
+				};
 			default:
-				return { type: "text", text };
+				return {
+					type: "text",
+					text,
+				};
 		}
 	});
 }
@@ -68,7 +79,14 @@ interface PubSubFragment {
 export function fromPubSubFragments(fragments: PubSubFragment[]): MessageFragment[] {
 	return fragments.map((fragment) =>
 		fragment.emoticon
-			? { type: "emote", text: fragment.text, id: fragment.emoticon.emoticonID }
-			: { type: "text", text: fragment.text },
+			? {
+					type: "emote",
+					text: fragment.text,
+					id: fragment.emoticon.emoticonID,
+				}
+			: {
+					type: "text",
+					text: fragment.text,
+				},
 	);
 }

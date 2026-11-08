@@ -17,17 +17,13 @@ export interface MessageAction {
 	icon: Component;
 
 	/**
-	 * Whether the action affects other users rather than only the current one.
+	 * Whether the action affects other users.
 	 */
 	moderation: boolean;
 	enabled: (message: UserMessage) => boolean;
 	run: (message: UserMessage) => unknown;
 }
 
-/**
- * What can be done to a message, shared by its context menu and its hover
- * actions.
- */
 export const messageActions = {
 	copy: {
 		label: () => "Copy",
@@ -76,9 +72,6 @@ export const messageActions = {
 	},
 } satisfies Record<string, MessageAction>;
 
-/**
- * Runs the action, reporting a failure in the message's chat.
- */
 export async function runAction(message: UserMessage, action: MessageAction) {
 	try {
 		await action.run(message);

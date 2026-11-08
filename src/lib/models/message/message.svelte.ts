@@ -11,11 +11,7 @@ export interface MessageInit {
 export abstract class Message {
 	public abstract readonly [Symbol.toStringTag]: string;
 
-	/**
-	 * The id of the message; Twitch's for user messages, generated otherwise.
-	 */
 	public abstract readonly id: string;
-
 	public abstract readonly text: string;
 
 	public readonly timestamp: Date;
@@ -36,8 +32,7 @@ export abstract class Message {
 		this.recent = init.recent;
 	}
 
-	// Tag checks rather than `instanceof` so this file doesn't import its
-	// subclasses.
+	// Tag checks rather than `instanceof` to prevent circular dependencies
 	public isEvent(): this is EventMessage {
 		return this[Symbol.toStringTag] === "EventMessage";
 	}

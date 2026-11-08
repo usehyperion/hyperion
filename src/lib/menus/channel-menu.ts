@@ -87,8 +87,8 @@ export async function createChannelMenu(channel: Channel) {
 	const copyId = await MenuItem.new({
 		id: "copy-id",
 		text: "Copy Channel ID",
-		action() {
-			navigator.clipboard.writeText(channel.id);
+		async action() {
+			await navigator.clipboard.writeText(channel.id);
 		},
 	});
 

@@ -22,9 +22,7 @@
 	const chat = channel.chat;
 
 	onMount(() => {
-		channel.join().catch((error: unknown) => {
-			log.error(`Failed to join ${channel.user.username}`, error);
-		});
+		channel.join().catch(log.swallow(`Failed to join ${channel.user.username}`));
 	});
 </script>
 

@@ -11,7 +11,7 @@ export interface EventMeta {
 }
 
 /**
- * A channel event, rendered by the component that represents its kind.
+ * A channel event rendered by the component that represents its kind.
  */
 export class EventMessage<C extends Component<any> = Component<any>> extends Message {
 	public override readonly [Symbol.toStringTag] = "EventMessage";

@@ -31,7 +31,7 @@ import { extractEmotes, type MessageFragment } from "./fragment";
 import { Message, type MessageInit } from "./message.svelte";
 import { parse } from "./parse";
 
-const MOD_ACTION_WINDOW = 6 * 60 * 60 * 1000;
+const MOD_ACTION_WINDOW = 6 * 60 * 60 * 1000; // 6 hours
 
 /**
  * The viewer who sent the message, registering a partial one built from the
@@ -78,23 +78,8 @@ interface FromMessage {
 
 export type AutoModMetadata = (
 	| { reason: "blocked-term" }
-	| {
-			reason: "automod";
-
-			/**
-			 * The AutoMod category that caught the message, e.g. `swearing` or
-			 * `smartdetection`.
-			 */
-			category: string;
-			level: number;
-	  }
-) & {
-	/**
-	 * The message content split into fragments, where the fragments caught by
-	 * AutoMod carry an `automod` property.
-	 */
-	fragments: AutoModFragment[];
-};
+	| { reason: "automod"; category: string; level: number }
+) & { fragments: AutoModFragment[] };
 
 /**
  * User messages are either messages received by `PRIVMSG` commands or
@@ -109,11 +94,10 @@ export class UserMessage extends Message {
 	public override readonly text: string;
 
 	public readonly author: User;
-
 	public readonly viewer: Viewer;
 
 	/**
-	 * Whether the message is an action i.e. sent with `/me`.
+	 * Whether the message was sent with `/me`.
 	 */
 	public readonly action: boolean;
 
@@ -122,15 +106,12 @@ export class UserMessage extends Message {
 	 */
 	public readonly highlighted: boolean;
 
-	public readonly shared: boolean;
-
-	public readonly badges: Badge[] = [];
-
-	public readonly bits: number;
-
 	/**
-	 * The Twitch emotes in the message, located by their range in the text.
+	 * Whether the message was sent in a shared chat.
 	 */
+	public readonly shared: boolean;
+	public readonly badges: Badge[] = [];
+	public readonly bits: number;
 	public readonly emotes: Emote[];
 
 	/**
@@ -145,7 +126,7 @@ export class UserMessage extends Message {
 	public readonly event: UserNoticeEvent | null;
 
 	/**
-	 * Twitch's own description of the event, for events without a dedicated
+	 * Twitch's own description of the event for events without a dedicated
 	 * rendering.
 	 */
 	public readonly systemMessage: string;
@@ -162,6 +143,9 @@ export class UserMessage extends Message {
 	 */
 	public source: Channel;
 
+	/**
+	 * The metadata attached to the message if it was caught by AutoMod.
+	 */
 	public autoMod: AutoModMetadata | null = null;
 
 	/**
