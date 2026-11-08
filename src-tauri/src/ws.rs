@@ -1,7 +1,3 @@
-//! What the websocket subscription clients (PubSub and 7TV) share: a runner
-//! that keeps a connection alive and reconnects it, and the store of
-//! subscriptions each connection is synced from.
-
 use std::collections::HashMap;
 use std::future::{self, Future};
 use std::sync::{Mutex, MutexGuard, PoisonError};
@@ -14,7 +10,7 @@ use tokio::time::{self, Instant, Interval, MissedTickBehavior};
 use tokio_tungstenite::tungstenite::{self, Message};
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
-/// Boxed, since the unboxed error is large enough to bloat every result.
+/// Boxed to prevent bloating results.
 pub type WsError = Box<tungstenite::Error>;
 
 const INITIAL_BACKOFF: Duration = Duration::from_secs(1);
@@ -36,21 +32,22 @@ impl Default for Backoff {
 }
 
 impl Backoff {
-    /// Returns how long to wait before the next attempt, and doubles the wait
+    /// Returns how long to wait before the next attempt and doubles the wait
     /// after it.
     pub fn next_delay(&mut self) -> Duration {
         let delay = self.next;
         self.next = (self.next * 2).min(MAX_BACKOFF);
+
         delay
     }
 
-    /// Starts over from the shortest wait, after an attempt succeeded.
+    /// Starts over from the shortest wait after an attempt succeeded.
     pub fn reset(&mut self) {
         self.next = INITIAL_BACKOFF;
     }
 }
 
-/// Completes once `deadline` passes, or never if there is none.
+/// Completes once `deadline` passes or never if there is none.
 pub async fn deadline_elapsed(deadline: Option<Instant>) {
     match deadline {
         Some(deadline) => time::sleep_until(deadline).await,
@@ -69,18 +66,18 @@ pub enum Flow {
     Reconnect,
 }
 
-/// Pinging the server on an interval, for protocols that leave keeping the
+/// Pinging the server on an interval for protocols that leave keeping the
 /// connection alive to the client.
 #[derive(Clone, Copy)]
 pub struct Keepalive {
-    pub every: Duration,
+    pub interval: Duration,
     /// How long the server has to answer before the connection counts as dead.
     /// The protocol calls [`Link::clear_deadline`] when the answer arrives.
     pub timeout: Duration,
     pub ping: &'static str,
 }
 
-/// A live connection, as seen by a [`Protocol`].
+/// A live connection as seen by a [`Protocol`].
 pub struct Link {
     socket: WebSocketStream<MaybeTlsStream<TcpStream>>,
     deadline: Option<Instant>,
@@ -111,14 +108,13 @@ pub trait Protocol: Send + 'static {
     /// What the server needs, besides its key, to subscribe to an event.
     type Subscription: Clone + PartialEq + Send + 'static;
 
-    /// Names the connection in logs.
     const NAME: &'static str;
     const URI: &'static str;
     const KEEPALIVE: Option<Keepalive> = None;
 
     fn subscriptions(&self) -> &SubscriptionStore<Self::Subscription>;
 
-    /// Called once the socket is open, before any message arrives.
+    /// Called once the socket is open before any message arrives.
     fn opened(&mut self, link: &mut Link) -> Flow;
 
     /// Handles a text frame from the server.
@@ -164,12 +160,13 @@ pub async fn run<P: Protocol>(mut protocol: P) {
         }
 
         let delay = backoff.next_delay();
+
         tracing::info!(?delay, "Reconnecting");
         time::sleep(delay).await;
     }
 }
 
-/// Waits for the next ping to be due, or forever for protocols that don't
+/// Waits for the next ping to be due or forever for protocols that don't
 /// ping.
 async fn next_ping(pings: &mut Option<(Interval, Keepalive)>) -> Keepalive {
     match pings {
@@ -187,8 +184,9 @@ async fn drive<P: Protocol>(protocol: &mut P, mut link: Link) -> bool {
 
     // The first tick is immediate, so the connection is checked right away
     let mut pings = P::KEEPALIVE.map(|keepalive| {
-        let mut interval = time::interval(keepalive.every);
+        let mut interval = time::interval(keepalive.interval);
         interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
+
         (interval, keepalive)
     });
 
@@ -204,6 +202,7 @@ async fn drive<P: Protocol>(protocol: &mut P, mut link: Link) -> bool {
 
                 ready = true;
                 next = sync(protocol, &mut link).await.map(|()| Flow::Continue);
+
                 continue;
             }
             Ok(Flow::Reconnect) => return ready,
@@ -268,7 +267,7 @@ async fn sync<P: Protocol>(protocol: &mut P, link: &mut Link) -> Result<(), WsEr
 pub enum Owner {
     /// The whole session, regardless of joined channels.
     Session,
-    /// A joined channel, by login.
+    /// A joined channel by login.
     Channel(String),
 }
 
@@ -299,15 +298,12 @@ impl<V> Changes<V> {
 struct Subscriptions<V> {
     /// What callers want subscribed. The only state they change.
     wanted: HashMap<SubKey, V>,
-    /// What the server has been told. Outlives a connection, since a resumed
+    /// What the server has been told. Outlives a connection since a resumed
     /// session keeps its subscriptions.
     synced: HashMap<SubKey, V>,
 }
 
-/// The subscriptions a client wants, which its connection keeps the server in
-/// line with. Changing it never sends anything directly: while connected the
-/// runner is woken to sync the difference, and otherwise the next connection
-/// syncs everything once it is ready.
+/// The subscriptions a client wants.
 pub struct SubscriptionStore<V> {
     inner: Mutex<Subscriptions<V>>,
     changed: Notify,
@@ -355,7 +351,7 @@ impl<V: Clone + PartialEq> SubscriptionStore<V> {
         self.set(&Owner::Session, events);
     }
 
-    /// Replaces every subscription for `channel`, a login, with `events`.
+    /// Replaces every subscription for `channel` with `events`.
     pub fn set_channel(&self, channel: &str, events: impl IntoIterator<Item = (String, V)>) {
         self.set(&Owner::Channel(channel.to_owned()), events);
     }
@@ -377,8 +373,7 @@ impl<V: Clone + PartialEq> SubscriptionStore<V> {
         self.changed.notified().await;
     }
 
-    /// Forgets what the server was told, for a fresh session that has nothing
-    /// subscribed yet.
+    /// Forgets what the server was told.
     fn forget_synced(&self) {
         self.lock().synced.clear();
     }

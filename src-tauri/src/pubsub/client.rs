@@ -198,7 +198,7 @@ impl Protocol for PubSubDriver {
     const NAME: &'static str = "PubSub";
     const URI: &'static str = "wss://pubsub-edge.twitch.tv";
     const KEEPALIVE: Option<Keepalive> = Some(Keepalive {
-        every: Duration::from_secs(240),
+        interval: Duration::from_secs(240),
         timeout: Duration::from_secs(10),
         ping: r#"{"type":"PING"}"#,
     });

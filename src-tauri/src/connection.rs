@@ -20,23 +20,23 @@ pub trait Client: Send + Sync + Sized + 'static {
     fn slot(state: &mut AppState) -> &mut Option<Connection<Self>>;
 
     /// Whether the client can still be used. Only asked of clients without a
-    /// run task, since a client with one lives exactly as long as its task.
+    /// run task.
     fn active(&self) -> bool {
         true
     }
 
-    /// Whether the frontend handles `message`, to avoid needless IPC traffic.
+    /// Whether the frontend handles `message` to avoid needless IPC traffic.
     fn forwards(_message: &Self::Message) -> bool {
         true
     }
 }
 
 /// A client together with the channel its events are forwarded to and the task
-/// driving it, so they are always set and cleared together.
+/// driving it.
 pub struct Connection<C: Client> {
     client: Arc<C>,
-    // Retained so a hot-reloaded frontend can swap in its new channel without
-    // tearing down the live websocket connection.
+    // Retained so HMR can swap in its new channel without tearing down the live
+    // websocket connection. Only useful for development.
     sink: Arc<Mutex<Channel<C::Message>>>,
     task: Option<AbortHandle>,
 }
@@ -54,11 +54,11 @@ impl<C: Client> Connection<C> {
     }
 }
 
-/// A freshly built client, ready to be stored and run.
+/// A fresh client ready to be stored and run.
 pub struct Started<C: Client> {
     pub client: Arc<C>,
     pub events: mpsc::UnboundedReceiver<C::Message>,
-    /// Drives the connection until it is closed, for clients that need it.
+    /// Drives the connection until it is closed.
     pub run: Option<BoxFuture<'static, ()>>,
 }
 
@@ -71,8 +71,6 @@ pub async fn connect<C: Client>(
 ) -> Result<(), Error> {
     let state = app.state::<Mutex<AppState>>();
 
-    // Clients authenticate with the token, which may not have been validated
-    // yet if Twitch was unreachable at startup
     auth::validate_pending(&state).await;
 
     let mut guard = state.lock().await;

@@ -22,8 +22,6 @@ mod pubsub;
 mod seventv;
 mod ws;
 
-/// The app's only window besides the transient Twitch webviews, labelled in
-/// `tauri.conf.json`.
 const MAIN_WINDOW_LABEL: &str = "main";
 
 /// How long a request made with [`AppState::http`] may take in all.
@@ -55,8 +53,6 @@ impl AppState {
         }
     }
 
-    /// Closes the IRC, PubSub and 7TV connections, which authenticate with the
-    /// session's token when they open.
     fn close_connections(&mut self) {
         connection::close(&mut self.irc);
         connection::close(&mut self.pubsub);
