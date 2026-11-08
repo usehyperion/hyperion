@@ -17,7 +17,7 @@ use crate::error::Error;
 use crate::ws::Backoff;
 use crate::{AppState, MAIN_WINDOW_LABEL};
 
-/// The Twitch website's client id.
+/// The public client id Twitch uses.
 const CLIENT_ID: &str = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 
 const KEYRING_SERVICE: &str = "com.hyperion.chat";
@@ -34,7 +34,7 @@ const INTEGRITY_POLL_INTERVAL: Duration = Duration::from_millis(150);
 
 /// How many checks to make before giving up on the integrity request, 15
 /// seconds in all.
-const INTEGRITY_POLL_ATTEMPTS: u32 = 100;
+const INTEGRITY_POLL_ATTEMPTS: u32 = 10;
 
 /// Treat a token as spent slightly before it actually lapses.
 const INTEGRITY_EXPIRY_SKEW_MS: i64 = 5 * 60 * 1000;
@@ -98,8 +98,6 @@ impl Integrity {
 pub struct IntegrityState {
     current: Option<Integrity>,
     retry_at: Option<Instant>,
-    // Held across a refresh so concurrent callers queue behind the one webview
-    // instead of each opening their own.
     refresh: Arc<Mutex<()>>,
 }
 
@@ -127,8 +125,6 @@ pub struct PendingToken {
     access_token: Option<AccessToken>,
     retry_at: Option<Instant>,
     backoff: Backoff,
-    // Held across a validation so concurrent callers wait for its outcome
-    // instead of each making their own request.
     validating: Arc<Mutex<()>>,
 }
 
@@ -143,17 +139,17 @@ impl PendingToken {
         self.access_token.as_ref()
     }
 
-    /// The token, unless there is none or it was tried too recently.
+    /// The token unless there is none or it was tried too recently.
     fn due(&self) -> Option<&AccessToken> {
         self.access_token
             .as_ref()
             .filter(|_| self.retry_at.is_none_or(|at| at <= Instant::now()))
     }
 
-    /// Puts off the next attempt, for longer after each failed one.
     fn defer(&mut self) -> Duration {
         let delay = self.backoff.next_delay();
         self.retry_at = Some(Instant::now() + delay);
+
         delay
     }
 }
@@ -235,8 +231,6 @@ fn delete_credentials() -> Result<(), Error> {
     }
 }
 
-/// Whether Twitch itself refused the token, as opposed to it not being
-/// reachable to ask.
 fn is_rejection<E: std::error::Error + Send + Sync + 'static>(err: &ValidationError<E>) -> bool {
     matches!(
         err,
@@ -263,8 +257,6 @@ async fn eval_value(window: &WebviewWindow, js: impl Into<String>) -> Option<Str
     rx.await.ok()
 }
 
-/// Requests an integrity token from within `window`, which must have a Twitch
-/// page loaded.
 async fn fetch_integrity(window: &WebviewWindow, access_token: &str) -> Option<Integrity> {
     eval_value(
         window,
@@ -372,7 +364,6 @@ pub async fn ensure_integrity(app: &AppHandle) -> Option<Integrity> {
 
     let (access_token, refresh_lock) = {
         let state = state.lock().await;
-
         let access_token = state.token.as_ref()?.access_token.as_str().to_string();
 
         if let Some(integrity) = state.integrity.fresh() {
@@ -408,6 +399,7 @@ pub async fn ensure_integrity(app: &AppHandle) -> Option<Integrity> {
         .token
         .as_ref()
         .map(|token| token.access_token.as_str());
+
     if current != Some(access_token.as_str()) {
         return None;
     }
@@ -533,8 +525,8 @@ fn close_window(window: &WebviewWindow) {
     }
 }
 
-/// Validates and stores a freshly logged in session, replacing any previous
-/// one along with the connections made with its token.
+/// Validates and stores a fresh session, replacing any previous one along with
+/// the connections made with its token.
 async fn sign_in(
     app: &AppHandle,
     access_token: String,
@@ -610,8 +602,7 @@ pub async fn get_integrity(app: AppHandle) -> Result<Option<Integrity>, Error> {
 }
 
 /// Validates the stored token again if Twitch couldn't be reached to validate
-/// it before, e.g. because the network wasn't up yet at startup. Each failure
-/// puts off the next attempt for longer.
+/// it before e.g. because the network wasn't up yet at startup.
 ///
 /// The state is only locked around the request, not across it.
 pub async fn validate_pending(state: &Mutex<AppState>) {
@@ -627,8 +618,6 @@ pub async fn validate_pending(state: &Mutex<AppState>) {
 
     let _guard = validating.lock().await;
 
-    // Whoever held the lock may have settled it, or put it off, while we
-    // waited.
     let (http, access_token) = {
         let state = state.lock().await;
 
@@ -640,10 +629,8 @@ pub async fn validate_pending(state: &Mutex<AppState>) {
     };
 
     let validated = UserToken::from_token(&http, access_token.clone()).await;
-
     let mut state = state.lock().await;
 
-    // Logging in or out while the request was out replaces the token
     if state.unverified.get() != Some(&access_token) {
         return;
     }
@@ -651,11 +638,13 @@ pub async fn validate_pending(state: &Mutex<AppState>) {
     match validated {
         Ok(token) => {
             tracing::info!(login = %token.login, "Validated stored credentials");
+
             state.unverified.reset(None);
             state.token = Some(token);
         }
         Err(err) if is_rejection(&err) => {
             tracing::warn!(%err, "Stored access token is no longer valid, clearing it");
+
             state.unverified.reset(None);
             state.integrity.reset(None);
 
@@ -677,8 +666,6 @@ pub fn get_access_token(state: &AppState) -> Result<&UserToken, Error> {
     })
 }
 
-/// The stored session's access token and integrity token. The access token is
-/// validated on first use, like one that couldn't be validated while offline.
 pub fn restore_credentials() -> (Option<AccessToken>, Option<Integrity>) {
     read_credentials().map_or((None, None), |stored| {
         (
