@@ -21,22 +21,19 @@
 
 	onMount(() => {
 		void app.connect();
-
 		void updater.check();
 
 		const id = setInterval(() => {
-			app.channels.refreshStreams().catch((error: unknown) => {
-				log.error("Failed to refresh streams", error);
-			});
+			app.channels.refreshStreams().catch(log.swallow("Failed to refresh streams"));
 		}, STREAM_REFRESH_INTERVAL);
 
 		return () => clearInterval(id);
 	});
 
-	// Apply emote provider settings: loads newly enabled providers and drops
-	// disabled ones.
 	$effect(() => {
-		for (const { emotesSetting } of THIRD_PARTY_PROVIDERS) void settings.state[emotesSetting];
+		for (const { emotesSetting } of THIRD_PARTY_PROVIDERS) {
+			void settings.state[emotesSetting];
+		}
 
 		untrack(() => {
 			void app.emotes.fetch();

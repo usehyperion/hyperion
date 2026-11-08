@@ -27,6 +27,7 @@
 
 		try {
 			await data.whisper.send(value);
+
 			input.value = "";
 			sendError = null;
 		} catch (error) {

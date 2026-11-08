@@ -54,7 +54,7 @@
 		{ hotkey: "Mod+ArrowRight", callback: () => navigateSplit("right") },
 	]);
 
-	async function navigateTabs(offset: number) {
+	async function navigateTabs(offset: 1 | -1) {
 		const pane = app.splits.focused;
 		if (!pane?.active || pane.tabs.length < 2) return;
 
@@ -62,7 +62,10 @@
 		if (index === -1) return;
 
 		const next = pane.tabs[(index + offset + pane.tabs.length) % pane.tabs.length];
-		if (next) await app.activate(next.id);
+
+		if (next) {
+			await app.activate(next.id);
+		}
 	}
 
 	function navigateSplit(direction: SplitDirection) {
@@ -72,7 +75,6 @@
 		if (!paneId) return;
 
 		app.splits.focusedPaneId = paneId;
-
 		app.focused?.chat.input?.focus();
 	}
 </script>

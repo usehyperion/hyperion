@@ -19,7 +19,7 @@
 			log.error(`Failed to sign in: ${payload}`);
 		});
 
-		const unlisten = listen<SignedIn>("twitch-auth-success", async ({ payload }) => {
+		const unlistenSuccess = listen<SignedIn>("twitch-auth-success", async ({ payload }) => {
 			try {
 				await app.completeLogin(payload);
 			} catch (err) {
@@ -29,7 +29,7 @@
 		});
 
 		return () => {
-			void unlisten.then((fn) => fn());
+			void unlistenSuccess.then((fn) => fn());
 			void unlistenError.then((fn) => fn());
 		};
 	});
