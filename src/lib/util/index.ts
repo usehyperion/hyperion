@@ -1,6 +1,9 @@
 import type { Menu } from "@tauri-apps/api/menu";
+import { platform as getPlatform } from "@tauri-apps/plugin-os";
 
 export type { WithElementRef, WithoutChildren, WithoutChildrenOrChild } from "bits-ui";
+
+export const platform = getPlatform();
 
 export function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
 	fn: F,

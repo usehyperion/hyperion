@@ -2,8 +2,9 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { type Update, check } from "@tauri-apps/plugin-updater";
 
+import { platform } from "#lib/util/index.js";
+
 import { log } from "./log.js";
-import { platform } from "./platform.js";
 
 class Updater {
 	readonly #deferred = platform !== "macos";

@@ -13,8 +13,8 @@
 
 	import { app } from "#lib/app.svelte.js";
 	import { dialogs } from "#lib/dialog.js";
-	import { platform } from "#lib/platform.js";
 	import { updater } from "#lib/updater.svelte.js";
+	import { platform } from "#lib/util/index.js";
 
 	import JoinDialog from "./JoinDialog.svelte";
 	import SettingsDialog from "./settings/SettingsDialog.svelte";
