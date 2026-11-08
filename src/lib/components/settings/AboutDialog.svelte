@@ -8,6 +8,7 @@
 	import Button from "#lib/components/ui/Button.svelte";
 	import Dialog from "#lib/components/ui/Dialog.svelte";
 	import { dialogs } from "#lib/dialog.js";
+	import { log } from "#lib/log.js";
 
 	interface AboutInfo {
 		name: string;
@@ -19,12 +20,14 @@
 	}
 
 	let info = $state<AboutInfo | null>(null);
+	let failed = $state(false);
 	let copied = $state(false);
 
-	const rows = $derived(
+	// The version is shown in the header and on the first line of the copied
+	// text, so it's kept apart from the remaining details.
+	const details = $derived(
 		info
 			? [
-					{ label: "Version", value: info.version },
 					...(info.commit ? [{ label: "Commit", value: info.commit }] : []),
 					{ label: "Tauri", value: info.tauriVersion },
 					{ label: "WebView", value: info.webview },
@@ -33,16 +36,26 @@
 			: [],
 	);
 
+	const rows = $derived(info ? [{ label: "Version", value: info.version }, ...details] : []);
+
 	async function ontoggle(event: ToggleEvent) {
 		if (event.newState !== "open") return;
 
-		info = await invoke<AboutInfo>("get_about_info");
+		try {
+			info = await invoke<AboutInfo>("get_about_info");
+			failed = false;
+		} catch (error) {
+			failed = true;
+			log.error("Failed to load about info", error);
+		}
 	}
 
 	async function copyInfo() {
+		if (!info) return;
+
 		const text = [
-			`${info?.name} v${info?.version}`,
-			...rows.slice(1).map((row) => `${row.label}: ${row.value}`),
+			`${info.name} v${info.version}`,
+			...details.map((row) => `${row.label}: ${row.value}`),
 		].join("\n");
 
 		await navigator.clipboard.writeText(text);
@@ -69,6 +82,10 @@
 		</div>
 	{/snippet}
 
+	{#if failed && !info}
+		<p class="px-3 py-2 text-sm text-muted-foreground">Version details are unavailable.</p>
+	{/if}
+
 	<dl class="divide-y text-sm">
 		{#each rows as row (row.label)}
 			<div class="flex items-baseline justify-between gap-4 px-3 py-2">
@@ -79,7 +96,7 @@
 	</dl>
 
 	{#snippet footer()}
-		<Button variant="ghost" onclick={copyInfo}>
+		<Button variant="ghost" disabled={!info} onclick={copyInfo}>
 			{#if copied}
 				<span in:scale={{ duration: 300, start: 0.85 }}>
 					<Check />

@@ -1,11 +1,6 @@
 import type { Menu } from "@tauri-apps/api/menu";
 
-export type {
-	WithElementRef,
-	WithoutChild,
-	WithoutChildren,
-	WithoutChildrenOrChild,
-} from "bits-ui";
+export type { WithElementRef, WithoutChildren, WithoutChildrenOrChild } from "bits-ui";
 
 export function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
 	fn: F,

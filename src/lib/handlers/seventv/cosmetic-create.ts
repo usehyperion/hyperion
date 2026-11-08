@@ -1,5 +1,6 @@
 import { app } from "#lib/app.svelte.js";
-import { Badge } from "#lib/models/badge.js";
+import { BADGE_SETS, Badge } from "#lib/models/badge.js";
+import { sevenTvFileUrl } from "#lib/seventv.js";
 
 import { defineHandler } from "../helper";
 
@@ -12,22 +13,22 @@ function toRgb(decimal: number) {
 	return `rgb(${r} ${g} ${b} / ${a.toFixed(2)})`;
 }
 
-export default defineHandler({
+export default defineHandler("seventv", {
 	name: "cosmetic.create",
 	handle(cosmetic) {
 		if (cosmetic.kind === "BADGE") {
-			const file = cosmetic.data.host.files.find((f) => f.name.startsWith("4x"))!;
+			const { host } = cosmetic.data;
+			const file = host.files.find((f) => f.name.startsWith("4x"))!;
 
-			app.badges.set(
-				cosmetic.id,
-				new Badge({
-					setId: "7tv",
-					version: cosmetic.id,
-					title: cosmetic.data.name,
-					description: cosmetic.data.tooltip,
-					imageUrl: `https:${cosmetic.data.host.url}/${file.name}`,
-				}),
-			);
+			const badge = new Badge({
+				setId: BADGE_SETS.seventv,
+				version: cosmetic.id,
+				title: cosmetic.data.name,
+				description: cosmetic.data.tooltip,
+				imageUrl: sevenTvFileUrl(host, file),
+			});
+
+			app.badges.set(badge.id, badge);
 
 			return;
 		}
@@ -75,6 +76,6 @@ export default defineHandler({
 			`-webkit-text-fill-color: transparent`,
 		].join(";");
 
-		app.paints.set(cosmetic.id, { name: cosmetic.data.name, css });
+		app.cosmetics.paints.set(cosmetic.id, { name: cosmetic.data.name, css });
 	},
 });

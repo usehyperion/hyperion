@@ -7,6 +7,7 @@
 	import type { Prediction } from "#lib/models/prediction.svelte.js";
 
 	import { everySecond } from "#lib/clock.js";
+	import { duelColor } from "#lib/models/prediction.svelte.js";
 	import { percent } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
 
@@ -21,7 +22,7 @@
 
 	const { prediction }: Props = $props();
 
-	const DUO = ["bg-blue-500", "bg-pink-500"];
+	const DUEL = { BLUE: "bg-blue-500", PINK: "bg-pink-500" };
 
 	const RAINBOW = [
 		"bg-red-500",
@@ -60,7 +61,9 @@
 	});
 
 	function colorFor(index: number) {
-		return prediction.outcomes.length <= 2 ? DUO[index] : RAINBOW[index];
+		const duel = duelColor(index, prediction.outcomes.length);
+
+		return duel ? DUEL[duel] : RAINBOW[index];
 	}
 
 	function ratio(points: number) {
@@ -88,7 +91,7 @@
 					/>
 				{/if}
 
-				{#if prediction.status === "ACTIVE" || prediction.status === "LOCKED"}
+				{#if prediction.open}
 					<NoticeAction
 						icon={Prohibit}
 						tooltip="Cancel prediction"
@@ -127,7 +130,7 @@
 							{pct}% ({outcome.points.toLocaleString()})
 						</span>
 
-						{#if prediction.channel.isMod && (prediction.status === "ACTIVE" || prediction.status === "LOCKED")}
+						{#if prediction.channel.isMod && prediction.open}
 							<NoticeAction
 								icon={Crown}
 								tooltip="Resolve as winner"

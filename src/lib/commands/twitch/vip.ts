@@ -12,7 +12,7 @@ export default defineCommand({
 		const target = await getTarget(args[0], channel);
 
 		await mapErrors(
-			() => channel.viewers.vip(target.id),
+			() => target.grantVip(),
 			[
 				{
 					code: "GRANTEE_ALREADY_VIP",

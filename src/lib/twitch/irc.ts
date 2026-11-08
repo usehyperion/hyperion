@@ -10,7 +10,11 @@ export interface ClearChatBan {
 
 export interface ClearChatTimeout extends Omit<ClearChatBan, "type"> {
 	type: "timeout";
-	duration: { secs: number };
+
+	/**
+	 * The duration of the timeout in seconds.
+	 */
+	duration: number;
 }
 
 export type ClearChatAction = ClearChatClear | ClearChatBan | ClearChatTimeout;
@@ -27,6 +31,7 @@ export interface ClearChatMessage {
 export interface ClearMsgMessage {
 	type: "clearmsg";
 	channel_login: string;
+	channel_id: string;
 	sender_login: string;
 	message_id: string;
 	message_text: string;
@@ -80,9 +85,9 @@ export type NoticeMessageId =
 
 export interface NoticeMessage {
 	type: "notice";
-	channel_login: string;
+	channel_login: string | null;
 	message_text: string;
-	message_id: NoticeMessageId;
+	message_id: NoticeMessageId | null;
 	deleted: boolean;
 	is_recent: boolean;
 	recent_timestamp: number | null;
@@ -125,7 +130,10 @@ export interface BaseMessage {
 	message_id: string;
 	sender: BasicUser;
 	badges: Badge[];
-	name_color: string;
+	/**
+	 * The sender's chosen color; `null` if they haven't picked one.
+	 */
+	name_color: string | null;
 	emotes: Emote[];
 }
 
@@ -148,7 +156,7 @@ export interface ReplyParent {
 
 export interface ReplyThread {
 	message_id: string;
-	user_login: string;
+	user: BasicUser;
 }
 
 export interface Reply {
@@ -304,6 +312,10 @@ export interface WatchStreakEvent {
 	points: number;
 }
 
+export interface UnknownEvent {
+	type: "unknown";
+}
+
 export type UserNoticeEvent =
 	| AnnouncementEvent
 	| StandardPayForwardEvent
@@ -321,7 +333,8 @@ export type UserNoticeEvent =
 	| RitualEvent
 	| BitsBadgeTierEvent
 	| OneTapGiftRedeemedEvent
-	| WatchStreakEvent;
+	| WatchStreakEvent
+	| UnknownEvent;
 
 export interface UserNoticeMessage extends BaseUserMessage {
 	type: "usernotice";
@@ -329,12 +342,6 @@ export interface UserNoticeMessage extends BaseUserMessage {
 	system_message: string;
 	event: UserNoticeEvent;
 	event_id: string;
-}
-
-export interface WhisperMessage extends BaseMessage {
-	type: "whisper";
-	recipient_login: string;
-	message_text: string;
 }
 
 export type IrcMessage =
@@ -345,8 +352,7 @@ export type IrcMessage =
 	| PartMessage
 	| PrivmsgMessage
 	| RoomStateMessage
-	| UserNoticeMessage
-	| WhisperMessage;
+	| UserNoticeMessage;
 
 export type IrcMessageMap = {
 	[K in IrcMessage["type"]]: Extract<IrcMessage, { type: K }>;

@@ -1,16 +1,9 @@
 <script lang="ts">
 	import { Tooltip } from "bits-ui";
-	import type { Component } from "svelte";
-
-	import ArrowBendUpLeft from "~icons/ph/arrow-bend-up-left";
-	import Clipboard from "~icons/ph/clipboard";
-	import Clock from "~icons/ph/clock";
-	import Gavel from "~icons/ph/gavel";
-	import Trash from "~icons/ph/trash";
 
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
-	import { timeoutDuration, timeoutLabel } from "#lib/moderation.js";
+	import { messageActions, runAction, type MessageAction } from "#lib/menus/message-actions.js";
 	import { settings } from "#lib/settings/index.js";
 
 	import Button from "../ui/Button.svelte";
@@ -21,34 +14,11 @@
 		message: UserMessage;
 	}
 
-	interface Action {
-		icon: Component;
-		label: string;
-		danger?: boolean;
-		onclick?: () => void;
-		onclickwait?: () => Promise<unknown>;
-	}
-
 	const { class: className, message }: Props = $props();
 
-	const qaTether = Tooltip.createTether<Action>();
+	const { copy, reply, delete: remove, timeout, ban } = messageActions;
 
-	function copy() {
-		navigator.clipboard.writeText(message.text);
-	}
-
-	function reply() {
-		message.channel.chat.replyTarget = message;
-		message.channel.chat.input?.focus();
-	}
-
-	async function timeout() {
-		await message.viewer?.timeout({ duration: timeoutDuration() });
-	}
-
-	async function ban() {
-		await message.viewer?.ban();
-	}
+	const qaTether = Tooltip.createTether<MessageAction>();
 </script>
 
 <Tooltip.Root tether={qaTether}>
@@ -64,62 +34,45 @@
 			role="group"
 			aria-label="Message actions"
 		>
-			{@render action({ icon: Clipboard, label: "Copy", onclick: copy })}
-			{@render action({ icon: ArrowBendUpLeft, label: "Reply", onclick: reply })}
+			{@render action(copy)}
+			{@render action(reply)}
 
 			{#if message.actionable && settings.state["moderation.quickActions.show"]}
 				<div class="h-4">
 					<Separator orientation="vertical" class="mx-1 self-center" />
 				</div>
 
-				{@render action({
-					icon: Trash,
-					label: "Delete",
-					danger: true,
-					onclickwait: () => message.delete(),
-				})}
-
-				{@render action({
-					icon: Clock,
-					label: `Timeout (${timeoutLabel()})`,
-					danger: true,
-					onclickwait: timeout,
-				})}
-
-				{@render action({
-					icon: Gavel,
-					label: "Ban",
-					danger: true,
-					onclickwait: ban,
-				})}
+				{@render action(remove)}
+				{@render action(timeout)}
+				{@render action(ban)}
 			{/if}
 		</div>
 
 		<Tooltip.Portal>
 			<Tooltip.Content collisionPadding={6} sideOffset={8}>
 				<Tooltip.Arrow class="text-neutral-800" />
-				{payload?.label}
+				{payload?.label()}
 			</Tooltip.Content>
 		</Tooltip.Portal>
 	{/snippet}
 </Tooltip.Root>
 
-{#snippet action(config: Action)}
+{#snippet action(config: MessageAction)}
 	<Tooltip.Trigger tether={qaTether} payload={config}>
 		{#snippet child({ props })}
 			<Button
 				class={[
 					"text-muted-foreground",
-					config.danger
+					config.moderation
 						? "hover:bg-destructive/10 hover:text-destructive"
 						: "hover:text-foreground",
 				]}
 				size="icon-sm"
 				variant="ghost"
-				aria-label={config.label}
+				aria-label={config.label()}
+				disabled={!config.enabled(message)}
 				{...props}
-				onclick={config.onclick}
-				onclickwait={config.onclickwait}
+				onclickwait={() => runAction(message, config)}
 			>
 				<config.icon />
 			</Button>

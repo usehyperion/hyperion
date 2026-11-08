@@ -1,11 +1,9 @@
-import { invoke } from "@tauri-apps/api/core";
-
 import { app } from "#lib/app.svelte.js";
 import EmoteSetChange from "#lib/components/message/events/EmoteSetChange.svelte";
 
-import { defineHandler } from "../helper";
+import { defineHandler, seventvActor } from "../helper";
 
-export default defineHandler({
+export default defineHandler("seventv", {
 	name: "user.update",
 	async handle(data) {
 		const channel = app.channels.values().find((c) => c.seventvId === data.id);
@@ -19,27 +17,16 @@ export default defineHandler({
 		);
 		if (!child) return;
 
-		const twitch = data.actor.connections.find((c) => c.platform === "TWITCH");
-		if (!twitch) return;
-
-		const actor = await channel.viewers.fetch(twitch.id);
-
-		channel.emoteSetId = child.value?.id ?? null;
 		channel.emotes.clear("7TV");
 
-		if (child.value == null) {
-			channel.chat.event(EmoteSetChange, { actor });
-		} else {
-			channel.chat.event(EmoteSetChange, { name: child.value.name, actor });
+		// Follow the new set before fetching its emotes so its updates aren't
+		// missed if the fetch fails.
+		await channel.setSeventv(channel.seventvId, child.value?.id ?? null);
 
-			// Subscribe to the new set first so its updates aren't missed if
-			// fetching its emotes fails
-			await invoke("resub_emote_set", {
-				channel: channel.user.username,
-				setId: channel.emoteSetId,
-			});
+		const actor = await seventvActor(channel, data.actor);
+		if (actor) channel.chat.event(EmoteSetChange, { name: child.value?.name, actor });
 
-			await channel.emotes.load("7TV");
-		}
+		// Loads the new set's emotes if 7TV emotes are enabled.
+		await channel.emotes.fetch();
 	},
 });

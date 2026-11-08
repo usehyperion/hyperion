@@ -1,34 +1,43 @@
 import { SvelteMap } from "svelte/reactivity";
 
-import type { Emote } from "#lib/emotes.js";
 import type { User as ApiUser } from "#lib/graphql/twitch.js";
 import type { Paint } from "#lib/seventv.js";
 import type { TwitchClient } from "#lib/twitch/client.js";
+import type { BasicUser } from "#lib/twitch/irc.js";
 
 import { app } from "#lib/app.svelte.js";
-import { relationshipQuery } from "#lib/graphql/twitch.js";
+import { relationshipQuery, userQuery } from "#lib/graphql/twitch.js";
 import { settings } from "#lib/settings/index.js";
-import { COLORS } from "#lib/twitch/index.js";
 import { makeReadable } from "#lib/util/color.js";
 
 import type { Channel } from "./channel.svelte";
 
 import { Badge } from "./badge";
 
+// The colors Twitch assigns users who haven't picked one.
+const COLORS = [
+	"rgb(0, 0, 255)",
+	"rgb(0, 128, 0)",
+	"rgb(0, 255, 127)",
+	"rgb(30, 144, 255)",
+	"rgb(46, 139, 87)",
+	"rgb(95, 158, 160)",
+	"rgb(138, 43, 226)",
+	"rgb(154, 205, 50)",
+	"rgb(178, 34, 34)",
+	"rgb(210, 105, 30)",
+	"rgb(218, 165, 32)",
+	"rgb(255, 0, 0)",
+	"rgb(255, 69, 0)",
+	"rgb(255, 105, 180)",
+	"rgb(255, 127, 80)",
+];
+
 export interface RelationshipSubscription {
-	/**
-	 * The type of subscription the user has in the channel.
-	 */
 	type: "prime" | "paid" | "gift" | null;
 
-	/**
-	 * The tier of the subscription the user has in the channel.
-	 */
 	tier: string | null;
 
-	/**
-	 * The number of months the user has been subscribed to the channel.
-	 */
 	months: number | null;
 }
 
@@ -46,14 +55,11 @@ export interface Relationship {
 	 */
 	followedAt: Date | null;
 
-	/**
-	 * Metadata for the user's subscription to the channel if they are subscribed.
-	 */
 	subscription: RelationshipSubscription;
 }
 
 export class User {
-	#color: string;
+	#color: string | null;
 	#displayName: string;
 
 	public readonly id: string;
@@ -61,31 +67,14 @@ export class User {
 	/**
 	 * The date the user's account was created.
 	 */
-	public createdAt: Date;
-
 	/**
-	 * Whether the user is Twitch staff.
+	 * When the account was created; `null` until the profile is loaded for
+	 * users only seen in chat.
 	 */
-	public readonly staff: boolean;
+	public createdAt = $state<Date | null>(null);
 
-	/**
-	 * Whether the user is a Twitch affiliate.
-	 */
-	public readonly affiliated: boolean;
-
-	/**
-	 * Whether the user is a Twitch partner.
-	 */
-	public readonly partnered: boolean;
-
-	/**
-	 * The bio of the user.
-	 */
 	public bio: string;
 
-	/**
-	 * The url of the user's avatar image.
-	 */
 	public avatarUrl: string;
 
 	/**
@@ -98,9 +87,6 @@ export class User {
 	 */
 	public readonly relationships = new SvelteMap<string, Relationship>();
 
-	/**
-	 * The username of the user.
-	 */
 	public username: string;
 
 	/**
@@ -108,45 +94,36 @@ export class User {
 	 */
 	public readonly paint?: Paint;
 
-	/**
-	 * The emotes the user is entitled to use.
-	 */
-	public readonly emotes = new Map<string, Emote>();
-
 	public constructor(
 		public readonly client: TwitchClient,
 		readonly data: ApiUser,
 	) {
-		this.#color = this.#resolveColor(data.chatColor);
+		this.#color = data.chatColor || null;
 		this.#displayName = data.displayName;
 
 		this.id = data.id;
 		this.username = data.login;
 
-		// WebKit and V8 behavior differ when instantiating a date with 0 as a string
-		this.createdAt = new Date(data.createdAt === "0" ? 0 : data.createdAt);
-
-		this.staff = data.roles?.isStaff ?? false;
-		this.affiliated = data.roles?.isAffiliate ?? false;
-		this.partnered = data.roles?.isPartner ?? false;
+		this.createdAt = data.createdAt ? new Date(data.createdAt) : null;
 
 		this.bio = $state(data.description ?? "");
 		this.avatarUrl = $state(data.profileImageURL ?? "");
 		this.bannerUrl = $state(data.bannerImageURL ?? "");
 
-		this.paint = $derived(app.u2p.get(this.id));
+		this.paint = $derived(app.cosmetics.userPaints.get(this.id));
 	}
 
 	/**
 	 * The color of the user's name. Defaults to the current foreground color
 	 * if the user doesn't have a color set.
 	 */
-	public get color() {
-		return settings.state["chat.usernames.readable"] ? makeReadable(this.#color) : this.#color;
+	public get color(): string {
+		const color = this.#color ?? this.#fallbackColor();
+		return settings.state["chat.usernames.readable"] ? makeReadable(color) : color;
 	}
 
-	public set color(color: string) {
-		this.#color = this.#resolveColor(color);
+	public set color(color: string | null) {
+		this.#color = color || null;
 	}
 
 	/**
@@ -160,6 +137,22 @@ export class User {
 		}
 
 		return color;
+	}
+
+	/**
+	 * The CSS style for mentions of the user.
+	 */
+	public get mentionStyle() {
+		switch (settings.state["chat.usernames.mentionStyle"]) {
+			case "none":
+				return null;
+			case "colored":
+				return `color: ${this.color};`;
+			case "painted":
+				return this.style;
+			default:
+				return null;
+		}
 	}
 
 	/**
@@ -190,27 +183,40 @@ export class User {
 		return this.username !== this.#displayName.toLowerCase() ? this.#displayName : null;
 	}
 
-	public get partial() {
-		return this.createdAt.getUTCFullYear() === 1970;
+	/**
+	 * Creates a user from what chat says about them; {@linkcode fetch} loads
+	 * the rest.
+	 */
+	public static partial(client: TwitchClient, sender: BasicUser, color: string | null) {
+		return new User(client, {
+			id: sender.id,
+			login: sender.login,
+			displayName: sender.name,
+			chatColor: color,
+			createdAt: "",
+			description: "",
+			profileImageURL: "",
+			bannerImageURL: "",
+		});
 	}
 
+	/**
+	 * Whether only what chat says about the user is known.
+	 */
+	public get partial() {
+		return this.createdAt === null;
+	}
+
+	/**
+	 * Refreshes the user's profile.
+	 */
 	public async fetch() {
-		await this.client.users.fetch(this.id, { force: true });
-
-		const cached = this.client.users.get(this.id);
-		if (!cached) return this;
-
-		this.createdAt = cached.createdAt;
-		this.bio = cached.bio;
-		this.avatarUrl = cached.avatarUrl;
-		this.bannerUrl = cached.bannerUrl;
+		const { user } = await this.client.gql(userQuery, { id: this.id, login: null });
+		if (user) this.update(user);
 
 		return this;
 	}
 
-	/**
-	 * Retrieves the user's relationship to the specified channel.
-	 */
 	public async fetchRelationship(channel: Channel) {
 		const existing = this.relationships.get(channel.id);
 		if (existing) return existing;
@@ -245,15 +251,24 @@ export class User {
 		return rel;
 	}
 
-	public toJSON() {
-		return this.data;
+	/**
+	 * The color for users without one: one of Twitch's default colors, picked
+	 * by id so it stays the same, or the surrounding text color.
+	 */
+	#fallbackColor() {
+		if (!settings.state["chat.usernames.randomColor"]) return "inherit";
+
+		// Twitch user ids are numeric.
+		return COLORS[Number(this.id) % COLORS.length] ?? COLORS[0];
 	}
 
-	#resolveColor(color: string | null) {
-		if (!color && settings.state["chat.usernames.randomColor"]) {
-			return COLORS[Math.floor(Math.random() * COLORS.length)];
-		}
-
-		return color || "inherit";
+	/**
+	 * Updates what may have changed since the user was first seen.
+	 */
+	public update(data: ApiUser) {
+		this.createdAt = new Date(data.createdAt);
+		this.bio = data.description ?? "";
+		this.avatarUrl = data.profileImageURL ?? "";
+		this.bannerUrl = data.bannerImageURL ?? "";
 	}
 }

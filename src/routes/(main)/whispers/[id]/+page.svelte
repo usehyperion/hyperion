@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { untrack } from "svelte";
 	import type { KeyboardEventHandler } from "svelte/elements";
 
 	import ChatSeparator from "#lib/components/chat/ChatSeparator.svelte";
@@ -11,22 +10,29 @@
 
 	const { data } = $props();
 
+	// Messages are read as they arrive while the thread is open.
 	$effect(() => {
-		const { whisper } = data;
+		if (!data.whisper.unread) return;
 
-		untrack(() => {
-			void whisper.markRead().catch(log.catch("Failed to mark whisper as read"));
-		});
+		data.whisper.markRead().catch(log.catch("Failed to mark whisper as read"));
 	});
+
+	let sendError = $state<string | null>(null);
 
 	const send: KeyboardEventHandler<HTMLInputElement> = async (event) => {
 		if (event.key !== "Enter") return;
 
 		const input = event.currentTarget;
 		const value = input.value.trim();
-		input.value = "";
 
-		await data.whisper.send(value);
+		try {
+			await data.whisper.send(value);
+			input.value = "";
+			sendError = null;
+		} catch (error) {
+			log.error("Failed to send whisper", error);
+			sendError = "Your whisper could not be sent.";
+		}
 	};
 </script>
 
@@ -87,6 +93,10 @@
 	</div>
 
 	<div class="p-2">
+		{#if sendError}
+			<p class="mb-1 text-sm text-destructive">{sendError}</p>
+		{/if}
+
 		<Input
 			class="h-12"
 			autocapitalize="off"

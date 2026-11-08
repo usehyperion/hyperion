@@ -8,26 +8,17 @@
 	import type { SplitDirection } from "#lib/splits/types.js";
 
 	import { app } from "#lib/app.svelte.js";
-	import JoinDialog from "#lib/components/JoinDialog.svelte";
 	import SplitNode from "#lib/components/split/SplitNode.svelte";
 	import Button from "#lib/components/ui/Button.svelte";
 	import * as Empty from "#lib/components/ui/empty/index.js";
 	import { dialogs } from "#lib/dialog.js";
-	import { settings } from "#lib/settings/index.js";
-	import { createPane, firstLeaf } from "#lib/splits/tree.js";
+	import { createPane } from "#lib/splits/tree.js";
 
 	let loading = $state(true);
 
 	onMount(async () => {
 		await app.user?.loadEmoteSets();
-
-		if (app.splits.root) {
-			const pane = firstLeaf(app.splits.root);
-			app.splits.focusedPaneId = pane.id;
-
-			const channel = pane.active ? app.channels.get(pane.active) : undefined;
-			if (channel) await app.open(channel);
-		}
+		await app.restoreLayout();
 
 		loading = false;
 	});
@@ -42,29 +33,12 @@
 
 	createHotkey("Mod+W", async () => {
 		const pane = app.splits.focused;
-
-		if (!pane) {
-			if (app.focused) {
-				await app.focused.leave();
-				app.focused = null;
-			}
-
-			return;
-		}
+		if (!pane) return;
 
 		if (pane.active) {
-			const tabId = pane.active;
-			app.splits.closeTab(tabId);
-
-			const channel = app.channels.get(tabId);
-
-			if (settings.state["splits.leaveOnClose"]) {
-				await channel?.leave();
-			}
-
-			app.refocus(channel);
+			await app.closeTab(pane.active);
 		} else {
-			app.splits.closePane(pane.id);
+			await app.closePane(pane.id);
 		}
 	});
 
@@ -88,15 +62,7 @@
 		if (index === -1) return;
 
 		const next = pane.tabs[(index + offset + pane.tabs.length) % pane.tabs.length];
-		if (!next) return;
-
-		const channel = app.channels.get(next.id);
-
-		if (channel) {
-			await app.open(channel);
-		} else {
-			app.splits.activate(next.id);
-		}
+		if (next) await app.activate(next.id);
 	}
 
 	function navigateSplit(direction: SplitDirection) {
@@ -107,9 +73,7 @@
 
 		app.splits.focusedPaneId = paneId;
 
-		const pane = app.splits.pane(paneId);
-		const channel = pane?.active ? app.channels.get(pane.active) : undefined;
-		channel?.chat.input?.focus();
+		app.focused?.chat.input?.focus();
 	}
 </script>
 
@@ -140,7 +104,5 @@
 				<Button command="show-modal" commandfor={dialogs.join}>Search channels</Button>
 			</Empty.Content>
 		</Empty.Root>
-
-		<JoinDialog />
 	{/if}
 </div>

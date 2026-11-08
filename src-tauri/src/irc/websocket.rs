@@ -1,3 +1,5 @@
+#![allow(clippy::result_large_err)]
+
 use std::future;
 
 use either::Either;
@@ -16,64 +18,44 @@ pub type Incoming = Box<
 
 pub type Outgoing = Box<dyn Sink<IrcMessage, Error = Error> + Unpin + Send + Sync>;
 
-pub struct WsTransport {
-    incoming_messages: Incoming,
-    outgoing_messages: Outgoing,
-}
+#[tracing::instrument(name = "irc_ws_connect")]
+pub async fn connect() -> Result<(Incoming, Outgoing), Error> {
+    tracing::info!("Connecting to IRC at {TWITCH_IRC_WS_URI}");
 
-impl std::fmt::Debug for WsTransport {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("WsTransport").finish()
-    }
-}
+    let ws_stream = match connect_async(TWITCH_IRC_WS_URI).await {
+        Ok((stream, _)) => stream,
+        Err(err) => {
+            tracing::error!(%err, "Failed to connect to IRC");
+            return Err(err);
+        }
+    };
 
-impl WsTransport {
-    #[tracing::instrument(name = "irc_ws_connect")]
-    pub async fn new() -> Result<WsTransport, Error> {
-        tracing::info!("Connecting to IRC at {TWITCH_IRC_WS_URI}");
+    tracing::info!("Connected to IRC");
 
-        let ws_stream = match connect_async(TWITCH_IRC_WS_URI).await {
-            Ok((stream, _)) => stream,
-            Err(err) => {
-                tracing::error!(%err, "Failed to connect to IRC");
-                return Err(err);
-            }
-        };
+    let (write_half, read_half) = ws_stream.split();
 
-        tracing::info!("Connected to IRC");
-
-        let (write_half, read_half) = ws_stream.split();
-
-        let message_stream = read_half
-            .map_err(Either::Left)
-            .try_filter_map(|ws_message| {
-                future::ready(Ok::<_, Either<Error, IrcParseError>>(
-                    if let Message::Text(text) = ws_message {
-                        Some(stream::iter(
-                            text.lines()
-                                .map(|l| Ok(String::from(l)))
-                                .collect::<Vec<Result<String, _>>>(),
-                        ))
-                    } else {
-                        None
-                    },
-                ))
-            })
-            .try_flatten()
-            .try_filter(|line| future::ready(!line.is_empty()))
-            .and_then(|s| future::ready(IrcMessage::parse(&s).map_err(Either::Right)))
-            .fuse();
-
-        let message_sink = write_half
-            .with(move |msg: IrcMessage| future::ready(Ok(Message::Text(msg.to_string().into()))));
-
-        Ok(WsTransport {
-            incoming_messages: Box::new(message_stream),
-            outgoing_messages: Box::new(message_sink),
+    let message_stream = read_half
+        .map_err(Either::Left)
+        .try_filter_map(|ws_message| {
+            future::ready(Ok::<_, Either<Error, IrcParseError>>(
+                if let Message::Text(text) = ws_message {
+                    Some(stream::iter(
+                        text.lines()
+                            .map(|l| Ok(String::from(l)))
+                            .collect::<Vec<Result<String, _>>>(),
+                    ))
+                } else {
+                    None
+                },
+            ))
         })
-    }
+        .try_flatten()
+        .try_filter(|line| future::ready(!line.is_empty()))
+        .and_then(|s| future::ready(IrcMessage::parse(&s).map_err(Either::Right)))
+        .fuse();
 
-    pub fn split(self) -> (Incoming, Outgoing) {
-        (self.incoming_messages, self.outgoing_messages)
-    }
+    let message_sink = write_half
+        .with(move |msg: IrcMessage| future::ready(Ok(Message::Text(msg.to_string().into()))));
+
+    Ok((Box::new(message_stream), Box::new(message_sink)))
 }

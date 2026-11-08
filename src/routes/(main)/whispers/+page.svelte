@@ -21,7 +21,7 @@
 			),
 	);
 
-	const unread = $derived(whispers.reduce((total, [, whisper]) => total + whisper.unread, 0));
+	const unread = $derived(app.user?.unreadWhispers ?? 0);
 </script>
 
 <div class="h-full overflow-y-auto">

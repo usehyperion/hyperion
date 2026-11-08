@@ -9,7 +9,6 @@
 
 	import { app } from "#lib/app.svelte.js";
 	import Button from "#lib/components/ui/Button.svelte";
-	import { settings } from "#lib/settings/index.js";
 
 	import GuestList from "../stream/GuestList.svelte";
 	import Tab from "./Tab.svelte";
@@ -36,17 +35,6 @@
 			return { kind: "tab-bar", paneId: pane.id };
 		},
 	});
-
-	async function closePane() {
-		const tabs = [...pane.tabs];
-
-		app.splits.closePane(pane.id);
-		app.refocus(channel);
-
-		if (settings.state["splits.leaveOnClose"]) {
-			await Promise.all(tabs.map((tab) => app.channels.get(tab.id)?.leave()));
-		}
-	}
 </script>
 
 <div class="flex h-8 shrink-0 items-center border-b bg-sidebar" data-slot="tab-bar">
@@ -99,7 +87,7 @@
 			size="icon-sm"
 			variant="ghost"
 			title="Close split"
-			onclick={closePane}
+			onclick={() => app.closePane(pane.id)}
 		>
 			<X />
 		</Button>

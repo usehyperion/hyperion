@@ -3,7 +3,7 @@ import UnbanRequest from "#lib/components/message/events/UnbanRequest.svelte";
 
 import { defineHandler } from "../helper";
 
-export default defineHandler({
+export default defineHandler("pubsub", {
 	name: "channel-unban-requests",
 	async handle(payload) {
 		const channel = app.channels.get(payload.target_id);

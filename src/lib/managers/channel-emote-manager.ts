@@ -1,12 +1,11 @@
-import { ofetch } from "ofetch";
-
 import type { BttvEmote, FfzEmoteSet } from "#lib/emotes.js";
 import type { ActiveEmoteSet } from "#lib/graphql/7tv.js";
 import type { Channel } from "#lib/models/channel.svelte.js";
 
-import { transform7tvEmote, transformBttvEmote, transformFfzEmote } from "#lib/emotes.js";
-import { ApiError } from "#lib/errors/api-error.js";
+import { transformBttvEmote, transformFfzEmote, transformGql7tvEmote } from "#lib/emotes.js";
 import { execute7tvQuery, activeEmoteSetQuery } from "#lib/graphql/7tv.js";
+import { fetchJson } from "#lib/http.js";
+import { log } from "#lib/log.js";
 import { settings } from "#lib/settings/index.js";
 
 import { BaseEmoteManager } from "./base-emote-manager";
@@ -21,7 +20,41 @@ interface BttvUser {
 	sharedEmotes: BttvEmote[];
 }
 
+/**
+ * The emotes of a channel from each third-party provider. Channels without an
+ * account on a provider have no emotes from it.
+ */
 export class ChannelEmoteManager extends BaseEmoteManager {
+	protected readonly loaders = {
+		FrankerFaceZ: async () => {
+			const data = await fetchJson<Room | null>(
+				`https://api.frankerfacez.com/v1/room/id/${this.channel.id}`,
+				{ notFound: null },
+			);
+
+			return data?.sets[data.room.set].emoticons.map(transformFfzEmote) ?? [];
+		},
+
+		BetterTTV: async () => {
+			const data = await fetchJson<BttvUser | null>(
+				`https://api.betterttv.net/3/cached/users/twitch/${this.channel.id}`,
+				{ notFound: null },
+			);
+
+			return data
+				? [...data.channelEmotes, ...data.sharedEmotes].map(transformBttvEmote)
+				: [];
+		},
+
+		"7TV": async () => {
+			const set = await this.#fetchActiveSet();
+
+			return (
+				set?.emotes.items.map((item) => transformGql7tvEmote(item.emote, item.alias)) ?? []
+			);
+		},
+	};
+
 	public constructor(public readonly channel: Channel) {
 		super();
 	}
@@ -32,65 +65,10 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 
 		await Promise.all([
 			super.fetch(force),
-			// fetch7tv resolves the channel's 7TV user, so only look it up
-			// separately when 7TV emotes aren't being loaded
-			loading7tv ? null : this.#syncActiveSet().catch(() => null),
+			// Loading 7TV emotes already resolves the channel's 7TV user, so
+			// only look it up separately when they aren't being loaded.
+			loading7tv ? null : this.#syncActiveSet(),
 		]);
-	}
-
-	/**
-	 * Retrieves the list of FrankerFaceZ emotes in the channel.
-	 */
-	public override async fetchFfz() {
-		let data: Room;
-
-		try {
-			data = await ofetch<Room>(`https://api.frankerfacez.com/v1/room/id/${this.channel.id}`);
-		} catch (error) {
-			const apiError = ApiError.from(error);
-			if (apiError.status === 404) return [];
-			throw apiError;
-		}
-
-		const emotes = data.sets[data.room.set].emoticons.map(transformFfzEmote);
-		this.addAll(emotes);
-
-		return emotes;
-	}
-
-	/**
-	 * Retrieves the list of BetterTTV emotes in the channel.
-	 */
-	public override async fetchBttv() {
-		let data: BttvUser;
-
-		try {
-			data = await ofetch<BttvUser>(
-				`https://api.betterttv.net/3/cached/users/twitch/${this.channel.id}`,
-			);
-		} catch (error) {
-			const apiError = ApiError.from(error);
-			if (apiError.status === 404) return [];
-			throw apiError;
-		}
-
-		const emotes = data.channelEmotes.concat(data.sharedEmotes).map(transformBttvEmote);
-		this.addAll(emotes);
-
-		return emotes;
-	}
-
-	/**
-	 * Retrieves the active 7TV emote set for the channel.
-	 */
-	public override async fetch7tv() {
-		const set = await this.#fetchActiveSet();
-		if (!set) return [];
-
-		const emotes = set.emotes.items.map((item) => transform7tvEmote(item.emote, item.alias));
-		this.addAll(emotes);
-
-		return emotes;
 	}
 
 	async #fetchActiveSet(): Promise<ActiveEmoteSet | null>;
@@ -104,18 +82,22 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 		const user = users.userByConnection;
 		const set = user?.style.activeEmoteSet ?? null;
 
-		this.channel.seventvId = user?.id ?? null;
-		this.channel.emoteSetId = set?.id ?? null;
+		await this.channel.setSeventv(user?.id ?? null, set?.id ?? null);
 
 		return set;
 	}
 
 	async #syncActiveSet() {
-		const previous = this.channel.emoteSetId;
-		const set = await this.#fetchActiveSet(false);
+		try {
+			const previous = this.channel.emoteSetId;
+			const set = await this.#fetchActiveSet(false);
 
-		if (this.isLoaded("7TV") && (set?.id ?? null) !== previous) {
-			await this.load("7TV");
+			if (this.isLoaded("7TV") && (set?.id ?? null) !== previous) {
+				await this.load("7TV");
+			}
+		} catch (error) {
+			// The channel still works without knowing its 7TV user.
+			log.warn(`Failed to sync the 7TV emote set of ${this.channel.id}`, error);
 		}
 	}
 }

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { UnlistenFn } from "@tauri-apps/api/event";
 	import { getCurrentWindow } from "@tauri-apps/api/window";
-	import { platform as getPlatform } from "@tauri-apps/plugin-os";
 	import { onDestroy, onMount } from "svelte";
 	import type { HTMLButtonAttributes } from "svelte/elements";
 
@@ -14,6 +13,7 @@
 
 	import { app } from "#lib/app.svelte.js";
 	import { dialogs } from "#lib/dialog.js";
+	import { platform } from "#lib/platform.js";
 	import { updater } from "#lib/updater.svelte.js";
 
 	import JoinDialog from "./JoinDialog.svelte";
@@ -25,16 +25,13 @@
 	type ControlType = "minimize" | "maximize" | "close";
 
 	const currentWindow = getCurrentWindow();
-	const platform = getPlatform();
 
 	let unlisten: UnlistenFn | undefined;
 
 	let maximized = $state(false);
 	let fullscreen = $state(false);
 
-	const hasUnread = $derived(
-		app.user ? app.user.whispers.values().some((whisper) => whisper.unread > 0) : false,
-	);
+	const hasUnread = $derived(Boolean(app.user?.unreadWhispers));
 
 	const label = $derived(
 		updater.failed
@@ -43,8 +40,7 @@
 	);
 
 	onMount(async () => {
-		if (!currentWindow) return;
-
+		maximized = await currentWindow.isMaximized();
 		fullscreen = await currentWindow.isFullscreen();
 
 		unlisten = await currentWindow.onResized(async () => {
@@ -140,15 +136,15 @@
 		{#if platform === "windows"}
 			<div class="flex">
 				{@render control("minimize", {
-					onclick: () => currentWindow?.minimize(),
+					onclick: () => currentWindow.minimize(),
 				})}
 
 				{@render control("maximize", {
-					onclick: () => currentWindow?.toggleMaximize(),
+					onclick: () => currentWindow.toggleMaximize(),
 				})}
 
 				{@render control("close", {
-					onclick: () => currentWindow?.close(),
+					onclick: () => currentWindow.close(),
 				})}
 			</div>
 		{/if}

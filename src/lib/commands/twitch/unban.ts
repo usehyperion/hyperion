@@ -12,7 +12,7 @@ export default defineCommand({
 		const target = await getTarget(args[0], channel);
 
 		await mapErrors(
-			() => channel.viewers.unban(target.username),
+			() => target.unban(),
 			[
 				{
 					code: "TARGET_NOT_BANNED",

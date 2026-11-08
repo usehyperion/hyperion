@@ -39,7 +39,7 @@
 	{@const { type } = message.event}
 
 	{#if type === "announcement"}
-		{@const stops = colors[message.event.color]}
+		{@const stops = colors[message.event.color] ?? colors.PRIMARY}
 
 		<div
 			class="my-1 border-x-4 [border-image-slice:1]"
@@ -67,11 +67,7 @@
 					</p>
 				</div>
 
-				{#if message.text}
-					<div class="mt-2">
-						<Message {message} />
-					</div>
-				{/if}
+				{@render text()}
 			{:else if type === "charity_donation"}
 				{@const amount = message.event.donation_amount / 10 ** message.event.exponent}
 
@@ -151,12 +147,20 @@
 					</p>
 				</div>
 
-				{#if message.text}
-					<div class="mt-2">
-						<Message {message} />
-					</div>
-				{/if}
+				{@render text()}
+			{:else}
+				<p>{message.systemMessage}</p>
+
+				{@render text()}
 			{/if}
 		</Callout>
 	{/if}
 {/if}
+
+{#snippet text()}
+	{#if message.text}
+		<div class="mt-2">
+			<Message {message} />
+		</div>
+	{/if}
+{/snippet}

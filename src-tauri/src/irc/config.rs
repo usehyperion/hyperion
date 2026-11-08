@@ -1,17 +1,17 @@
 use std::sync::Arc;
-use std::time::Duration;
 
-use tokio::sync::Semaphore;
+use tokio::sync::Mutex;
+
+use crate::ws::Backoff;
 
 #[derive(Debug)]
 pub struct ClientConfig {
     pub login: String,
     pub token: String,
-    pub max_channels_per_connection: usize,
-    pub max_waiting_messages_per_connection: usize,
-    pub connection_rate_limiter: Arc<Semaphore>,
-    pub new_connection_every: Duration,
-    pub connect_timeout: Duration,
+    /// Shared by the client's connections so they open one at a time. Holds
+    /// the backoff for consecutive failed connects, which a connection waits
+    /// out while still holding the lock.
+    pub connection_rate_limiter: Arc<Mutex<Backoff>>,
 }
 
 impl ClientConfig {
@@ -19,11 +19,7 @@ impl ClientConfig {
         ClientConfig {
             login,
             token,
-            max_channels_per_connection: 90,
-            max_waiting_messages_per_connection: 5,
-            connection_rate_limiter: Arc::new(Semaphore::new(1)),
-            new_connection_every: Duration::from_secs(2),
-            connect_timeout: Duration::from_secs(20),
+            connection_rate_limiter: Arc::new(Mutex::new(Backoff::default())),
         }
     }
 }

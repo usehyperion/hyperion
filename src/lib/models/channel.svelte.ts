@@ -6,11 +6,7 @@ import type { IrcMessage } from "#lib/twitch/irc.js";
 
 import { app } from "#lib/app.svelte.js";
 import {
-	pollQuery,
-	predictionQuery,
 	streamQuery,
-	toPubSubPoll,
-	toPubSubPrediction,
 	cancelRaidMutation,
 	startRaidMutation,
 	startPollMutation,
@@ -19,7 +15,7 @@ import {
 	shoutoutMutation,
 	createMarkerMutation,
 } from "#lib/graphql/twitch.js";
-import { handlers } from "#lib/handlers/index.js";
+import { dispatch } from "#lib/handlers/index.js";
 import { log } from "#lib/log.js";
 import { ChannelBadgeManager } from "#lib/managers/channel-badge-manager.js";
 import { ChannelEmoteManager } from "#lib/managers/channel-emote-manager.js";
@@ -32,7 +28,7 @@ import type { User } from "./user.svelte";
 
 import { Chat } from "./chat.svelte";
 import { Poll } from "./poll.svelte";
-import { Prediction } from "./prediction.svelte";
+import { duelColor, Prediction } from "./prediction.svelte";
 import { Stream } from "./stream.svelte";
 import { Viewer } from "./viewer.svelte";
 
@@ -49,14 +45,14 @@ export interface PredictionOptions {
 	window: number;
 }
 
-const TTL = 20 * 60 * 1000; // 20 minutes
+const TTL = 20 * 60 * 1000;
 
 /**
  * Where a channel is in its join lifecycle.
  *
  * - `idle`: not joined; channel data may be cached until the TTL expires.
  * - `joining`: channel data is being fetched; IRC has not been joined yet.
- * - `joined`: IRC has been joined and channel data is loaded.
+ * - `joined`: channel data is loaded and the IRC join has been sent.
  * - `leaving`: IRC is being left.
  */
 export type ChannelStatus = "idle" | "joining" | "joined" | "leaving";
@@ -76,34 +72,16 @@ export class Channel {
 
 	public seventvId: string | null = null;
 
-	/**
-	 * The chat associated with the channel.
-	 */
 	public readonly chat: Chat;
 
-	/**
-	 * The badges in the channel.
-	 */
 	public readonly badges: ChannelBadgeManager;
 
-	/**
-	 * The emotes in the channel.
-	 */
 	public readonly emotes: ChannelEmoteManager;
 
-	/**
-	 * The cheermotes in the channel.
-	 */
 	public readonly cheermotes: CheermoteManager;
 
-	/**
-	 * The viewers in the channel.
-	 */
 	public readonly viewers: ViewerManager;
 
-	/**
-	 * Whether the channel is pinned.
-	 */
 	public readonly pinned: boolean;
 
 	/**
@@ -121,22 +99,26 @@ export class Channel {
 	 */
 	public prediction = $state<Prediction | null>(null);
 
-	/**
-	 * Whether the channel is ephemeral.
-	 */
 	public ephemeral = $state(false);
+
+	/**
+	 * Whether the current user is banned from the channel.
+	 */
+	public banned = $state(false);
 
 	/**
 	 * The id of the active 7TV emote set for the channel if any.
 	 */
 	public emoteSetId = $state<string | null>(null);
 
+	#modActions = false;
+
+	// The login the backend joined with; the user may rename meanwhile.
+	#login = "";
+
 	public constructor(
 		public readonly client: TwitchClient,
 
-		/**
-		 * The user for the channel.
-		 */
 		public readonly user: User,
 		stream: Stream | null = null,
 	) {
@@ -153,22 +135,56 @@ export class Channel {
 	}
 
 	/**
+	 * Whether live moderation actions arrive through PubSub, which depends on
+	 * whether the user moderated the channel when it was joined.
+	 */
+	public get receivesModActions() {
+		return this.joined && this.#modActions;
+	}
+
+	/**
+	 * Follows the current user becoming or no longer being a moderator, which
+	 * changes what the backend subscribes to.
+	 */
+	public async setModerated(moderator: boolean) {
+		if (!app.user || app.user.moderates(this.id) === moderator) return;
+
+		app.user.setModerating(this.id, moderator);
+		await this.rejoin();
+	}
+
+	/**
+	 * Updates the channel's 7TV account and active emote set, following their
+	 * events if joined.
+	 */
+	public async setSeventv(userId: string | null, emoteSetId: string | null) {
+		if (userId === this.seventvId && emoteSetId === this.emoteSetId) return;
+
+		this.seventvId = userId;
+		this.emoteSetId = emoteSetId;
+
+		// Otherwise joining sends them.
+		if (this.#login) {
+			await invoke("sync_seventv", {
+				login: this.#login,
+				id: this.id,
+				stvId: userId,
+				setId: emoteSetId,
+			});
+		}
+	}
+
+	/**
 	 * Whether the current user moderates this channel.
 	 */
 	public get isMod() {
 		return app.user?.moderates(this.id) ?? false;
 	}
 
-	/**
-	 * Where the channel is in its join lifecycle.
-	 */
 	public get status() {
 		return this.#status;
 	}
 
-	/**
-	 * Whether the channel is fully joined.
-	 */
 	public get joined() {
 		return this.#status === "joined";
 	}
@@ -206,74 +222,59 @@ export class Channel {
 		return this.#leaving ?? Promise.resolve();
 	}
 
+	/**
+	 * Rejoins on the backend, e.g. after being unbanned or after moderator
+	 * status changed.
+	 */
 	public async rejoin() {
-		await invoke("rejoin", { channel: this.user.username });
+		if (!this.joined || !this.#login) return;
 
-		if (app.user) {
-			app.user.banned.delete(this.id);
-		}
+		await this.#syncBackend();
+		this.banned = false;
 	}
 
-	public clearPoll(poll = this.poll) {
-		if (this.poll === poll) {
-			this.poll?.dispose();
-			this.poll = null;
-		}
-	}
-
-	public clearPrediction(prediction = this.prediction) {
-		if (this.prediction === prediction) {
-			this.prediction?.dispose();
-			this.prediction = null;
-		}
+	public setPinned(pinned: boolean) {
+		const ids = storage.state.pinned.filter((id) => id !== this.id);
+		storage.state.pinned = pinned ? [...ids, this.id] : ids;
 	}
 
 	/**
-	 * Retrieves the poll in the channel if there one is active.
+	 * Replaces the poll, discarding the previous one.
 	 */
-	public async fetchPoll() {
-		const { user } = await this.client.gql(pollQuery, { id: this.id });
-		if (!user?.viewablePoll) return null;
-
-		const creator = this.client.users.from(user.viewablePoll.createdBy!);
-		this.poll = new Poll(this, creator, toPubSubPoll(this.id, user.viewablePoll));
-
-		return this.poll;
+	public setPoll(poll: Poll | null) {
+		this.poll?.dispose();
+		this.poll = poll;
 	}
 
 	/**
-	 * Retrieves the prediction in the channel if there one is active.
+	 * Removes the poll if it is still the given one.
 	 */
-	public async fetchPrediction() {
-		const { channel } = await this.client.gql(predictionQuery, { id: this.id });
-		if (!channel) return null;
-
-		const { active, locked } = channel;
-		if (!active?.length && !locked?.length) return null;
-
-		const prediction = active?.[0] ?? locked?.[0];
-		if (!prediction?.createdBy) return null;
-
-		const creator =
-			prediction.createdBy.__typename === "User"
-				? this.client.users.from(prediction.createdBy)
-				: null;
-
-		this.prediction = new Prediction(this, creator, toPubSubPrediction(this.id, prediction));
-
-		return this.prediction;
+	public clearPoll(poll: Poll) {
+		if (this.poll === poll) this.setPoll(null);
 	}
 
 	/**
-	 * Retrieves the stream of the channel if it's live.
+	 * Replaces the prediction, discarding the previous one.
+	 */
+	public setPrediction(prediction: Prediction | null) {
+		this.prediction?.dispose();
+		this.prediction = prediction;
+	}
+
+	/**
+	 * Removes the prediction if it is still the given one.
+	 */
+	public clearPrediction(prediction: Prediction) {
+		if (this.prediction === prediction) this.setPrediction(null);
+	}
+
+	/**
+	 * Retrieves the stream of the channel; `null` if it's offline.
 	 */
 	public async fetchStream() {
 		const { user } = await this.client.gql(streamQuery, { id: this.id });
 
-		if (user?.stream) {
-			this.stream = new Stream(this.client, this.id, user.stream);
-			this.stream.setGuests(user.channel);
-		}
+		this.stream = user?.stream ? Stream.from(this.id, user.stream, user.channel) : null;
 
 		return this.stream;
 	}
@@ -291,12 +292,7 @@ export class Channel {
 		return createVideoBookmark?.videoBookmark ?? null;
 	}
 
-	/**
-	 * Starts a new poll in the channel.
-	 */
 	public async startPoll(options: PollOptions) {
-		if (!this.isMod) return;
-
 		await this.client.gql(startPollMutation, {
 			input: {
 				ownedBy: this.id,
@@ -311,23 +307,12 @@ export class Channel {
 		});
 	}
 
-	/**
-	 * Starts a new prediction in the channel.
-	 */
 	public async startPrediction(options: PredictionOptions) {
-		if (!this.isMod) return;
-
-		let outcomes: PredictionOutcome[] = [];
-
-		if (options.outcomes.length === 2) {
-			// GraphQL requires the two outcomes have the correct colors
-			outcomes = [
-				{ title: options.outcomes[0], color: "BLUE" },
-				{ title: options.outcomes[1], color: "PINK" },
-			];
-		} else {
-			outcomes = options.outcomes.map((title) => ({ title, color: "BLUE" }));
-		}
+		// GraphQL rejects two-outcome predictions without the blue/pink colors.
+		const outcomes: PredictionOutcome[] = options.outcomes.map((title, i, all) => ({
+			title,
+			color: duelColor(i, all.length) ?? "BLUE",
+		}));
 
 		await this.client.gql(startPredictionMutation, {
 			input: {
@@ -340,8 +325,6 @@ export class Channel {
 	}
 
 	public async blockTerm(term: string) {
-		if (!app.user || !this.isMod) return;
-
 		await this.client.gql(blockTermMutation, {
 			channel: this.id,
 			term,
@@ -349,8 +332,6 @@ export class Channel {
 	}
 
 	public async startRaid(to: string) {
-		if (!this.isMod) return;
-
 		await this.client.gql(startRaidMutation, {
 			source: this.id,
 			target: to,
@@ -358,17 +339,13 @@ export class Channel {
 	}
 
 	public async cancelRaid() {
-		if (!this.isMod) return;
-
 		await this.client.gql(cancelRaidMutation, { channel: this.id });
 	}
 
 	public async shoutout(to: string) {
-		if (!app.user || !this.isMod) return;
-
 		await this.client.gql(shoutoutMutation, {
 			source: this.user.username,
-			caller: app.user.username,
+			caller: app.user?.username ?? "",
 			target: to,
 		});
 	}
@@ -377,30 +354,39 @@ export class Channel {
 		const attempt = {};
 		this.#attempt = attempt;
 
-		await this.#leaving?.catch(() => {});
+		// Rejoining only needs the previous leave to have finished; it failing
+		// was already reported to whoever left.
+		await Promise.allSettled([this.#leaving]);
 		if (this.#attempt !== attempt) return;
 
 		clearTimeout(this.#ttlTimeout);
 		this.#status = "joining";
 
-		app.channels.set(this.id, this);
-		app.focused = this;
-
 		if (!this.viewers.has(this.id)) {
-			const viewer = new Viewer(this, this.user);
-			viewer.broadcaster = true;
-
-			this.viewers.set(this.id, viewer);
+			this.viewers.set(this.id, new Viewer(this, this.user));
 		}
 
-		const results = await Promise.allSettled([
+		// Only the stream is needed to show the channel; everything else is
+		// shown once it loads, if it does.
+		const optional = (what: string, task: Promise<unknown>) =>
+			task.catch((error: unknown) => {
+				log.warn(`Failed to load ${what} of ${this.user.username}`, error);
+			});
+
+		const [stream] = await Promise.allSettled([
 			this.fetchStream(),
-			this.emotes.fetch(),
-			this.badges.fetch(),
-			this.cheermotes.fetch(),
-			this.chat.fetchPinned(),
-			this.fetchPoll(),
-			this.fetchPrediction(),
+			optional("emotes", this.emotes.fetch()),
+			optional("badges", this.badges.fetch()),
+			optional("cheermotes", this.cheermotes.fetch()),
+			optional("pinned message", this.chat.fetchPinned()),
+			optional(
+				"poll",
+				Poll.fetch(this).then((poll) => this.setPoll(poll)),
+			),
+			optional(
+				"prediction",
+				Prediction.fetch(this).then((prediction) => this.setPrediction(prediction)),
+			),
 		]);
 
 		if (this.#attempt !== attempt) {
@@ -415,22 +401,16 @@ export class Channel {
 
 		this.#attempt = null;
 
-		const failure = results.find((result) => result.status === "rejected");
-
-		if (failure) {
+		if (stream.status === "rejected") {
 			this.#teardown();
-			throw failure.reason;
+			throw stream.reason;
 		}
 
 		this.#status = "joined";
 
-		// Don't resolve to avoid blocking the UI
-		void invoke("join", {
-			id: this.id,
-			stvId: this.seventvId,
-			setId: this.emoteSetId,
-			login: this.user.username,
-			isMod: this.isMod,
+		// Not awaited to avoid blocking the UI.
+		this.#joinBackend().catch((error: unknown) => {
+			log.error(`Failed to join ${this.user.username}`, error);
 		});
 
 		if (settings.state["chat.messages.history.enabled"]) {
@@ -438,12 +418,40 @@ export class Channel {
 		}
 	}
 
+	async #joinBackend() {
+		await app.ready;
+
+		// Left or logged out while waiting.
+		if (this.#status !== "joined") return;
+
+		this.#login = this.user.username;
+		await this.#syncBackend();
+	}
+
+	/**
+	 * Tells the backend what to follow in the channel; it only applies what
+	 * changed.
+	 */
+	async #syncBackend() {
+		this.#modActions = this.isMod;
+
+		await invoke("join", {
+			id: this.id,
+			stvId: this.seventvId,
+			setId: this.emoteSetId,
+			login: this.#login,
+			isMod: this.#modActions,
+		});
+	}
+
 	async #leave() {
 		this.#status = "leaving";
 
 		try {
-			await invoke("leave", { channel: this.user.username });
+			// The backend may not have joined yet if it wasn't connected.
+			if (this.#login) await invoke("leave", { login: this.#login });
 		} finally {
+			this.#login = "";
 			this.#leaving = null;
 			this.#teardown();
 		}
@@ -456,7 +464,7 @@ export class Channel {
 		this.chat.reset();
 		this.viewers.clear();
 
-		app.user?.banned.delete(this.id);
+		this.banned = false;
 
 		clearTimeout(this.#ttlTimeout);
 
@@ -468,9 +476,9 @@ export class Channel {
 	}
 
 	#clearLive() {
-		this.clearPoll();
-		this.clearPrediction();
-		this.chat.clearPin();
+		this.setPoll(null);
+		this.setPrediction(null);
+		this.chat.setPin(null);
 	}
 
 	async #loadRecentMessages() {
@@ -483,7 +491,7 @@ export class Channel {
 			for (const message of messages) {
 				// Needs to be sequential
 				// oxlint-disable-next-line no-await-in-loop
-				await handlers.get(message.type)?.handle(message);
+				await dispatch("irc", message.type, message);
 			}
 		} catch (error) {
 			log.error(`Failed to load recent messages for ${this.user.username}`, error);

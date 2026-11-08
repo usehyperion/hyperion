@@ -3,32 +3,21 @@ import { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 import { defineHandler } from "../helper";
 
-export default defineHandler({
+export default defineHandler("irc", {
 	name: "privmsg",
 	async handle(data) {
 		const channel = app.channels.get(data.channel_id);
 		if (!channel) return;
 
-		const message = UserMessage.fromIrc(channel, data);
-		const badges = (data.source ?? data).badges;
-
-		message.author.color = data.name_color;
-		message.author.username = data.sender.login;
-		message.author.displayName = data.sender.name;
-
-		message.viewer ??= await channel.viewers.fetch(data.sender.id);
-		message.viewer.broadcaster = badges.some((b) => b.name.startsWith("broadcaster"));
-		message.viewer.moderator = message.viewer.broadcaster || data.is_mod;
-		message.viewer.subscriber = data.is_subscriber;
-		message.viewer.vip = badges.some((b) => b.name.startsWith("vip"));
-		message.viewer.returning = data.is_returning_chatter;
-		message.viewer.new = data.is_first_msg;
-
-		if (data.source) {
-			await message.setSource(data.source);
-		}
+		const message = await UserMessage.fromIrc(channel, data);
 
 		channel.chat.add(message);
+
+		// The user's own messages are the only sign of becoming a moderator,
+		// since mod-only PubSub topics aren't subscribed until then.
+		if (data.sender.id === app.user?.id && !data.is_recent) {
+			await channel.setModerated(message.viewer.moderator);
+		}
 
 		if (data.custom_reward_id) {
 			channel.chat.redemptions.attachMessage(data.custom_reward_id, data.sender.id, message);

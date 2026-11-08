@@ -2,7 +2,7 @@ import { app } from "#lib/app.svelte.js";
 
 import { defineHandler } from "../helper";
 
-export default defineHandler({
+export default defineHandler("pubsub", {
 	name: "pinned-chat-updates-v1",
 	async handle(data) {
 		const channel = app.channels.get(data.target_id);
@@ -11,7 +11,7 @@ export default defineHandler({
 		if (data.type === "pin-message" || data.type === "update-message") {
 			await channel.chat.fetchPinned();
 		} else if (data.type === "unpin-message") {
-			channel.chat.clearPin();
+			channel.chat.setPin(null);
 		}
 	},
 });

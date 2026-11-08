@@ -1,10 +1,6 @@
 use std::fmt;
 
-use serde::{Deserialize, Serialize};
-
-use super::AsRawIrc;
-
-#[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub enum IrcPrefix {
     HostOnly {
         host: String,
@@ -40,8 +36,8 @@ impl IrcPrefix {
     }
 }
 
-impl AsRawIrc for IrcPrefix {
-    fn format_as_raw_irc(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+impl fmt::Display for IrcPrefix {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::HostOnly { host } => write!(f, "{host}")?,
             Self::Full { nick, user, host } => {

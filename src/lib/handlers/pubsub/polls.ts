@@ -3,7 +3,7 @@ import { Poll } from "#lib/models/poll.svelte.js";
 
 import { defineHandler } from "../helper";
 
-export default defineHandler({
+export default defineHandler("pubsub", {
 	name: "polls",
 	async handle(data) {
 		const channel = app.channels.get(data.target_id);
@@ -11,26 +11,16 @@ export default defineHandler({
 
 		const { poll } = data.data;
 
-		switch (data.type) {
-			case "POLL_CREATE": {
-				channel.poll?.dispose();
-
-				const creator = await channel.client.users.fetch(poll.created_by);
-				channel.poll = new Poll(channel, creator, poll);
-
-				break;
-			}
-
-			case "POLL_UPDATE": {
-				channel.poll?.update(poll);
-				break;
-			}
-
-			case "POLL_COMPLETE":
-			case "POLL_TERMINATE": {
-				channel.poll?.complete(poll);
-				break;
-			}
+		if (channel.poll?.id === poll.poll_id) {
+			channel.poll.update(poll);
+			return;
 		}
+
+		// Covers new polls and updates for polls that aren't tracked yet.
+		const creator = poll.created_by
+			? await channel.client.users.fetch(poll.created_by).catch(() => null)
+			: null;
+
+		channel.setPoll(new Poll(channel, creator, poll));
 	},
 });

@@ -1,12 +1,12 @@
-pub mod event_loop;
+mod event_loop;
 
 use std::sync::Arc;
 
+pub(super) use event_loop::{PendingMessage, ReplySender};
 use tokio::sync::mpsc;
 
 use super::config::ClientConfig;
-use super::connection::event_loop::{ConnectionLoopWorker, PendingMessage};
-use super::message::commands::ServerMessage;
+use super::message::ServerMessage;
 
 #[derive(Debug)]
 pub enum ConnectionIncomingMessage {
@@ -14,23 +14,22 @@ pub enum ConnectionIncomingMessage {
     StateClosed,
 }
 
-pub(crate) struct Connection {
-    pub connection_loop_tx: Arc<mpsc::UnboundedSender<PendingMessage>>,
-}
+/// Opens a single IRC connection, returning its incoming messages and the
+/// sender for messages to send out on it.
+pub fn spawn(
+    config: Arc<ClientConfig>,
+) -> (
+    mpsc::UnboundedReceiver<ConnectionIncomingMessage>,
+    mpsc::UnboundedSender<PendingMessage>,
+) {
+    let (connection_loop_tx, connection_loop_rx) = mpsc::unbounded_channel();
+    let (connection_incoming_tx, connection_incoming_rx) = mpsc::unbounded_channel();
 
-impl Connection {
-    pub fn new(
-        config: Arc<ClientConfig>,
-    ) -> (
-        mpsc::UnboundedReceiver<ConnectionIncomingMessage>,
-        Connection,
-    ) {
-        let (connection_loop_tx, connection_loop_rx) = mpsc::unbounded_channel();
-        let (connection_incoming_tx, connection_incoming_rx) = mpsc::unbounded_channel();
-        let connection_loop_tx = Arc::new(connection_loop_tx);
+    tokio::spawn(event_loop::run(
+        config,
+        connection_incoming_tx,
+        connection_loop_rx,
+    ));
 
-        ConnectionLoopWorker::spawn(config, connection_incoming_tx, connection_loop_rx);
-
-        (connection_incoming_rx, Connection { connection_loop_tx })
-    }
+    (connection_incoming_rx, connection_loop_tx)
 }

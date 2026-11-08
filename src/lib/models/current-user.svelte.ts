@@ -2,8 +2,7 @@ import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
 import type { EmoteSet } from "#lib/emotes.js";
 
-import { app } from "#lib/app.svelte.js";
-import { transform7tvEmote } from "#lib/emotes.js";
+import { transformGql7tvEmote, transformTwitchEmote } from "#lib/emotes.js";
 import { execute7tvQuery, userEmoteSetsQuery } from "#lib/graphql/7tv.js";
 import {
 	emoteSetsQuery,
@@ -11,9 +10,10 @@ import {
 	moderatesQuery,
 	whispersQuery,
 } from "#lib/graphql/twitch.js";
+import { fetchJson } from "#lib/http.js";
+import { log } from "#lib/log.js";
 import { once } from "#lib/util/resource.js";
 
-import { Channel } from "./channel.svelte";
 import { Stream } from "./stream.svelte";
 import { User } from "./user.svelte";
 import { Whisper } from "./whisper.svelte";
@@ -22,18 +22,10 @@ export class CurrentUser extends User {
 	public seventvId: string | null = null;
 
 	/**
-	 * The ids of the channels the current user is banned from.
-	 */
-	public readonly banned = new SvelteSet<string>();
-
-	/**
 	 * The ids of the channels the current user moderates for.
 	 */
-	public readonly moderating = new SvelteSet<string>();
+	readonly #moderating = new SvelteSet<string>();
 
-	/**
-	 * The whisper threads the current user is involved in.
-	 */
 	public readonly whispers = new SvelteMap<string, Whisper>();
 
 	/**
@@ -41,21 +33,20 @@ export class CurrentUser extends User {
 	 */
 	public readonly emoteSets = new SvelteMap<string, EmoteSet>();
 
+	public get unreadWhispers() {
+		return this.whispers.values().reduce((total, whisper) => total + whisper.unread, 0);
+	}
+
 	public constructor(user: User) {
 		super(user.client, user.data);
 
 		// Users always moderate their own channel.
-		this.moderating.add(this.id);
+		this.#moderating.add(this.id);
 	}
 
-	/**
-	 * Loads the emote sets the current user is entitled to use.
-	 */
-	public readonly loadEmoteSets = once(() => this.fetchEmoteSets());
+	readonly #seventvSets = once(() => this.#fetch7tvSets());
+	readonly #twitchSets = once(() => this.#fetchTwitchEmotes());
 
-	/**
-	 * Loads the channels the current user moderates.
-	 */
 	public readonly loadModerating = once(async () => {
 		const moderates = await this.client.paginate(
 			moderatesQuery,
@@ -64,30 +55,75 @@ export class CurrentUser extends User {
 		);
 
 		for (const { id } of moderates) {
-			this.moderating.add(id);
+			this.#moderating.add(id);
 		}
 	});
 
-	/**
-	 * Loads the channels the current user follows.
-	 */
 	public readonly loadFollowing = once(() => this.#loadFollowing());
 
-	/**
-	 * Loads the whisper threads the current user is a part of.
-	 */
 	public readonly loadWhispers = once(() => this.#loadWhispers());
 
 	/**
-	 * Whether the current user moderates the given channel.
+	 * Tells 7TV the current user is chatting in the channel, so other 7TV
+	 * users see their cosmetics there. Best effort: failures are only logged.
 	 */
-	public moderates(channelId: string) {
-		return this.moderating.has(channelId);
+	public async sendPresence(channelId: string) {
+		// The 7TV account is resolved along with the emote sets.
+		await this.loadEmoteSets();
+		if (!this.seventvId) return;
+
+		try {
+			await fetchJson(`https://7tv.io/v3/users/${this.seventvId}/presences`, {
+				method: "POST",
+				body: {
+					kind: 1,
+					passive: false,
+					session_id: null,
+					data: { platform: "TWITCH", id: channelId },
+				},
+			});
+
+			log.info(`Presence sent in ${channelId}`);
+		} catch (error) {
+			log.error("Failed to send presence", error);
+		}
 	}
 
-	public async fetchEmoteSets() {
-		await this.#fetch7tvSets();
-		void this.#fetchTwitchEmotes().catch(() => {});
+	/**
+	 * The emotes the current user can use in any channel.
+	 */
+	public get ownEmotes() {
+		return this.emoteSets.values().flatMap((set) => set.emotes);
+	}
+
+	public moderates(channelId: string) {
+		return this.#moderating.has(channelId);
+	}
+
+	public setModerating(channelId: string, moderating: boolean) {
+		if (moderating) {
+			this.#moderating.add(channelId);
+		} else if (channelId !== this.id) {
+			this.#moderating.delete(channelId);
+		}
+	}
+
+	/**
+	 * Loads the emote sets the current user can use. A provider that fails to
+	 * load is skipped and retried on the next call.
+	 */
+	public async loadEmoteSets() {
+		const loads = { "7TV": this.#seventvSets, Twitch: this.#twitchSets };
+
+		await Promise.all(
+			Object.entries(loads).map(async ([provider, load]) => {
+				try {
+					await load();
+				} catch (error) {
+					log.warn(`Failed to load ${provider} emote sets`, error);
+				}
+			}),
+		);
 	}
 
 	async #loadFollowing() {
@@ -97,29 +133,12 @@ export class CurrentUser extends User {
 			(data) => data.user?.follows,
 		);
 
-		for (const followed of follows) {
-			if (app.channels.has(followed.id)) continue;
-
-			let stream: Stream | null = null;
-
-			if (followed.stream) {
-				stream = new Stream(this.client, followed.id, followed.stream);
-
-				const guests = followed.channel?.guestStarSessionCall?.guests ?? [];
-
-				for (const { user: guest } of guests) {
-					stream.addGuest({
-						...guest,
-						viewers: guest.stream?.viewersCount ?? null,
-					});
-				}
-			}
-
-			const model = new User(this.client, followed);
-			this.client.users.set(model.id, model);
-
-			app.channels.set(model.id, new Channel(this.client, model, stream));
-		}
+		return follows.map((followed) => ({
+			user: this.client.users.from(followed),
+			stream: followed.stream
+				? Stream.from(followed.id, followed.stream, followed.channel)
+				: null,
+		}));
 	}
 
 	async #loadWhispers() {
@@ -158,7 +177,9 @@ export class CurrentUser extends User {
 				name: `${this.displayName}: 7TV Personal Emotes`,
 				owner: this,
 				global: true,
-				emotes: set.emotes.items.map((item) => transform7tvEmote(item.emote, item.alias)),
+				emotes: set.emotes.items.map((item) =>
+					transformGql7tvEmote(item.emote, item.alias),
+				),
 			});
 		}
 
@@ -171,7 +192,7 @@ export class CurrentUser extends User {
 					owner: this,
 					global: true,
 					emotes: set.emotes.items.map((item) =>
-						transform7tvEmote(item.emote, item.alias),
+						transformGql7tvEmote(item.emote, item.alias),
 					),
 				});
 			}
@@ -190,7 +211,7 @@ export class CurrentUser extends User {
 
 			if (!owner) {
 				// oxlint-disable-next-line no-await-in-loop
-				owner = await app.twitch.users.fetch("twitch", { by: "login" });
+				owner = await this.client.users.fetch("twitch", { by: "login" });
 			}
 
 			this.emoteSets.set(set.id!, {
@@ -206,20 +227,7 @@ export class CurrentUser extends User {
 				emotes:
 					set.emotes
 						?.filter((emote) => emote != null)
-						.map((emote) => ({
-							provider: "Twitch",
-							id: emote.id!,
-							name: emote.text!,
-							displayName: emote.text!,
-							width: 56,
-							height: 56,
-							displayWidth: 28,
-							displayHeight: 28,
-							srcset: [1, 2, 3].map(
-								(d) =>
-									`https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark/${d} ${d}x`,
-							),
-						})) ?? [],
+						.map((emote) => transformTwitchEmote(emote.id!, emote.text!)) ?? [],
 			});
 		}
 	}

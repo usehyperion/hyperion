@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from "svelte";
 	import type { HTMLInputAttributes, KeyboardEventHandler } from "svelte/elements";
 
 	import ChartBarHorizontal from "~icons/ph/chart-bar-horizontal";
@@ -31,7 +32,7 @@
 	let historyIdx = $state(-1);
 	let error = $state<string>("");
 
-	const banned = $derived(app.user?.banned.has(chat.channel.id) ?? false);
+	const banned = $derived(chat.channel.banned);
 	const showSuggestions = $derived(!!completer?.suggestions.length && completer.prefixed);
 
 	$effect(() => {
@@ -55,8 +56,10 @@
 		} else if (event.key === "Escape") {
 			chat.replyTarget = null;
 		} else if (event.key === "ArrowUp") {
+			// Keep the caret from jumping to the start of the input.
+			event.preventDefault();
+
 			if (showSuggestions) {
-				event.preventDefault();
 				completer.prev();
 			} else {
 				if (!chat.history.length) return;
@@ -69,9 +72,8 @@
 
 				chat.value = chat.history[historyIdx];
 
-				setTimeout(() => {
-					input.setSelectionRange(chat.value.length, chat.value.length);
-				}, 0);
+				await tick();
+				input.setSelectionRange(chat.value.length, chat.value.length);
 			}
 		} else if (event.key === "ArrowDown") {
 			if (showSuggestions) {

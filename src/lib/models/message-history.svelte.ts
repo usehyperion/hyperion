@@ -2,12 +2,13 @@ import type { ResultOf } from "gql.tada";
 
 import type { NonNullableDeep } from "#lib/graphql/index.js";
 
-import { modLogMessagesQuery, toMessageFragments } from "#lib/graphql/twitch.js";
+import { modLogMessagesQuery } from "#lib/graphql/twitch.js";
 import { Pager, toPage, type Page } from "#lib/pager.svelte.js";
 import { once } from "#lib/util/resource.js";
 
 import type { Viewer } from "./viewer.svelte";
 
+import { fromGqlContent } from "./message/fragment";
 import { UserMessage } from "./message/user-message.svelte";
 
 type ModLogsResult = NonNullableDeep<
@@ -106,13 +107,13 @@ export class MessageHistory {
 		const message = UserMessage.from(this.viewer.channel, {
 			id: data.id,
 			text: data.content.text,
-			fragments: toMessageFragments(data.content),
+			fragments: fromGqlContent(data.content),
 			sender: data.sender ?? {
 				id: this.viewer.id,
 				login: this.viewer.username,
 				name: this.viewer.displayName,
 			},
-			color: data.sender?.chatColor ?? "",
+			color: data.sender?.chatColor ?? null,
 			badges: data.senderBadges ?? [],
 			timestamp: new Date(data.sentAt).getTime(),
 		});
