@@ -25,7 +25,7 @@ import { TwitchClient } from "./twitch/client";
 /**
  * The account the backend signed in with after the user logged in on Twitch.
  */
-export interface SignedIn {
+export interface Account {
 	id: string;
 	login: string;
 	accessToken: string;
@@ -35,7 +35,7 @@ const CONNECT_RETRY_MIN = 1000;
 const CONNECT_RETRY_MAX = 60 * 1000;
 
 /**
- * Persists the storage right away, since navigating next reloads it.
+ * Persists the storage right away.
  */
 async function saveStorage() {
 	// Let the store see the latest state before saving.
@@ -44,19 +44,16 @@ async function saveStorage() {
 }
 
 class App {
-	public readonly twitch = new TwitchClient(() => {
-		this.expireSession().catch((error: unknown) => {
-			log.error("Failed to end the revoked session", error);
-		});
-	});
-
 	#ending: Promise<void> | null = null;
 
 	#connected = false;
-
 	#connecting: Promise<void> | null = null;
 
 	#ready = Promise.withResolvers<void>();
+
+	public readonly twitch = new TwitchClient(() => {
+		this.expireSession().catch(log.swallow("Failed to end the revoked session"));
+	});
 
 	public user = $state<CurrentUser | null>(null);
 
@@ -113,7 +110,7 @@ class App {
 		return this.user;
 	}
 
-	public async completeLogin(account: SignedIn) {
+	public async completeLogin(account: Account) {
 		this.twitch.token = account.accessToken;
 
 		const user = await this.twitch.users.fetch(account.id);
@@ -187,7 +184,9 @@ class App {
 		let channel = this.channels.getByLogin(login);
 
 		if (!channel) {
-			channel = this.channels.add(await this.twitch.users.fetch(login, { by: "login" }));
+			const user = await this.twitch.users.fetch(login, { by: "login" });
+
+			channel = this.channels.add(user);
 			channel.ephemeral = true;
 		}
 
@@ -250,10 +249,6 @@ class App {
 		this.channels.delete(channel.id);
 	}
 
-	/**
-	 * Connects to IRC, PubSub and 7TV, retrying until it succeeds, e.g. once
-	 * Twitch is reachable again after starting offline.
-	 */
 	public connect() {
 		return (this.#connecting ??= this.#connectUntilReady().finally(() => {
 			this.#connecting = null;

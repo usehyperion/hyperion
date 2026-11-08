@@ -147,41 +147,32 @@ export interface SevenTvEventMap {
 	"user.update": ChangeMap<EventObject | null, true>;
 }
 
-/**
- * The Twitch account linked to a 7TV user, if any.
- */
 export function twitchConnection(user: SevenTvUser) {
 	return user.connections.find((c) => c.platform === "TWITCH");
 }
 
-/**
- * The url of a file hosted by 7TV's event API, whose host urls lack a scheme.
- */
 export function sevenTvFileUrl(host: Host, file: HostFile) {
 	return `https:${host.url}/${file.name}`;
 }
 
-/**
- * What 7TV events say about users: their paints and personal emote sets.
- */
 export class SevenTvCosmetics {
 	/**
-	 * Paints by id.
+	 * Paints keyed by their id.
 	 */
 	public readonly paints = new Map<string, Paint>();
 
 	/**
-	 * The paint each user has equipped, by user id.
-	 */
-	public readonly userPaints = new SvelteMap<string, Paint | undefined>();
-
-	/**
-	 * The emotes of personal emote sets, by set id.
+	 * The emotes of personal emote sets keyed by set id.
 	 */
 	public readonly personalSets = new SvelteMap<string, ChatEmote[]>();
 
 	/**
-	 * The personal emote set each user has, by user id.
+	 * The paint each user has equipped keyed by user id.
+	 */
+	public readonly userPaints = new SvelteMap<string, Paint | undefined>();
+
+	/**
+	 * The personal emote set each user has keyed by user id.
 	 */
 	public readonly userPersonalSets = new SvelteMap<string, string>();
 
@@ -190,6 +181,7 @@ export class SevenTvCosmetics {
 	 */
 	public personalEmote(userId: string, name: string) {
 		const setId = this.userPersonalSets.get(userId);
+
 		return setId
 			? this.personalSets.get(setId)?.find((emote) => emote.displayName === name)
 			: undefined;

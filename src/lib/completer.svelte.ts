@@ -27,18 +27,18 @@ export class Completer {
 	// Where the inserted suggestion is while cycling through suggestions.
 	#span: { start: number; end: number } | null = null;
 
+	// Debounced so a burst of keystrokes collapses into a single batched request.
+	#hydrateAvatars = debounce((users: User[]) => {
+		this.chat.channel.client.users
+			.fetchAvatars(users)
+			.catch(log.swallow("Failed to load avatars"));
+	}, 200);
+
 	public query = "";
 	public prefixed = false;
 
 	public current = $state(0);
 	public suggestions = $state<Suggestion[]>([]);
-
-	// Debounced so a burst of keystrokes collapses into a single batched request.
-	#hydrateAvatars = debounce((users: User[]) => {
-		this.chat.channel.client.users.fetchAvatars(users).catch((error: unknown) => {
-			log.warn("Failed to load avatars", error);
-		});
-	}, 200);
 
 	public constructor(
 		private readonly chat: Chat,
@@ -132,10 +132,16 @@ export class Completer {
 		const text = this.chat.value;
 		const cursor = this.#input.selectionStart ?? text.length;
 
-		// The word being completed ends at the cursor; once a suggestion was
-		// inserted, cycling replaces that instead. Mentions keep their `@`.
-		let { start, end } = this.#span ?? { start: cursor - this.query.length, end: cursor };
-		if (!this.#span && this.query.startsWith("@")) start++;
+		// The word being completed ends at the cursor. Once a suggestion was
+		// inserted, cycling replaces that instead; mentions keep their `@`.
+		let { start, end } = this.#span ?? {
+			start: cursor - this.query.length,
+			end: cursor,
+		};
+
+		if (!this.#span && this.query.startsWith("@")) {
+			start++;
+		}
 
 		this.chat.value = `${text.slice(0, start) + suggestion.value} ${text.slice(end).trim()}`;
 		this.#input.focus();

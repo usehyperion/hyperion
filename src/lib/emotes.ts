@@ -20,7 +20,6 @@ export type EmoteProvider = "Twitch" | "FrankerFaceZ" | "BetterTTV" | "7TV";
 
 export interface Emote {
 	readonly provider: EmoteProvider;
-
 	readonly id: string;
 
 	/**
@@ -41,7 +40,6 @@ export interface Emote {
 	displayName: string;
 
 	readonly width: number;
-
 	readonly height: number;
 
 	/**
@@ -69,13 +67,9 @@ export interface Emote {
 
 export interface EmoteSet {
 	readonly id: string;
-
 	readonly provider: EmoteProvider;
-
 	readonly name: string;
-
 	readonly owner: Pick<User, "id" | "displayName" | "avatarUrl">;
-
 	readonly emotes: Emote[];
 
 	/**
@@ -91,11 +85,6 @@ export const PROVIDER_ICONS: Record<EmoteProvider, Component> = {
 	FrankerFaceZ: FfzIcon,
 };
 
-/**
- * The providers whose emotes are loaded per channel and globally, in the
- * order they're shown, along with the settings that enable their emotes and
- * badges and how their global set is shown.
- */
 export const THIRD_PARTY_PROVIDERS = [
 	{
 		id: "7TV",
@@ -104,7 +93,11 @@ export const THIRD_PARTY_PROVIDERS = [
 		badgesSetting: "chat.badges.seventv",
 		global: {
 			name: "Global: 7TV",
-			owner: { id: "7tv_global", displayName: "7TV Global", avatarUrl: stv },
+			owner: {
+				id: "7tv_global",
+				displayName: "7TV Global",
+				avatarUrl: stv,
+			},
 		},
 	},
 	{
@@ -114,7 +107,11 @@ export const THIRD_PARTY_PROVIDERS = [
 		badgesSetting: "chat.badges.bttv",
 		global: {
 			name: "Global: BetterTTV",
-			owner: { id: "bttv_global", displayName: "BetterTTV Global", avatarUrl: bttv },
+			owner: {
+				id: "bttv_global",
+				displayName: "BetterTTV Global",
+				avatarUrl: bttv,
+			},
 		},
 	},
 	{
@@ -124,7 +121,11 @@ export const THIRD_PARTY_PROVIDERS = [
 		badgesSetting: "chat.badges.ffz",
 		global: {
 			name: "Global: FrankerFaceZ",
-			owner: { id: "ffz_global", displayName: "FrankerFaceZ Global", avatarUrl: ffz },
+			owner: {
+				id: "ffz_global",
+				displayName: "FrankerFaceZ Global",
+				avatarUrl: ffz,
+			},
 		},
 	},
 ] as const satisfies readonly {
@@ -150,7 +151,11 @@ export function toProviderSets(
 		const group = groups.get(provider.id);
 		if (!group?.length) continue;
 
-		sets.push({ ...meta(provider), provider: provider.id, emotes: group });
+		sets.push({
+			provider: provider.id,
+			emotes: group,
+			...meta(provider),
+		});
 	}
 
 	return sets;
@@ -179,11 +184,16 @@ export interface BttvEmote {
 	height?: number;
 }
 
+interface EmoteSource {
+	url: string;
+	density: string;
+}
+
 /**
  * Splits an emote's {@linkcode Emote.srcset} into its candidate urls and the
- * pixel densities they're for, e.g. `{ url: "…", density: "2x" }`.
+ * pixel densities they're for.
  */
-export function emoteSources(emote: Pick<Emote, "srcset">) {
+export function emoteSources(emote: Pick<Emote, "srcset">): EmoteSource[] {
 	return emote.srcset.map((candidate) => {
 		const [url, density] = candidate.split(" ");
 		return { url, density };
@@ -247,11 +257,6 @@ interface SevenTvImage {
 	scale: number;
 }
 
-/**
- * Builds a 7TV emote from its animated images. 7TV's GraphQL API and its
- * event API describe the same images in different shapes, so callers
- * normalize them first.
- */
 export function transform7tvEmote(
 	emote: { id: string; name: string; alias?: string; zeroWidth: boolean },
 	images: SevenTvImage[],
@@ -283,7 +288,12 @@ export function transform7tvEmote(
 
 export function transformGql7tvEmote(emote: SevenTvEmote, alias?: string): Emote {
 	return transform7tvEmote(
-		{ id: emote.id, name: emote.defaultName, alias, zeroWidth: emote.flags.defaultZeroWidth },
+		{
+			id: emote.id,
+			name: emote.defaultName,
+			alias,
+			zeroWidth: emote.flags.defaultZeroWidth,
+		},
 		emote.images
 			.filter((img) => !img.url.includes("static"))
 			.map((img) => ({
@@ -296,12 +306,8 @@ export function transformGql7tvEmote(emote: SevenTvEmote, alias?: string): Emote
 	);
 }
 
-// 7TV's emote flag for zero-width emotes.
 const ZERO_WIDTH_FLAG = 256;
 
-/**
- * Builds a 7TV emote from the event API.
- */
 export function transformEvent7tvEmote(emote: EmoteChange): Emote {
 	const { host } = emote.data;
 
@@ -317,7 +323,6 @@ export function transformEvent7tvEmote(emote: EmoteChange): Emote {
 			format: file.format.toLowerCase(),
 			width: file.width,
 			height: file.height,
-			// Files are named by their scale, e.g. "2x.webp".
 			scale: Number(file.name[0]) || 1,
 		})),
 	);

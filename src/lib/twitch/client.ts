@@ -11,7 +11,6 @@ import { log } from "#lib/log.js";
 import { UserManager } from "#lib/managers/user-manager.js";
 import { dedupe } from "#lib/util/resource.js";
 
-// Twitch's own web client id; GQL rejects third-party ids.
 const CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 
 interface Integrity {
@@ -31,10 +30,6 @@ export class TwitchClient {
 
 	public readonly users = new UserManager(this);
 
-	/**
-	 * @param onRevoked Called when Twitch rejects the token, e.g. because the
-	 * user revoked it.
-	 */
 	public constructor(private readonly onRevoked: () => void) {}
 
 	public async gql<T, U>(query: TadaDocumentNode<T, U>, variables?: U): Promise<T> {
@@ -91,7 +86,7 @@ export class TwitchClient {
 		// The backend caches the token and backs off after failures.
 		const integrity = await dedupe("twitch:integrity", () =>
 			invoke<Integrity | null>("get_integrity"),
-		).catch((error: unknown) => {
+		).catch((error) => {
 			log.error("Failed to get the integrity token", error);
 			return null;
 		});

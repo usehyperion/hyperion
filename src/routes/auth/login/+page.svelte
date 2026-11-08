@@ -5,7 +5,7 @@
 
 	import Twitch from "~icons/local/twitch";
 
-	import type { SignedIn } from "#lib/app.svelte.js";
+	import type { Account } from "#lib/app.svelte.js";
 
 	import { app } from "#lib/app.svelte.js";
 	import Button from "#lib/components/ui/Button.svelte";
@@ -19,7 +19,7 @@
 			log.error(`Failed to sign in: ${payload}`);
 		});
 
-		const unlistenSuccess = listen<SignedIn>("twitch-auth-success", async ({ payload }) => {
+		const unlistenSuccess = listen<Account>("twitch-auth-success", async ({ payload }) => {
 			try {
 				await app.completeLogin(payload);
 			} catch (err) {
