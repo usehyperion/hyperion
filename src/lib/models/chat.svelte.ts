@@ -33,6 +33,7 @@ export interface ChatMode {
 	unique: boolean;
 	subOnly: boolean;
 	emoteOnly: boolean;
+
 	/**
 	 * Minutes an account must have followed to chat (0 for any follower), or
 	 * `null` when follower-only mode is off.
@@ -54,11 +55,11 @@ export interface ChatSettings {
 }
 
 export class Chat {
+	#ids = new Set<string>();
 	#bypassNext = false;
+
 	#lastSent: string | null = null;
 	#lastRecentAt: number | null = null;
-
-	#ids = new Set<string>();
 
 	// Timestamps of last messages sent by normal/elevated users.
 	#lastMessage: number[] = [];
@@ -68,15 +69,13 @@ export class Chat {
 	 * The commands available in the chat.
 	 */
 	public readonly commands = new Map<string, Command>();
-
 	public readonly redemptions = new RedemptionManager();
 
 	public mode: ChatMode;
-
 	public messages = $state<Message[]>([]);
 
 	/**
-	 * What the current user has entered in the chat, for recalling it.
+	 * What the current user has entered in the chat.
 	 */
 	public history: string[] = [];
 
@@ -86,7 +85,7 @@ export class Chat {
 	public pinned = $state<Pin | null>(null);
 
 	/**
-	 * The message the current user is replying to if any.
+	 * The message the current user is replying to, if any.
 	 */
 	public replyTarget = $state<UserMessage | null>(null);
 
@@ -266,9 +265,6 @@ export class Chat {
 		});
 	}
 
-	/**
-	 * Sends a message, running it as a command if it starts with a slash.
-	 */
 	public async send(message: string) {
 		if (message.startsWith("/")) {
 			await this.#runCommand(message);
@@ -313,6 +309,21 @@ export class Chat {
 		}
 	}
 
+	/**
+	 * Sends a message and pins it.
+	 */
+	public async sendPinned(message: string) {
+		const text = this.#prepare(message);
+		if (text === null) return;
+
+		await this.channel.client.gql(sendPinnedMessageMutation, {
+			channel: this.channel.id,
+			message: text,
+		});
+
+		void app.user?.sendPresence(this.channel.id);
+	}
+
 	async #runCommand(message: string) {
 		if (!app.user) return;
 
@@ -334,24 +345,6 @@ export class Chat {
 		}
 	}
 
-	/**
-	 * Sends a message and pins it.
-	 */
-	public async sendPinned(message: string) {
-		const text = this.#prepare(message);
-		if (text === null) return;
-
-		await this.channel.client.gql(sendPinnedMessageMutation, {
-			channel: this.channel.id,
-			message: text,
-		});
-
-		void app.user?.sendPresence(this.channel.id);
-	}
-
-	/**
-	 * The text to send for a message, or `null` if it can't be sent yet.
-	 */
 	#prepare(message: string) {
 		if (!app.user) return null;
 
@@ -376,8 +369,6 @@ export class Chat {
 		this.#lastSent = message;
 
 		if (this.#bypassNext) {
-			// Twitch drops a message identical to the previous one, so make it
-			// differ by an invisible tag character.
 			message = `${message} \u{E0000}`;
 		}
 

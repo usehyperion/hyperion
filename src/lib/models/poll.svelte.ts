@@ -38,13 +38,9 @@ function fromGql(channel: string, poll: ViewablePoll): ApiPoll {
  */
 export class Poll extends Notice {
 	public readonly id: string;
-
 	public readonly title: string;
-
 	public readonly choices = $state<PollChoice[]>([]);
-
 	public readonly startedTimestamp: number;
-
 	public readonly endsTimestamp: number;
 
 	public totalVotes = $state(0);
@@ -57,6 +53,7 @@ export class Poll extends Notice {
 
 	public constructor(
 		public readonly channel: Channel,
+
 		/**
 		 * The user who created the poll; `null` if unknown.
 		 */
@@ -99,7 +96,10 @@ export class Poll extends Notice {
 
 		for (const choice of this.choices) {
 			const votes = payload.choices.find((c) => c.choice_id === choice.id)?.total_voters;
-			if (typeof votes === "number") choice.votes = votes;
+
+			if (typeof votes === "number") {
+				choice.votes = votes;
+			}
 		}
 
 		// Polls can already be over when first seen, e.g. when joining a

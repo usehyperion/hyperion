@@ -22,7 +22,6 @@ export class Pin extends Notice {
 	#chat: Chat;
 
 	public readonly pinner: User;
-
 	public readonly message: UserMessage;
 
 	/**

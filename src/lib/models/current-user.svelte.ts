@@ -19,12 +19,15 @@ import { User } from "./user.svelte";
 import { Whisper } from "./whisper.svelte";
 
 export class CurrentUser extends User {
-	public seventvId: string | null = null;
-
 	/**
 	 * The ids of the channels the current user moderates for.
 	 */
 	readonly #moderating = new SvelteSet<string>();
+
+	readonly #seventvSets = once(() => this.#fetch7tvSets());
+	readonly #twitchSets = once(() => this.#fetchTwitchEmotes());
+
+	public seventvId: string | null = null;
 
 	public readonly whispers = new SvelteMap<string, Whisper>();
 
@@ -32,20 +35,6 @@ export class CurrentUser extends User {
 	 * The emote sets the current user is entitled to use.
 	 */
 	public readonly emoteSets = new SvelteMap<string, EmoteSet>();
-
-	public get unreadWhispers() {
-		return this.whispers.values().reduce((total, whisper) => total + whisper.unread, 0);
-	}
-
-	public constructor(user: User) {
-		super(user.client, user.data);
-
-		// Users always moderate their own channel.
-		this.#moderating.add(this.id);
-	}
-
-	readonly #seventvSets = once(() => this.#fetch7tvSets());
-	readonly #twitchSets = once(() => this.#fetchTwitchEmotes());
 
 	public readonly loadModerating = once(async () => {
 		const moderates = await this.client.paginate(
@@ -60,33 +49,17 @@ export class CurrentUser extends User {
 	});
 
 	public readonly loadFollowing = once(() => this.#loadFollowing());
-
 	public readonly loadWhispers = once(() => this.#loadWhispers());
 
-	/**
-	 * Tells 7TV the current user is chatting in the channel, so other 7TV
-	 * users see their cosmetics there. Best effort: failures are only logged.
-	 */
-	public async sendPresence(channelId: string) {
-		// The 7TV account is resolved along with the emote sets.
-		await this.loadEmoteSets();
-		if (!this.seventvId) return;
+	public constructor(user: User) {
+		super(user.client, user.data);
 
-		try {
-			await fetchJson(`https://7tv.io/v3/users/${this.seventvId}/presences`, {
-				method: "POST",
-				body: {
-					kind: 1,
-					passive: false,
-					session_id: null,
-					data: { platform: "TWITCH", id: channelId },
-				},
-			});
+		// Users always moderate their own channel.
+		this.#moderating.add(this.id);
+	}
 
-			log.info(`Presence sent in ${channelId}`);
-		} catch (error) {
-			log.error("Failed to send presence", error);
-		}
+	public get unreadWhispers() {
+		return this.whispers.values().reduce((total, whisper) => total + whisper.unread, 0);
 	}
 
 	/**
@@ -108,12 +81,36 @@ export class CurrentUser extends User {
 		}
 	}
 
-	/**
-	 * Loads the emote sets the current user can use. A provider that fails to
-	 * load is skipped and retried on the next call.
-	 */
+	public async sendPresence(channelId: string) {
+		// The 7TV account is resolved along with the emote sets.
+		await this.loadEmoteSets();
+		if (!this.seventvId) return;
+
+		try {
+			await fetchJson(`https://7tv.io/v3/users/${this.seventvId}/presences`, {
+				method: "POST",
+				body: {
+					kind: 1,
+					passive: false,
+					session_id: null,
+					data: {
+						platform: "TWITCH",
+						id: channelId,
+					},
+				},
+			});
+
+			log.info(`Presence sent in ${channelId}`);
+		} catch (error) {
+			log.error("Failed to send presence", error);
+		}
+	}
+
 	public async loadEmoteSets() {
-		const loads = { "7TV": this.#seventvSets, Twitch: this.#twitchSets };
+		const loads = {
+			"7TV": this.#seventvSets,
+			Twitch: this.#twitchSets,
+		};
 
 		await Promise.all(
 			Object.entries(loads).map(async ([provider, load]) => {

@@ -14,7 +14,7 @@ import type { Channel } from "./channel.svelte";
 
 import { Badge } from "./badge";
 
-// The colors Twitch assigns users who haven't picked one.
+// Default Twitch colors.
 const COLORS = [
 	"rgb(0, 0, 255)",
 	"rgb(0, 128, 0)",
@@ -35,9 +35,7 @@ const COLORS = [
 
 export interface RelationshipSubscription {
 	type: "prime" | "paid" | "gift" | null;
-
 	tier: string | null;
-
 	months: number | null;
 }
 
@@ -54,7 +52,6 @@ export interface Relationship {
 	 * The date the user followed the channel if they follow it.
 	 */
 	followedAt: Date | null;
-
 	subscription: RelationshipSubscription;
 }
 
@@ -65,16 +62,11 @@ export class User {
 	public readonly id: string;
 
 	/**
-	 * The date the user's account was created.
-	 */
-	/**
 	 * When the account was created; `null` until the profile is loaded for
 	 * users only seen in chat.
 	 */
 	public createdAt = $state<Date | null>(null);
-
 	public bio: string;
-
 	public avatarUrl: string;
 
 	/**
@@ -86,7 +78,6 @@ export class User {
 	 * The relationships of the user to other channels.
 	 */
 	public readonly relationships = new SvelteMap<string, Relationship>();
-
 	public username: string;
 
 	/**
@@ -111,6 +102,23 @@ export class User {
 		this.bannerUrl = $state(data.bannerImageURL ?? "");
 
 		this.paint = $derived(app.cosmetics.userPaints.get(this.id));
+	}
+
+	/**
+	 * Creates a user from what chat says about them; {@linkcode fetch} loads
+	 * the rest.
+	 */
+	public static partial(client: TwitchClient, sender: BasicUser, color: string | null) {
+		return new User(client, {
+			id: sender.id,
+			login: sender.login,
+			displayName: sender.name,
+			chatColor: color,
+			createdAt: "",
+			description: "",
+			profileImageURL: "",
+			bannerImageURL: "",
+		});
 	}
 
 	/**
@@ -184,23 +192,6 @@ export class User {
 	}
 
 	/**
-	 * Creates a user from what chat says about them; {@linkcode fetch} loads
-	 * the rest.
-	 */
-	public static partial(client: TwitchClient, sender: BasicUser, color: string | null) {
-		return new User(client, {
-			id: sender.id,
-			login: sender.login,
-			displayName: sender.name,
-			chatColor: color,
-			createdAt: "",
-			description: "",
-			profileImageURL: "",
-			bannerImageURL: "",
-		});
-	}
-
-	/**
 	 * Whether only what chat says about the user is known.
 	 */
 	public get partial() {
@@ -252,17 +243,6 @@ export class User {
 	}
 
 	/**
-	 * The color for users without one: one of Twitch's default colors, picked
-	 * by id so it stays the same, or the surrounding text color.
-	 */
-	#fallbackColor() {
-		if (!settings.state["chat.usernames.randomColor"]) return "inherit";
-
-		// Twitch user ids are numeric.
-		return COLORS[Number(this.id) % COLORS.length] ?? COLORS[0];
-	}
-
-	/**
 	 * Updates what may have changed since the user was first seen.
 	 */
 	public update(data: ApiUser) {
@@ -270,5 +250,14 @@ export class User {
 		this.bio = data.description ?? "";
 		this.avatarUrl = data.profileImageURL ?? "";
 		this.bannerUrl = data.bannerImageURL ?? "";
+	}
+
+	#fallbackColor() {
+		if (!settings.state["chat.usernames.randomColor"]) {
+			return "inherit";
+		}
+
+		// Twitch user ids are numeric.
+		return COLORS[Number(this.id) % COLORS.length] ?? COLORS[0];
 	}
 }

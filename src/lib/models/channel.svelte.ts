@@ -45,7 +45,7 @@ export interface PredictionOptions {
 	window: number;
 }
 
-const TTL = 20 * 60 * 1000;
+const TTL = 20 * 60 * 1000; // 20 minutes
 
 /**
  * Where a channel is in its join lifecycle.
@@ -68,20 +68,20 @@ export class Channel {
 	#joining: Promise<void> | null = null;
 	#leaving: Promise<void> | null = null;
 
+	#modActions = false;
+
+	// The login the backend joined with; the user may rename meanwhile.
+	#login = "";
+
 	public readonly id: string;
 
 	public seventvId: string | null = null;
 
 	public readonly chat: Chat;
-
 	public readonly badges: ChannelBadgeManager;
-
 	public readonly emotes: ChannelEmoteManager;
-
 	public readonly cheermotes: CheermoteManager;
-
 	public readonly viewers: ViewerManager;
-
 	public readonly pinned: boolean;
 
 	/**
@@ -107,14 +107,9 @@ export class Channel {
 	public banned = $state(false);
 
 	/**
-	 * The id of the active 7TV emote set for the channel if any.
+	 * The id of the active 7TV emote set for the channel, if any.
 	 */
 	public emoteSetId = $state<string | null>(null);
-
-	#modActions = false;
-
-	// The login the backend joined with; the user may rename meanwhile.
-	#login = "";
 
 	public constructor(
 		public readonly client: TwitchClient,
@@ -140,6 +135,21 @@ export class Channel {
 	 */
 	public get receivesModActions() {
 		return this.joined && this.#modActions;
+	}
+
+	/**
+	 * Whether the current user moderates this channel.
+	 */
+	public get isMod() {
+		return app.user?.moderates(this.id) ?? false;
+	}
+
+	public get status() {
+		return this.#status;
+	}
+
+	public get joined() {
+		return this.#status === "joined";
 	}
 
 	/**
@@ -172,21 +182,6 @@ export class Channel {
 				setId: emoteSetId,
 			});
 		}
-	}
-
-	/**
-	 * Whether the current user moderates this channel.
-	 */
-	public get isMod() {
-		return app.user?.moderates(this.id) ?? false;
-	}
-
-	public get status() {
-		return this.#status;
-	}
-
-	public get joined() {
-		return this.#status === "joined";
 	}
 
 	public join() {
@@ -222,10 +217,6 @@ export class Channel {
 		return this.#leaving ?? Promise.resolve();
 	}
 
-	/**
-	 * Rejoins on the backend, e.g. after being unbanned or after moderator
-	 * status changed.
-	 */
 	public async rejoin() {
 		if (!this.joined || !this.#login) return;
 
@@ -357,6 +348,7 @@ export class Channel {
 		// Rejoining only needs the previous leave to have finished; it failing
 		// was already reported to whoever left.
 		await Promise.allSettled([this.#leaving]);
+
 		if (this.#attempt !== attempt) return;
 
 		clearTimeout(this.#ttlTimeout);
@@ -369,9 +361,7 @@ export class Channel {
 		// Only the stream is needed to show the channel; everything else is
 		// shown once it loads, if it does.
 		const optional = (what: string, task: Promise<unknown>) =>
-			task.catch((error: unknown) => {
-				log.warn(`Failed to load ${what} of ${this.user.username}`, error);
-			});
+			task.catch(log.swallow(`Failed to load ${what} of ${this.user.username}`, "warn"));
 
 		const [stream] = await Promise.allSettled([
 			this.fetchStream(),
@@ -409,9 +399,7 @@ export class Channel {
 		this.#status = "joined";
 
 		// Not awaited to avoid blocking the UI.
-		this.#joinBackend().catch((error: unknown) => {
-			log.error(`Failed to join ${this.user.username}`, error);
-		});
+		this.#joinBackend().catch(log.swallow(`Failed to join ${this.user.username}`));
 
 		if (settings.state["chat.messages.history.enabled"]) {
 			void this.#loadRecentMessages();
@@ -428,10 +416,6 @@ export class Channel {
 		await this.#syncBackend();
 	}
 
-	/**
-	 * Tells the backend what to follow in the channel; it only applies what
-	 * changed.
-	 */
 	async #syncBackend() {
 		this.#modActions = this.isMod;
 
@@ -449,7 +433,9 @@ export class Channel {
 
 		try {
 			// The backend may not have joined yet if it wasn't connected.
-			if (this.#login) await invoke("leave", { login: this.#login });
+			if (this.#login) {
+				await invoke("leave", { login: this.#login });
+			}
 		} finally {
 			this.#login = "";
 			this.#leaving = null;

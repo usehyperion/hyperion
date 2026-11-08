@@ -13,7 +13,6 @@ import type { User } from "./user.svelte";
 
 import { Notice } from "./notice.svelte";
 
-// Twitch keeps predictions visible for a minute after they resolve or cancel
 const LINGER_DURATION = 60 * 1000;
 
 export interface PredictionOutcome {
@@ -23,14 +22,8 @@ export interface PredictionOutcome {
 	users: number;
 }
 
-/**
- * Twitch colors the two outcomes of a two-outcome prediction blue and pink;
- * returns `null` for predictions with more outcomes.
- */
 export function duelColor(index: number, count: number): "BLUE" | "PINK" | null {
-	if (count !== 2) return null;
-
-	return index === 0 ? "BLUE" : "PINK";
+	return count !== 2 ? null : index === 0 ? "BLUE" : "PINK";
 }
 
 function fromGql(channel: string, prediction: PredictionDetails): ApiPrediction {
@@ -59,11 +52,8 @@ function fromGql(channel: string, prediction: PredictionDetails): ApiPrediction 
  */
 export class Prediction extends Notice {
 	public readonly id: string;
-
 	public readonly title: string;
-
 	public readonly outcomes = $state<PredictionOutcome[]>([]);
-
 	public readonly createdTimestamp: number;
 
 	/**
@@ -84,7 +74,6 @@ export class Prediction extends Notice {
 	public readonly open = $derived(this.status === "ACTIVE" || this.status === "LOCKED");
 
 	public readonly totalPoints = $derived(this.outcomes.reduce((sum, o) => sum + o.points, 0));
-
 	public readonly totalUsers = $derived(this.outcomes.reduce((sum, o) => sum + o.users, 0));
 
 	public constructor(

@@ -30,7 +30,6 @@ export class Viewer {
 	#moderator = $state(false);
 
 	public subscriber = $state(false);
-
 	public vip = $state(false);
 
 	/**
@@ -58,12 +57,10 @@ export class Viewer {
 	 * exclusive with `monitored`.
 	 */
 	public restricted = $state(false);
-
 	public possibleBanEvader = $state(false);
 
 	public constructor(
 		public readonly channel: Channel,
-
 		public readonly user: User,
 	) {
 		this.id = user.id;
@@ -126,14 +123,14 @@ export class Viewer {
 		await this.#gql(revokeVipMutation, { target: this.id });
 	}
 
-	/**
-	 * Sends a moderation mutation scoped to the viewer's channel.
-	 */
 	#gql<T, U extends { channel: string }>(
 		mutation: TadaDocumentNode<T, U>,
 		variables: Omit<U, "channel">,
 	) {
 		// oxlint-disable-next-line typescript/no-unsafe-type-assertion
-		return this.channel.client.gql(mutation, { ...variables, channel: this.channel.id } as U);
+		return this.channel.client.gql(mutation, {
+			...variables,
+			channel: this.channel.id,
+		} as U);
 	}
 }

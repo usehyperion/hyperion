@@ -23,13 +23,9 @@ export class Stream {
 	public readonly createdAt: Date;
 
 	public title: string;
-
 	public game: Game;
-
 	public readonly tags: string[];
-
 	public readonly thumbnailUrl: string | null;
-
 	public viewers: number;
 
 	/**
@@ -70,7 +66,10 @@ export class Stream {
 		for (const { user } of channel?.guestStarSessionCall?.guests ?? []) {
 			if (user.id === channelId) continue;
 
-			stream.guests.set(user.id, { ...user, viewers: user.stream?.viewersCount ?? null });
+			stream.guests.set(user.id, {
+				...user,
+				viewers: user.stream?.viewersCount ?? null,
+			});
 		}
 
 		return stream;

@@ -1,7 +1,3 @@
-/**
- * Something shown above a chat for a limited time, such as a pinned message,
- * poll, or prediction. It removes itself from its owner once it expires.
- */
 export abstract class Notice {
 	#timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -9,6 +5,8 @@ export abstract class Notice {
 	 * Whether the notice is hidden for the current user.
 	 */
 	public hidden = $state(false);
+
+	protected abstract remove(): void;
 
 	public dispose() {
 		if (this.#timer !== null) {
@@ -38,6 +36,4 @@ export abstract class Notice {
 		const ended = endedAt ? new Date(endedAt).getTime() : Number.NaN;
 		this.expireIn(Number.isNaN(ended) ? linger : Math.min(ended + linger - Date.now(), linger));
 	}
-
-	protected abstract remove(): void;
 }
