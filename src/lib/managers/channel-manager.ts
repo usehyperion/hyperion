@@ -16,6 +16,11 @@ export class ChannelManager extends SvelteMap<string, Channel> {
 		super();
 	}
 
+	public override clear() {
+		this.#unlisted.clear();
+		super.clear();
+	}
+
 	public getByLogin(login: string) {
 		return this.values().find((c) => c.user.username === login);
 	}
@@ -65,10 +70,5 @@ export class ChannelManager extends SvelteMap<string, Channel> {
 				},
 			),
 		);
-	}
-
-	public override clear() {
-		this.#unlisted.clear();
-		super.clear();
 	}
 }

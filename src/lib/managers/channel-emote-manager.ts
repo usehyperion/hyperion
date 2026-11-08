@@ -34,7 +34,6 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 
 			return data?.sets[data.room.set].emoticons.map(transformFfzEmote) ?? [];
 		},
-
 		BetterTTV: async () => {
 			const data = await fetchJson<BttvUser | null>(
 				`https://api.betterttv.net/3/cached/users/twitch/${this.channel.id}`,
@@ -45,7 +44,6 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 				? [...data.channelEmotes, ...data.sharedEmotes].map(transformBttvEmote)
 				: [];
 		},
-
 		"7TV": async () => {
 			const set = await this.#fetchActiveSet();
 

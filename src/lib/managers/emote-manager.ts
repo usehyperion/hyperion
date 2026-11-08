@@ -6,7 +6,6 @@ import { fetchJson } from "#lib/http.js";
 
 import { BaseEmoteManager } from "./base-emote-manager";
 
-// FrankerFaceZ's global set
 const FFZ_GLOBAL_SET = 3;
 
 /**
@@ -19,7 +18,6 @@ export class EmoteManager extends BaseEmoteManager {
 
 			return data.sets[FFZ_GLOBAL_SET].emoticons.map(transformFfzEmote);
 		},
-
 		async BetterTTV() {
 			const data = await fetchJson<BttvEmote[]>(
 				"https://api.betterttv.net/3/cached/emotes/global",
@@ -27,7 +25,6 @@ export class EmoteManager extends BaseEmoteManager {
 
 			return data.map(transformBttvEmote);
 		},
-
 		async "7TV"() {
 			const { emoteSets } = await execute7tvQuery(globalEmoteSetQuery);
 

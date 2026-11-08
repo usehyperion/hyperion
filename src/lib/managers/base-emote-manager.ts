@@ -28,6 +28,10 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 		}
 	}
 
+	public isLoaded(provider: EmoteProvider) {
+		return this.#loaded.has(provider);
+	}
+
 	/**
 	 * Loads the emotes from the providers enabled in the settings that haven't
 	 * been loaded yet and removes the emotes from disabled providers. A
@@ -67,9 +71,5 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 		}
 
 		this.#loaded.add(provider);
-	}
-
-	public isLoaded(provider: EmoteProvider) {
-		return this.#loaded.has(provider);
 	}
 }

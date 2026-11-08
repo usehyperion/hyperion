@@ -24,12 +24,16 @@ export class UserManager extends SvelteMap<string, User> {
 		super();
 	}
 
+	public from(data: ApiUser) {
+		return this.getOrInsertComputed(data.id, () => new User(this.client, data));
+	}
+
 	public getByLogin(login: string) {
 		return this.values().find((user) => user.username === login);
 	}
 
 	/**
-	 * Retrieves the user, from the cache if they've been seen before.
+	 * Retrieves the user, reusing the cache if they've been seen before.
 	 */
 	public async fetch(idOrLogin: string, { by = "id" }: UserFetchOptions = {}) {
 		const cached = by === "id" ? this.get(idOrLogin) : this.getByLogin(idOrLogin);
@@ -47,10 +51,6 @@ export class UserManager extends SvelteMap<string, User> {
 		return this.from(data);
 	}
 
-	public from(data: ApiUser) {
-		return this.getOrInsertComputed(data.id, () => new User(this.client, data));
-	}
-
 	/**
 	 * Populates {@link User.avatarUrl} for the given users in the background.
 	 */
@@ -65,7 +65,9 @@ export class UserManager extends SvelteMap<string, User> {
 
 		if (!pending.size) return;
 
-		for (const id of pending.keys()) this.#avatarsInFlight.add(id);
+		for (const id of pending.keys()) {
+			this.#avatarsInFlight.add(id);
+		}
 
 		try {
 			for (const ids of chunk([...pending.keys()], 100)) {
@@ -74,7 +76,10 @@ export class UserManager extends SvelteMap<string, User> {
 
 				for (const entry of data ?? []) {
 					const user = entry && pending.get(entry.id);
-					if (user && entry.profileImageURL) user.avatarUrl = entry.profileImageURL;
+
+					if (user && entry.profileImageURL) {
+						user.avatarUrl = entry.profileImageURL;
+					}
 				}
 			}
 		} finally {
