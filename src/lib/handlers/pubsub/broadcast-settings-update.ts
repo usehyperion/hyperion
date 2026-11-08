@@ -27,9 +27,9 @@ export default defineHandler("pubsub", {
 		channel.stream.title = data.status;
 		channel.stream.game = { slug: "", name: data.game };
 
-		// Refresh what the event doesn't carry, such as the game's slug.
-		await channel.fetchStream().catch((error: unknown) => {
-			log.warn(`Failed to refresh the stream of ${channel.id}`, error);
-		});
+		// Update any data that the event doesn't send
+		await channel
+			.fetchStream()
+			.catch(log.swallow(`Failed to refresh the stream of ${channel.id}`, "warn"));
 	},
 });

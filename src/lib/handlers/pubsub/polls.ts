@@ -16,7 +16,6 @@ export default defineHandler("pubsub", {
 			return;
 		}
 
-		// Covers new polls and updates for polls that aren't tracked yet.
 		const creator = poll.created_by
 			? await channel.client.users.fetch(poll.created_by).catch(() => null)
 			: null;

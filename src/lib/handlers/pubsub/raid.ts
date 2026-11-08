@@ -31,6 +31,10 @@ export default defineHandler("pubsub", {
 			return;
 		}
 
-		channel.chat.event(Raid, { viewers: raid.viewer_count, user, moderator });
+		channel.chat.event(Raid, {
+			viewers: raid.viewer_count,
+			user,
+			moderator,
+		});
 	},
 });

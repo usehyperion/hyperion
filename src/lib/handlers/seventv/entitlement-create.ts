@@ -13,7 +13,11 @@ export default defineHandler("seventv", {
 		switch (data.kind) {
 			case "BADGE": {
 				const badge = app.badges.get(Badge.key(BADGE_SETS.seventv, data.ref_id));
-				if (badge) app.badges.give(twitch.id, badge);
+
+				if (badge) {
+					app.badges.give(twitch.id, badge);
+				}
+
 				break;
 			}
 

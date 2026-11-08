@@ -40,7 +40,9 @@ export default defineHandler("pubsub", {
 		if (payload.type === "moderator_added" || payload.type === "vip_added") {
 			const viewer = await channel.viewers.fetch(payload.data.target_user_id);
 
-			if (payload.type === "moderator_added") viewer.moderator = true;
+			if (payload.type === "moderator_added") {
+				viewer.moderator = true;
+			}
 
 			chat.event(RoleStatus, {
 				role: payload.type === "moderator_added" ? "moderator" : "VIP",
@@ -182,7 +184,10 @@ export default defineHandler("pubsub", {
 			case "unmod": {
 				const viewer = await channel.viewers.fetch(action.target_user_id);
 				viewer.moderator = false;
-				if (viewer.id === app.user?.id) await channel.setModerated(false);
+
+				if (viewer.id === app.user?.id) {
+					await channel.setModerated(false);
+				}
 
 				chat.event(RoleStatus, {
 					role: "moderator",

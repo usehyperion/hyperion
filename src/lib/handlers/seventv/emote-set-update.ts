@@ -19,7 +19,10 @@ export default defineHandler("seventv", {
 			for (const change of data.pushed ?? []) {
 				const emote = transformEvent7tvEmote(change.value);
 
-				last = { action: "added", emote };
+				last = {
+					action: "added",
+					emote,
+				};
 
 				channel.emotes.set(emote.displayName, emote);
 			}
@@ -28,7 +31,10 @@ export default defineHandler("seventv", {
 				const emote = channel.emotes.get(change.old_value.name);
 				if (!emote) continue;
 
-				last = { action: "removed", emote };
+				last = {
+					action: "removed",
+					emote,
+				};
 
 				channel.emotes.delete(change.old_value.name);
 			}
@@ -37,7 +43,11 @@ export default defineHandler("seventv", {
 				const emote = channel.emotes.get(change.old_value.name);
 				if (!emote) continue;
 
-				last = { action: "renamed", oldName: emote.displayName, emote };
+				last = {
+					action: "renamed",
+					oldName: emote.displayName,
+					emote,
+				};
 
 				emote.alias = change.value.name === emote.name ? undefined : change.value.name;
 				emote.displayName = change.value.name;
@@ -47,7 +57,10 @@ export default defineHandler("seventv", {
 			}
 
 			const actor = last && (await seventvActor(channel, data.actor));
-			if (last && actor) channel.chat.event(EmoteSetUpdate, { ...last, actor });
+
+			if (last && actor) {
+				channel.chat.event(EmoteSetUpdate, { ...last, actor });
+			}
 		}
 		// Personal set was updated
 		else {

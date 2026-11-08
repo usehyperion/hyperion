@@ -16,8 +16,6 @@ export default defineHandler("pubsub", {
 			return;
 		}
 
-		// Otherwise (re)create it — covers both new predictions and updates that
-		// arrive for a prediction we aren't yet tracking.
 		const creator =
 			event.created_by.type === "USER"
 				? await channel.client.users.fetch(event.created_by.user_id!)

@@ -12,16 +12,16 @@ export default defineHandler("pubsub", {
 		switch (data.type) {
 			case "stream-up": {
 				await channel.fetchStream();
-
 				channel.chat.event(StreamStatus, { channel, online: true });
+
 				return;
 			}
 
 			case "stream-down": {
 				channel.stream = null;
 				channel.chat.setPin(null);
-
 				channel.chat.event(StreamStatus, { channel, online: false });
+
 				return;
 			}
 		}

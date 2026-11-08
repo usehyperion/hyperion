@@ -24,7 +24,10 @@ export default defineHandler("seventv", {
 		await channel.setSeventv(channel.seventvId, child.value?.id ?? null);
 
 		const actor = await seventvActor(channel, data.actor);
-		if (actor) channel.chat.event(EmoteSetChange, { name: child.value?.name, actor });
+
+		if (actor) {
+			channel.chat.event(EmoteSetChange, { name: child.value?.name, actor });
+		}
 
 		// Loads the new set's emotes if 7TV emotes are enabled.
 		await channel.emotes.fetch();

@@ -22,7 +22,9 @@ export default defineHandler("pubsub", {
 				held.deleted = true;
 				await tick();
 
-				if (status === "ALLOWED") channel.chat.repost(held);
+				if (status === "ALLOWED") {
+					channel.chat.repost(held);
+				}
 			}
 
 			const viewer = await channel.viewers.fetch(message.sender.user_id);
@@ -56,7 +58,10 @@ export default defineHandler("pubsub", {
 
 		held.autoMod =
 			payload.data.reason_code === "BlockedTermCaughtMessageReason"
-				? { reason: "blocked-term", fragments: content.fragments }
+				? {
+						reason: "blocked-term",
+						fragments: content.fragments,
+					}
 				: {
 						reason: "automod",
 						category: automod_failure.category,
