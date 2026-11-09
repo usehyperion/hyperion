@@ -10,7 +10,6 @@ export default defineHandler("irc", {
 		if (!channel) return;
 
 		const message = await UserMessage.fromIrc(channel, data);
-
 		channel.chat.add(message);
 
 		// The user's own messages are the only sign of becoming a moderator,

@@ -23,8 +23,6 @@
 	let failed = $state(false);
 	let copied = $state(false);
 
-	// The version is shown in the header and on the first line of the copied
-	// text, so it's kept apart from the remaining details.
 	const details = $derived(
 		info
 			? [

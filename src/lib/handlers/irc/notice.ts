@@ -34,13 +34,14 @@ export default defineHandler("irc", {
 					.replace("s-only", "-only");
 
 				channel.chat.notice(text, meta);
+
 				break;
 			}
 
 			case "msg_banned": {
 				channel.banned = true;
-
 				channel.chat.event(Banned, { channel }, meta);
+
 				break;
 			}
 		}

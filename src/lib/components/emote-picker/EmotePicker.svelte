@@ -33,17 +33,17 @@
 
 	const providerSets = $derived.by(() => {
 		const sets = [
-			...toProviderSets(channel.emotes.values(), ({ id: provider }) => ({
-				id: `${provider}:${channel.id}`,
-				name: `${channel.user.displayName}: ${provider}`,
+			...toProviderSets(channel.emotes.values(), (provider) => ({
+				id: `${provider.id}:${channel.id}`,
+				name: `${channel.user.displayName}: ${provider.id}`,
 				owner: channel.user,
 				global: false,
 			})),
 			...(app.user?.emoteSets.values() ?? []),
-			...toProviderSets(app.emotes.values(), ({ global: { name, owner } }) => ({
-				id: owner.id,
-				name,
-				owner,
+			...toProviderSets(app.emotes.values(), ({ global }) => ({
+				id: global.owner.id,
+				name: global.name,
+				owner: global.owner,
 				global: true,
 			})),
 		];

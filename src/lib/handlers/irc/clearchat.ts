@@ -12,7 +12,10 @@ export default defineHandler("irc", {
 		const channel = app.channels.get(data.channel_id);
 		if (!channel) return;
 
-		const meta = { recent: data.is_recent, timestamp: data.server_timestamp };
+		const meta = {
+			recent: data.is_recent,
+			timestamp: data.server_timestamp,
+		};
 
 		// PubSub doesn't tell users about their own ban.
 		if (data.action.type === "ban" && !data.is_recent && data.action.user_id === app.user?.id) {
@@ -36,11 +39,23 @@ export default defineHandler("irc", {
 		channel.chat.deleteMessages(target.id);
 
 		if (data.action.type === "ban") {
-			channel.chat.event(BanStatus, { banned: true, reason: null, viewer: target }, meta);
+			channel.chat.event(
+				BanStatus,
+				{
+					banned: true,
+					reason: null,
+					viewer: target,
+				},
+				meta,
+			);
 		} else {
 			channel.chat.event(
 				Timeout,
-				{ seconds: data.action.duration, reason: null, viewer: target },
+				{
+					seconds: data.action.duration,
+					reason: null,
+					viewer: target,
+				},
 				meta,
 			);
 		}

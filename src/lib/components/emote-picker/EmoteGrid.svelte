@@ -14,6 +14,7 @@
 		const candidates = emoteSources(emote).map(
 			({ url, density }) => `url("${url}") ${density}`,
 		);
+
 		return `image-set(${candidates.join(", ")})`;
 	}
 </script>

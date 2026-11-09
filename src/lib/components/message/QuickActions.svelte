@@ -3,7 +3,11 @@
 
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
-	import { messageActions, runAction, type MessageAction } from "#lib/menus/message-actions.js";
+	import {
+		messageActions as actions,
+		runAction,
+		type MessageAction,
+	} from "#lib/menus/message-actions.js";
 	import { settings } from "#lib/settings/index.js";
 
 	import Button from "../ui/Button.svelte";
@@ -15,8 +19,6 @@
 	}
 
 	const { class: className, message }: Props = $props();
-
-	const { copy, reply, delete: remove, timeout, ban } = messageActions;
 
 	const qaTether = Tooltip.createTether<MessageAction>();
 </script>
@@ -34,17 +36,17 @@
 			role="group"
 			aria-label="Message actions"
 		>
-			{@render action(copy)}
-			{@render action(reply)}
+			{@render action(actions.copy)}
+			{@render action(actions.reply)}
 
 			{#if message.actionable && settings.state["moderation.quickActions.show"]}
 				<div class="h-4">
 					<Separator orientation="vertical" class="mx-1 self-center" />
 				</div>
 
-				{@render action(remove)}
-				{@render action(timeout)}
-				{@render action(ban)}
+				{@render action(actions.delete)}
+				{@render action(actions.timeout)}
+				{@render action(actions.ban)}
 			{/if}
 		</div>
 

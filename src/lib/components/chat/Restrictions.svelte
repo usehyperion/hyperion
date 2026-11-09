@@ -16,15 +16,31 @@
 		const { mode } = chat;
 
 		return [
-			{ label: "Subscriber only", active: mode.subOnly, seconds: 0 },
+			{
+				label: "Subscriber only",
+				active: mode.subOnly,
+				seconds: 0,
+			},
 			{
 				label: "Follower only",
 				active: mode.followerOnly !== null,
 				seconds: (mode.followerOnly ?? 0) * 60,
 			},
-			{ label: "Slow mode", active: mode.slow > 0, seconds: mode.slow },
-			{ label: "Unique messages", active: mode.unique, seconds: 0 },
-			{ label: "Emote only", active: mode.emoteOnly, seconds: 0 },
+			{
+				label: "Slow mode",
+				active: mode.slow > 0,
+				seconds: mode.slow,
+			},
+			{
+				label: "Unique messages",
+				active: mode.unique,
+				seconds: 0,
+			},
+			{
+				label: "Emote only",
+				active: mode.emoteOnly,
+				seconds: 0,
+			},
 		];
 	});
 

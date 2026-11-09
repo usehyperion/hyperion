@@ -10,12 +10,11 @@ export default defineHandler("irc", {
 		if (!channel) return;
 
 		const message = channel.chat.messages.find((m) => m.id === data.message_id);
-
 		if (!message?.isUser()) return;
 
 		message.deleted = true;
 
-		// Live deletions are only shown to moderators, who get them from PubSub.
+		// Live deletions from PubSub are only shown to moderators
 		if (data.is_recent) {
 			channel.chat.event(
 				Delete,
