@@ -1,27 +1,3 @@
-<script lang="ts" module>
-	import At from "~icons/ph/at";
-	import Highlighter from "~icons/ph/highlighter";
-	import Repeat from "~icons/ph/repeat";
-	import ShieldWarning from "~icons/ph/shield-warning";
-	import SketchLogo from "~icons/ph/sketch-logo";
-	import Sparkle from "~icons/ph/sparkle";
-	import Star from "~icons/ph/star-fill";
-	import Sword from "~icons/ph/sword";
-	import VideoCamera from "~icons/ph/video-camera";
-
-	export const decorations = {
-		mention: { icon: At, label: "Mention" },
-		new: { icon: Sparkle, label: "First Time Chat" },
-		returning: { icon: Repeat, label: "Returning Chatter" },
-		suspicious: { icon: ShieldWarning, label: "Suspicious User" },
-		broadcaster: { icon: VideoCamera, label: "Broadcaster" },
-		moderator: { icon: Sword, label: "Moderator" },
-		subscriber: { icon: Star, label: "Subscriber" },
-		vip: { icon: SketchLogo, label: "VIP" },
-		custom: { icon: Highlighter, label: "Custom" },
-	};
-</script>
-
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import { cn } from "tailwind-variants";
@@ -34,7 +10,9 @@
 		HighlightConfig,
 		HighlightType,
 		KeywordHighlightConfig,
-	} from "#lib/settings/index.js";
+	} from "#lib/highlights.js";
+
+	import { HIGHLIGHTS, KEYWORD_HIGHLIGHT } from "#lib/highlights.js";
 
 	type Props = {
 		children: Snippet;
@@ -54,14 +32,14 @@
 
 	const { children, class: className, type, config, info }: Props = $props();
 
-	const decoration = $derived(decorations[type]);
+	const decoration = $derived(type === "custom" ? KEYWORD_HIGHLIGHT : HIGHLIGHTS[type]);
 </script>
 
 {#if config.style === "background"}
 	<div class={cn("bg-(--highlight)/30", className)} style:--highlight={config.color}>
 		{@render children()}
 	</div>
-{:else}
+{:else if config.style === "default" || config.style === "compact"}
 	<div
 		class={cn("m-1 box-border overflow-hidden rounded-md border", className)}
 		style:border-color={config.color}

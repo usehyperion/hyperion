@@ -6,7 +6,7 @@
 
 	import ArrowDown from "~icons/ph/arrow-down";
 
-	import { settings } from "#lib/settings/index.js";
+	import { settings } from "#lib/settings.js";
 
 	interface Props {
 		class?: string;

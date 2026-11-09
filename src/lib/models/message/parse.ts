@@ -6,7 +6,7 @@ import type { Emote as IrcEmote } from "#lib/twitch/irc.js";
 
 import { app } from "#lib/app.svelte.js";
 import { transformTwitchEmote } from "#lib/emotes.js";
-import { settings } from "#lib/settings/index.js";
+import { settings } from "#lib/settings.js";
 
 import type { User } from "../user.svelte";
 import type { UserMessage } from "./user-message.svelte";

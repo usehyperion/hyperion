@@ -7,7 +7,7 @@
 	import Select from "#lib/components/ui/Select.svelte";
 	import Slider from "#lib/components/ui/Slider.svelte";
 	import Switch from "#lib/components/ui/Switch.svelte";
-	import { settings } from "#lib/settings/index.js";
+	import { settings } from "#lib/settings.js";
 
 	import FieldControl from "./FieldControl.svelte";
 

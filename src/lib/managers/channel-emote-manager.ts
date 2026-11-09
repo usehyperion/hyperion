@@ -6,7 +6,7 @@ import { transformBttvEmote, transformFfzEmote, transformGql7tvEmote } from "#li
 import { execute7tvQuery, activeEmoteSetQuery } from "#lib/graphql/7tv.js";
 import { fetchJson } from "#lib/http.js";
 import { log } from "#lib/log.js";
-import { settings } from "#lib/settings/index.js";
+import { settings } from "#lib/settings.js";
 
 import { BaseEmoteManager } from "./base-emote-manager";
 

@@ -21,7 +21,7 @@ import { ChannelBadgeManager } from "#lib/managers/channel-badge-manager.js";
 import { ChannelEmoteManager } from "#lib/managers/channel-emote-manager.js";
 import { CheermoteManager } from "#lib/managers/cheermote-manager.js";
 import { ViewerManager } from "#lib/managers/viewer-manager.js";
-import { settings } from "#lib/settings/index.js";
+import { settings } from "#lib/settings.js";
 import { storage } from "#lib/stores.js";
 
 import type { User } from "./user.svelte";

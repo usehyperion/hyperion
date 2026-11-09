@@ -1,29 +1,10 @@
 import { RuneStore } from "@tauri-store/svelte";
 
-import type { LogLevel } from "#lib/log.js";
+import { LogLevel } from "#lib/log.js";
 
-export type HighlightType =
-	| "mention"
-	| "new"
-	| "returning"
-	| "suspicious"
-	| "broadcaster"
-	| "moderator"
-	| "subscriber"
-	| "vip";
+import type { HighlightConfig, HighlightType, KeywordHighlightConfig } from "./highlights";
 
-export interface HighlightConfig {
-	enabled: boolean;
-	color: string;
-	style: "default" | "compact" | "background";
-}
-
-export interface KeywordHighlightConfig extends HighlightConfig {
-	pattern: string;
-	regex: boolean;
-	wholeWord: boolean;
-	matchCase: boolean;
-}
+import { defaultHighlights } from "./highlights";
 
 export type DeletedAppearance = "dim" | "strike" | "blur";
 
@@ -67,18 +48,7 @@ export type Settings = {
 	"advanced.logs.level": LogLevel;
 };
 
-export const defaultHighlightTypes: Record<HighlightType, HighlightConfig> = {
-	mention: { enabled: true, color: "#adadb8", style: "background" },
-	new: { enabled: true, color: "#ff75e6", style: "default" },
-	returning: { enabled: true, color: "#00a3a3", style: "default" },
-	suspicious: { enabled: true, color: "#ff8280", style: "default" },
-	broadcaster: { enabled: false, color: "#fc3430", style: "default" },
-	moderator: { enabled: false, color: "#00a865", style: "default" },
-	subscriber: { enabled: false, color: "#528bff", style: "default" },
-	vip: { enabled: false, color: "#db00b3", style: "default" },
-};
-
-export const defaults: Settings = {
+const defaults: Settings = {
 	"appearance.theme": "",
 	"splits.leaveOnClose": true,
 	"chat.hideScrollbar": false,
@@ -105,7 +75,7 @@ export const defaults: Settings = {
 	"chat.messages.timestamps.format": "auto",
 	"chat.messages.timestamps.customFormat": "",
 	"highlights.enabled": true,
-	"highlights.viewers": { ...defaultHighlightTypes },
+	"highlights.viewers": defaultHighlights(),
 	"highlights.keywords": [],
 	"moderation.timeout.duration": "10m",
 	"moderation.quickActions.show": true,
@@ -115,6 +85,17 @@ export const defaults: Settings = {
 
 export const settings = new RuneStore<Settings>("settings", defaults, {
 	autoStart: true,
+	hooks: {
+		beforeFrontendSync: (state) => {
+			// Highlight kinds added since the settings were saved get defaults.
+			state["highlights.viewers"] = {
+				...defaultHighlights(),
+				...state["highlights.viewers"],
+			};
+
+			return state;
+		},
+	},
 });
 
 export function deletedAppearance(message: { deleted: boolean }) {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
-	import { settings } from "#lib/settings/index.js";
+	import { settings } from "#lib/settings.js";
 
 	import Timestamp from "../Timestamp.svelte";
 	import User from "../user/User.svelte";

@@ -19,7 +19,7 @@ import {
 	denyHeldMessageMutation,
 } from "#lib/graphql/twitch.js";
 import { log } from "#lib/log.js";
-import { settings } from "#lib/settings/index.js";
+import { settings } from "#lib/settings.js";
 
 import type { Channel } from "../channel.svelte";
 import type { Node } from "./parse";

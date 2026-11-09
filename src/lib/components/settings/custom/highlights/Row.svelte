@@ -1,17 +1,17 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 
-	import type { HighlightConfig } from "#lib/settings/index.js";
+	import type { HighlightConfig, HighlightType } from "#lib/highlights.js";
 
-	import { decorations } from "#lib/components/message/Highlight.svelte";
+	import { HIGHLIGHTS, KEYWORD_HIGHLIGHT } from "#lib/highlights.js";
 
 	import Color from "./Color.svelte";
 	import StyleSelect from "./Style.svelte";
 
 	interface Props {
-		type: keyof typeof decorations;
+		type: HighlightType | "custom";
 		id: string;
-		label?: string;
+		label: string;
 		config: HighlightConfig;
 		actions?: Snippet;
 		badges?: Snippet;
@@ -19,8 +19,7 @@
 
 	let { type, id, label, config = $bindable(), actions, badges }: Props = $props();
 
-	const decoration = $derived(decorations[type]);
-	const title = $derived(label || decoration.label);
+	const decoration = $derived(type === "custom" ? KEYWORD_HIGHLIGHT : HIGHLIGHTS[type]);
 </script>
 
 <div class="@container">
@@ -41,9 +40,9 @@
 
 			<span
 				class="truncate text-sm font-medium group-data-[enabled=false]:text-muted-foreground"
-				{title}
+				title={label}
 			>
-				{title}
+				{label}
 			</span>
 
 			{@render badges?.()}
