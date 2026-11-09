@@ -10,9 +10,11 @@
 	import Download from "~icons/ph/download-simple";
 	import Gear from "~icons/ph/gear";
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
+	import Sidebar from "~icons/ph/sidebar";
 
 	import { app } from "#lib/app.svelte.js";
 	import { dialogs } from "#lib/dialog.js";
+	import { useSidebar } from "#lib/hooks/use-sidebar.svelte.js";
 	import { updater } from "#lib/updater.svelte.js";
 	import { platform } from "#lib/util/index.js";
 
@@ -24,6 +26,7 @@
 
 	type ControlType = "minimize" | "maximize" | "close";
 
+	const sidebar = useSidebar();
 	const currentWindow = getCurrentWindow();
 
 	let unlisten: UnlistenFn | undefined;
@@ -69,6 +72,16 @@
 
 	{#if app.user}
 		<div class="flex items-center justify-center gap-1.5" data-tauri-drag-region>
+			<Button
+				class="relative size-min p-1 text-muted-foreground"
+				size="icon"
+				variant="ghost"
+				onclick={() => sidebar.toggle()}
+				aria-label="Toggle sidebar"
+			>
+				<Sidebar />
+			</Button>
+
 			<button
 				class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-[background-color,scale] hover:bg-accent active:scale-[0.96]"
 				command="show-modal"
