@@ -48,6 +48,9 @@ export default defineHandler("pubsub", {
 			data.id,
 		);
 
-		if (incoming) whisper.unread++;
+		if (incoming) {
+			whisper.unread++;
+			await app.notify();
+		}
 	},
 });
