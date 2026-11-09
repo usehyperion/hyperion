@@ -1,9 +1,9 @@
 import { RuneStore } from "@tauri-store/svelte";
 
 import type { User } from "./graphql/twitch";
+import type { Layout } from "./splits/types";
 
-import { removeTabs } from "./splits/tree";
-import { LAYOUT_VERSION, type Layout } from "./splits/types";
+import { restoreLayout } from "./splits/tree";
 
 export interface RecentSearch {
 	id: string;
@@ -38,13 +38,7 @@ export const storage = new RuneStore<Storage>(
 		autoStart: true,
 		hooks: {
 			beforeFrontendSync: (state) => {
-				if (state.layout?.version !== LAYOUT_VERSION) {
-					state.layout = null;
-				} else if (state.layout.root) {
-					const root = removeTabs(state.layout.root, (tab) => !!tab.ephemeral);
-					state.layout = root ? { ...state.layout, root } : null;
-				}
-
+				state.layout = restoreLayout(state.layout);
 				return state;
 			},
 		},
