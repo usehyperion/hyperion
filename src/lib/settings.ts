@@ -1,6 +1,6 @@
 import { RuneStore } from "@tauri-store/svelte";
 
-import { LogLevel } from "#lib/log.js";
+import type { LogLevel } from "#lib/log.js";
 
 import type { HighlightConfig, HighlightType, KeywordHighlightConfig } from "./highlights";
 
