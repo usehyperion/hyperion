@@ -19,9 +19,6 @@ import {
 type Point = { x: number; y: number } | undefined;
 
 export class SplitController {
-	/**
-	 * The id of the focused pane.
-	 */
 	public focusedPaneId = $state<string | null>(null);
 
 	/**
@@ -100,69 +97,11 @@ export class SplitController {
 	}
 
 	/**
-	 * Opens the given channel as a tab of the given pane, moving it there if it
-	 * is already open elsewhere.
-	 */
-	public addTab(paneId: string, tab: Tab, index?: number) {
-		const pane = this.pane(paneId);
-		if (!pane) return;
-
-		const source = this.paneOf(tab.id);
-		if (source === pane) {
-			this.#focus(pane, tab.id);
-			return;
-		}
-
-		pane.tabs.splice(index ?? pane.tabs.length, 0, this.#take(source, tab));
-		this.#focus(pane, tab.id);
-
-		this.#closeIfEmpty(source);
-	}
-
-	/**
 	 * Activates the given tab and focuses its pane.
 	 */
 	public activate(id: string) {
 		const pane = this.paneOf(id);
 		if (pane) this.#focus(pane, id);
-	}
-
-	/**
-	 * Reorders a tab within its own pane to the given index.
-	 */
-	public reorderTab(id: string, paneId: string, index: number) {
-		const pane = this.pane(paneId);
-		if (!pane) return;
-
-		const from = pane.tabs.findIndex((t) => t.id === id);
-		if (from === -1) return;
-
-		const [tab] = pane.tabs.splice(from, 1);
-
-		const dest = Math.max(0, Math.min(index > from ? index - 1 : index, pane.tabs.length));
-
-		pane.tabs.splice(dest, 0, tab);
-		this.#focus(pane, id);
-	}
-
-	/**
-	 * Moves a tab to the given pane at an optional index, removing it from its
-	 * source pane.
-	 */
-	public moveTab(tab: Tab, paneId: string, index?: number) {
-		const source = this.paneOf(tab.id);
-		const target = this.pane(paneId);
-
-		if (!target) return;
-
-		if (target === source) {
-			return this.#focus(target, tab.id);
-		}
-
-		target.tabs.splice(index ?? target.tabs.length, 0, this.#take(source, tab));
-
-		this.#focus(target, tab.id);
-		this.#closeIfEmpty(source);
 	}
 
 	/**
@@ -272,10 +211,57 @@ export class SplitController {
 			this.#dropIntoZone(tab, data.paneId, this.#zoneForPane(data.paneId, point));
 		} else if (drag.sourcePaneId === data.paneId) {
 			const index = data.index ?? this.pane(data.paneId)?.tabs.length ?? 0;
-			this.reorderTab(drag.channelId, data.paneId, index);
+			this.#reorderTab(drag.channelId, data.paneId, index);
 		} else {
-			this.moveTab(tab, data.paneId, data.index);
+			this.#moveTab(tab, data.paneId, data.index);
 		}
+	}
+
+	#addTab(paneId: string, tab: Tab, index?: number) {
+		const pane = this.pane(paneId);
+		if (!pane) return;
+
+		const source = this.paneOf(tab.id);
+		if (source === pane) {
+			this.#focus(pane, tab.id);
+			return;
+		}
+
+		pane.tabs.splice(index ?? pane.tabs.length, 0, this.#take(source, tab));
+		this.#focus(pane, tab.id);
+
+		this.#closeIfEmpty(source);
+	}
+
+	#reorderTab(id: string, paneId: string, index: number) {
+		const pane = this.pane(paneId);
+		if (!pane) return;
+
+		const from = pane.tabs.findIndex((t) => t.id === id);
+		if (from === -1) return;
+
+		const [tab] = pane.tabs.splice(from, 1);
+
+		const dest = Math.max(0, Math.min(index > from ? index - 1 : index, pane.tabs.length));
+
+		pane.tabs.splice(dest, 0, tab);
+		this.#focus(pane, id);
+	}
+
+	#moveTab(tab: Tab, paneId: string, index?: number) {
+		const source = this.paneOf(tab.id);
+		const target = this.pane(paneId);
+
+		if (!target) return;
+
+		if (target === source) {
+			return this.#focus(target, tab.id);
+		}
+
+		target.tabs.splice(index ?? target.tabs.length, 0, this.#take(source, tab));
+
+		this.#focus(target, tab.id);
+		this.#closeIfEmpty(source);
 	}
 
 	#insertPane(paneId: string, direction: SplitDirection, pane: Pane) {
@@ -295,11 +281,6 @@ export class SplitController {
 		this.#closeIfEmpty(pane);
 	}
 
-	/**
-	 * The entry to insert for a tab being placed in a pane: the existing one
-	 * lifted out of `source` so its flags travel with it, or a new entry when the
-	 * tab isn't in the layout yet.
-	 */
 	#take(source: Pane | null, tab: Tab): Tab {
 		return this.#removeTab(source, tab.id) ?? tree.createTab(tab);
 	}
@@ -375,7 +356,7 @@ export class SplitController {
 	 */
 	#dropIntoZone(tab: Tab, paneId: string, zone: SplitDropPosition) {
 		if (zone === "center") {
-			this.addTab(paneId, tab);
+			this.#addTab(paneId, tab);
 		} else {
 			this.splitWithTab(paneId, tree.edgeToDirection(zone), tab);
 		}
