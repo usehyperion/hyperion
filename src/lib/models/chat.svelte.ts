@@ -1,9 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { Component, ComponentProps } from "svelte";
 
-import type { Command } from "#lib/commands/index.js";
-
 import { app } from "#lib/app.svelte.js";
+import { execute } from "#lib/commands/index.js";
+import { CommandError } from "#lib/errors/command-error.js";
 import {
 	pinMessageMutation,
 	sendAnnouncementMutation,
@@ -19,7 +19,6 @@ import { settings } from "#lib/settings/index.js";
 import type { Channel } from "./channel.svelte";
 import type { Message } from "./message/message.svelte";
 
-import { commands } from "../commands";
 import Notice from "../components/message/events/Notice.svelte";
 import { RedemptionManager } from "../managers/redemption-manager";
 import { EventMessage, type EventMeta } from "./message/event-message";
@@ -65,10 +64,6 @@ export class Chat {
 	#lastMessage: number[] = [];
 	#lastMessageElevated: number[] = [];
 
-	/**
-	 * The commands available in the chat.
-	 */
-	public readonly commands = new Map<string, Command>();
 	public readonly redemptions = new RedemptionManager();
 
 	public mode: ChatMode;
@@ -97,16 +92,6 @@ export class Chat {
 			followerOnly: null,
 			subOnly: false,
 		});
-
-		this.addCommands(commands);
-	}
-
-	public addCommands(commands: Command[]) {
-		for (const command of commands) {
-			this.commands.set(command.name, command);
-		}
-
-		return this;
 	}
 
 	public add(message: Message) {
@@ -265,12 +250,36 @@ export class Chat {
 		});
 	}
 
-	public async send(message: string) {
-		if (message.startsWith("/")) {
-			await this.#runCommand(message);
+	public async send(text: string) {
+		if (text.startsWith("/")) {
+			await execute(this.channel, text.slice(1));
 			return;
 		}
 
+		try {
+			await this.#sendText(text);
+		} catch (error) {
+			log.error(`Failed to send message in ${this.channel.user.username}`, error);
+			throw new CommandError("Your message could not be sent.");
+		}
+	}
+
+	/**
+	 * Sends a message and pins it.
+	 */
+	public async sendPinned(message: string) {
+		const text = this.#prepare(message);
+		if (text === null) return;
+
+		await this.channel.client.gql(sendPinnedMessageMutation, {
+			channel: this.channel.id,
+			message: text,
+		});
+
+		void app.user?.sendPresence(this.channel.id);
+	}
+
+	async #sendText(message: string) {
 		const text = this.#prepare(message);
 		if (text === null) return;
 
@@ -306,42 +315,6 @@ export class Chat {
 		if (sent?.message) {
 			log.info("Message sent");
 			void app.user?.sendPresence(this.channel.id);
-		}
-	}
-
-	/**
-	 * Sends a message and pins it.
-	 */
-	public async sendPinned(message: string) {
-		const text = this.#prepare(message);
-		if (text === null) return;
-
-		await this.channel.client.gql(sendPinnedMessageMutation, {
-			channel: this.channel.id,
-			message: text,
-		});
-
-		void app.user?.sendPresence(this.channel.id);
-	}
-
-	async #runCommand(message: string) {
-		if (!app.user) return;
-
-		const [name, ...args] = message.slice(1).split(" ");
-
-		const command = this.commands.get(name);
-		if (!command || (command.modOnly && !this.channel.isMod)) return;
-
-		try {
-			await command.exec(args, this.channel, app.user);
-		} catch (error) {
-			if (error instanceof Error) {
-				log.error(
-					`Error executing command ${name} in channel ${this.channel.user.username}: ${error.message}`,
-				);
-			}
-
-			throw error;
 		}
 	}
 
