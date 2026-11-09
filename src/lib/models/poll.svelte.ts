@@ -1,17 +1,15 @@
+import type { ViewablePoll } from "#lib/graphql/twitch.js";
 import type { Poll as ApiPoll, PollStatus } from "#lib/twitch/pubsub.js";
 
-import { terminatePollMutation } from "#lib/graphql/twitch.js";
-import { remainingLinger } from "#lib/util/time.js";
+import { pollQuery, terminatePollMutation } from "#lib/graphql/twitch.js";
 
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";
 
+import { Notice } from "./notice.svelte";
+
 // Twitch keeps polls visible for a minute after they end
 const LINGER_DURATION = 60 * 1000;
-
-function isEnded(status: PollStatus) {
-	return status !== "ACTIVE" && status !== "UNKNOWN";
-}
 
 export interface PollChoice {
 	readonly id: string;
@@ -19,54 +17,51 @@ export interface PollChoice {
 	votes: number;
 }
 
+function fromGql(channel: string, poll: ViewablePoll): ApiPoll {
+	return {
+		poll_id: poll.id,
+		choices: poll.choices,
+		created_by: poll.createdBy?.id ?? "",
+		duration_seconds: poll.durationSeconds,
+		ended_at: poll.endedAt,
+		ended_by: poll.endedBy?.id ?? null,
+		owned_by: channel,
+		started_at: poll.startedAt,
+		status: poll.status,
+		title: poll.title,
+		total_voters: poll.totalVoters,
+	};
+}
+
 /**
  * The active or recently completed poll in a channel.
  */
-export class Poll {
-	#expiryId: ReturnType<typeof setTimeout> | null = null;
-
+export class Poll extends Notice {
 	public readonly id: string;
-
-	/**
-	 * The title of the poll.
-	 */
 	public readonly title: string;
-
-	/**
-	 * The choices available in the poll.
-	 */
 	public readonly choices = $state<PollChoice[]>([]);
-
-	/**
-	 * The timestamp at which the poll started.
-	 */
 	public readonly startedTimestamp: number;
-
-	/**
-	 * The timestamp at which the poll ends.
-	 */
 	public readonly endsTimestamp: number;
-
-	/**
-	 * Whether the poll is hidden for the current user.
-	 */
-	public hidden = $state(false);
 
 	public totalVotes = $state(0);
 	public status = $state<PollStatus>("ACTIVE");
 
+	/**
+	 * Whether the poll is still accepting votes.
+	 */
+	public readonly active = $derived(this.status === "ACTIVE");
+
 	public constructor(
-		/**
-		 * The channel in which the poll is active.
-		 */
 		public readonly channel: Channel,
 
 		/**
-		 * The user who created the poll.
+		 * The user who created the poll; `null` if unknown.
 		 */
-		public readonly creator: User,
+		public readonly creator: User | null,
 		data: ApiPoll,
 	) {
+		super();
+
 		this.id = data.poll_id;
 		this.title = data.title;
 
@@ -79,67 +74,49 @@ export class Poll {
 			votes: c.total_voters,
 		}));
 
-		this.totalVotes = data.total_voters;
-		this.status = data.status;
+		this.update(data);
+	}
 
-		// Polls can already be over when first seen, e.g. when joining a
-		// channel within a minute of one ending.
-		if (isEnded(this.status)) {
-			this.#linger(data.ended_at);
-		}
+	/**
+	 * Retrieves the poll in the channel if one is visible.
+	 */
+	public static async fetch(channel: Channel) {
+		const { user } = await channel.client.gql(pollQuery, { id: channel.id });
+		if (!user?.viewablePoll) return null;
+
+		const { createdBy } = user.viewablePoll;
+		const creator = createdBy ? channel.client.users.from(createdBy) : null;
+
+		return new Poll(channel, creator, fromGql(channel.id, user.viewablePoll));
 	}
 
 	public update(payload: ApiPoll) {
 		this.totalVotes = payload.total_voters;
 		this.status = payload.status;
 
-		if (isEnded(this.status)) {
-			this.#linger(payload.ended_at);
-		}
-
 		for (const choice of this.choices) {
-			const newVotes = payload.choices.find((c) => c.choice_id === choice.id)?.total_voters;
+			const votes = payload.choices.find((c) => c.choice_id === choice.id)?.total_voters;
 
-			if (typeof newVotes === "number") {
-				choice.votes = newVotes;
+			if (typeof votes === "number") {
+				choice.votes = votes;
 			}
 		}
-	}
 
-	/**
-	 * Marks this poll as finished and schedules it to be cleared after a short
-	 * delay so the final results remain briefly visible.
-	 */
-	public complete(payload: ApiPoll) {
-		this.update(payload);
-		this.#linger(payload.ended_at);
-	}
-
-	/**
-	 * Ends this poll early.
-	 */
-	public async end() {
-		if (!this.channel.isMod || this.status !== "ACTIVE") return;
-
-		await this.channel.client.gql(terminatePollMutation, {
-			poll: this.id,
-		});
-	}
-
-	public dispose() {
-		if (this.#expiryId !== null) {
-			clearTimeout(this.#expiryId);
-			this.#expiryId = null;
+		// Polls can already be over when first seen, e.g. when joining a
+		// channel within a minute of one ending.
+		if (!this.active && this.status !== "UNKNOWN") {
+			this.expireAfter(payload.ended_at, LINGER_DURATION);
 		}
 	}
 
-	#linger(endedAt: string | null) {
-		this.#expiryId ??= setTimeout(
-			() => {
-				this.#expiryId = null;
-				this.channel.clearPoll(this);
-			},
-			remainingLinger(endedAt, LINGER_DURATION),
-		);
+	/**
+	 * Ends the poll early.
+	 */
+	public async end() {
+		await this.channel.client.gql(terminatePollMutation, { poll: this.id });
+	}
+
+	protected remove() {
+		this.channel.clearPoll(this);
 	}
 }

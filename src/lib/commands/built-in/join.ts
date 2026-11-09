@@ -14,18 +14,9 @@ export default defineCommand({
 			throw new CommandError(ErrorMessage.MISSING_ARG(this.args[0]));
 		}
 
-		let channel = app.channels.getByLogin(args[0]);
-
-		if (!channel) {
-			channel = await mapErrors(
-				() => app.channels.fetch(args[0], { by: "login" }),
-				[{ status: 404, message: ErrorMessage.USER_NOT_FOUND(args[0]) }],
-			);
-			channel.ephemeral = true;
-
-			app.channels.set(channel.id, channel);
-		}
-
-		await app.open(channel);
+		await mapErrors(
+			() => app.openByLogin(args[0].toLowerCase()),
+			[{ status: 404, message: ErrorMessage.USER_NOT_FOUND(args[0]) }],
+		);
 	},
 });

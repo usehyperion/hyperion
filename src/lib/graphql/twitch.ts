@@ -1,9 +1,6 @@
 import { initGraphQLTada } from "gql.tada";
 import type { FragmentOf, ResultOf } from "gql.tada";
 
-import type { MessageFragment } from "#lib/models/message/fragment.js";
-import type { Poll as ApiPoll, Prediction as ApiPrediction } from "#lib/twitch/pubsub.js";
-
 import type { NonNullableDeep } from ".";
 
 const gql = initGraphQLTada<{
@@ -14,8 +11,6 @@ const gql = initGraphQLTada<{
 		Cursor: string;
 	};
 }>();
-
-// Fragments
 
 const badgeDetailsFragment = gql(`
 	fragment BadgeDetails on Badge {
@@ -85,11 +80,6 @@ const userDetailsFragment = gql(`
 		chatColor
 		profileImageURL(width: 300)
 		bannerImageURL
-		roles {
-			isStaff
-			isAffiliate
-			isPartner
-		}
 	}
 `);
 
@@ -166,8 +156,6 @@ const whisperMessageDetailsFragment = gql(`
 		}
 	}
 `);
-
-// Queries
 
 export const channelBadgesQuery = gql(
 	`query GetChannelBadges($id: ID!) {
@@ -478,6 +466,7 @@ export const searchSuggestionsQuery = gql(`
 							isLive
 							profileImageURL(width: 50)
 							user {
+								login
 								displayName
 								stream {
 									title
@@ -596,8 +585,6 @@ export const whispersQuery = gql(
 	}`,
 	[userDetailsFragment, whisperMessageDetailsFragment],
 );
-
-// Mutations
 
 export const allowHeldMessageMutation = gql(`
 	mutation AllowHeldMessage($message: ID!) {
@@ -926,8 +913,6 @@ export const warnUserMutation = gql(`
 	}
 `);
 
-// Types
-
 export type Badge = FragmentOf<typeof badgeDetailsFragment>;
 export type Cheermote = FragmentOf<typeof cheermoteDetailsFragment>;
 export type CheermoteTier = Cheermote["tiers"][number];
@@ -949,76 +934,17 @@ export type ChannelSuggestion = Extract<
 	{ __typename: "SearchSuggestionChannel" }
 >;
 
-interface MessageContent {
+export interface MessageContent {
 	fragments: readonly {
 		text: string;
 		content: FragmentOf<typeof messageFragmentContentFragment> | null;
 	}[];
 }
 
-type Poll = NonNullableDeep<ResultOf<typeof pollQuery>, "user.viewablePoll">;
+export type ViewablePoll = NonNullableDeep<ResultOf<typeof pollQuery>, "user.viewablePoll">;
 
-type Prediction = FragmentOf<typeof predictionDetailsFragment>;
+export type PredictionDetails = FragmentOf<typeof predictionDetailsFragment>;
 
 export type PredictionOutcome = ReturnType<
 	typeof gql.scalar<"CreatePredictionEventInput">
 >["outcomes"][number];
-
-// Transformers
-
-export function toPubSubPoll(channel: string, poll: Poll): ApiPoll {
-	return {
-		poll_id: poll.id,
-		choices: poll.choices,
-		created_by: poll.createdBy!.id,
-		duration_seconds: poll.durationSeconds,
-		ended_at: poll.endedAt,
-		ended_by: poll.endedBy?.id ?? null,
-		owned_by: channel,
-		started_at: poll.startedAt,
-		status: poll.status,
-		title: poll.title,
-		total_voters: poll.totalVoters,
-	};
-}
-
-export function toPubSubPrediction(channel: string, prediction: Prediction): ApiPrediction {
-	return {
-		channel_id: channel,
-		id: prediction.id,
-		title: prediction.title,
-		created_at: prediction.createdAt,
-		created_by: {
-			type: prediction.createdBy?.__typename?.toUpperCase() ?? "",
-			user_id: prediction.createdBy?.id,
-		},
-		ended_at: prediction.endedAt,
-		ended_by: {
-			user_id: prediction.endedBy?.id,
-		},
-		locked_at: prediction.lockedAt,
-		locked_by: {
-			user_id: prediction.lockedBy?.id,
-		},
-		outcomes: prediction.outcomes,
-		status: prediction.status,
-		prediction_window_seconds: prediction.predictionWindowSeconds,
-		winning_outcome_id: null,
-	};
-}
-
-export function toMessageFragments(content: MessageContent) {
-	return content.fragments.map<MessageFragment>((fragment) => {
-		const text = fragment.text ?? "";
-		const inner = fragment.content;
-
-		switch (inner?.__typename) {
-			case "Emote":
-				return { type: "emote", text, id: inner.emoteID ?? "" };
-			case "CheermoteToken":
-				return { type: "cheermote", text, bits: inner.bitsAmount };
-			default:
-				return { type: "text", text };
-		}
-	});
-}

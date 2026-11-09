@@ -1,18 +1,24 @@
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::anyhow;
 use keyring::Entry;
 use serde::{Deserialize, Serialize};
+use tauri::webview::PageLoadEvent;
 use tauri::{
     AppHandle, Emitter, Manager, State, Url, WebviewUrl, WebviewWindow, WebviewWindowBuilder,
+    WindowEvent, async_runtime,
 };
-use tokio::sync::Mutex;
-use twitch_api::HelixClient;
-use twitch_api::twitch_oauth2::{AccessToken, UserToken};
+use tokio::sync::{Mutex, mpsc};
+use twitch_oauth2::tokens::errors::ValidationError;
+use twitch_oauth2::{AccessToken, UserToken};
 
-use crate::AppState;
 use crate::error::Error;
+use crate::ws::Backoff;
+use crate::{AppState, MAIN_WINDOW_LABEL};
+
+/// The public client id Twitch uses.
+const CLIENT_ID: &str = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 
 const KEYRING_SERVICE: &str = "com.hyperion.chat";
 const KEYRING_USER: &str = "session";
@@ -20,12 +26,22 @@ const KEYRING_USER: &str = "session";
 const LOGIN_WINDOW_LABEL: &str = "twitch-login";
 const INTEGRITY_WINDOW_LABEL: &str = "twitch-integrity";
 
-/// How long to wait for the in-page integrity request before giving up.
-const INTEGRITY_POLL_INTERVAL: tokio::time::Duration = tokio::time::Duration::from_millis(150);
-const INTEGRITY_POLL_ATTEMPTS: u32 = 100;
+/// How long to wait for the integrity webview's page to load.
+const INTEGRITY_PAGE_LOAD_TIMEOUT: Duration = Duration::from_secs(15);
+
+/// How often to check whether the in-page integrity request has finished.
+const INTEGRITY_POLL_INTERVAL: Duration = Duration::from_millis(150);
+
+/// How many checks to make before giving up on the integrity request, 15
+/// seconds in all.
+const INTEGRITY_POLL_ATTEMPTS: u32 = 10;
 
 /// Treat a token as spent slightly before it actually lapses.
 const INTEGRITY_EXPIRY_SKEW_MS: i64 = 5 * 60 * 1000;
+
+/// Each refresh opens a webview, so after a failure callers get no token for a
+/// while instead of each retrying.
+const INTEGRITY_RETRY_DELAY: Duration = Duration::from_secs(30);
 
 fn keyring_entry() -> Result<Entry, Error> {
     Ok(Entry::new(KEYRING_SERVICE, KEYRING_USER)?)
@@ -38,19 +54,30 @@ fn now_ms() -> i64 {
         .unwrap_or_default()
 }
 
+/// Sent to the main window with `twitch-auth-success` once a login is stored.
 #[derive(Debug, Serialize)]
-pub struct AuthUser {
+#[serde(rename_all = "camelCase")]
+struct SignedIn {
     id: String,
     login: String,
+    access_token: String,
 }
 
-impl From<&UserToken> for AuthUser {
+impl From<&UserToken> for SignedIn {
     fn from(token: &UserToken) -> Self {
         Self {
             id: token.user_id.to_string(),
             login: token.login.to_string(),
+            access_token: token.access_token.as_str().to_owned(),
         }
     }
+}
+
+/// What the frontend gets back from `get_auth`.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StoredAuth {
+    access_token: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -67,9 +94,70 @@ impl Integrity {
     }
 }
 
+#[derive(Default)]
+pub struct IntegrityState {
+    current: Option<Integrity>,
+    retry_at: Option<Instant>,
+    refresh: Arc<Mutex<()>>,
+}
+
+impl IntegrityState {
+    pub fn reset(&mut self, current: Option<Integrity>) {
+        self.current = current;
+        self.retry_at = None;
+    }
+
+    fn fresh(&self) -> Option<Integrity> {
+        self.current
+            .clone()
+            .filter(|integrity| !integrity.is_stale())
+    }
+
+    fn backing_off(&self) -> bool {
+        self.retry_at.is_some_and(|at| Instant::now() < at)
+    }
+}
+
+/// A stored token that Twitch couldn't be reached to validate, retried with
+/// backoff so being offline doesn't mean a request on every call.
+#[derive(Default)]
+pub struct PendingToken {
+    access_token: Option<AccessToken>,
+    retry_at: Option<Instant>,
+    backoff: Backoff,
+    validating: Arc<Mutex<()>>,
+}
+
+impl PendingToken {
+    pub fn reset(&mut self, access_token: Option<AccessToken>) {
+        self.access_token = access_token;
+        self.retry_at = None;
+        self.backoff.reset();
+    }
+
+    fn get(&self) -> Option<&AccessToken> {
+        self.access_token.as_ref()
+    }
+
+    /// The token unless there is none or it was tried too recently.
+    fn due(&self) -> Option<&AccessToken> {
+        self.access_token
+            .as_ref()
+            .filter(|_| self.retry_at.is_none_or(|at| at <= Instant::now()))
+    }
+
+    fn defer(&mut self) -> Duration {
+        let delay = self.backoff.next_delay();
+        self.retry_at = Some(Instant::now() + delay);
+
+        delay
+    }
+}
+
+/// The credentials kept in the keyring.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct TwitchAuth {
+struct TwitchAuth {
     access_token: String,
     #[serde(default)]
     integrity: Option<Integrity>,
@@ -97,6 +185,10 @@ struct IntegrityResult {
 
 impl IntegrityResult {
     fn into_integrity(self) -> Option<Integrity> {
+        if let Some(error) = &self.error {
+            tracing::warn!(%error, "Integrity request failed");
+        }
+
         Some(Integrity {
             token: self.token?,
             device_id: self.device_id,
@@ -122,18 +214,28 @@ fn read_credentials() -> Option<TwitchAuth> {
         }
     };
 
-    match serde_json::from_str(&stored) {
-        Ok(auth) => Some(auth),
-        Err(_) => Some(TwitchAuth {
-            access_token: stored,
-            integrity: None,
-        }),
-    }
+    serde_json::from_str(&stored)
+        .inspect_err(|err| tracing::error!(%err, "Stored credentials are malformed"))
+        .ok()
 }
 
 fn write_credentials(auth: &TwitchAuth) -> Result<(), Error> {
     keyring_entry()?.set_password(&serde_json::to_string(auth)?)?;
     Ok(())
+}
+
+fn delete_credentials() -> Result<(), Error> {
+    match keyring_entry()?.delete_credential() {
+        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+        Err(err) => Err(err.into()),
+    }
+}
+
+fn is_rejection<E: std::error::Error + Send + Sync + 'static>(err: &ValidationError<E>) -> bool {
+    matches!(
+        err,
+        ValidationError::NotAuthorized | ValidationError::InvalidToken(_)
+    )
 }
 
 async fn eval_value(window: &WebviewWindow, js: impl Into<String>) -> Option<String> {
@@ -145,7 +247,8 @@ async fn eval_value(window: &WebviewWindow, js: impl Into<String>) -> Option<Str
             if let Ok(mut tx) = tx.lock()
                 && let Some(tx) = tx.take()
             {
-                let _ = tx.send(value);
+                // Only fails if the caller stopped waiting
+                tx.send(value).ok();
             }
         })
         .inspect_err(|err| tracing::error!(%err, "Failed to evaluate script in webview"))
@@ -154,29 +257,7 @@ async fn eval_value(window: &WebviewWindow, js: impl Into<String>) -> Option<Str
     rx.await.ok()
 }
 
-async fn wait_for_document(window: &WebviewWindow) -> bool {
-    for _ in 0..INTEGRITY_POLL_ATTEMPTS {
-        let ready = eval_value(window, "document.readyState")
-            .await
-            .and_then(|value| serde_json::from_str::<String>(&value).ok());
-
-        if ready.as_deref() == Some("complete") {
-            return true;
-        }
-
-        tokio::time::sleep(INTEGRITY_POLL_INTERVAL).await;
-    }
-
-    tracing::warn!("Timed out waiting for a webview to finish loading");
-
-    false
-}
-
-async fn fetch_integrity(window: &WebviewWindow, access_token: &str) -> Option<IntegrityResult> {
-    if !wait_for_document(window).await {
-        return None;
-    }
-
+async fn fetch_integrity(window: &WebviewWindow, access_token: &str) -> Option<Integrity> {
     eval_value(
         window,
         format!(
@@ -193,7 +274,7 @@ async fn fetch_integrity(window: &WebviewWindow, access_token: &str) -> Option<I
                         const res = await fetch("https://gql.twitch.tv/integrity", {{
                             method: "POST",
                             headers: {{
-                                "Client-Id": "kimne78kx3ncx6brgo4mv6wki5h1ko",
+                                "Client-Id": "{CLIENT_ID}",
                                 "X-Device-Id": deviceId,
                                 "Authorization": "OAuth {access_token}"
                             }}
@@ -232,7 +313,8 @@ async fn fetch_integrity(window: &WebviewWindow, access_token: &str) -> Option<I
 
         return serde_json::from_str::<IntegrityResult>(&value)
             .inspect_err(|err| tracing::error!(%err, "Malformed integrity result: {value}"))
-            .ok();
+            .ok()?
+            .into_integrity();
     }
 
     tracing::warn!("Timed out waiting for the integrity token");
@@ -242,62 +324,92 @@ async fn fetch_integrity(window: &WebviewWindow, access_token: &str) -> Option<I
 
 async fn refresh_integrity(app: &AppHandle, access_token: &str) -> Option<Integrity> {
     if let Some(stale) = app.get_webview_window(INTEGRITY_WINDOW_LABEL) {
-        let _ = stale.close();
+        close_window(&stale);
     }
 
     let url = Url::parse("https://www.twitch.tv/directory/following").unwrap();
 
+    let (loaded_tx, mut loaded) = mpsc::unbounded_channel();
+
     let window = WebviewWindowBuilder::new(app, INTEGRITY_WINDOW_LABEL, WebviewUrl::External(url))
         .title("Twitch")
         .visible(false)
+        .on_page_load(move |_, payload| {
+            if payload.event() == PageLoadEvent::Finished {
+                // Only fails once nothing is waiting for the load anymore
+                loaded_tx.send(()).ok();
+            }
+        })
         .build()
         .inspect_err(|err| tracing::error!(%err, "Failed to open the integrity webview"))
         .ok()?;
 
-    let result = fetch_integrity(&window, access_token).await;
-    let _ = window.close();
+    let integrity = match tokio::time::timeout(INTEGRITY_PAGE_LOAD_TIMEOUT, loaded.recv()).await {
+        Ok(Some(())) => fetch_integrity(&window, access_token).await,
+        Ok(None) | Err(_) => {
+            tracing::warn!("Timed out waiting for the integrity webview to load");
+            None
+        }
+    };
 
-    if let Some(error) = result.as_ref().and_then(|result| result.error.as_ref()) {
-        tracing::warn!(%error, "Failed to refresh the integrity token");
-    }
+    close_window(&window);
 
-    result?.into_integrity()
+    integrity
 }
 
 pub async fn ensure_integrity(app: &AppHandle) -> Option<Integrity> {
     let state = app.state::<Mutex<AppState>>();
 
-    let (access_token, integrity, refresh_lock) = {
+    validate_pending(&state).await;
+
+    let (access_token, refresh_lock) = {
         let state = state.lock().await;
+        let access_token = state.token.as_ref()?.access_token.as_str().to_string();
 
-        (
-            state
-                .token
-                .as_ref()
-                .map(|token| token.access_token.as_str().to_string()),
-            state.integrity.clone(),
-            Arc::clone(&state.integrity_refresh),
-        )
+        if let Some(integrity) = state.integrity.fresh() {
+            return Some(integrity);
+        }
+
+        (access_token, Arc::clone(&state.integrity.refresh))
     };
-
-    let access_token = access_token?;
-
-    if let Some(integrity) = integrity.filter(|integrity| !integrity.is_stale()) {
-        return Some(integrity);
-    }
 
     let _guard = refresh_lock.lock().await;
 
-    // Whoever held the lock may have refreshed it while we waited.
-    let current = state.lock().await.integrity.clone();
+    {
+        // Whoever held the lock may have refreshed it, or failed to, while we
+        // waited.
+        let state = state.lock().await;
 
-    if let Some(integrity) = current.filter(|integrity| !integrity.is_stale()) {
-        return Some(integrity);
+        if let Some(integrity) = state.integrity.fresh() {
+            return Some(integrity);
+        }
+
+        if state.integrity.backing_off() {
+            return None;
+        }
     }
 
-    let integrity = refresh_integrity(app, &access_token).await?;
+    let refreshed = refresh_integrity(app, &access_token).await;
 
-    state.lock().await.integrity = Some(integrity.clone());
+    let mut state = state.lock().await;
+
+    // Logging in or out while the refresh was running replaces the session,
+    // which the result must not be stored for.
+    let current = state
+        .token
+        .as_ref()
+        .map(|token| token.access_token.as_str());
+
+    if current != Some(access_token.as_str()) {
+        return None;
+    }
+
+    let Some(integrity) = refreshed else {
+        state.integrity.retry_at = Some(Instant::now() + INTEGRITY_RETRY_DELAY);
+        return None;
+    };
+
+    state.integrity.reset(Some(integrity.clone()));
 
     if let Err(err) = write_credentials(&TwitchAuth {
         access_token: access_token.clone(),
@@ -311,83 +423,145 @@ pub async fn ensure_integrity(app: &AppHandle) -> Option<Integrity> {
     Some(integrity)
 }
 
-#[tauri::command]
-pub async fn open_twitch_login(app: AppHandle) -> Result<(), String> {
-    let auth_url = WebviewUrl::External(Url::parse("https://www.twitch.tv/login").unwrap());
+/// What happens to the login window that could end the login.
+enum LoginEvent {
+    /// The page changed, possibly because the user just logged in.
+    Navigated,
+    Closed,
+}
 
-    let auth_window = WebviewWindowBuilder::new(&app, LOGIN_WINDOW_LABEL, auth_url)
+#[tauri::command]
+pub async fn open_twitch_login(app: AppHandle) -> Result<(), Error> {
+    if let Some(window) = app.get_webview_window(LOGIN_WINDOW_LABEL) {
+        window.set_focus()?;
+        return Ok(());
+    }
+
+    let url = WebviewUrl::External(Url::parse("https://www.twitch.tv/login").unwrap());
+    let (events_tx, events) = mpsc::unbounded_channel();
+
+    // The handlers only fail to send once the login is over and nothing is
+    // listening anymore
+    let loaded = events_tx.clone();
+    let retitled = events_tx.clone();
+
+    let window = WebviewWindowBuilder::new(&app, LOGIN_WINDOW_LABEL, url)
         .title("Twitch Login")
         .inner_size(500.0, 500.0)
         .resizable(false)
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    let app_handle = app.clone();
-    let window_handle = auth_window.clone();
-
-    tauri::async_runtime::spawn(async move {
-        // Url without www because the auth-token cookie is set for .twitch.tv
-        let twitch_domain = Url::parse("https://twitch.tv").unwrap();
-
-        loop {
-            tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
-
-            if window_handle.is_closable().is_err() {
-                break;
+        .on_page_load(move |_, payload| {
+            if payload.event() == PageLoadEvent::Finished {
+                loaded.send(LoginEvent::Navigated).ok();
             }
+        })
+        // Catches the page changing without a full load
+        .on_document_title_changed(move |_, _| {
+            retitled.send(LoginEvent::Navigated).ok();
+        })
+        .build()?;
 
-            if let Ok(cookies) = window_handle.cookies_for_url(twitch_domain.clone())
-                && let Some(auth_cookie) = cookies.into_iter().find(|c| c.name() == "auth-token")
-            {
-                let access_token = auth_cookie.value().to_string();
-                let result = fetch_integrity(&window_handle, &access_token).await;
-
-                if let Some(error) = result.as_ref().and_then(|result| result.error.as_ref()) {
-                    tracing::warn!(%error, "Failed to fetch an integrity token");
-                }
-
-                let auth = TwitchAuth {
-                    access_token,
-                    integrity: result.and_then(|result| result.into_integrity()),
-                };
-
-                let _ = app_handle.emit_to("main", "twitch-auth-success", &auth);
-                let _ = window_handle.close();
-
-                break;
-            }
+    window.on_window_event(move |event| {
+        if let WindowEvent::Destroyed = event {
+            events_tx.send(LoginEvent::Closed).ok();
         }
     });
+
+    async_runtime::spawn(complete_login(app, window, events));
 
     Ok(())
 }
 
-#[tauri::command]
-pub async fn store_token(
-    state: State<'_, Mutex<AppState>>,
-    auth: TwitchAuth,
-) -> Result<AuthUser, Error> {
-    let mut state = state.lock().await;
+/// Waits for the login window to either have the auth cookie set, which
+/// Twitch does on logging in, or be closed.
+async fn complete_login(
+    app: AppHandle,
+    window: WebviewWindow,
+    mut events: mpsc::UnboundedReceiver<LoginEvent>,
+) {
+    // Without www, since the auth-token cookie is set for .twitch.tv
+    let twitch = Url::parse("https://twitch.tv").unwrap();
 
-    let token = UserToken::from_token(&state.helix, AccessToken::new(auth.access_token))
+    loop {
+        let Some(LoginEvent::Navigated) = events.recv().await else {
+            tracing::info!("Login window closed without logging in");
+            return;
+        };
+
+        // Read here rather than in the page load handler, since reading
+        // cookies from an event handler deadlocks on Windows
+        let cookies = match window.cookies_for_url(twitch.clone()) {
+            Ok(cookies) => cookies,
+            Err(err) => {
+                tracing::error!(%err, "Failed to read the login window's cookies");
+                continue;
+            }
+        };
+
+        let Some(cookie) = cookies.into_iter().find(|c| c.name() == "auth-token") else {
+            continue;
+        };
+
+        let access_token = cookie.value().to_owned();
+        let integrity = fetch_integrity(&window, &access_token).await;
+
+        let emitted = match sign_in(&app, access_token, integrity).await {
+            Ok(signed_in) => app.emit_to(MAIN_WINDOW_LABEL, "twitch-auth-success", &signed_in),
+            Err(err) => app.emit_to(MAIN_WINDOW_LABEL, "twitch-auth-error", err.to_string()),
+        };
+
+        if let Err(err) = emitted {
+            tracing::error!(%err, "Failed to emit the login result");
+        }
+
+        close_window(&window);
+
+        return;
+    }
+}
+
+fn close_window(window: &WebviewWindow) {
+    if let Err(err) = window.close() {
+        tracing::error!(%err, label = window.label(), "Failed to close window");
+    }
+}
+
+/// Validates and stores a fresh session, replacing any previous one along with
+/// the connections made with its token.
+async fn sign_in(
+    app: &AppHandle,
+    access_token: String,
+    integrity: Option<Integrity>,
+) -> Result<SignedIn, Error> {
+    let state = app.state::<Mutex<AppState>>();
+    let http = state.lock().await.http.clone();
+
+    let token = UserToken::from_token(&http, AccessToken::new(access_token))
         .await
         .map_err(|err| {
             tracing::error!(%err, "Rejected access token");
             Error::Generic(anyhow!("Twitch rejected the access token: {err}"))
         })?;
 
+    let mut state = state.lock().await;
+
     write_credentials(&TwitchAuth {
         access_token: token.access_token.as_str().to_string(),
-        integrity: auth.integrity.clone(),
+        integrity: integrity.clone(),
     })?;
 
-    let user = AuthUser::from(&token);
+    let signed_in = SignedIn::from(&token);
     tracing::info!(login = %token.login, "Stored credentials");
 
-    state.integrity = auth.integrity;
-    state.token = Some(token);
+    state.unverified.reset(None);
+    state.integrity.reset(integrity);
 
-    Ok(user)
+    // Connections authenticate once, when they open, so ones opened with the
+    // previous token would keep using it. The frontend connects again.
+    if state.token.replace(token).is_some() {
+        state.close_connections();
+    }
+
+    Ok(signed_in)
 }
 
 #[tauri::command]
@@ -395,36 +569,94 @@ pub async fn clear_session(state: State<'_, Mutex<AppState>>) -> Result<(), Erro
     let mut state = state.lock().await;
 
     state.token = None;
-    state.integrity = None;
+    state.unverified.reset(None);
+    state.integrity.reset(None);
+    state.close_connections();
 
-    state.irc = None;
-    state.irc_channel = None;
-
-    if let Some(pubsub) = state.pubsub.take() {
-        pubsub.disconnect();
-    }
-
-    state.pubsub_channel = None;
-
-    match keyring_entry()?.delete_credential() {
-        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
-        Err(err) => Err(err.into()),
-    }
+    delete_credentials()
 }
 
+/// The stored session's access token, or `None` if the user has to log in.
+/// A token that couldn't be validated yet is returned too, so being offline at
+/// startup doesn't sign the user out.
 #[tauri::command]
-pub async fn get_auth(state: State<'_, Mutex<AppState>>) -> Result<Option<TwitchAuth>, Error> {
+pub async fn get_auth(state: State<'_, Mutex<AppState>>) -> Result<Option<StoredAuth>, Error> {
+    validate_pending(&state).await;
+
     let state = state.lock().await;
 
-    Ok(state.token.as_ref().map(|token| TwitchAuth {
-        access_token: token.access_token.as_str().to_string(),
-        integrity: state.integrity.clone(),
+    let access_token = state
+        .token
+        .as_ref()
+        .map(|token| &token.access_token)
+        .or(state.unverified.get());
+
+    Ok(access_token.map(|token| StoredAuth {
+        access_token: token.as_str().to_owned(),
     }))
 }
 
 #[tauri::command]
 pub async fn get_integrity(app: AppHandle) -> Result<Option<Integrity>, Error> {
     Ok(ensure_integrity(&app).await)
+}
+
+/// Validates the stored token again if Twitch couldn't be reached to validate
+/// it before e.g. because the network wasn't up yet at startup.
+///
+/// The state is only locked around the request, not across it.
+pub async fn validate_pending(state: &Mutex<AppState>) {
+    let validating = {
+        let state = state.lock().await;
+
+        if state.unverified.due().is_none() {
+            return;
+        }
+
+        Arc::clone(&state.unverified.validating)
+    };
+
+    let _guard = validating.lock().await;
+
+    let (http, access_token) = {
+        let state = state.lock().await;
+
+        let Some(access_token) = state.unverified.due() else {
+            return;
+        };
+
+        (state.http.clone(), access_token.clone())
+    };
+
+    let validated = UserToken::from_token(&http, access_token.clone()).await;
+    let mut state = state.lock().await;
+
+    if state.unverified.get() != Some(&access_token) {
+        return;
+    }
+
+    match validated {
+        Ok(token) => {
+            tracing::info!(login = %token.login, "Validated stored credentials");
+
+            state.unverified.reset(None);
+            state.token = Some(token);
+        }
+        Err(err) if is_rejection(&err) => {
+            tracing::warn!(%err, "Stored access token is no longer valid, clearing it");
+
+            state.unverified.reset(None);
+            state.integrity.reset(None);
+
+            if let Err(err) = delete_credentials() {
+                tracing::error!(%err, "Failed to delete invalid credentials");
+            }
+        }
+        Err(err) => {
+            let retry_in = state.unverified.defer();
+            tracing::warn!(%err, ?retry_in, "Still unable to validate the stored access token");
+        }
+    }
 }
 
 pub fn get_access_token(state: &AppState) -> Result<&UserToken, Error> {
@@ -434,42 +666,11 @@ pub fn get_access_token(state: &AppState) -> Result<&UserToken, Error> {
     })
 }
 
-pub struct Restored {
-    pub token: Option<UserToken>,
-    pub integrity: Option<Integrity>,
-}
-
-pub async fn restore_credentials(helix: &HelixClient<'static, reqwest::Client>) -> Restored {
-    let Some(stored) = read_credentials() else {
-        return Restored {
-            token: None,
-            integrity: None,
-        };
-    };
-
-    match UserToken::from_token(helix, AccessToken::new(stored.access_token)).await {
-        Ok(token) => {
-            tracing::info!(login = %token.login, "Restored stored credentials");
-
-            Restored {
-                token: Some(token),
-                integrity: stored.integrity,
-            }
-        }
-        Err(err) => {
-            tracing::warn!(%err, "Stored access token is no longer valid, clearing it");
-
-            // The integrity token is bound to this session, so it goes with it.
-            if let Ok(entry) = keyring_entry()
-                && let Err(err) = entry.delete_credential()
-            {
-                tracing::error!(%err, "Failed to delete invalid credentials");
-            }
-
-            Restored {
-                token: None,
-                integrity: None,
-            }
-        }
-    }
+pub fn restore_credentials() -> (Option<AccessToken>, Option<Integrity>) {
+    read_credentials().map_or((None, None), |stored| {
+        (
+            Some(AccessToken::new(stored.access_token)),
+            stored.integrity,
+        )
+    })
 }

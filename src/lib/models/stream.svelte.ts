@@ -1,7 +1,6 @@
 import { SvelteMap } from "svelte/reactivity";
 
 import type { Stream as ApiStream, GuestStarDetails } from "#lib/graphql/twitch.js";
-import type { TwitchClient } from "#lib/twitch/client.js";
 
 export interface Game {
 	slug: string;
@@ -23,29 +22,10 @@ export class Stream {
 	 */
 	public readonly createdAt: Date;
 
-	/**
-	 * The title of the stream.
-	 */
 	public title: string;
-
-	/**
-	 * The game being played on the stream.
-	 */
 	public game: Game;
-
-	/**
-	 * The tags applied to the stream.
-	 */
 	public readonly tags: string[];
-
-	/**
-	 * The URL of the stream's preview thumbnail.
-	 */
 	public readonly thumbnailUrl: string | null;
-
-	/**
-	 * The number of viewers currently watching the stream.
-	 */
 	public viewers: number;
 
 	/**
@@ -54,45 +34,44 @@ export class Stream {
 	 */
 	public readonly guests = new SvelteMap<string, Guest>();
 
-	public constructor(
-		public readonly client: TwitchClient,
-
-		/**
-		 * The id of the channel the stream is associated with.
-		 */
+	private constructor(
 		public readonly channelId: string,
-		data: ApiStream | null,
+		data: ApiStream,
 	) {
-		this.createdAt = new Date(data?.createdAt ?? 0);
+		this.createdAt = new Date(data.createdAt ?? 0);
 
-		this.title = $state(data?.title ?? "Untitled");
+		this.title = $state(data.title ?? "Untitled");
 		this.game = $state({
-			slug: data?.game?.slug ?? "",
-			name: data?.game?.displayName ?? "Unknown",
+			slug: data.game?.slug ?? "",
+			name: data.game?.displayName ?? "Unknown",
 		});
 
-		this.tags = data?.freeformTags?.flatMap((tag) => (tag.name ? [tag.name] : [])) ?? [];
-		this.thumbnailUrl = data?.previewImageURL ?? null;
+		this.tags = data.freeformTags?.flatMap((tag) => (tag.name ? [tag.name] : [])) ?? [];
+		this.thumbnailUrl = data.previewImageURL ?? null;
 
-		this.viewers = $state(data?.viewersCount ?? 0);
-	}
-
-	public addGuest(guest: Guest) {
-		if (guest.id !== this.channelId) {
-			this.guests.set(guest.id, guest);
-		}
+		this.viewers = $state(data.viewersCount ?? 0);
 	}
 
 	/**
-	 * Sets the list of guests in the Stream Together session if there is one
-	 * active.
+	 * Creates a stream along with the guests of its Stream Together session if
+	 * one is active.
 	 */
-	public setGuests(channel: GuestStarDetails | null | undefined) {
+	public static from(
+		channelId: string,
+		data: ApiStream,
+		channel: GuestStarDetails | null | undefined,
+	) {
+		const stream = new Stream(channelId, data);
+
 		for (const { user } of channel?.guestStarSessionCall?.guests ?? []) {
-			this.addGuest({
+			if (user.id === channelId) continue;
+
+			stream.guests.set(user.id, {
 				...user,
 				viewers: user.stream?.viewersCount ?? null,
 			});
 		}
+
+		return stream;
 	}
 }

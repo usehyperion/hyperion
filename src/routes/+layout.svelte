@@ -25,6 +25,14 @@
 				fill: "forwards",
 			})
 			.finished.then(() => splash.remove());
+
+		addEventListener("error", onError);
+		addEventListener("unhandledrejection", onRejection);
+
+		return () => {
+			removeEventListener("error", onError);
+			removeEventListener("unhandledrejection", onRejection);
+		};
 	});
 
 	$effect(() => {
@@ -35,16 +43,16 @@
 		injectTheme(settings.state["appearance.theme"]);
 	});
 
-	addEventListener("error", (event) => {
+	function onError(event: ErrorEvent) {
 		if (event.message.startsWith("ResizeObserver loop")) {
 			event.preventDefault();
 			return;
 		}
 
 		log.error(`[${event.filename}@${event.lineno}:${event.colno}] ${event.message}`);
-	});
+	}
 
-	addEventListener("unhandledrejection", (event) => {
+	function onRejection(event: PromiseRejectionEvent) {
 		log.error(`Unhandled promise rejection: ${event.reason}`);
 
 		if (event.reason instanceof AggregateError) {
@@ -52,7 +60,7 @@
 				log.error(`\t- ${error.message}`);
 			}
 		}
-	});
+	}
 </script>
 
 <ModeWatcher />

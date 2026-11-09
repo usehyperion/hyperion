@@ -56,12 +56,10 @@
 	});
 
 	function toRow(suggestion: ChannelSuggestion): RecentSearch {
-		const displayName = suggestion.user?.displayName ?? "";
-
 		return {
 			id: suggestion.id,
-			login: displayName.toLowerCase(),
-			displayName,
+			login: suggestion.user?.login ?? "",
+			displayName: suggestion.user?.displayName ?? "",
 			profileImageURL: suggestion.profileImageURL ?? "",
 			isLive: suggestion.isLive,
 			streamTitle: suggestion.user?.stream?.title ?? null,
@@ -100,6 +98,8 @@
 			}
 
 			suggestions = channels;
+		} catch (err) {
+			if (current === token) error = err instanceof Error ? err.message : String(err);
 		} finally {
 			if (current === token) searching = false;
 		}
@@ -112,16 +112,7 @@
 		try {
 			loading = true;
 
-			let channel = app.channels.getByLogin(login);
-
-			if (!channel) {
-				channel = await app.channels.fetch(login, { by: "login" });
-				channel.ephemeral = true;
-
-				app.channels.set(channel.id, channel);
-			}
-
-			await app.open(channel);
+			const channel = await app.openByLogin(login);
 			record(channel, meta);
 			handleClose();
 		} catch (err) {

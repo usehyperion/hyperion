@@ -11,27 +11,38 @@
 
 	const { chat }: Props = $props();
 
-	const config = [
-		{ key: "subOnly", label: "Subscriber only" },
-		{ key: "followerOnly", label: "Follower only" },
-		{ key: "slow", label: "Slow mode" },
-		{ key: "unique", label: "Unique messages" },
-		{ key: "emoteOnly", label: "Emote only" },
-	] as const;
+	// Ordered by precedence; the first active mode is shown in the input.
+	const modes = $derived.by(() => {
+		const { mode } = chat;
 
-	const modes = $derived(
-		config.map((mode) => {
-			const value = chat.mode[mode.key];
-			const active =
-				typeof value === "number"
-					? mode.key === "followerOnly"
-						? value >= 0
-						: value > 0
-					: value;
-
-			return Object.assign({ active }, mode);
-		}),
-	);
+		return [
+			{
+				label: "Subscriber only",
+				active: mode.subOnly,
+				seconds: 0,
+			},
+			{
+				label: "Follower only",
+				active: mode.followerOnly !== null,
+				seconds: (mode.followerOnly ?? 0) * 60,
+			},
+			{
+				label: "Slow mode",
+				active: mode.slow > 0,
+				seconds: mode.slow,
+			},
+			{
+				label: "Unique messages",
+				active: mode.unique,
+				seconds: 0,
+			},
+			{
+				label: "Emote only",
+				active: mode.emoteOnly,
+				seconds: 0,
+			},
+		];
+	});
 
 	const topMostActive = $derived(modes.find((m) => m.active));
 </script>
@@ -49,7 +60,7 @@
 
 <Popover id="restrictions-{chat.channel.id}" class="w-max p-3 text-xs">
 	<ul class="space-y-1">
-		{#each modes as mode}
+		{#each modes as mode (mode.label)}
 			<li
 				class={[
 					"flex items-center",
@@ -60,12 +71,8 @@
 
 				{mode.label}
 
-				{#if mode.key === "followerOnly" && typeof chat.mode.followerOnly === "number" && chat.mode.followerOnly > 0}
-					({formatDuration(chat.mode.followerOnly * 60)})
-				{/if}
-
-				{#if mode.key === "slow" && typeof chat.mode.slow === "number" && chat.mode.slow > 0}
-					({formatDuration(chat.mode.slow)})
+				{#if mode.seconds > 0}
+					({formatDuration(mode.seconds)})
 				{/if}
 			</li>
 		{/each}

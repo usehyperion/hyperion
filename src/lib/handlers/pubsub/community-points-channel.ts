@@ -3,10 +3,9 @@ import Redemption from "#lib/components/message/Redemption.svelte";
 
 import { defineHandler } from "../helper";
 
-export default defineHandler({
+export default defineHandler("pubsub", {
 	name: "community-points-channel-v1",
 	async handle(msg) {
-		// Don't care about the other event types
 		if (msg.type !== "reward-redeemed") return;
 
 		const { redemption } = msg.data;
@@ -21,10 +20,14 @@ export default defineHandler({
 		} else {
 			const viewer = await channel.viewers.fetch(redemption.user.id);
 
-			channel.chat.component(Redemption, {
-				reward: redemption.reward,
-				viewer,
-			});
+			channel.chat.event(
+				Redemption,
+				{
+					reward: redemption.reward,
+					viewer,
+				},
+				{ bare: true },
+			);
 		}
 	},
 });

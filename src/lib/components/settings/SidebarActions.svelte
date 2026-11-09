@@ -9,7 +9,6 @@
 	import { app } from "#lib/app.svelte.js";
 	import Button from "#lib/components/ui/Button.svelte";
 	import { closeDialog, dialogs } from "#lib/dialog.js";
-	import { logOut } from "#lib/twitch/auth.js";
 
 	import AboutDialog from "./AboutDialog.svelte";
 
@@ -38,9 +37,9 @@
 		<Button
 			class="text-muted-foreground"
 			variant="ghost"
-			onclick={() => {
-				logOut();
+			onclickwait={async () => {
 				closeDialog(dialogs.settings);
+				await app.logOut();
 			}}
 		>
 			<SignOut />

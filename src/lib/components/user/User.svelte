@@ -1,15 +1,17 @@
 <script lang="ts">
-	import type { MentionNode } from "#lib/models/message/parse.js";
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
-
-	import { settings } from "#lib/settings/index.js";
+	import type { User } from "#lib/models/user.svelte.js";
 
 	import UserCard from "./UserCard.svelte";
 
 	interface Props {
 		message: UserMessage;
 		nested?: boolean;
-		mention?: MentionNode;
+
+		/**
+		 * A user mentioned in the message to render instead of its author.
+		 */
+		mention?: User;
 	}
 
 	const { message, nested = false, mention }: Props = $props();
@@ -18,19 +20,8 @@
 
 	let opened = $state(false);
 
-	const user = $derived(mention?.data.user ?? message.author);
+	const user = $derived(mention ?? message.author);
 	const popoverId = $derived(`user-card-${user.id}-${id}`);
-
-	function getMentionStyle() {
-		switch (settings.state["chat.usernames.mentionStyle"]) {
-			case "none":
-				return null;
-			case "colored":
-				return `color: ${mention?.data.user?.color}`;
-			case "painted":
-				return mention?.data.user?.style;
-		}
-	}
 </script>
 
 {#if mention}
@@ -38,11 +29,11 @@
 		class="font-semibold wrap-break-word disabled:cursor-default"
 		popovertarget={popoverId}
 		disabled={nested}
-		style={getMentionStyle()}
+		style={mention.mentionStyle}
 		onpointerdown={() => (opened = true)}
 		onfocus={() => (opened = true)}
 	>
-		@{mention.data.user?.displayName ?? mention.value.slice(1)}
+		@{mention.displayName}
 	</button>
 {:else}
 	<button

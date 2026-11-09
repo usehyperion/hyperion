@@ -1,7 +1,5 @@
-import { app } from "#lib/app.svelte.js";
 import {
 	pinnedMessageQuery,
-	toMessageFragments,
 	unpinMessageMutation,
 	updatePinnedMessageMutation,
 } from "#lib/graphql/twitch.js";
@@ -9,7 +7,9 @@ import {
 import type { Chat } from "./chat.svelte";
 import type { User } from "./user.svelte";
 
+import { fromGqlContent } from "./message/fragment";
 import { UserMessage } from "./message/user-message.svelte";
+import { Notice } from "./notice.svelte";
 
 interface PinData {
 	pinner: User;
@@ -18,21 +18,10 @@ interface PinData {
 	expiresAt: number | null;
 }
 
-/**
- * A single pinned message in a chat.
- */
-export class Pin {
+export class Pin extends Notice {
 	#chat: Chat;
-	#expiryId: ReturnType<typeof setTimeout> | null = null;
 
-	/**
-	 * The user who pinned the message.
-	 */
 	public readonly pinner: User;
-
-	/**
-	 * The message that was pinned.
-	 */
 	public readonly message: UserMessage;
 
 	/**
@@ -47,19 +36,18 @@ export class Pin {
 	 */
 	public readonly expirationTimestamp: number | null;
 
-	/**
-	 * Whether the pinned message is hidden for the current user.
-	 */
-	public hidden = $state(false);
-
 	private constructor(chat: Chat, data: PinData) {
+		super();
+
 		this.#chat = chat;
 		this.pinner = data.pinner;
 		this.message = data.message;
 		this.duration = data.duration;
 		this.expirationTimestamp = data.expiresAt;
 
-		this.#scheduleExpiry();
+		if (this.expirationTimestamp !== null) {
+			this.expireIn(this.expirationTimestamp - Date.now());
+		}
 	}
 
 	public static async fetch(chat: Chat): Promise<Pin | null> {
@@ -81,9 +69,9 @@ export class Pin {
 			message = UserMessage.from(chat.channel, {
 				id: node.pinnedMessage.id,
 				text: node.pinnedMessage.content.text,
-				fragments: toMessageFragments(node.pinnedMessage.content),
+				fragments: fromGqlContent(node.pinnedMessage.content),
 				sender,
-				color: sender.chatColor ?? "",
+				color: sender.chatColor ?? null,
 				badges: sender.displayBadges
 					.filter((badge) => badge !== null)
 					.map((badge) => ({ name: badge.setID, version: badge.version })),
@@ -106,8 +94,6 @@ export class Pin {
 	}
 
 	public async update(duration: number | null) {
-		if (!app.user || !this.#chat.channel.isMod) return;
-
 		await this.#chat.channel.client.gql(updatePinnedMessageMutation, {
 			message: this.message.id,
 			duration,
@@ -116,12 +102,7 @@ export class Pin {
 		await this.#chat.fetchPinned();
 	}
 
-	/**
-	 * Unpins this message.
-	 */
 	public async unpin() {
-		if (!app.user || !this.#chat.channel.isMod) return;
-
 		await this.#chat.channel.client.gql(unpinMessageMutation, {
 			message: this.message.id,
 		});
@@ -129,21 +110,7 @@ export class Pin {
 		this.#chat.clearPin(this);
 	}
 
-	public dispose() {
-		if (this.#expiryId !== null) {
-			clearTimeout(this.#expiryId);
-			this.#expiryId = null;
-		}
-	}
-
-	#scheduleExpiry() {
-		if (this.expirationTimestamp === null) return;
-
-		const remaining = Math.max(0, this.expirationTimestamp - Date.now());
-
-		this.#expiryId = setTimeout(() => {
-			this.#expiryId = null;
-			this.#chat.clearPin(this);
-		}, remaining);
+	protected remove() {
+		this.#chat.clearPin(this);
 	}
 }

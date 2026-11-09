@@ -1,21 +1,19 @@
+import type { PredictionDetails } from "#lib/graphql/twitch.js";
 import type { Prediction as ApiPrediction, PredictionStatus } from "#lib/twitch/pubsub.js";
 
 import {
 	cancelPredictionMutation,
 	lockPredictionMutation,
+	predictionQuery,
 	resolvePredictionMutation,
 } from "#lib/graphql/twitch.js";
-import { remainingLinger } from "#lib/util/time.js";
 
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";
 
-// Twitch keeps predictions visible for a minute after they resolve or cancel
-const LINGER_DURATION = 60 * 1000;
+import { Notice } from "./notice.svelte";
 
-function isEnded(status: PredictionStatus) {
-	return status === "RESOLVED" || status === "CANCELED";
-}
+const LINGER_DURATION = 60 * 1000;
 
 export interface PredictionOutcome {
 	readonly id: string;
@@ -24,38 +22,44 @@ export interface PredictionOutcome {
 	users: number;
 }
 
+export function duelColor(index: number, count: number): "BLUE" | "PINK" | null {
+	return count !== 2 ? null : index === 0 ? "BLUE" : "PINK";
+}
+
+function fromGql(channel: string, prediction: PredictionDetails): ApiPrediction {
+	return {
+		channel_id: channel,
+		id: prediction.id,
+		title: prediction.title,
+		created_at: prediction.createdAt,
+		created_by: {
+			type: prediction.createdBy?.__typename?.toUpperCase() ?? "",
+			user_id: prediction.createdBy?.id,
+		},
+		ended_at: prediction.endedAt,
+		ended_by: { user_id: prediction.endedBy?.id },
+		locked_at: prediction.lockedAt,
+		locked_by: { user_id: prediction.lockedBy?.id },
+		outcomes: prediction.outcomes,
+		status: prediction.status,
+		prediction_window_seconds: prediction.predictionWindowSeconds,
+		winning_outcome_id: null,
+	};
+}
+
 /**
  * The active or recently resolved prediction in a channel.
  */
-export class Prediction {
-	#expiryId: ReturnType<typeof setTimeout> | null = null;
-
+export class Prediction extends Notice {
 	public readonly id: string;
-
-	/**
-	 * The title of the prediction.
-	 */
 	public readonly title: string;
-
-	/**
-	 * The outcomes viewers can predict between.
-	 */
 	public readonly outcomes = $state<PredictionOutcome[]>([]);
-
-	/**
-	 * The timestamp at which the prediction was created.
-	 */
 	public readonly createdTimestamp: number;
 
 	/**
 	 * The timestamp at which submissions lock.
 	 */
 	public readonly locksTimestamp: number;
-
-	/**
-	 * Whether the prediction is hidden for the current user.
-	 */
-	public hidden = $state(false);
 
 	public status = $state<PredictionStatus>("ACTIVE");
 
@@ -65,19 +69,14 @@ export class Prediction {
 	public winningOutcomeId = $state<string | null>(null);
 
 	/**
-	 * The total number of channel points wagered across all outcomes.
+	 * Whether the prediction can still be resolved or canceled.
 	 */
-	public readonly totalPoints = $derived(this.outcomes.reduce((sum, o) => sum + o.points, 0));
+	public readonly open = $derived(this.status === "ACTIVE" || this.status === "LOCKED");
 
-	/**
-	 * The total number of users who have predicted.
-	 */
+	public readonly totalPoints = $derived(this.outcomes.reduce((sum, o) => sum + o.points, 0));
 	public readonly totalUsers = $derived(this.outcomes.reduce((sum, o) => sum + o.users, 0));
 
 	public constructor(
-		/**
-		 * The channel in which the prediction is active.
-		 */
 		public readonly channel: Channel,
 
 		/**
@@ -87,6 +86,8 @@ export class Prediction {
 		public readonly creator: User | null,
 		data: ApiPrediction,
 	) {
+		super();
+
 		this.id = data.id;
 		this.title = data.title;
 
@@ -100,12 +101,24 @@ export class Prediction {
 			users: o.total_users,
 		}));
 
-		this.status = data.status;
-		this.winningOutcomeId = data.winning_outcome_id;
+		this.update(data);
+	}
 
-		if (isEnded(this.status)) {
-			this.#linger(data.ended_at);
-		}
+	/**
+	 * Retrieves the active or locked prediction in the channel if there is one.
+	 */
+	public static async fetch(channel: Channel) {
+		const { channel: data } = await channel.client.gql(predictionQuery, { id: channel.id });
+
+		const prediction = data?.active?.[0] ?? data?.locked?.[0];
+		if (!prediction) return null;
+
+		const creator =
+			prediction.createdBy?.__typename === "User"
+				? channel.client.users.from(prediction.createdBy)
+				: null;
+
+		return new Prediction(channel, creator, fromGql(channel.id, prediction));
 	}
 
 	public update(payload: ApiPrediction) {
@@ -121,8 +134,8 @@ export class Prediction {
 			}
 		}
 
-		if (isEnded(this.status)) {
-			this.#linger(payload.ended_at);
+		if (this.status === "RESOLVED" || this.status === "CANCELED") {
+			this.expireAfter(payload.ended_at, LINGER_DURATION);
 		}
 	}
 
@@ -130,20 +143,13 @@ export class Prediction {
 	 * Locks the prediction, preventing further submissions.
 	 */
 	public async lock() {
-		if (!this.channel.isMod || this.status !== "ACTIVE") return;
-
-		await this.channel.client.gql(lockPredictionMutation, {
-			prediction: this.id,
-		});
+		await this.channel.client.gql(lockPredictionMutation, { prediction: this.id });
 	}
 
 	/**
 	 * Resolves the prediction, paying out the given winning outcome.
 	 */
 	public async resolve(outcomeId: string) {
-		if (!this.channel.isMod) return;
-		if (this.status !== "ACTIVE" && this.status !== "LOCKED") return;
-
 		await this.channel.client.gql(resolvePredictionMutation, {
 			prediction: this.id,
 			outcome: outcomeId,
@@ -154,28 +160,10 @@ export class Prediction {
 	 * Cancels the prediction, refunding all wagered points.
 	 */
 	public async cancel() {
-		if (!this.channel.isMod) return;
-		if (this.status !== "ACTIVE" && this.status !== "LOCKED") return;
-
-		await this.channel.client.gql(cancelPredictionMutation, {
-			prediction: this.id,
-		});
+		await this.channel.client.gql(cancelPredictionMutation, { prediction: this.id });
 	}
 
-	public dispose() {
-		if (this.#expiryId !== null) {
-			clearTimeout(this.#expiryId);
-			this.#expiryId = null;
-		}
-	}
-
-	#linger(endedAt: string | null) {
-		this.#expiryId ??= setTimeout(
-			() => {
-				this.#expiryId = null;
-				this.channel.clearPrediction(this);
-			},
-			remainingLinger(endedAt, LINGER_DURATION),
-		);
+	protected remove() {
+		this.channel.clearPrediction(this);
 	}
 }

@@ -1,21 +1,25 @@
+import type { Component } from "svelte";
+
+import SevenTvIcon from "~icons/logos/7tv";
+import BttvIcon from "~icons/logos/bttv";
+import FfzIcon from "~icons/logos/ffz";
+import TwitchIcon from "~icons/logos/twitch";
+
 import type { Emote as SevenTvEmote } from "./graphql/7tv";
 import type { User } from "./models/user.svelte";
+import type { Settings } from "./settings";
+import type { EmoteChange } from "./seventv";
 
 import stv from "../assets/logos/7tv.svg";
 import bttv from "../assets/logos/bttv.svg";
 import ffz from "../assets/logos/ffz.svg";
+import { BADGE_SETS } from "./models/badge";
+import { sevenTvFileUrl } from "./seventv";
 
 export type EmoteProvider = "Twitch" | "FrankerFaceZ" | "BetterTTV" | "7TV";
 
 export interface Emote {
-	/**
-	 * Which provider the emote is from.
-	 */
 	readonly provider: EmoteProvider;
-
-	/**
-	 * The id of the emote.
-	 */
 	readonly id: string;
 
 	/**
@@ -35,14 +39,7 @@ export interface Emote {
 	 */
 	displayName: string;
 
-	/**
-	 * The width of the emote.
-	 */
 	readonly width: number;
-
-	/**
-	 * The height of the emote.
-	 */
 	readonly height: number;
 
 	/**
@@ -56,8 +53,8 @@ export interface Emote {
 	readonly displayHeight: number;
 
 	/**
-	 * The candidate urls to use at 1x, 2x, 3x, and optionally 4x pixel
-	 * densities.
+	 * Image candidates as `<url> <density>x`. Which densities exist and their
+	 * order depend on the provider.
 	 */
 	readonly srcset: string[];
 
@@ -69,29 +66,10 @@ export interface Emote {
 }
 
 export interface EmoteSet {
-	/**
-	 * The id of the emote set.
-	 */
 	readonly id: string;
-
-	/**
-	 * The provider the set's emotes belong to.
-	 */
 	readonly provider: EmoteProvider;
-
-	/**
-	 * The name of the emote set.
-	 */
 	readonly name: string;
-
-	/**
-	 * The owner of the emote set.
-	 */
 	readonly owner: Pick<User, "id" | "displayName" | "avatarUrl">;
-
-	/**
-	 * The emotes in the emote set.
-	 */
 	readonly emotes: Emote[];
 
 	/**
@@ -100,73 +78,84 @@ export interface EmoteSet {
 	readonly global?: boolean;
 }
 
-export const GLOBAL_PROVIDERS = {
-	FrankerFaceZ: {
-		name: "Global: FrankerFaceZ",
-		owner: {
-			id: "ffz_global",
-			displayName: "FrankerFaceZ Global",
-			avatarUrl: ffz,
-		},
-	},
-	BetterTTV: {
-		name: "Global: BetterTTV",
-		owner: {
-			id: "bttv_global",
-			displayName: "BetterTTV Global",
-			avatarUrl: bttv,
-		},
-	},
-	"7TV": {
-		name: "Global: 7TV",
-		owner: {
-			id: "7tv_global",
-			displayName: "7TV Global",
-			avatarUrl: stv,
-		},
-	},
+export const PROVIDER_ICONS: Record<EmoteProvider, Component> = {
+	Twitch: TwitchIcon,
+	"7TV": SevenTvIcon,
+	BetterTTV: BttvIcon,
+	FrankerFaceZ: FfzIcon,
 };
 
-export const PROVIDER_DISPLAY_ORDER: readonly EmoteProvider[] = [
-	"7TV",
-	"BetterTTV",
-	"FrankerFaceZ",
-];
+export const THIRD_PARTY_PROVIDERS = [
+	{
+		id: "7TV",
+		badgeSetId: BADGE_SETS.seventv,
+		emotesSetting: "chat.emotes.seventv",
+		badgesSetting: "chat.badges.seventv",
+		global: {
+			name: "Global: 7TV",
+			owner: {
+				id: "7tv_global",
+				displayName: "7TV Global",
+				avatarUrl: stv,
+			},
+		},
+	},
+	{
+		id: "BetterTTV",
+		badgeSetId: BADGE_SETS.bttv,
+		emotesSetting: "chat.emotes.bttv",
+		badgesSetting: "chat.badges.bttv",
+		global: {
+			name: "Global: BetterTTV",
+			owner: {
+				id: "bttv_global",
+				displayName: "BetterTTV Global",
+				avatarUrl: bttv,
+			},
+		},
+	},
+	{
+		id: "FrankerFaceZ",
+		badgeSetId: BADGE_SETS.ffz,
+		emotesSetting: "chat.emotes.ffz",
+		badgesSetting: "chat.badges.ffz",
+		global: {
+			name: "Global: FrankerFaceZ",
+			owner: {
+				id: "ffz_global",
+				displayName: "FrankerFaceZ Global",
+				avatarUrl: ffz,
+			},
+		},
+	},
+] as const satisfies readonly {
+	id: EmoteProvider;
+	badgeSetId: string;
+	emotesSetting: keyof Settings;
+	badgesSetting: keyof Settings;
+	global: Pick<EmoteSet, "name" | "owner">;
+}[];
 
-function groupByProvider(emotes: Iterable<Emote>): Map<EmoteProvider, Emote[]> {
-	const groups = new Map<EmoteProvider, Emote[]>();
+type ThirdPartyProviderInfo = (typeof THIRD_PARTY_PROVIDERS)[number];
 
-	for (const emote of emotes) {
-		const group = groups.get(emote.provider);
-
-		if (group) {
-			group.push(emote);
-		} else {
-			groups.set(emote.provider, [emote]);
-		}
-	}
-
-	return groups;
-}
+export type ThirdPartyProvider = ThirdPartyProviderInfo["id"];
 
 export function toProviderSets(
 	emotes: Iterable<Emote>,
-	meta: (
-		provider: EmoteProvider,
-		emotes: Emote[],
-	) => Omit<EmoteSet, "provider" | "emotes"> | null,
+	meta: (provider: ThirdPartyProviderInfo) => Omit<EmoteSet, "provider" | "emotes">,
 ): EmoteSet[] {
-	const groups = groupByProvider(emotes);
+	const groups = Map.groupBy(emotes, (emote) => emote.provider);
 	const sets: EmoteSet[] = [];
 
-	for (const provider of PROVIDER_DISPLAY_ORDER) {
-		const group = groups.get(provider);
+	for (const provider of THIRD_PARTY_PROVIDERS) {
+		const group = groups.get(provider.id);
 		if (!group?.length) continue;
 
-		const info = meta(provider, group);
-		if (!info) continue;
-
-		sets.push({ ...info, provider, emotes: group });
+		sets.push({
+			provider: provider.id,
+			emotes: group,
+			...meta(provider),
+		});
 	}
 
 	return sets;
@@ -193,6 +182,40 @@ export interface BttvEmote {
 	code: string;
 	width?: number;
 	height?: number;
+}
+
+interface EmoteSource {
+	url: string;
+	density: string;
+}
+
+/**
+ * Splits an emote's {@linkcode Emote.srcset} into its candidate urls and the
+ * pixel densities they're for.
+ */
+export function emoteSources(emote: Pick<Emote, "srcset">): EmoteSource[] {
+	return emote.srcset.map((candidate) => {
+		const [url, density] = candidate.split(" ");
+		return { url, density };
+	});
+}
+
+export function transformTwitchEmote(id: string, name: string): Emote {
+	return {
+		provider: "Twitch",
+		id,
+		name,
+		displayName: name,
+		width: 56,
+		height: 56,
+		// Twitch serves emotes at 28px for 1.0.
+		displayWidth: 28,
+		displayHeight: 28,
+		srcset: [1, 2, 3].map(
+			(density) =>
+				`https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/dark/${density}.0 ${density}x`,
+		),
+	};
 }
 
 export function transformFfzEmote(emote: FfzEmote): Emote {
@@ -226,29 +249,81 @@ export function transformBttvEmote(emote: BttvEmote): Emote {
 	};
 }
 
-export function transform7tvEmote(emote: SevenTvEmote, alias?: string): Emote {
-	const animated = emote.images.filter((img) => !img.url.includes("static"));
+interface SevenTvImage {
+	url: string;
+	format: string;
+	width: number;
+	height: number;
+	scale: number;
+}
 
-	const format = ["webp", "gif", "png"].find((f) => animated.some((img) => img.mime.endsWith(f)));
+export function transform7tvEmote(
+	emote: { id: string; name: string; alias?: string; zeroWidth: boolean },
+	images: SevenTvImage[],
+): Emote {
+	const format = ["webp", "gif", "png"].find((f) => images.some((img) => img.format === f));
 
-	const images = animated
-		.filter((img) => img.mime.endsWith(format ?? ""))
+	const candidates = images
+		.filter((img) => img.format === format)
 		.toSorted((a, b) => b.width - a.width);
 
-	const largest = images.at(0);
+	const largest = candidates.at(0);
 	const scale = largest?.scale || 1;
+	const alias = emote.alias && emote.alias !== emote.name ? emote.alias : undefined;
 
 	return {
 		provider: "7TV",
 		id: emote.id,
-		name: emote.defaultName,
-		alias: alias && alias !== emote.defaultName ? alias : undefined,
-		displayName: alias ?? emote.defaultName,
+		name: emote.name,
+		alias,
+		displayName: alias ?? emote.name,
 		width: largest?.width ?? 28,
 		height: largest?.height ?? 28,
 		displayWidth: (largest?.width ?? 28) / scale,
 		displayHeight: (largest?.height ?? 28) / scale,
-		srcset: images.map((img) => `${img.url} ${img.scale}x`),
-		zeroWidth: emote.flags.defaultZeroWidth,
+		srcset: candidates.map((img) => `${img.url} ${img.scale}x`),
+		zeroWidth: emote.zeroWidth,
 	};
+}
+
+export function transformGql7tvEmote(emote: SevenTvEmote, alias?: string): Emote {
+	return transform7tvEmote(
+		{
+			id: emote.id,
+			name: emote.defaultName,
+			alias,
+			zeroWidth: emote.flags.defaultZeroWidth,
+		},
+		emote.images
+			.filter((img) => !img.url.includes("static"))
+			.map((img) => ({
+				url: img.url,
+				format: img.mime.split("/").at(-1) ?? "",
+				width: img.width,
+				height: img.height,
+				scale: img.scale,
+			})),
+	);
+}
+
+const ZERO_WIDTH_FLAG = 256;
+
+export function transformEvent7tvEmote(emote: EmoteChange): Emote {
+	const { host } = emote.data;
+
+	return transform7tvEmote(
+		{
+			id: emote.id,
+			name: emote.data.name,
+			alias: emote.name,
+			zeroWidth: (emote.data.flags & ZERO_WIDTH_FLAG) === ZERO_WIDTH_FLAG,
+		},
+		host.files.map((file) => ({
+			url: sevenTvFileUrl(host, file),
+			format: file.format.toLowerCase(),
+			width: file.width,
+			height: file.height,
+			scale: Number(file.name[0]) || 1,
+		})),
+	);
 }

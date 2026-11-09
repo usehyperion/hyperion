@@ -2,77 +2,41 @@ import { Menu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/menu";
 
 import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
-import { timeoutDuration, timeoutLabel } from "#lib/moderation.js";
+import { messageActions, runAction, type MessageAction } from "./message-actions";
+
+function item(message: UserMessage, action: MessageAction) {
+	return MenuItem.new({
+		text: action.label(),
+		enabled: action.enabled(message),
+		action: () => void runAction(message, action),
+	});
+}
 
 export async function createMessageMenu(message: UserMessage) {
-	const items: (MenuItem | PredefinedMenuItem)[] = [];
+	const { copy, reply, pin, delete: remove, timeout, ban } = messageActions;
 
-	const separator = await PredefinedMenuItem.new({
-		item: "Separator",
-	});
+	const separator = await PredefinedMenuItem.new({ item: "Separator" });
 
-	const copy = await MenuItem.new({
-		id: "copy",
-		text: "Copy",
-		action() {
-			navigator.clipboard.writeText(message.text);
-		},
-	});
-
-	const reply = await MenuItem.new({
-		id: "reply",
-		text: "Reply",
-		enabled: !message.deleted,
-		action() {
-			message.channel.chat.replyTarget = message;
-			message.channel.chat.input?.focus();
-		},
-	});
-
-	items.push(copy, separator, reply);
+	const items: (MenuItem | PredefinedMenuItem)[] = [
+		await item(message, copy),
+		separator,
+		await item(message, reply),
+	];
 
 	if (message.channel.isMod) {
-		const pin = await MenuItem.new({
-			id: "pin",
-			text: "Pin",
-			enabled: !message.deleted && message.actionable && !message.pinned,
-			async action() {
-				await message.pin();
-				await message.channel.chat.fetchPinned();
-			},
-		});
-
-		items.push(pin);
-
-		const deleteMsg = await MenuItem.new({
-			id: "delete",
-			text: "Delete",
-			enabled: !message.deleted && message.actionable,
-			action: () => message.delete(),
-		});
-
-		const timeout = await MenuItem.new({
-			id: "timeout",
-			text: `Timeout (${timeoutLabel()})`,
-			enabled: message.actionable,
-			action: () => message.viewer?.timeout({ duration: timeoutDuration() }),
-		});
-
-		const ban = await MenuItem.new({
-			id: "ban",
-			text: "Ban",
-			enabled: message.actionable,
-			action: () => message.viewer?.ban(),
-		});
-
-		items.push(separator, deleteMsg, timeout, ban);
+		items.push(
+			await item(message, pin),
+			separator,
+			await item(message, remove),
+			await item(message, timeout),
+			await item(message, ban),
+		);
 	}
 
 	const copyId = await MenuItem.new({
-		id: "copy-id",
 		text: "Copy Message ID",
-		action() {
-			navigator.clipboard.writeText(message.id);
+		async action() {
+			await navigator.clipboard.writeText(message.id);
 		},
 	});
 

@@ -12,6 +12,7 @@
 	"app": {
 		"windows": [
 			{
+				"label": "main",
 				"title": "Hyperion",
 				"minWidth": 500,
 				"hiddenTitle": true,

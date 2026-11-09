@@ -449,8 +449,6 @@ export interface PredictionsChannel {
 	};
 }
 
-export interface PredictionsUser {}
-
 export interface RaidInfo {
 	id: string;
 	creator_id: string;
@@ -527,30 +525,35 @@ export type Whispers =
 	| { type: "whisper_received" | "whisper_sent"; data_object: WhisperMessage }
 	| { type: "thread"; data_object: WhisperThreadUpdate };
 
+export interface AuthRevoked {
+	topic: string;
+}
+
 export interface PubSubTopicMap {
+	auth_revoked: AuthRevoked;
 	"automod-queue": AutoModQueue;
 	"broadcast-settings-update": BroadcastSettingsUpdate;
 	"channel-unban-requests": ChannelUnbanRequests;
-	"chat-moderator-actions": ChatModeratorActions;
+	chat_moderator_actions: ChatModeratorActions;
 	"community-points-channel-v1": CommunityPointsChannel;
 	"low-trust-users": LowTrustUsers;
 	"pinned-chat-updates-v1": PinnedChatUpdates;
 	"predictions-channel-v1": PredictionsChannel;
 	polls: Polls;
-	"predictions-user-v1": PredictionsUser;
 	raid: Raid;
 	"user-moderation-notifications": UserModerationNotifications;
 	"video-playback-by-id": VideoPlaybackById;
 	whispers: Whispers;
 }
 
-export type PubSubMessage<K extends keyof PubSubTopicMap> = PubSubTopicMap[K] & {
+export type PubSubData<K extends keyof PubSubTopicMap> = PubSubTopicMap[K] & {
 	target_id: string;
 };
 
-export type PubSubTopic = {
+export type PubSubMessage = {
 	[K in keyof PubSubTopicMap]: {
 		topic: K;
-		message: PubSubMessage<K>;
+		target_id: string;
+		message: PubSubTopicMap[K];
 	};
 }[keyof PubSubTopicMap];

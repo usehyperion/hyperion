@@ -2,41 +2,41 @@ import type { Component, ComponentProps } from "svelte";
 
 import type { Channel } from "../channel.svelte";
 
-import { TextualMessage } from "./textual-message.svelte";
+import { Message } from "./message.svelte";
 
-export interface EventMessageData {
+export interface EventMeta {
 	deleted: boolean;
-	is_recent: boolean;
-	server_timestamp: number;
+	recent: boolean;
+	timestamp: number;
+	bare: boolean;
 }
 
 /**
- * Event messages are constructed internally to relay channel events.
+ * A channel event rendered by the component that represents its kind.
  */
-export class EventMessage<C extends Component = Component> extends TextualMessage {
+export class EventMessage<C extends Component<any> = Component<any>> extends Message {
 	public override readonly [Symbol.toStringTag] = "EventMessage";
 
 	public override readonly id = crypto.randomUUID();
-	public override text = "";
+	public override readonly text = "";
+
+	/**
+	 * Whether to render the component without the event chrome.
+	 */
+	public readonly bare: boolean;
 
 	public constructor(
 		channel: Channel,
-
-		/**
-		 * The component that renders the event.
-		 */
 		public readonly component: C,
-
-		/**
-		 * The props passed to the component.
-		 */
 		public readonly props: ComponentProps<C>,
-		data?: Partial<EventMessageData>,
+		meta?: Partial<EventMeta>,
 	) {
 		super(channel, {
-			timestamp: data?.server_timestamp ?? Date.now(),
-			deleted: data?.deleted ?? false,
-			recent: data?.is_recent ?? false,
+			timestamp: meta?.timestamp ?? Date.now(),
+			deleted: meta?.deleted ?? false,
+			recent: meta?.recent ?? false,
 		});
+
+		this.bare = meta?.bare ?? false;
 	}
 }

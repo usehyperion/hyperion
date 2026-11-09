@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { LinkNode } from "#lib/models/message/parse.js";
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 	import { settings } from "#lib/settings/index.js";
@@ -8,7 +7,7 @@
 	import User from "../user/User.svelte";
 	import Badges from "./Badges.svelte";
 	import Content from "./Content.svelte";
-	import Embed from "./Embed.svelte";
+	import Embed, { embedOf } from "./Embed.svelte";
 	import Gif from "./Gif.svelte";
 
 	interface Props {
@@ -18,20 +17,20 @@
 
 	const { message, nested = false }: Props = $props();
 
-	const linkNodes = $derived(message.nodes.filter((n) => n.type === "link"));
-
 	// The message text of a GIF message is its alt text, which is shown instead
 	// of the GIF itself when rendering them is disabled.
 	const gif = $derived(settings.state["chat.gifs"] && !nested ? message.gif : null);
 
-	function canEmbed(node: LinkNode) {
-		return (
-			node.data.tld.domain === "7tv.app" ||
-			node.data.tld.hostname === "open.spotify.com" ||
-			node.data.tld.hostname === "clips.twitch.tv" ||
-			(node.data.tld.domain === "twitch.tv" && node.data.url.pathname.includes("/clip/"))
-		);
-	}
+	const embeds = $derived.by(() => {
+		if (!settings.state["chat.embeds"] || nested) return [];
+
+		return message.nodes.flatMap((node) => {
+			if (node.type !== "link") return [];
+
+			const target = embedOf(node.data);
+			return target ? [{ url: node.data.url, target }] : [];
+		});
+	});
 </script>
 
 <Timestamp date={message.timestamp} />
@@ -44,10 +43,10 @@
 	<Content {message} {nested} />
 {/if}
 
-{#if settings.state["chat.embeds"] && !nested && linkNodes.some(canEmbed)}
+{#if embeds.length}
 	<div class="mt-2 flex flex-wrap gap-2">
-		{#each linkNodes.filter(canEmbed) as node}
-			<Embed {...node.data} />
+		{#each embeds as embed}
+			<Embed {...embed} />
 		{/each}
 	</div>
 {/if}

@@ -1,25 +1,20 @@
-#![allow(clippy::result_large_err)]
+use std::time::Duration;
 
-use std::sync::{Arc, LazyLock};
-
-use auth::Integrity;
+use auth::{IntegrityState, PendingToken};
+use connection::Connection;
 use irc::IrcClient;
-use irc::message::ServerMessage;
 use pubsub::PubSubClient;
-use pubsub::client::PubSubMessage;
-use reqwest::header::HeaderMap;
 use seventv::SeventTvClient;
 use tauri::Manager;
 use tauri::async_runtime::{self, Mutex};
 use tauri::ipc::Invoke;
 use tauri_plugin_svelte::PrettyJsonMarshaler;
-use twitch_api::HelixClient;
-use twitch_api::twitch_oauth2::UserToken;
-use ws::ChannelSink;
+use twitch_oauth2::UserToken;
 
 mod api;
 mod auth;
 mod commands;
+mod connection;
 mod error;
 mod irc;
 mod log;
@@ -27,65 +22,59 @@ mod pubsub;
 mod seventv;
 mod ws;
 
-const CLIENT_ID: &str = "kimne78kx3ncx6brgo4mv6wki5h1ko";
+const MAIN_WINDOW_LABEL: &str = "main";
 
-pub static HTTP: LazyLock<reqwest::Client> = LazyLock::new(|| {
-    let mut headers = HeaderMap::new();
-    headers.insert("Client-Id", CLIENT_ID.parse().unwrap());
-    headers.insert("Content-Type", "application/json".parse().unwrap());
-
-    reqwest::Client::builder()
-        .default_headers(headers)
-        .build()
-        .unwrap()
-});
+/// How long a request made with [`AppState::http`] may take in all.
+const HTTP_TIMEOUT: Duration = Duration::from_secs(15);
 
 pub struct AppState {
-    helix: HelixClient<'static, reqwest::Client>,
+    /// Used to validate access tokens with Twitch.
+    http: reqwest::Client,
     token: Option<UserToken>,
-    integrity: Option<Integrity>,
-    // Held across an integrity refresh so concurrent callers queue behind the
-    // one webview instead of each opening their own.
-    integrity_refresh: Arc<Mutex<()>>,
-    irc: Option<IrcClient>,
-    seventv: Option<Arc<SeventTvClient>>,
-    pubsub: Option<Arc<PubSubClient>>,
-    // Channel sinks are retained so a hot-reloaded frontend can swap in its new
-    // channel without tearing down the live websocket connection.
-    irc_channel: Option<ChannelSink<ServerMessage>>,
-    seventv_channel: Option<ChannelSink<serde_json::Value>>,
-    pubsub_channel: Option<ChannelSink<PubSubMessage>>,
+    /// A stored token that couldn't be validated yet, see
+    /// [`auth::validate_pending`].
+    unverified: PendingToken,
+    integrity: IntegrityState,
+    irc: Option<Connection<IrcClient>>,
+    seventv: Option<Connection<SeventTvClient>>,
+    pubsub: Option<Connection<PubSubClient>>,
 }
 
-impl Default for AppState {
-    fn default() -> Self {
+impl AppState {
+    fn new(http: reqwest::Client) -> Self {
         Self {
-            helix: HelixClient::new(),
+            http,
             token: None,
-            integrity: None,
-            integrity_refresh: Arc::new(Mutex::new(())),
+            unverified: PendingToken::default(),
+            integrity: IntegrityState::default(),
             irc: None,
             seventv: None,
             pubsub: None,
-            irc_channel: None,
-            seventv_channel: None,
-            pubsub_channel: None,
         }
+    }
+
+    fn close_connections(&mut self) {
+        connection::close(&mut self.irc);
+        connection::close(&mut self.pubsub);
+        connection::close(&mut self.seventv);
     }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut builder = tauri::Builder::default();
-    let mut state = AppState::default();
 
     #[cfg(desktop)]
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _, _| {
-            let _ = app
-                .get_webview_window("main")
+            let focused = app
+                .get_webview_window(MAIN_WINDOW_LABEL)
                 .expect("no main window")
                 .set_focus();
+
+            if let Err(err) = focused {
+                tracing::error!(%err, "Failed to focus the main window");
+            }
         }));
     }
 
@@ -99,7 +88,7 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(
             tauri_plugin_window_state::Builder::new()
-                .with_filter(|label| label == "main")
+                .with_filter(|label| label == MAIN_WINDOW_LABEL)
                 .build(),
         )
         .setup(|app| {
@@ -114,12 +103,12 @@ pub fn run() {
 
             app_handle.plugin(svelte)?;
 
-            async_runtime::block_on(async {
-                let restored = auth::restore_credentials(&state.helix).await;
+            let http = reqwest::Client::builder().timeout(HTTP_TIMEOUT).build()?;
+            let mut state = AppState::new(http);
 
-                state.token = restored.token;
-                state.integrity = restored.integrity;
-            });
+            let (token, integrity) = auth::restore_credentials();
+            state.unverified.reset(token);
+            state.integrity.reset(integrity);
 
             app.manage(Mutex::new(state));
 
@@ -140,20 +129,18 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
     tauri::generate_handler![
         api::join,
         api::leave,
-        api::rejoin,
         auth::clear_session,
         auth::get_auth,
         auth::get_integrity,
         auth::open_twitch_login,
-        auth::store_token,
-        commands::fetch_recent_messages,
         commands::get_about_info,
         irc::connect_irc,
+        irc::fetch_recent_messages,
         irc::privmsg,
         log::log,
         log::update_log_level,
         pubsub::connect_pubsub,
         seventv::connect_seventv,
-        seventv::resub_emote_set,
+        seventv::sync_seventv,
     ]
 }

@@ -16,6 +16,6 @@ export default defineCommand({
 			throw new CommandError(ErrorMessage.INVALID_BOOL_ARG);
 		}
 
-		await channel.chat.updateSettings({ subOnly: enabled });
+		await channel.chat.setSubOnly(enabled);
 	},
 });

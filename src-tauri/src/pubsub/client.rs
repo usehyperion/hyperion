@@ -1,34 +1,56 @@
 use std::sync::Arc;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 
-use futures::future::join_all;
-use futures::{SinkExt, StreamExt};
+use futures::FutureExt;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tokio::sync::{Notify, mpsc};
-use tokio::time::{Instant, MissedTickBehavior};
-use tokio_tungstenite::connect_async;
-use tokio_tungstenite::tungstenite::Message;
-use twitch_api::twitch_oauth2::UserToken;
+use tokio::sync::mpsc;
+use twitch_oauth2::UserToken;
 
-use crate::error::Error;
-use crate::ws::{ConnectionState, SubscriptionStore};
-
-const TWITCH_PUBSUB_WS_URI: &str = "wss://pubsub-edge.twitch.tv";
-
-const PING_INTERVAL: Duration = Duration::from_secs(240);
-const PONG_TIMEOUT: Duration = Duration::from_secs(10);
-
-const INITIAL_BACKOFF: Duration = Duration::from_secs(1);
-const MAX_BACKOFF: Duration = Duration::from_secs(120);
+use super::{channel_topics, user_topics};
+use crate::connection::Started;
+use crate::ws::{self, Changes, Flow, Keepalive, Link, Protocol, SubscriptionStore, WsError};
 
 const MAX_TOPICS_PER_LISTEN: usize = 50;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct PubSubMessage {
-    pub topic: String,
-    pub message: serde_json::Value,
+    /// The topic's name without its ids.
+    topic: String,
+    /// The last id of the full topic.
+    target_id: String,
+    message: serde_json::Value,
+}
+
+/// Splits a full topic into its name and its last id.
+fn split_topic(full_topic: &str) -> (&str, &str) {
+    let (topic, ids) = full_topic.split_once('.').unwrap_or((full_topic, ""));
+    let target_id = ids.rsplit('.').next().unwrap_or_default();
+
+    (topic, target_id)
+}
+
+impl PubSubMessage {
+    fn new(full_topic: &str, message: serde_json::Value) -> Self {
+        let (topic, target_id) = split_topic(full_topic);
+
+        Self {
+            topic: topic.to_owned(),
+            target_id: target_id.to_owned(),
+            message,
+        }
+    }
+
+    /// Tells the frontend that the server stopped sending `full_topic`.
+    fn auth_revoked(full_topic: &str) -> Self {
+        let (topic, target_id) = split_topic(full_topic);
+
+        Self {
+            topic: "auth_revoked".to_owned(),
+            target_id: target_id.to_owned(),
+            message: json!({ "topic": topic }),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -62,340 +84,176 @@ enum Incoming {
     AuthRevoked { data: AuthRevokedData },
 }
 
-enum Action {
-    None,
-    Pong,
-    Reconnect,
-}
-
 pub struct PubSubClient {
-    token: Arc<UserToken>,
-    state: ConnectionState,
-    subscriptions: SubscriptionStore<String>,
-    sender: mpsc::UnboundedSender<PubSubMessage>,
-    message_tx: mpsc::UnboundedSender<Message>,
-    nonce: AtomicU64,
-    shutdown: Notify,
-}
-
-pub struct PubSubHandles {
-    pub events: mpsc::UnboundedReceiver<PubSubMessage>,
-    pub connector: PubSubConnector,
-}
-
-/// Owns the client's outgoing queue and is consumed by connecting, so a client
-/// can only be connected once, and only ever to its own queue.
-pub struct PubSubConnector {
-    client: Arc<PubSubClient>,
-    outgoing: mpsc::UnboundedReceiver<Message>,
-}
-
-impl PubSubConnector {
-    pub async fn connect(self) -> Result<(), Error> {
-        let Self { client, outgoing } = self;
-
-        // The run loop retries forever and holds its own sender, so it never
-        // ends by itself and has to be cut off from the outside
-        tokio::select! {
-            result = client.run(outgoing) => result,
-            () = client.shutdown.notified() => {
-                client.state.disconnect();
-                Ok(())
-            }
-        }
-    }
+    user_id: String,
+    subscriptions: SubscriptionStore<()>,
 }
 
 impl PubSubClient {
-    pub fn new(token: Arc<UserToken>) -> (PubSubHandles, Arc<Self>) {
-        let (sender, events) = mpsc::unbounded_channel::<PubSubMessage>();
-        let (message_tx, outgoing) = mpsc::unbounded_channel();
+    pub fn start(token: UserToken) -> Started<Self> {
+        let user_id = token.user_id.to_string();
+        let subscriptions = SubscriptionStore::default();
+
+        subscriptions.set_session(user_topics(&user_id).into_iter().map(|topic| (topic, ())));
 
         let client = Arc::new(Self {
-            token,
-            state: ConnectionState::connecting(),
-            subscriptions: SubscriptionStore::new(),
-            sender,
-            message_tx,
-            nonce: AtomicU64::new(0),
-            shutdown: Notify::new(),
+            user_id,
+            subscriptions,
         });
 
-        let connector = PubSubConnector {
+        let (events_tx, events) = mpsc::unbounded_channel();
+
+        let driver = PubSubDriver {
             client: Arc::clone(&client),
-            outgoing,
+            token,
+            events: events_tx,
+            nonce: 0,
         };
 
-        (PubSubHandles { events, connector }, client)
-    }
-
-    #[tracing::instrument(name = "pubsub_connect", skip_all)]
-    async fn run(&self, mut message_rx: mpsc::UnboundedReceiver<Message>) -> Result<(), Error> {
-        let mut backoff = INITIAL_BACKOFF;
-
-        loop {
-            tracing::info!("Connecting to Twitch PubSub");
-            self.state.set_connecting();
-
-            let mut stream = match connect_async(TWITCH_PUBSUB_WS_URI).await {
-                Ok((stream, _)) => stream,
-                Err(err) => {
-                    tracing::error!(%err, ?backoff, "Failed to connect to PubSub, retrying");
-                    tokio::time::sleep(backoff).await;
-                    backoff = (backoff * 2).min(MAX_BACKOFF);
-                    continue;
-                }
-            };
-
-            tracing::info!("Connected to Twitch PubSub");
-            backoff = INITIAL_BACKOFF;
-
-            self.state.set_ready(());
-            self.restore().await;
-            self.listen_user_topics();
-
-            let mut ping_interval = tokio::time::interval(PING_INTERVAL);
-            ping_interval.set_missed_tick_behavior(MissedTickBehavior::Skip);
-            ping_interval.tick().await;
-
-            self.send_ping();
-
-            let mut pong_deadline = Some(Instant::now() + PONG_TIMEOUT);
-
-            loop {
-                let pong_timeout = async {
-                    match pong_deadline {
-                        Some(deadline) => tokio::time::sleep_until(deadline).await,
-                        None => std::future::pending::<()>().await,
-                    }
-                };
-
-                tokio::select! {
-                    Some(data) = message_rx.recv() => {
-                        if let Err(err) = stream.send(data).await {
-                            tracing::error!(%err, "Error sending PubSub message");
-                            break;
-                        }
-                    }
-                    _ = ping_interval.tick() => {
-                        self.send_ping();
-                        pong_deadline = Some(Instant::now() + PONG_TIMEOUT);
-                    }
-                    _ = pong_timeout => {
-                        tracing::warn!("No PONG received within timeout, reconnecting");
-                        break;
-                    }
-                    result = stream.next() => {
-                        match result {
-                            Some(Ok(Message::Text(text))) => {
-                                match serde_json::from_str::<Incoming>(&text) {
-                                    Ok(msg) => match self.handle_message(msg).await {
-                                        Action::Reconnect => break,
-                                        Action::Pong => pong_deadline = None,
-                                        Action::None => (),
-                                    },
-                                    Err(err) => {
-                                        tracing::warn!(%err, "Failed to deserialize PubSub message");
-                                    }
-                                }
-                            }
-                            Some(Ok(Message::Ping(data))) => {
-                                let _ = stream.send(Message::Pong(data)).await;
-                            }
-                            Some(Ok(Message::Close(frame))) => {
-                                if let Some(frame) = frame {
-                                    tracing::warn!(%frame, "PubSub connection closed");
-                                }
-                                break;
-                            }
-                            Some(Ok(_)) => (),
-                            Some(Err(err)) => {
-                                tracing::error!(%err, "PubSub WebSocket error");
-                                break;
-                            }
-                            None => {
-                                tracing::warn!("PubSub WebSocket stream ended unexpectedly");
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Stays active across the backoff, since this loop owns the retry
-            self.state.set_connecting();
-
-            tracing::info!(?backoff, "Reconnecting to PubSub");
-            tokio::time::sleep(backoff).await;
-            backoff = (backoff * 2).min(MAX_BACKOFF);
+        Started {
+            client,
+            events,
+            run: Some(ws::run(driver).boxed()),
         }
     }
 
-    #[tracing::instrument(skip_all)]
-    async fn handle_message(&self, msg: Incoming) -> Action {
-        match msg {
-            Incoming::Pong => {
-                tracing::trace!("Received PONG");
-                return Action::Pong;
-            }
-            Incoming::Reconnect => {
-                tracing::warn!("PubSub server requested reconnect");
-                return Action::Reconnect;
-            }
-            Incoming::Response { nonce, error } => {
-                if error.is_empty() {
-                    tracing::trace!(?nonce, "LISTEN acknowledged");
-                } else {
-                    tracing::error!(?nonce, %error, "PubSub request returned an error");
-                }
-            }
-            Incoming::Message { data } => {
-                let message = serde_json::from_str(&data.message).unwrap_or_else(|err| {
-                    tracing::warn!(%err, "Failed to parse inner PubSub message, forwarding as string");
-                    serde_json::Value::String(data.message.clone())
-                });
+    /// Listens to the channel topics for `channel_id` keyed by the channel's
+    /// login. Calling it again recomputes them.
+    #[tracing::instrument(name = "pubsub_listen", skip(self))]
+    pub fn listen(&self, channel: &str, channel_id: &str, is_mod: bool) {
+        let topics = channel_topics(&self.user_id, channel_id, is_mod);
 
-                tracing::trace!(topic = %data.topic, "Received PubSub message");
+        tracing::trace!("Listening to {} topics", topics.len());
 
-                if self
-                    .sender
-                    .send(PubSubMessage {
-                        topic: data.topic,
-                        message,
-                    })
-                    .is_err()
-                {
-                    tracing::warn!("PubSub event receiver dropped");
-                }
-            }
-            Incoming::AuthRevoked { data } => {
-                tracing::warn!(topics = ?data.topics, "PubSub authorization revoked");
-
-                for topic in data.topics {
-                    self.subscriptions.remove_by(|t| *t == topic).await;
-                }
-            }
-        }
-
-        Action::None
+        self.subscriptions
+            .set_channel(channel, topics.into_iter().map(|topic| (topic, ())));
     }
 
-    fn next_nonce(&self) -> String {
-        let n = self.nonce.fetch_add(1, Ordering::Relaxed);
-        format!("hyperion-{n}")
+    #[tracing::instrument(name = "pubsub_unlisten", skip(self))]
+    pub fn unlisten(&self, channel: &str) {
+        self.subscriptions.remove_channel(channel);
     }
+}
 
-    fn send_ping(&self) {
-        let payload = json!({ "type": "PING" });
+struct PubSubDriver {
+    client: Arc<PubSubClient>,
+    token: UserToken,
+    events: mpsc::UnboundedSender<PubSubMessage>,
+    nonce: u64,
+}
 
-        if self
-            .message_tx
-            .send(Message::Text(payload.to_string().into()))
-            .is_err()
-        {
-            tracing::warn!("Failed to queue PubSub PING");
-        }
-    }
+impl PubSubDriver {
+    async fn send_listen(
+        &mut self,
+        link: &mut Link,
+        command: &str,
+        topics: &[&str],
+    ) -> Result<(), WsError> {
+        self.nonce += 1;
 
-    fn send_listen(&self, command: &str, topics: &[String]) {
         let payload = json!({
             "type": command,
-            "nonce": self.next_nonce(),
+            "nonce": format!("hyperion-{}", self.nonce),
             "data": {
                 "topics": topics,
                 "auth_token": self.token.access_token.as_str(),
             }
         });
 
-        if self
-            .message_tx
-            .send(Message::Text(payload.to_string().into()))
-            .is_err()
-        {
-            tracing::error!("Failed to queue PubSub {command} message");
+        link.send(&payload).await
+    }
+
+    fn forward(&self, data: MessageData) {
+        let message = match serde_json::from_str(&data.message) {
+            Ok(message) => message,
+            Err(err) => {
+                tracing::warn!(%err, topic = %data.topic, "Dropping unparseable PubSub message");
+                return;
+            }
+        };
+
+        tracing::trace!(topic = %data.topic, "Received PubSub message");
+
+        self.emit(PubSubMessage::new(&data.topic, message));
+    }
+
+    fn emit(&self, message: PubSubMessage) {
+        if self.events.send(message).is_err() {
+            tracing::warn!("PubSub event receiver dropped");
         }
     }
+}
 
-    fn listen_user_topics(&self) {
-        let user_id = &self.token.user_id;
+impl Protocol for PubSubDriver {
+    type Subscription = ();
 
-        let topics = [
-            format!("predictions-user-v1.{user_id}"),
-            format!("whispers.{user_id}"),
-        ];
+    const NAME: &'static str = "PubSub";
+    const URI: &'static str = "wss://pubsub-edge.twitch.tv";
+    const KEEPALIVE: Option<Keepalive> = Some(Keepalive {
+        interval: Duration::from_secs(240),
+        timeout: Duration::from_secs(10),
+        ping: r#"{"type":"PING"}"#,
+    });
 
-        self.send_listen("LISTEN", &topics);
+    fn subscriptions(&self) -> &SubscriptionStore<()> {
+        &self.client.subscriptions
     }
 
-    async fn restore(&self) {
-        let drained = self.subscriptions.drain().await;
+    fn opened(&mut self, _link: &mut Link) -> Flow {
+        Flow::Ready { restored: false }
+    }
 
-        if drained.is_empty() {
-            return;
+    async fn received(&mut self, text: &str, link: &mut Link) -> Result<Flow, WsError> {
+        let message = match serde_json::from_str::<Incoming>(text) {
+            Ok(message) => message,
+            Err(err) => {
+                tracing::warn!(%err, "Failed to deserialize PubSub message");
+                return Ok(Flow::Continue);
+            }
+        };
+
+        match message {
+            Incoming::Pong => {
+                tracing::trace!("Received PONG");
+                link.clear_deadline();
+            }
+            Incoming::Reconnect => {
+                tracing::warn!("PubSub server requested reconnect");
+                return Ok(Flow::Reconnect);
+            }
+            Incoming::Response { nonce, error } => {
+                if error.is_empty() {
+                    tracing::trace!(?nonce, "Request acknowledged");
+                } else {
+                    tracing::error!(?nonce, %error, "PubSub request returned an error");
+                }
+            }
+            Incoming::Message { data } => self.forward(data),
+            Incoming::AuthRevoked { data } => {
+                tracing::warn!(topics = ?data.topics, "PubSub authorization revoked");
+
+                self.client
+                    .subscriptions
+                    .revoke(|key| data.topics.contains(&key.event));
+
+                for topic in &data.topics {
+                    self.emit(PubSubMessage::auth_revoked(topic));
+                }
+            }
         }
 
-        tracing::info!("Restoring {} PubSub topics", drained.len());
+        Ok(Flow::Continue)
+    }
 
-        let topics: Vec<String> = drained.iter().map(|(_, topic)| topic.clone()).collect();
+    async fn sync(&mut self, changes: &Changes<()>, link: &mut Link) -> Result<(), WsError> {
+        for (command, entries) in [("UNLISTEN", &changes.removed), ("LISTEN", &changes.added)] {
+            let topics: Vec<&str> = entries.iter().map(|(key, ())| key.event.as_str()).collect();
 
-        for chunk in topics.chunks(MAX_TOPICS_PER_LISTEN) {
-            self.send_listen("LISTEN", chunk);
+            for chunk in topics.chunks(MAX_TOPICS_PER_LISTEN) {
+                self.send_listen(link, command, chunk).await?;
+            }
         }
 
-        for (key, topic) in drained {
-            self.subscriptions
-                .insert(&key.channel, &key.event, topic)
-                .await;
-        }
-    }
-
-    /// Whether the client is connected or still establishing its connection.
-    pub fn active(&self) -> bool {
-        self.state.active()
-    }
-
-    /// Closes the connection and stops any reconnect in progress. The client
-    /// can't be connected again afterwards.
-    pub fn disconnect(&self) {
-        self.shutdown.notify_one();
-    }
-
-    #[tracing::instrument(name = "pubsub_listen", skip(self, topics))]
-    pub async fn listen(&self, channel: &str, topics: &[String]) {
-        for chunk in topics.chunks(MAX_TOPICS_PER_LISTEN) {
-            self.send_listen("LISTEN", chunk);
-        }
-
-        let futures = topics
-            .iter()
-            .map(|topic| self.subscriptions.insert(channel, topic, topic.clone()));
-
-        join_all(futures).await;
-
-        tracing::trace!("Listening to {} topics", topics.len());
-    }
-
-    #[tracing::instrument(name = "pubsub_unlisten", skip(self))]
-    pub async fn unlisten(&self, channel: &str) {
-        let topics = self.subscriptions.events_for_channel(channel).await;
-
-        let futures = topics
-            .iter()
-            .map(|topic| self.subscriptions.remove(channel, topic));
-
-        let removed: Vec<String> = join_all(futures).await.into_iter().flatten().collect();
-
-        for chunk in removed.chunks(MAX_TOPICS_PER_LISTEN) {
-            self.send_listen("UNLISTEN", chunk);
-        }
-
-        tracing::trace!("Stopped listening to {} topics", removed.len());
-    }
-
-    pub async fn relisten(&self, channel: &str) {
-        let topics = self.subscriptions.events_for_channel(channel).await;
-
-        self.send_listen("UNLISTEN", &topics);
-        self.send_listen("LISTEN", &topics);
+        Ok(())
     }
 }

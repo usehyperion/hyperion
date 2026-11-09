@@ -3,6 +3,8 @@
 
 	import type { Channel } from "#lib/models/channel.svelte.js";
 
+	import { log } from "#lib/log.js";
+
 	import Chat from "../chat/Chat.svelte";
 	import ChatInput from "../chat/ChatInput.svelte";
 	import LiveNotices from "../chat/LiveNotices.svelte";
@@ -19,7 +21,9 @@
 	// svelte-ignore state_referenced_locally
 	const chat = channel.chat;
 
-	onMount(() => channel.join());
+	onMount(() => {
+		channel.join().catch(log.swallow(`Failed to join ${channel.user.username}`));
+	});
 </script>
 
 <div class="flex h-full flex-col">

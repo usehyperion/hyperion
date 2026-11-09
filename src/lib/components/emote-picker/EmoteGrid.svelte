@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { Emote } from "#lib/emotes.js";
 
+	import { emoteSources } from "#lib/emotes.js";
+
 	interface Props {
 		emotes: Emote[];
 		onpick: (name: string) => void;
@@ -8,13 +10,10 @@
 
 	const { emotes, onpick }: Props = $props();
 
-	function toImageSet(srcset: string[]) {
-		const candidates: string[] = [];
-
-		for (const src of srcset) {
-			const [url, density] = src.split(" ");
-			candidates.push(`url("${url}") ${density}`);
-		}
+	function toImageSet(emote: Emote) {
+		const candidates = emoteSources(emote).map(
+			({ url, density }) => `url("${url}") ${density}`,
+		);
 
 		return `image-set(${candidates.join(", ")})`;
 	}
@@ -29,7 +28,7 @@
 	>
 		<div
 			class="aspect-square w-full bg-contain bg-center bg-no-repeat"
-			style:background-image={toImageSet(emote.srcset)}
+			style:background-image={toImageSet(emote)}
 		></div>
 	</button>
 {/each}

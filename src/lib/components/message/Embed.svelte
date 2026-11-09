@@ -1,3 +1,35 @@
+<script lang="ts" module>
+	import type { LinkNode } from "#lib/models/message/parse.js";
+
+	export type EmbedTarget =
+		| { type: "emote"; id: string }
+		| { type: "spotify"; path: string }
+		| { type: "clip"; slug: string };
+
+	export function embedOf({ url, tld }: LinkNode["data"]): EmbedTarget | null {
+		const parts = url.pathname.split("/");
+
+		if (tld.domain === "7tv.app" && parts[1] === "emotes" && parts[2]) {
+			return { type: "emote", id: parts[2] };
+		}
+
+		if (tld.hostname === "open.spotify.com") {
+			return { type: "spotify", path: url.pathname.replace(/\/intl-\w+\//, "/") };
+		}
+
+		if (tld.hostname === "clips.twitch.tv" && parts[1]) {
+			return { type: "clip", slug: parts[1] };
+		}
+
+		// twitch.tv/<channel>/clip/<slug>
+		if (tld.domain === "twitch.tv" && parts[2] === "clip" && parts[3]) {
+			return { type: "clip", slug: parts[3] };
+		}
+
+		return null;
+	}
+</script>
+
 <script lang="ts">
 	import dayjs from "dayjs";
 	import type { Snippet } from "svelte";
@@ -6,46 +38,47 @@
 	import EyeSlash from "~icons/ph/eye-slash";
 
 	import { app } from "#lib/app.svelte.js";
-	import { transform7tvEmote } from "#lib/emotes.js";
-	import { emoteQuery } from "#lib/graphql/7tv.js";
-	import { execute7tvQuery } from "#lib/graphql/7tv.js";
+	import { transformGql7tvEmote } from "#lib/emotes.js";
+	import { emoteQuery, execute7tvQuery } from "#lib/graphql/7tv.js";
 	import { clipQuery } from "#lib/graphql/twitch.js";
+	import { log } from "#lib/log.js";
 
 	interface Props {
 		url: URL;
-		tld: ReturnType<typeof import("tldts").parse>;
+		target: EmbedTarget;
 	}
 
-	const { url, tld }: Props = $props();
+	const { url, target }: Props = $props();
 
 	let blurred = $state(true);
 
-	async function fetchEmote() {
-		const parts = url.pathname.split("/");
-		if (parts[1] !== "emotes") return;
+	async function fetchEmote(id: string) {
+		try {
+			const { emotes } = await execute7tvQuery(emoteQuery, { id });
+			if (!emotes.emote) return null;
 
-		const { emotes } = await execute7tvQuery(emoteQuery, { id: parts[2] });
-		if (!emotes.emote) return;
-
-		return {
-			...transform7tvEmote(emotes.emote),
-			listed: emotes.emote.flags.publicListed,
-			owner: emotes.emote.owner,
-		};
-	}
-
-	async function fetchClip() {
-		let slug = url.pathname.split("/")[3];
-
-		if (tld.hostname === "clips.twitch.tv") {
-			slug = url.pathname.slice(1);
+			return {
+				...transformGql7tvEmote(emotes.emote),
+				listed: emotes.emote.flags.publicListed,
+				owner: emotes.emote.owner,
+			};
+		} catch (error) {
+			log.warn("Failed to fetch 7TV emote embed", error);
+			return null;
 		}
-
-		const { clip } = await app.twitch.gql(clipQuery, { slug });
-		return clip;
 	}
 
-	function formatDuration(seconds: number) {
+	async function fetchClip(slug: string) {
+		try {
+			const { clip } = await app.twitch.gql(clipQuery, { slug });
+			return clip;
+		} catch (error) {
+			log.warn("Failed to fetch clip embed", error);
+			return null;
+		}
+	}
+
+	function formatClipLength(seconds: number) {
 		const m = Math.floor(seconds / 60);
 		const s = seconds % 60;
 
@@ -53,33 +86,8 @@
 	}
 </script>
 
-{#snippet card(href: string, label: string, media: Snippet, body: Snippet)}
-	<div
-		class={[
-			"group relative flex h-19 w-full max-w-100 gap-3 overflow-hidden rounded-lg border bg-card",
-			"transition-[background-color,border-color] hover:border-ring/40 hover:bg-accent/40",
-		]}
-	>
-		<a class="absolute inset-0 z-10 rounded-lg" {href} target="_blank" aria-label={label}></a>
-
-		<div class="relative shrink-0">
-			{@render media()}
-		</div>
-
-		<div class="flex min-w-0 flex-col justify-center gap-0.5 py-2 pr-3">
-			{@render body()}
-		</div>
-	</div>
-{/snippet}
-
-{#snippet meta(children: Snippet)}
-	<div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-		{@render children()}
-	</div>
-{/snippet}
-
-{#if tld.domain === "7tv.app"}
-	{#await fetchEmote() then emote}
+{#if target.type === "emote"}
+	{#await fetchEmote(target.id) then emote}
 		{#if emote}
 			{#snippet emoteMedia()}
 				<div class="flex h-full w-19 items-center justify-center bg-muted/40 p-1.5">
@@ -131,20 +139,20 @@
 			{@render card(url.href, emote.displayName, emoteMedia, emoteBody)}
 		{/if}
 	{/await}
-{:else if tld.hostname === "open.spotify.com"}
+{:else if target.type === "spotify"}
 	<div class="w-full max-w-100 overflow-hidden rounded-lg border bg-card">
 		<iframe
 			class="block"
 			title="Spotify Web Player"
-			src="https://open.spotify.com/embed{url.pathname.replace(/\/intl-\w+\//, '/')}"
+			src="https://open.spotify.com/embed{target.path}"
 			width="100%"
 			height="80"
 			allow="clipboard-write"
 			sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
 		></iframe>
 	</div>
-{:else if tld.domain === "twitch.tv"}
-	{#await fetchClip() then clip}
+{:else}
+	{#await fetchClip(target.slug) then clip}
 		{#if clip}
 			{#snippet clipMedia()}
 				<img
@@ -158,7 +166,7 @@
 					class="absolute right-1.5 bottom-1.5 rounded bg-black/75 px-1 py-0.5
 						text-[10px] font-medium text-white tabular-nums"
 				>
-					{formatDuration(clip.durationSeconds)}
+					{formatClipLength(clip.durationSeconds)}
 				</div>
 			{/snippet}
 
@@ -189,3 +197,28 @@
 		{/if}
 	{/await}
 {/if}
+
+{#snippet card(href: string, label: string, media: Snippet, body: Snippet)}
+	<div
+		class={[
+			"group relative flex h-19 w-full max-w-100 gap-3 overflow-hidden rounded-lg border bg-card",
+			"transition-[background-color,border-color] hover:border-ring/40 hover:bg-accent/40",
+		]}
+	>
+		<a class="absolute inset-0 z-10 rounded-lg" {href} target="_blank" aria-label={label}></a>
+
+		<div class="relative shrink-0">
+			{@render media()}
+		</div>
+
+		<div class="flex min-w-0 flex-col justify-center gap-0.5 py-2 pr-3">
+			{@render body()}
+		</div>
+	</div>
+{/snippet}
+
+{#snippet meta(children: Snippet)}
+	<div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+		{@render children()}
+	</div>
+{/snippet}

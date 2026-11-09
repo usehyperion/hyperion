@@ -2,7 +2,7 @@ import { app } from "#lib/app.svelte.js";
 
 import { defineHandler } from "../helper";
 
-export default defineHandler({
+export default defineHandler("irc", {
 	name: "roomstate",
 	handle(data) {
 		const channel = app.channels.get(data.channel_id);
@@ -12,10 +12,10 @@ export default defineHandler({
 			channel.chat.mode.subOnly = data.subscribers_only;
 		}
 
-		if (data.followers_only === -1) {
-			channel.chat.mode.followerOnly = false;
-		} else if (data.followers_only != null) {
-			channel.chat.mode.followerOnly = data.followers_only;
+		// -1 means follower-only mode is off.
+		if (data.followers_only != null) {
+			channel.chat.mode.followerOnly =
+				data.followers_only === -1 ? null : data.followers_only;
 		}
 
 		if (data.slow_mode != null) {

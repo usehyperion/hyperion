@@ -4,7 +4,6 @@
 	import X from "~icons/ph/x";
 
 	import { app } from "#lib/app.svelte.js";
-	import { settings } from "#lib/settings/index.js";
 
 	interface Props {
 		id: string;
@@ -38,23 +37,9 @@
 		},
 	});
 
-	async function select() {
-		if (channel) {
-			await app.open(channel);
-		} else {
-			app.splits.activate(id);
-		}
-	}
-
 	async function close(event: Event) {
 		event.stopPropagation();
-
-		app.splits.closeTab(id);
-		app.refocus(channel);
-
-		if (settings.state["splits.leaveOnClose"]) {
-			await channel?.leave();
-		}
+		await app.closeTab(id);
 	}
 </script>
 
@@ -71,7 +56,7 @@
 	role="tab"
 	tabindex="-1"
 	aria-selected={active}
-	onclick={select}
+	onclick={() => app.activate(id)}
 	onauxclick={(event) => event.button === 1 && close(event)}
 	{@attach draggable.attach}
 	{@attach droppable.attach}

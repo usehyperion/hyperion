@@ -25,7 +25,7 @@
 	);
 
 	const status = $derived(
-		poll.status === "ACTIVE" && remaining > 0 ? `${formatDuration(remaining)} left` : "Ended",
+		poll.active && remaining > 0 ? `${formatDuration(remaining)} left` : "Ended",
 	);
 
 	const leading = $derived(Math.max(0, ...poll.choices.map((c) => c.votes)));
@@ -36,13 +36,13 @@
 		<ChartBar class="size-3 shrink-0" />
 
 		<span class="truncate">
-			Poll by <Username user={poll.creator} />
+			Poll {#if poll.creator}by <Username user={poll.creator} />{/if}
 		</span>
 
 		<span class="ml-auto shrink-0 whitespace-nowrap">{status}</span>
 
 		<div class="flex shrink-0 items-center gap-0.5">
-			{#if poll.status === "ACTIVE" && poll.channel.isMod}
+			{#if poll.active && poll.channel.isMod}
 				<NoticeAction icon={Stop} tooltip="End poll" onclick={() => poll.end()} />
 			{/if}
 
@@ -57,8 +57,7 @@
 		<ul class="flex flex-col gap-1.5">
 			{#each poll.choices as choice (choice.id)}
 				{@const pct = percent(choice.votes, poll.totalVotes)}
-				{@const winner =
-					poll.status !== "ACTIVE" && choice.votes === leading && leading > 0}
+				{@const winner = !poll.active && choice.votes === leading && leading > 0}
 
 				<li>
 					<div class="mb-0.5 flex items-center justify-between gap-2">

@@ -5,7 +5,6 @@ import type {
 	Gif,
 	PrivmsgMessage,
 	Reply,
-	Source,
 	UserNoticeEvent,
 	UserNoticeMessage,
 } from "#lib/twitch/irc.js";
@@ -13,11 +12,13 @@ import type { AutoModFragment } from "#lib/twitch/pubsub.js";
 import type { ChannelPointReward } from "#lib/twitch/pubsub.js";
 
 import { app } from "#lib/app.svelte.js";
+import { THIRD_PARTY_PROVIDERS } from "#lib/emotes.js";
 import {
 	allowHeldMessageMutation,
 	deleteMessageMutation,
 	denyHeldMessageMutation,
 } from "#lib/graphql/twitch.js";
+import { log } from "#lib/log.js";
 import { settings } from "#lib/settings/index.js";
 
 import type { Channel } from "../channel.svelte";
@@ -27,33 +28,32 @@ import { Badge } from "../badge";
 import { User } from "../user.svelte";
 import { Viewer } from "../viewer.svelte";
 import { extractEmotes, type MessageFragment } from "./fragment";
+import { Message, type MessageInit } from "./message.svelte";
 import { parse } from "./parse";
-import { TextualMessage, type TextualMessageInit } from "./textual-message.svelte";
 
-function createPartialUser(channel: Channel, sender: BasicUser, color: string) {
-	const user = new User(channel.client, {
-		id: sender.id,
-		createdAt: "0",
-		login: sender.login,
-		displayName: sender.name,
-		description: "",
-		chatColor: color,
-		profileImageURL: "",
-		bannerImageURL: "",
-		roles: null,
-	});
+const MOD_ACTION_WINDOW = 6 * 60 * 60 * 1000; // 6 hours
+
+/**
+ * The viewer who sent the message, registering a partial one built from the
+ * message if they haven't been seen yet.
+ */
+function senderOf(channel: Channel, sender: BasicUser, color: string | null) {
+	const known = channel.viewers.get(sender.id);
+	if (known) return known;
+
+	const user = User.partial(channel.client, sender, color);
 
 	const viewer = new Viewer(channel, user);
 	channel.viewers.set(user.id, viewer);
 
-	return user;
+	return viewer;
 }
 
-interface UserMessageInit extends TextualMessageInit {
+interface UserMessageInit extends MessageInit {
 	id: string;
 	text: string;
 	sender: BasicUser;
-	color: string;
+	color: string | null;
 	badges: IrcBadge[];
 	emotes: Emote[];
 	bits: number;
@@ -62,6 +62,7 @@ interface UserMessageInit extends TextualMessageInit {
 	highlighted: boolean;
 	shared: boolean;
 	event: UserNoticeEvent | null;
+	systemMessage: string;
 	reply: Reply | null;
 }
 
@@ -70,46 +71,33 @@ interface FromMessage {
 	text: string;
 	fragments: MessageFragment[];
 	sender: BasicUser;
-	color?: string;
+	color?: string | null;
 	badges?: IrcBadge[];
 	timestamp?: number;
 }
 
-export interface AutoModMetadata {
-	category: string;
-	level: number;
-
-	/**
-	 * The message content split into fragments, where the fragments caught by
-	 * AutoMod carry an `automod` property.
-	 */
-	fragments: AutoModFragment[];
-}
+export type AutoModMetadata = (
+	| { reason: "blocked-term" }
+	| { reason: "automod"; category: string; level: number }
+) & { fragments: AutoModFragment[] };
 
 /**
  * User messages are either messages received by `PRIVMSG` commands or
  * notifications received by `USERNOTICE` commands.
  */
-export class UserMessage extends TextualMessage {
-	#nodes: Node[] = [];
+export class UserMessage extends Message {
+	#nodes: Node[] | null = null;
 	#badges: IrcBadge[];
 
 	public override readonly [Symbol.toStringTag] = "UserMessage";
 	public override readonly id: string;
 	public override readonly text: string;
 
-	/**
-	 * The user who sent the message.
-	 */
 	public readonly author: User;
+	public readonly viewer: Viewer;
 
 	/**
-	 * The viewer who sent the message if it was sent in a channel.
-	 */
-	public viewer: Viewer | null = null;
-
-	/**
-	 * Whether the message is an action i.e. sent with `/me`.
+	 * Whether the message was sent with `/me`.
 	 */
 	public readonly action: boolean;
 
@@ -122,20 +110,8 @@ export class UserMessage extends TextualMessage {
 	 * Whether the message was sent in a shared chat.
 	 */
 	public readonly shared: boolean;
-
-	/**
-	 * The badges sent with the message.
-	 */
 	public readonly badges: Badge[] = [];
-
-	/**
-	 * The amount of bits sent with the message if it was a cheer.
-	 */
 	public readonly bits: number;
-
-	/**
-	 * The Twitch emotes in the message, located by their range in the text.
-	 */
 	public readonly emotes: Emote[];
 
 	/**
@@ -150,6 +126,12 @@ export class UserMessage extends TextualMessage {
 	public readonly event: UserNoticeEvent | null;
 
 	/**
+	 * Twitch's own description of the event for events without a dedicated
+	 * rendering.
+	 */
+	public readonly systemMessage: string;
+
+	/**
 	 * The metadata for the parent and thread starter messages if the message
 	 * is a reply.
 	 */
@@ -162,7 +144,7 @@ export class UserMessage extends TextualMessage {
 	public source: Channel;
 
 	/**
-	 * The AutoMod metadata attached to the message if it was caught by AutoMod.
+	 * The metadata attached to the message if it was caught by AutoMod.
 	 */
 	public autoMod: AutoModMetadata | null = null;
 
@@ -174,13 +156,11 @@ export class UserMessage extends TextualMessage {
 	private constructor(channel: Channel, init: UserMessageInit) {
 		super(channel, init);
 
-		const viewer = channel.viewers.get(init.sender.id);
-
 		this.id = init.id;
 		this.text = init.text;
 
-		this.author = viewer?.user ?? createPartialUser(channel, init.sender, init.color);
-		this.viewer = viewer ?? null;
+		this.viewer = senderOf(channel, init.sender, init.color);
+		this.author = this.viewer.user;
 
 		this.action = init.action;
 		this.highlighted = init.highlighted;
@@ -190,6 +170,7 @@ export class UserMessage extends TextualMessage {
 		this.emotes = init.emotes;
 		this.gif = init.gif;
 		this.event = init.event;
+		this.systemMessage = init.systemMessage;
 		this.reply = init.reply;
 		this.source = this.channel;
 
@@ -198,13 +179,14 @@ export class UserMessage extends TextualMessage {
 	}
 
 	/**
-	 * Creates a user message from a `PRIVMSG` or `USERNOTICE` command.
+	 * Creates a user message from a `PRIVMSG` or `USERNOTICE` command, updating
+	 * what the command says about its sender.
 	 */
-	public static fromIrc(channel: Channel, data: PrivmsgMessage | UserNoticeMessage) {
+	public static async fromIrc(channel: Channel, data: PrivmsgMessage | UserNoticeMessage) {
 		const tags = data.source ?? data;
 		const notice = data.type === "usernotice";
 
-		return new this(channel, {
+		const message = new this(channel, {
 			id: data.message_id,
 			text: data.message_text ?? "",
 			sender: data.sender,
@@ -217,22 +199,54 @@ export class UserMessage extends TextualMessage {
 			highlighted: !notice && data.is_highlighted,
 			shared: data.source != null,
 			event: notice ? data.event : null,
+			systemMessage: notice ? data.system_message : "",
 			reply: notice ? null : data.reply,
 			deleted: data.deleted,
 			recent: data.is_recent,
 			timestamp: data.server_timestamp,
 		});
+
+		const { author, viewer } = message;
+
+		author.color = data.name_color;
+		author.username = data.sender.login;
+		author.displayName = data.sender.name;
+
+		if (!notice) {
+			viewer.moderator = data.is_mod;
+			viewer.subscriber = data.is_subscriber;
+			viewer.vip = tags.badges.some((b) => b.name.startsWith("vip"));
+			viewer.returning = data.is_returning_chatter;
+			viewer.new = data.is_first_msg;
+		}
+
+		if (data.source && data.source.channel_id !== channel.id) {
+			try {
+				const source = await app.channels.fetchUnlisted(data.source.channel_id);
+				await source.badges.fetch();
+
+				message.source = source;
+				message.#populateBadges();
+			} catch (error) {
+				// The message is still shown, just without the source's badges.
+				log.warn("Failed to load shared chat source", error);
+			}
+		}
+
+		return message;
 	}
 
 	public static from(channel: Channel, msg: FromMessage) {
-		const action = /^\x01ACTION.*$/.test(msg.text);
-		const text = action ? msg.text.slice(8, -1) : msg.text;
+		// CTCP ACTION framing: "\x01ACTION <text>\x01"
+		const match = /^\x01ACTION (.*?)\x01?$/s.exec(msg.text);
+		const action = match !== null;
+		const text = match ? match[1] : msg.text;
 
 		return new this(channel, {
 			id: msg.id,
 			text,
 			sender: msg.sender,
-			color: msg.color ?? "",
+			color: msg.color ?? null,
 			badges: msg.badges ?? [],
 			emotes: extractEmotes(msg.fragments),
 			bits: msg.fragments.reduce((a, b) => a + (b.type === "cheermote" ? b.bits : 0), 0),
@@ -241,6 +255,7 @@ export class UserMessage extends TextualMessage {
 			shared: false,
 			gif: null,
 			event: null,
+			systemMessage: "",
 			reply: null,
 			deleted: false,
 			recent: false,
@@ -266,8 +281,8 @@ export class UserMessage extends TextualMessage {
 
 		return (
 			this.channel.isMod &&
-			diff <= 6 * 60 * 60 * 1000 &&
-			(app.user.id === this.author.id || !this.viewer?.moderator)
+			diff <= MOD_ACTION_WINDOW &&
+			(app.user.id === this.author.id || !this.viewer.moderator)
 		);
 	}
 
@@ -275,37 +290,16 @@ export class UserMessage extends TextualMessage {
 	// is present during instantiation e.g. in the case of automod metadata being
 	// attached later.
 	public get nodes() {
-		if (!this.#nodes.length) {
-			this.#nodes = parse(this).toSorted((a, b) => a.start - b.start);
-		}
+		this.#nodes ??= parse(this).toSorted((a, b) => a.start - b.start);
 
 		return this.#nodes;
 	}
 
-	/**
-	 * Whether the message is currently pinned in chat.
-	 */
 	public get pinned() {
 		return this.channel.chat.pinned?.message.id === this.id;
 	}
 
-	public async setSource(source: Source) {
-		if (source.channel_id === this.channel.id) {
-			return;
-		}
-
-		this.source = await app.channels.fetch(source.channel_id);
-		await this.source.badges.fetch();
-
-		this.#populateBadges();
-	}
-
-	/**
-	 * Deletes the message from chat.
-	 */
 	public async delete() {
-		if (!app.user || !this.channel.isMod) return;
-
 		await this.channel.client.gql(deleteMessageMutation, {
 			channel: this.channel.id,
 			message: this.id,
@@ -328,10 +322,6 @@ export class UserMessage extends TextualMessage {
 		await this.#updateHeldMessage(false);
 	}
 
-	public async pin() {
-		await this.channel.chat.pin(this.id);
-	}
-
 	#populateBadges() {
 		this.badges.length = 0;
 
@@ -350,7 +340,7 @@ export class UserMessage extends TextualMessage {
 		}
 
 		for (const badge of this.#badges) {
-			const id = `${badge.name}:${badge.version}`;
+			const id = Badge.key(badge.name, badge.version);
 
 			const chatBadge = this.source.badges.get(id);
 			const globalBadge = app.badges.get(id);
@@ -362,34 +352,23 @@ export class UserMessage extends TextualMessage {
 			}
 		}
 
-		const providerBadges = app.badges.users.get(this.author.id);
+		const enabled = new Set<string>(
+			THIRD_PARTY_PROVIDERS.filter((p) => settings.state[p.badgesSetting]).map(
+				(p) => p.badgeSetId,
+			),
+		);
 
-		if (providerBadges) {
-			const external = providerBadges
-				.filter((b) => {
-					if (b.setId === "ffz" && !settings.state["chat.badges.ffz"]) return false;
-					if (b.setId === "bttv" && !settings.state["chat.badges.bttv"]) return false;
-					if (b.setId === "7tv" && !settings.state["chat.badges.seventv"]) return false;
+		const external = (app.badges.users.get(this.author.id) ?? [])
+			.filter((badge) => enabled.has(badge.setId))
+			.toSorted((a, b) => b.setId.localeCompare(a.setId));
 
-					return true;
-				})
-				.toSorted((a, b) => b.setId.localeCompare(a.setId));
-
-			this.badges.push(...external);
-		}
+		this.badges.push(...external);
 	}
 
 	async #updateHeldMessage(allow: boolean) {
-		if (!app.user || !this.channel.isMod) return;
-
 		const mutation = allow ? allowHeldMessageMutation : denyHeldMessageMutation;
 
-		try {
-			await this.channel.client.gql(mutation, {
-				message: this.id,
-			});
-		} finally {
-			this.deleted = true;
-		}
+		await this.channel.client.gql(mutation, { message: this.id });
+		this.deleted = true;
 	}
 }

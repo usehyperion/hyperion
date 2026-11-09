@@ -1,75 +1,86 @@
-pub mod client;
-
-use std::sync::Arc;
+mod client;
 
 pub use client::SeventTvClient;
 use serde_json::json;
 use tauri::ipc::Channel;
-use tauri::{AppHandle, Manager, State, async_runtime};
+use tauri::{AppHandle, State};
 use tokio::sync::Mutex;
 
 use crate::AppState;
+use crate::api::ensure_login;
+use crate::connection::{self, Client, Connection};
 use crate::error::Error;
-use crate::seventv::client::SeventTvHandles;
-use crate::ws::{channel_sink, forward_to_channel};
+
+impl SeventTvClient {
+    pub fn join(
+        &self,
+        login: &str,
+        channel_id: &str,
+        user_id: Option<&str>,
+        emote_set_id: Option<&str>,
+    ) {
+        let channel = json!({
+            "ctx": "channel",
+            "platform": "TWITCH",
+            "id": channel_id
+        });
+
+        let mut events = vec![
+            ("cosmetic.create".to_owned(), channel.clone()),
+            ("entitlement.create".to_owned(), channel),
+        ];
+
+        if let Some(emote_set_id) = emote_set_id {
+            events.push((
+                "emote_set.*".to_owned(),
+                json!({ "object_id": emote_set_id }),
+            ));
+        }
+
+        if let Some(user_id) = user_id {
+            events.push(("user.update".to_owned(), json!({ "object_id": user_id })));
+        }
+
+        self.set_channel(login, events);
+    }
+}
+
+impl Client for SeventTvClient {
+    type Message = serde_json::Value;
+
+    const NAME: &'static str = "7TV";
+
+    fn slot(state: &mut AppState) -> &mut Option<Connection<Self>> {
+        &mut state.seventv
+    }
+}
 
 #[tauri::command]
 pub async fn connect_seventv(
     app_handle: AppHandle,
-    state: State<'_, Mutex<AppState>>,
     channel: Channel<serde_json::Value>,
 ) -> Result<(), Error> {
-    let mut state = state.lock().await;
-
-    if let Some(client) = &state.seventv
-        && client.active()
-    {
-        if let Some(sink) = &state.seventv_channel {
-            *sink.lock().await = channel;
-        }
-        return Ok(());
-    }
-
-    let (SeventTvHandles { events, connector }, client) = SeventTvClient::new();
-
-    let sink = channel_sink(channel);
-    state.seventv = Some(Arc::clone(&client));
-    state.seventv_channel = Some(Arc::clone(&sink));
-
-    drop(state);
-
-    async_runtime::spawn(async move {
-        if let Err(err) = connector.connect().await {
-            tracing::error!(%err, "7TV connection failed");
-
-            let state = app_handle.state::<Mutex<AppState>>();
-            let mut state = state.lock().await;
-
-            state.seventv = None;
-        }
-    });
-
-    forward_to_channel(events, sink, "7TV");
-
-    Ok(())
+    connection::connect(app_handle, channel, |_| Ok(SeventTvClient::start())).await
 }
 
+/// Recomputes the 7TV subscriptions for a joined channel after its 7TV user or
+/// active emote set changed.
+#[tracing::instrument(skip(state))]
 #[tauri::command]
-pub async fn resub_emote_set(
+pub async fn sync_seventv(
     state: State<'_, Mutex<AppState>>,
-    channel: String,
-    set_id: String,
+    login: String,
+    id: String,
+    stv_id: Option<String>,
+    set_id: Option<String>,
 ) -> Result<(), Error> {
-    let state = state.lock().await;
+    ensure_login(&login)?;
 
-    let Some(ref seventv) = state.seventv else {
-        return Ok(());
-    };
-
-    seventv.unsubscribe(&channel, "emote_set.*").await;
-    seventv
-        .subscribe(&channel, "emote_set.*", &json!({ "object_id": set_id }))
-        .await;
+    if let Some(seventv) = &state.lock().await.seventv {
+        seventv
+            .client()
+            .join(&login, &id, stv_id.as_deref(), set_id.as_deref());
+    }
 
     Ok(())
 }

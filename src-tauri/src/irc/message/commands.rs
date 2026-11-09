@@ -1,39 +1,77 @@
-use std::collections::HashSet;
+// Parse errors carry the offending message so it can be logged.
+#![allow(clippy::result_large_err)]
+
 use std::str::FromStr;
-use std::time::Duration;
 
 use ServerMessageParseError::*;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use thiserror::Error;
 
 use super::prefix::IrcPrefix;
-use super::{
-    AsRawIrc, Badge, BasicUser, Emote, Gif, IrcMessage, Reply, ReplyParent, ReplyThread, Source,
+use super::{Badge, BasicUser, Emote, Gif, IrcMessage, Reply, ReplyParent, ReplyThread, Source};
+
+/// Twitch's AnAnonymousGifter account.
+const ANONYMOUS_GIFTER_ID: &str = "274598607";
+
+/// The tags a user's id, login, and display name are read from.
+struct UserTags {
+    id: &'static str,
+    login: &'static str,
+    name: &'static str,
+}
+
+const SENDER: UserTags = UserTags {
+    id: "user-id",
+    login: "login",
+    name: "display-name",
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+const RECIPIENT: UserTags = UserTags {
+    id: "msg-param-recipient-id",
+    login: "msg-param-recipient-user-name",
+    name: "msg-param-recipient-display-name",
+};
+
+const PRIOR_GIFTER: UserTags = UserTags {
+    id: "msg-param-prior-gifter-id",
+    login: "msg-param-prior-gifter-user-name",
+    name: "msg-param-prior-gifter-display-name",
+};
+
+const REPLY_PARENT: UserTags = UserTags {
+    id: "reply-parent-user-id",
+    login: "reply-parent-user-login",
+    name: "reply-parent-display-name",
+};
+
+const REPLY_THREAD: UserTags = UserTags {
+    id: "reply-thread-parent-user-id",
+    login: "reply-thread-parent-user-login",
+    name: "reply-thread-parent-display-name",
+};
+
+#[derive(Debug, Clone, Serialize)]
 pub struct ClearChatMessage {
     pub channel_login: String,
     pub channel_id: String,
     pub action: ClearChatAction,
     pub is_recent: bool,
     pub server_timestamp: u64,
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(tag = "type")]
 pub enum ClearChatAction {
-    #[serde(rename(serialize = "clear"))]
+    #[serde(rename = "clear")]
     ChatClear,
-    #[serde(rename(serialize = "ban"))]
+    #[serde(rename = "ban")]
     UserBan { user_login: String, user_id: String },
-    #[serde(rename(serialize = "timeout"))]
+    #[serde(rename = "timeout")]
     UserTimeout {
         user_login: String,
         user_id: String,
-        duration: Duration,
+        /// In seconds.
+        duration: u64,
     },
 }
 
@@ -47,29 +85,18 @@ impl TryFrom<IrcMessage> for ClearChatMessage {
 
         let action = match raw.params.get(1) {
             Some(user_login) => {
-                // ban or timeout
-                let user_id = raw.try_get_nonempty_tag_value("target-user-id")?;
+                let user_login = user_login.to_owned();
+                let user_id = raw.try_get_nonempty_tag_value("target-user-id")?.to_owned();
 
-                let ban_duration = raw.try_get_optional_nonempty_tag_value("ban-duration")?;
-                match ban_duration {
-                    Some(ban_duration) => {
-                        let ban_duration = u64::from_str(ban_duration).map_err(|_| {
-                            ServerMessageParseError::MalformedTagValue(
-                                raw.to_owned(),
-                                "ban-duration",
-                                ban_duration.to_owned(),
-                            )
-                        })?;
-
-                        ClearChatAction::UserTimeout {
-                            user_login: user_login.to_owned(),
-                            user_id: user_id.to_owned(),
-                            duration: Duration::from_secs(ban_duration),
-                        }
-                    }
+                match raw.try_get_optional_number("ban-duration")? {
+                    Some(duration) => ClearChatAction::UserTimeout {
+                        user_login,
+                        user_id,
+                        duration,
+                    },
                     None => ClearChatAction::UserBan {
-                        user_login: user_login.to_owned(),
-                        user_id: user_id.to_owned(),
+                        user_login,
+                        user_id,
                     },
                 }
             }
@@ -81,19 +108,12 @@ impl TryFrom<IrcMessage> for ClearChatMessage {
             channel_id: raw.try_get_nonempty_tag_value("room-id")?.to_owned(),
             action,
             is_recent: raw.try_get_optional_bool("historical")?.unwrap_or_default(),
-            server_timestamp: raw.try_get_timestamp("tmi-sent-ts")?,
-            raw,
+            server_timestamp: raw.try_get_number("tmi-sent-ts")?,
         })
     }
 }
 
-impl From<ClearChatMessage> for IrcMessage {
-    fn from(msg: ClearChatMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ClearMsgMessage {
     pub channel_login: String,
     pub channel_id: String,
@@ -103,8 +123,6 @@ pub struct ClearMsgMessage {
     pub is_action: bool,
     pub is_recent: bool,
     pub server_timestamp: u64,
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
 }
 
 impl TryFrom<IrcMessage> for ClearMsgMessage {
@@ -122,65 +140,18 @@ impl TryFrom<IrcMessage> for ClearMsgMessage {
             channel_id: raw.try_get_nonempty_tag_value("room-id")?.to_owned(),
             sender_login: raw.try_get_nonempty_tag_value("login")?.to_owned(),
             message_id: raw.try_get_nonempty_tag_value("target-msg-id")?.to_owned(),
-            server_timestamp: raw.try_get_timestamp("tmi-sent-ts")?,
+            server_timestamp: raw.try_get_number("tmi-sent-ts")?,
             message_text: message_text.to_owned(),
             is_action,
             is_recent: raw.try_get_optional_bool("historical")?.unwrap_or_default(),
-            raw,
         })
     }
 }
 
-impl From<ClearMsgMessage> for IrcMessage {
-    fn from(msg: ClearMsgMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct GlobalUserStateMessage {
-    pub user_id: String,
-    pub user_name: String,
-    pub badge_info: Vec<Badge>,
-    pub badges: Vec<Badge>,
-    pub emote_sets: HashSet<String>,
-    pub name_color: String,
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
-}
-
-impl TryFrom<IrcMessage> for GlobalUserStateMessage {
-    type Error = ServerMessageParseError;
-
-    fn try_from(raw: IrcMessage) -> Result<GlobalUserStateMessage, ServerMessageParseError> {
-        if raw.command != "GLOBALUSERSTATE" {
-            return Err(ServerMessageParseError::MismatchedCommand(raw));
-        }
-
-        Ok(GlobalUserStateMessage {
-            user_id: raw.try_get_nonempty_tag_value("user-id")?.to_owned(),
-            user_name: raw.try_get_nonempty_tag_value("display-name")?.to_owned(),
-            badge_info: raw.try_get_badges("badge-info")?,
-            badges: raw.try_get_badges("badges")?,
-            emote_sets: raw.try_get_emote_sets("emote-sets")?,
-            name_color: raw.try_get_color("color")?.to_owned(),
-            raw,
-        })
-    }
-}
-
-impl From<GlobalUserStateMessage> for IrcMessage {
-    fn from(msg: GlobalUserStateMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct JoinMessage {
     pub channel_login: String,
     pub user_login: String,
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
 }
 
 impl TryFrom<IrcMessage> for JoinMessage {
@@ -194,18 +165,11 @@ impl TryFrom<IrcMessage> for JoinMessage {
         Ok(JoinMessage {
             channel_login: raw.try_get_channel_login()?.to_owned(),
             user_login: raw.try_get_prefix_nickname()?.to_owned(),
-            raw,
         })
     }
 }
 
-impl From<JoinMessage> for IrcMessage {
-    fn from(msg: JoinMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct NoticeMessage {
     pub channel_login: Option<String>,
     pub message_text: String,
@@ -213,8 +177,6 @@ pub struct NoticeMessage {
     pub deleted: bool,
     pub is_recent: bool,
     pub recent_timestamp: Option<u64>,
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
 }
 
 impl TryFrom<IrcMessage> for NoticeMessage {
@@ -234,23 +196,14 @@ impl TryFrom<IrcMessage> for NoticeMessage {
             deleted: raw.try_get_optional_bool("rm-deleted")?.unwrap_or_default(),
             is_recent: raw.try_get_optional_bool("historical")?.unwrap_or_default(),
             recent_timestamp: raw.try_get_optional_number("rm-received-ts").ok().flatten(),
-            raw,
         })
     }
 }
 
-impl From<NoticeMessage> for IrcMessage {
-    fn from(msg: NoticeMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct PartMessage {
     pub channel_login: String,
     pub user_login: String,
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
 }
 
 impl TryFrom<IrcMessage> for PartMessage {
@@ -264,66 +217,11 @@ impl TryFrom<IrcMessage> for PartMessage {
         Ok(PartMessage {
             channel_login: raw.try_get_channel_login()?.to_owned(),
             user_login: raw.try_get_prefix_nickname()?.to_owned(),
-            raw,
         })
     }
 }
 
-impl From<PartMessage> for IrcMessage {
-    fn from(msg: PartMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PingMessage {
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
-}
-
-impl TryFrom<IrcMessage> for PingMessage {
-    type Error = ServerMessageParseError;
-
-    fn try_from(raw: IrcMessage) -> Result<PingMessage, ServerMessageParseError> {
-        if raw.command != "PING" {
-            return Err(ServerMessageParseError::MismatchedCommand(raw));
-        }
-
-        Ok(PingMessage { raw })
-    }
-}
-
-impl From<PingMessage> for IrcMessage {
-    fn from(msg: PingMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PongMessage {
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
-}
-
-impl TryFrom<IrcMessage> for PongMessage {
-    type Error = ServerMessageParseError;
-
-    fn try_from(raw: IrcMessage) -> Result<PongMessage, ServerMessageParseError> {
-        if raw.command != "PONG" {
-            return Err(ServerMessageParseError::MismatchedCommand(raw));
-        }
-
-        Ok(PongMessage { raw })
-    }
-}
-
-impl From<PongMessage> for IrcMessage {
-    fn from(msg: PongMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct PrivmsgMessage {
     pub channel_login: String,
     pub channel_id: String,
@@ -340,7 +238,8 @@ pub struct PrivmsgMessage {
     pub badge_info: Vec<Badge>,
     pub badges: Vec<Badge>,
     pub bits: Option<u64>,
-    pub name_color: String,
+    /// `None` when the user hasn't picked a color.
+    pub name_color: Option<String>,
     pub emotes: Vec<Emote>,
     pub gif: Option<Gif>,
     pub message_id: String,
@@ -349,8 +248,6 @@ pub struct PrivmsgMessage {
     pub source_only: Option<bool>,
     pub source: Option<Source>,
     pub server_timestamp: u64,
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
 }
 
 impl TryFrom<IrcMessage> for PrivmsgMessage {
@@ -376,10 +273,10 @@ impl TryFrom<IrcMessage> for PrivmsgMessage {
             badge_info: raw.try_get_badges("badge-info")?,
             badges: raw.try_get_badges("badges")?,
             bits: raw.try_get_optional_number("bits")?,
-            name_color: raw.try_get_color("color")?.to_owned(),
+            name_color: raw.try_get_optional_color()?,
             emotes: raw.try_get_emotes("emotes", message_text)?,
             gif: raw.try_get_optional_gif("gifs")?,
-            server_timestamp: raw.try_get_timestamp("tmi-sent-ts")?,
+            server_timestamp: raw.try_get_number("tmi-sent-ts")?,
             message_id: raw.try_get_nonempty_tag_value("id")?.to_owned(),
             message_text: message_text.to_owned(),
             reply: raw.try_get_optional_reply()?,
@@ -398,42 +295,11 @@ impl TryFrom<IrcMessage> for PrivmsgMessage {
             is_recent: raw.try_get_optional_bool("historical")?.unwrap_or_default(),
             source_only: raw.try_get_optional_bool("source-only").ok().flatten(),
             source: raw.try_get_source()?,
-            raw,
         })
     }
 }
 
-impl From<PrivmsgMessage> for IrcMessage {
-    fn from(msg: PrivmsgMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ReconnectMessage {
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
-}
-
-impl TryFrom<IrcMessage> for ReconnectMessage {
-    type Error = ServerMessageParseError;
-
-    fn try_from(raw: IrcMessage) -> Result<ReconnectMessage, ServerMessageParseError> {
-        if raw.command == "RECONNECT" {
-            Ok(ReconnectMessage { raw })
-        } else {
-            Err(MismatchedCommand(raw))
-        }
-    }
-}
-
-impl From<ReconnectMessage> for IrcMessage {
-    fn from(msg: ReconnectMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct RoomStateMessage {
     pub channel_login: String,
     pub channel_id: String,
@@ -443,8 +309,6 @@ pub struct RoomStateMessage {
     pub slow_mode: Option<u64>,
     pub subscribers_only: Option<bool>,
     pub is_recent: bool,
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
 }
 
 impl TryFrom<IrcMessage> for RoomStateMessage {
@@ -464,18 +328,11 @@ impl TryFrom<IrcMessage> for RoomStateMessage {
             slow_mode: raw.try_get_optional_number::<u64>("slow")?,
             subscribers_only: raw.try_get_optional_bool("subs-only")?,
             is_recent: raw.try_get_optional_bool("historical")?.unwrap_or_default(),
-            raw,
         })
     }
 }
 
-impl From<RoomStateMessage> for IrcMessage {
-    fn from(msg: RoomStateMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct UserNoticeMessage {
     pub channel_login: String,
     pub channel_id: String,
@@ -487,18 +344,17 @@ pub struct UserNoticeMessage {
     pub badge_info: Vec<Badge>,
     pub badges: Vec<Badge>,
     pub emotes: Vec<Emote>,
-    pub name_color: String,
+    /// `None` when the user hasn't picked a color.
+    pub name_color: Option<String>,
     pub message_id: String,
     pub deleted: bool,
     pub is_recent: bool,
     pub source_only: Option<bool>,
     pub source: Option<Source>,
     pub server_timestamp: u64,
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct SubGiftPromo {
     pub total_gifts: u64,
     pub promo_name: String,
@@ -521,9 +377,8 @@ impl SubGiftPromo {
     }
 }
 
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all(serialize = "snake_case"))]
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum UserNoticeEvent {
     Announcement {
         color: String,
@@ -610,11 +465,7 @@ impl TryFrom<IrcMessage> for UserNoticeMessage {
             return Err(ServerMessageParseError::MismatchedCommand(raw));
         }
 
-        let sender = BasicUser {
-            id: raw.try_get_nonempty_tag_value("user-id")?.to_owned(),
-            login: raw.try_get_nonempty_tag_value("login")?.to_owned(),
-            name: raw.try_get_nonempty_tag_value("display-name")?.to_owned(),
-        };
+        let sender = raw.try_get_user(&SENDER)?;
 
         let msg_id = raw.try_get_nonempty_tag_value("msg-id")?;
 
@@ -632,41 +483,11 @@ impl TryFrom<IrcMessage> for UserNoticeMessage {
             },
             "standardpayforward" => UserNoticeEvent::StandardPayForward {
                 is_prior_gifter_anonymous: raw.try_get_bool("msg-param-prior-gifter-anonymous")?,
-                prior_gifter: BasicUser {
-                    id: raw
-                        .try_get_nonempty_tag_value("msg-param-prior-gifter-id")?
-                        .to_owned(),
-                    login: raw
-                        .try_get_nonempty_tag_value("msg-param-prior-gifter-user-name")?
-                        .to_owned(),
-                    name: raw
-                        .try_get_nonempty_tag_value("msg-param-prior-gifter-display-name")?
-                        .to_owned(),
-                },
-                recipient: BasicUser {
-                    id: raw
-                        .try_get_nonempty_tag_value("msg-param-recipient-id")?
-                        .to_owned(),
-                    login: raw
-                        .try_get_nonempty_tag_value("msg-param-recipient-user-name")?
-                        .to_owned(),
-                    name: raw
-                        .try_get_nonempty_tag_value("msg-param-recipient-display-name")?
-                        .to_owned(),
-                },
+                prior_gifter: raw.try_get_user(&PRIOR_GIFTER)?,
+                recipient: raw.try_get_user(&RECIPIENT)?,
             },
             "communitypayforward" => UserNoticeEvent::CommunityPayForward {
-                gifter: BasicUser {
-                    id: raw
-                        .try_get_nonempty_tag_value("msg-param-prior-gifter-id")?
-                        .to_owned(),
-                    login: raw
-                        .try_get_nonempty_tag_value("msg-param-prior-gifter-user-name")?
-                        .to_owned(),
-                    name: raw
-                        .try_get_nonempty_tag_value("msg-param-prior-gifter-display-name")?
-                        .to_owned(),
-                },
+                gifter: raw.try_get_user(&PRIOR_GIFTER)?,
             },
             "charitydonation" => UserNoticeEvent::CharityDonation {
                 charity_name: raw
@@ -704,19 +525,9 @@ impl TryFrom<IrcMessage> for UserNoticeMessage {
             },
             "unraid" => UserNoticeEvent::Unraid,
             "subgift" | "anonsubgift" => UserNoticeEvent::SubGift {
-                is_sender_anonymous: event_id == "anonsubgift" || sender.id == "274598607",
+                is_sender_anonymous: event_id == "anonsubgift" || sender.id == ANONYMOUS_GIFTER_ID,
                 cumulative_months: raw.try_get_number("msg-param-months")?,
-                recipient: BasicUser {
-                    id: raw
-                        .try_get_nonempty_tag_value("msg-param-recipient-id")?
-                        .to_owned(),
-                    login: raw
-                        .try_get_nonempty_tag_value("msg-param-recipient-user-name")?
-                        .to_owned(),
-                    name: raw
-                        .try_get_nonempty_tag_value("msg-param-recipient-display-name")?
-                        .to_owned(),
-                },
+                recipient: raw.try_get_user(&RECIPIENT)?,
                 sub_plan: raw
                     .try_get_nonempty_tag_value("msg-param-sub-plan")?
                     .to_owned(),
@@ -733,7 +544,7 @@ impl TryFrom<IrcMessage> for UserNoticeMessage {
                     .try_get_nonempty_tag_value("msg-param-sub-plan")?
                     .to_owned(),
             },
-            _ if (sender.id == "274598607" && event_id == "submysterygift")
+            _ if (sender.id == ANONYMOUS_GIFTER_ID && event_id == "submysterygift")
                 || event_id == "anonsubmysterygift" =>
             {
                 UserNoticeEvent::AnonSubMysteryGift {
@@ -826,110 +637,18 @@ impl TryFrom<IrcMessage> for UserNoticeMessage {
             badge_info: raw.try_get_badges("badge-info")?,
             badges: raw.try_get_badges("badges")?,
             emotes,
-            name_color: raw.try_get_color("color")?.to_owned(),
+            name_color: raw.try_get_optional_color()?,
             message_id: raw.try_get_nonempty_tag_value("id")?.to_owned(),
             deleted: raw.try_get_optional_bool("rm-deleted")?.unwrap_or_default(),
             is_recent: raw.try_get_optional_bool("historical")?.unwrap_or_default(),
             source_only: raw.try_get_optional_bool("source-only").ok().flatten(),
             source: raw.try_get_source()?,
-            server_timestamp: raw.try_get_timestamp("tmi-sent-ts")?,
-            raw,
+            server_timestamp: raw.try_get_number("tmi-sent-ts")?,
         })
     }
 }
 
-impl From<UserNoticeMessage> for IrcMessage {
-    fn from(msg: UserNoticeMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct UserStateMessage {
-    pub channel_login: String,
-    pub user_name: String,
-    pub badge_info: Vec<Badge>,
-    pub badges: Vec<Badge>,
-    pub emote_sets: HashSet<String>,
-    pub name_color: String,
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
-}
-
-impl TryFrom<IrcMessage> for UserStateMessage {
-    type Error = ServerMessageParseError;
-
-    fn try_from(raw: IrcMessage) -> Result<UserStateMessage, ServerMessageParseError> {
-        if raw.command != "USERSTATE" {
-            return Err(ServerMessageParseError::MismatchedCommand(raw));
-        }
-
-        Ok(UserStateMessage {
-            channel_login: raw.try_get_channel_login()?.to_owned(),
-            user_name: raw.try_get_nonempty_tag_value("display-name")?.to_owned(),
-            badge_info: raw.try_get_badges("badge-info")?,
-            badges: raw.try_get_badges("badges")?,
-            emote_sets: raw.try_get_emote_sets("emote-sets")?,
-            name_color: raw.try_get_color("color")?.to_owned(),
-            raw,
-        })
-    }
-}
-
-impl From<UserStateMessage> for IrcMessage {
-    fn from(msg: UserStateMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct WhisperMessage {
-    pub recipient_login: String,
-    pub sender: BasicUser,
-    pub message_id: String,
-    pub message_text: String,
-    pub name_color: String,
-    pub badges: Vec<Badge>,
-    pub emotes: Vec<Emote>,
-    #[serde(skip_serializing)]
-    pub raw: IrcMessage,
-}
-
-impl TryFrom<IrcMessage> for WhisperMessage {
-    type Error = ServerMessageParseError;
-
-    fn try_from(raw: IrcMessage) -> Result<WhisperMessage, ServerMessageParseError> {
-        if raw.command != "WHISPER" {
-            return Err(ServerMessageParseError::MismatchedCommand(raw));
-        }
-
-        let message_text = raw.try_get_param(1)?.to_owned();
-        let emotes = raw.try_get_emotes("emotes", &message_text)?;
-
-        Ok(WhisperMessage {
-            recipient_login: raw.try_get_param(0)?.to_owned(),
-            sender: BasicUser {
-                id: raw.try_get_nonempty_tag_value("user-id")?.to_owned(),
-                login: raw.try_get_prefix_nickname()?.to_owned(),
-                name: raw.try_get_nonempty_tag_value("display-name")?.to_owned(),
-            },
-            message_id: raw.try_get_nonempty_tag_value("message-id")?.to_owned(),
-            message_text,
-            name_color: raw.try_get_color("color")?.to_owned(),
-            badges: raw.try_get_badges("badges")?,
-            emotes,
-            raw,
-        })
-    }
-}
-
-impl From<WhisperMessage> for IrcMessage {
-    fn from(msg: WhisperMessage) -> IrcMessage {
-        msg.raw
-    }
-}
-
-#[derive(Error, Debug, PartialEq, Eq)]
+#[derive(Error, Debug)]
 pub enum ServerMessageParseError {
     #[error("Could not parse IRC message {} as ServerMessage: That command's data is not parsed by this implementation", .0.to_string())]
     MismatchedCommand(IrcMessage),
@@ -956,71 +675,7 @@ pub enum ServerMessageParseError {
     MissingNickname(IrcMessage),
 }
 
-impl From<ServerMessageParseError> for IrcMessage {
-    fn from(msg: ServerMessageParseError) -> IrcMessage {
-        match msg {
-            ServerMessageParseError::MismatchedCommand(m) => m,
-            ServerMessageParseError::MissingTag(m, _) => m,
-            ServerMessageParseError::MissingTagValue(m, _) => m,
-            ServerMessageParseError::MalformedTagValue(m, _, _) => m,
-            ServerMessageParseError::MissingParameter(m, _) => m,
-            ServerMessageParseError::MalformedChannel(m) => m,
-            ServerMessageParseError::MissingPrefix(m) => m,
-            ServerMessageParseError::MissingNickname(m) => m,
-        }
-    }
-}
-
-trait IrcMessageParseExt {
-    fn try_get_param(&self, index: usize) -> Result<&str, ServerMessageParseError>;
-    fn try_get_message_text(&self) -> Result<(&str, bool), ServerMessageParseError>;
-    fn try_get_tag_value(&self, key: &'static str) -> Result<&str, ServerMessageParseError>;
-    fn try_get_nonempty_tag_value(
-        &self,
-        key: &'static str,
-    ) -> Result<&str, ServerMessageParseError>;
-    fn try_get_optional_nonempty_tag_value(
-        &self,
-        key: &'static str,
-    ) -> Result<Option<&str>, ServerMessageParseError>;
-    fn get_optional_nonempty_tag_value(&self, key: &'static str) -> Option<&str>;
-    fn try_get_channel_login(&self) -> Result<&str, ServerMessageParseError>;
-    fn try_get_optional_channel_login(&self) -> Result<Option<&str>, ServerMessageParseError>;
-    fn try_get_prefix_nickname(&self) -> Result<&str, ServerMessageParseError>;
-    fn try_get_emotes(
-        &self,
-        tag_key: &'static str,
-        message_text: &str,
-    ) -> Result<Vec<Emote>, ServerMessageParseError>;
-    fn try_get_optional_gif(
-        &self,
-        tag_key: &'static str,
-    ) -> Result<Option<Gif>, ServerMessageParseError>;
-    fn try_get_emote_sets(
-        &self,
-        tag_key: &'static str,
-    ) -> Result<HashSet<String>, ServerMessageParseError>;
-    fn try_get_badges(&self, tag_key: &'static str) -> Result<Vec<Badge>, ServerMessageParseError>;
-    fn try_get_color(&self, tag_key: &'static str) -> Result<&str, ServerMessageParseError>;
-    fn try_get_number<N: FromStr>(
-        &self,
-        tag_key: &'static str,
-    ) -> Result<N, ServerMessageParseError>;
-    fn try_get_bool(&self, tag_key: &'static str) -> Result<bool, ServerMessageParseError>;
-    fn try_get_optional_number<N: FromStr>(
-        &self,
-        tag_key: &'static str,
-    ) -> Result<Option<N>, ServerMessageParseError>;
-    fn try_get_optional_bool(
-        &self,
-        tag_key: &'static str,
-    ) -> Result<Option<bool>, ServerMessageParseError>;
-    fn try_get_timestamp(&self, tag_key: &'static str) -> Result<u64, ServerMessageParseError>;
-    fn try_get_optional_reply(&self) -> Result<Option<Reply>, ServerMessageParseError>;
-    fn try_get_source(&self) -> Result<Option<Source>, ServerMessageParseError>;
-}
-
-impl IrcMessageParseExt for IrcMessage {
+impl IrcMessage {
     fn try_get_param(&self, index: usize) -> Result<&str, ServerMessageParseError> {
         Ok(self
             .params
@@ -1034,7 +689,6 @@ impl IrcMessageParseExt for IrcMessage {
         let is_action =
             message_text.starts_with("\u{0001}ACTION ") && message_text.ends_with('\u{0001}');
         if is_action {
-            // remove the prefix and suffix
             message_text = &message_text[8..message_text.len() - 1]
         }
 
@@ -1046,6 +700,14 @@ impl IrcMessageParseExt for IrcMessage {
             Some(value) => Ok(value),
             None => Err(MissingTag(self.to_owned(), key)),
         }
+    }
+
+    /// The `color` tag, which is always present but empty when the user hasn't
+    /// picked a color.
+    fn try_get_optional_color(&self) -> Result<Option<String>, ServerMessageParseError> {
+        let color = self.try_get_tag_value("color")?;
+
+        Ok((!color.is_empty()).then(|| color.to_owned()))
     }
 
     fn try_get_nonempty_tag_value(
@@ -1183,19 +845,6 @@ impl IrcMessageParseExt for IrcMessage {
         }))
     }
 
-    fn try_get_emote_sets(
-        &self,
-        tag_key: &'static str,
-    ) -> Result<HashSet<String>, ServerMessageParseError> {
-        let src = self.try_get_tag_value(tag_key)?;
-
-        if src.is_empty() {
-            Ok(HashSet::new())
-        } else {
-            Ok(src.split(',').map(|s| s.to_owned()).collect())
-        }
-    }
-
     fn try_get_badges(&self, tag_key: &'static str) -> Result<Vec<Badge>, ServerMessageParseError> {
         let tag_value = self.try_get_tag_value(tag_key)?;
 
@@ -1219,19 +868,20 @@ impl IrcMessageParseExt for IrcMessage {
         Ok(badges)
     }
 
-    fn try_get_color(&self, tag_key: &'static str) -> Result<&str, ServerMessageParseError> {
-        let tag_value = self.try_get_tag_value(tag_key)?;
-        Ok(tag_value)
+    fn parse_tag_value<N: FromStr>(
+        &self,
+        tag_key: &'static str,
+        tag_value: &str,
+    ) -> Result<N, ServerMessageParseError> {
+        N::from_str(tag_value)
+            .map_err(|_| MalformedTagValue(self.to_owned(), tag_key, tag_value.to_owned()))
     }
 
     fn try_get_number<N: FromStr>(
         &self,
         tag_key: &'static str,
     ) -> Result<N, ServerMessageParseError> {
-        let tag_value = self.try_get_nonempty_tag_value(tag_key)?;
-        let number = N::from_str(tag_value)
-            .map_err(|_| MalformedTagValue(self.to_owned(), tag_key, tag_value.to_owned()))?;
-        Ok(number)
+        self.parse_tag_value(tag_key, self.try_get_nonempty_tag_value(tag_key)?)
     }
 
     fn try_get_bool(&self, tag_key: &'static str) -> Result<bool, ServerMessageParseError> {
@@ -1242,17 +892,9 @@ impl IrcMessageParseExt for IrcMessage {
         &self,
         tag_key: &'static str,
     ) -> Result<Option<N>, ServerMessageParseError> {
-        let tag_value = match self.tags.0.get(tag_key) {
-            Some(value) => match value.as_str() {
-                "" => return Err(MissingTagValue(self.to_owned(), tag_key)),
-                otherwise => otherwise,
-            },
-            None => return Ok(None),
-        };
-
-        let number = N::from_str(tag_value)
-            .map_err(|_| MalformedTagValue(self.to_owned(), tag_key, tag_value.to_owned()))?;
-        Ok(Some(number))
+        self.try_get_optional_nonempty_tag_value(tag_key)?
+            .map(|tag_value| self.parse_tag_value(tag_key, tag_value))
+            .transpose()
     }
 
     fn try_get_optional_bool(
@@ -1262,12 +904,12 @@ impl IrcMessageParseExt for IrcMessage {
         Ok(self.try_get_optional_number::<u8>(tag_key)?.map(|n| n > 0))
     }
 
-    fn try_get_timestamp(&self, tag_key: &'static str) -> Result<u64, ServerMessageParseError> {
-        let tag_value = self.try_get_nonempty_tag_value(tag_key)?;
-        let milliseconds_since_epoch = u64::from_str(tag_value)
-            .map_err(|_| MalformedTagValue(self.to_owned(), tag_key, tag_value.to_owned()))?;
-
-        Ok(milliseconds_since_epoch)
+    fn try_get_user(&self, tags: &UserTags) -> Result<BasicUser, ServerMessageParseError> {
+        Ok(BasicUser {
+            id: self.try_get_nonempty_tag_value(tags.id)?.to_owned(),
+            login: self.try_get_nonempty_tag_value(tags.login)?.to_owned(),
+            name: self.try_get_nonempty_tag_value(tags.name)?.to_owned(),
+        })
     }
 
     fn try_get_optional_reply(&self) -> Result<Option<Reply>, ServerMessageParseError> {
@@ -1277,17 +919,7 @@ impl IrcMessageParseExt for IrcMessage {
 
         let parent = ReplyParent {
             message_id: self.try_get_tag_value("reply-parent-msg-id")?.to_owned(),
-            user: BasicUser {
-                id: self
-                    .try_get_nonempty_tag_value("reply-parent-user-id")?
-                    .to_owned(),
-                login: self
-                    .try_get_nonempty_tag_value("reply-parent-user-login")?
-                    .to_owned(),
-                name: self
-                    .try_get_nonempty_tag_value("reply-parent-display-name")?
-                    .to_owned(),
-            },
+            user: self.try_get_user(&REPLY_PARENT)?,
             message_text: self.try_get_tag_value("reply-parent-msg-body")?.to_owned(),
         };
 
@@ -1295,17 +927,7 @@ impl IrcMessageParseExt for IrcMessage {
             message_id: self
                 .try_get_tag_value("reply-thread-parent-msg-id")?
                 .to_owned(),
-            user: BasicUser {
-                id: self
-                    .try_get_nonempty_tag_value("reply-thread-parent-user-id")?
-                    .to_owned(),
-                login: self
-                    .try_get_nonempty_tag_value("reply-thread-parent-user-login")?
-                    .to_owned(),
-                name: self
-                    .try_get_nonempty_tag_value("reply-thread-parent-display-name")?
-                    .to_owned(),
-            },
+            user: self.try_get_user(&REPLY_THREAD)?,
         };
 
         Ok(Some(Reply { parent, thread }))
@@ -1331,106 +953,41 @@ impl IrcMessageParseExt for IrcMessage {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
-pub struct HiddenIrcMessage(pub(self) IrcMessage);
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all(serialize = "lowercase"))]
-#[non_exhaustive]
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "type", rename_all = "lowercase")]
 pub enum ServerMessage {
     ClearChat(ClearChatMessage),
     ClearMsg(ClearMsgMessage),
-    GlobalUserState(GlobalUserStateMessage),
     Join(JoinMessage),
     Notice(NoticeMessage),
     Part(PartMessage),
-    Ping(PingMessage),
-    Pong(PongMessage),
+    Ping,
+    Pong,
     Privmsg(PrivmsgMessage),
-    Reconnect(ReconnectMessage),
+    Reconnect,
     RoomState(RoomStateMessage),
     UserNotice(UserNoticeMessage),
-    UserState(UserStateMessage),
-    Whisper(WhisperMessage),
-    Generic(HiddenIrcMessage),
-}
-
-impl TryFrom<IrcMessage> for ServerMessage {
-    type Error = ServerMessageParseError;
-
-    fn try_from(raw: IrcMessage) -> Result<ServerMessage, ServerMessageParseError> {
-        use ServerMessage::*;
-
-        Ok(match raw.command.as_str() {
-            "CLEARCHAT" => ClearChat(ClearChatMessage::try_from(raw)?),
-            "CLEARMSG" => ClearMsg(ClearMsgMessage::try_from(raw)?),
-            "GLOBALUSERSTATE" => GlobalUserState(GlobalUserStateMessage::try_from(raw)?),
-            "JOIN" => Join(JoinMessage::try_from(raw)?),
-            "NOTICE" => Notice(NoticeMessage::try_from(raw)?),
-            "PART" => Part(PartMessage::try_from(raw)?),
-            "PING" => Ping(PingMessage::try_from(raw)?),
-            "PONG" => Pong(PongMessage::try_from(raw)?),
-            "PRIVMSG" => Privmsg(PrivmsgMessage::try_from(raw)?),
-            "RECONNECT" => Reconnect(ReconnectMessage::try_from(raw)?),
-            "ROOMSTATE" => RoomState(RoomStateMessage::try_from(raw)?),
-            "USERNOTICE" => UserNotice(UserNoticeMessage::try_from(raw)?),
-            "USERSTATE" => UserState(UserStateMessage::try_from(raw)?),
-            "WHISPER" => Whisper(WhisperMessage::try_from(raw)?),
-            _ => Generic(HiddenIrcMessage(raw)),
-        })
-    }
-}
-
-impl From<ServerMessage> for IrcMessage {
-    fn from(msg: ServerMessage) -> IrcMessage {
-        match msg {
-            ServerMessage::ClearChat(msg) => msg.raw,
-            ServerMessage::ClearMsg(msg) => msg.raw,
-            ServerMessage::GlobalUserState(msg) => msg.raw,
-            ServerMessage::Join(msg) => msg.raw,
-            ServerMessage::Notice(msg) => msg.raw,
-            ServerMessage::Part(msg) => msg.raw,
-            ServerMessage::Ping(msg) => msg.raw,
-            ServerMessage::Pong(msg) => msg.raw,
-            ServerMessage::Privmsg(msg) => msg.raw,
-            ServerMessage::Reconnect(msg) => msg.raw,
-            ServerMessage::RoomState(msg) => msg.raw,
-            ServerMessage::UserNotice(msg) => msg.raw,
-            ServerMessage::UserState(msg) => msg.raw,
-            ServerMessage::Whisper(msg) => msg.raw,
-            ServerMessage::Generic(msg) => msg.0,
-        }
-    }
 }
 
 impl ServerMessage {
-    pub fn raw(&self) -> &IrcMessage {
-        match self {
-            ServerMessage::ClearChat(msg) => &msg.raw,
-            ServerMessage::ClearMsg(msg) => &msg.raw,
-            ServerMessage::GlobalUserState(msg) => &msg.raw,
-            ServerMessage::Join(msg) => &msg.raw,
-            ServerMessage::Notice(msg) => &msg.raw,
-            ServerMessage::Part(msg) => &msg.raw,
-            ServerMessage::Ping(msg) => &msg.raw,
-            ServerMessage::Pong(msg) => &msg.raw,
-            ServerMessage::Privmsg(msg) => &msg.raw,
-            ServerMessage::Reconnect(msg) => &msg.raw,
-            ServerMessage::RoomState(msg) => &msg.raw,
-            ServerMessage::UserNotice(msg) => &msg.raw,
-            ServerMessage::UserState(msg) => &msg.raw,
-            ServerMessage::Whisper(msg) => &msg.raw,
-            ServerMessage::Generic(msg) => &msg.0,
-        }
-    }
+    /// Parses the message `raw` carries, or returns `None` for a command the
+    /// app has no use for.
+    pub fn parse(raw: IrcMessage) -> Result<Option<ServerMessage>, ServerMessageParseError> {
+        use ServerMessage::*;
 
-    pub(crate) fn new_generic(message: IrcMessage) -> ServerMessage {
-        ServerMessage::Generic(HiddenIrcMessage(message))
-    }
-}
-
-impl AsRawIrc for ServerMessage {
-    fn format_as_raw_irc(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.raw().format_as_raw_irc(f)
+        Ok(Some(match raw.command.as_str() {
+            "CLEARCHAT" => ClearChat(ClearChatMessage::try_from(raw)?),
+            "CLEARMSG" => ClearMsg(ClearMsgMessage::try_from(raw)?),
+            "JOIN" => Join(JoinMessage::try_from(raw)?),
+            "NOTICE" => Notice(NoticeMessage::try_from(raw)?),
+            "PART" => Part(PartMessage::try_from(raw)?),
+            "PING" => Ping,
+            "PONG" => Pong,
+            "PRIVMSG" => Privmsg(PrivmsgMessage::try_from(raw)?),
+            "RECONNECT" => Reconnect,
+            "ROOMSTATE" => RoomState(RoomStateMessage::try_from(raw)?),
+            "USERNOTICE" => UserNotice(UserNoticeMessage::try_from(raw)?),
+            _ => return Ok(None),
+        }))
     }
 }

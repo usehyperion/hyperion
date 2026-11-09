@@ -12,5 +12,5 @@ dayjs.extend(relativeTime);
 
 export async function init() {
 	// Themes are optional, so errors shouldn't block the app from starting
-	await loadThemes().catch(log.catch("Failed to load themes"));
+	await loadThemes().catch(log.swallow("Failed to load themes"));
 }

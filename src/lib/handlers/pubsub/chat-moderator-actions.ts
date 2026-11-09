@@ -12,8 +12,8 @@ import WarnAck from "#lib/components/message/events/WarnAck.svelte";
 
 import { defineHandler } from "../helper";
 
-export default defineHandler({
-	name: "chat-moderator-actions",
+export default defineHandler("pubsub", {
+	name: "chat_moderator_actions",
 	async handle(payload) {
 		const channel = app.channels.get(payload.target_id);
 		if (!channel) return;
@@ -21,9 +21,16 @@ export default defineHandler({
 		const { chat } = channel;
 
 		if (payload.type === "channel_terms_action") {
-			const moderator = await channel.viewers.fetch(payload.data.requester_id);
+			const term = payload.data;
+			const moderator = await channel.viewers.fetch(term.requester_id);
 
-			chat.event(Term, { term: payload.data, moderator });
+			chat.event(Term, {
+				action: term.type.startsWith("add") ? "add" : "delete",
+				list: term.type.endsWith("blocked_term") ? "blocked" : "permitted",
+				text: term.text,
+				fromAutoMod: term.from_automod,
+				moderator,
+			});
 
 			return;
 		}
@@ -32,6 +39,10 @@ export default defineHandler({
 
 		if (payload.type === "moderator_added" || payload.type === "vip_added") {
 			const viewer = await channel.viewers.fetch(payload.data.target_user_id);
+
+			if (payload.type === "moderator_added") {
+				viewer.moderator = true;
+			}
 
 			chat.event(RoleStatus, {
 				role: payload.type === "moderator_added" ? "moderator" : "VIP",
@@ -59,7 +70,6 @@ export default defineHandler({
 							? "unique-mode"
 							: "subscriber-only",
 					enabled: !action.moderation_action.includes("off"),
-					seconds: Number.NaN,
 					moderator,
 				});
 
@@ -71,7 +81,7 @@ export default defineHandler({
 				chat.event(Mode, {
 					mode: "follower-only",
 					enabled: action.moderation_action === "followers",
-					seconds: action.args ? Number(action.args[0]) * 60 : Number.NaN,
+					seconds: action.args ? Number(action.args[0]) * 60 : undefined,
 					moderator,
 				});
 
@@ -83,7 +93,7 @@ export default defineHandler({
 				chat.event(Mode, {
 					mode: "slow",
 					enabled: action.moderation_action === "slow",
-					seconds: action.args ? Number(action.args[0]) : Number.NaN,
+					seconds: action.args ? Number(action.args[0]) : undefined,
 					moderator,
 				});
 
@@ -173,6 +183,11 @@ export default defineHandler({
 
 			case "unmod": {
 				const viewer = await channel.viewers.fetch(action.target_user_id);
+				viewer.moderator = false;
+
+				if (viewer.id === app.user?.id) {
+					await channel.setModerated(false);
+				}
 
 				chat.event(RoleStatus, {
 					role: "moderator",

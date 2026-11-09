@@ -4,11 +4,9 @@ pub(crate) mod tags;
 pub(crate) mod twitch;
 
 use std::fmt;
-use std::fmt::Write;
 
 pub use commands::*;
 use prefix::IrcPrefix;
-use serde::{Deserialize, Serialize};
 pub use tags::IrcTags;
 use thiserror::Error;
 pub use twitch::*;
@@ -31,11 +29,7 @@ pub enum IrcParseError {
     NewlinesInMessage,
 }
 
-pub trait AsRawIrc {
-    fn format_as_raw_irc(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result;
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct IrcMessage {
     pub tags: IrcTags,
     pub prefix: Option<IrcPrefix>,
@@ -67,7 +61,7 @@ macro_rules! irc {
 impl IrcMessage {
     pub fn new(command: String, params: Vec<String>) -> IrcMessage {
         IrcMessage {
-            tags: IrcTags::new(),
+            tags: IrcTags::default(),
             prefix: None,
             command,
             params,
@@ -91,7 +85,7 @@ impl IrcMessage {
 
             IrcTags::parse(tags_part)
         } else {
-            IrcTags::new()
+            IrcTags::default()
         };
 
         let prefix = if source.starts_with(':') {
@@ -155,22 +149,12 @@ impl IrcMessage {
 
 impl fmt::Display for IrcMessage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.format_as_raw_irc(f)
-    }
-}
-
-impl AsRawIrc for IrcMessage {
-    fn format_as_raw_irc(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if !self.tags.0.is_empty() {
-            f.write_char('@')?;
-            self.tags.format_as_raw_irc(f)?;
-            f.write_char(' ')?;
+            write!(f, "@{} ", self.tags)?;
         }
 
         if let Some(prefix) = &self.prefix {
-            f.write_char(':')?;
-            prefix.format_as_raw_irc(f)?;
-            f.write_char(' ')?;
+            write!(f, ":{prefix} ")?;
         }
 
         f.write_str(&self.command)?;
@@ -180,7 +164,6 @@ impl AsRawIrc for IrcMessage {
                 write!(f, " {param}")?;
             } else {
                 write!(f, " :{param}")?;
-                // TODO should there be a panic if this is not the last parameter?
                 break;
             }
         }

@@ -49,6 +49,8 @@
 			if (!relationship) {
 				await user.fetchRelationship(channel);
 			}
+		} catch (error) {
+			log.error("Failed to fetch user info", error);
 		} finally {
 			loading = false;
 		}
@@ -118,10 +120,12 @@
 
 				{#if loading}
 					Loading...
-				{:else}
+				{:else if user.createdAt}
 					<time datetime={user.createdAt.toISOString()}>
 						{dayjs(user.createdAt).format("LL")}
 					</time>
+				{:else}
+					Unknown
 				{/if}
 			</div>
 

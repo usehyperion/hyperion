@@ -12,7 +12,7 @@ export default defineCommand({
 		const target = await getTarget(args[0], channel);
 
 		await mapErrors(
-			() => channel.viewers.unmod(target.id),
+			() => target.unmod(),
 			[
 				{
 					code: "TARGET_NOT_MOD",

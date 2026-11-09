@@ -1,237 +1,228 @@
 use std::sync::Arc;
+use std::time::Duration;
 
-use futures::future::join_all;
-use futures::{SinkExt, StreamExt};
+use futures::FutureExt;
 use serde::Deserialize;
 use serde_json::json;
 use tokio::sync::mpsc;
-use tokio_tungstenite::connect_async;
-use tokio_tungstenite::tungstenite::Message;
 
-use crate::error::Error;
-use crate::ws::{ConnectionState, SubscriptionStore};
+use crate::connection::Started;
+use crate::ws::{self, Changes, Flow, Link, Protocol, SubscriptionStore, WsError};
 
-const SEVENTV_WS_URI: &str = "wss://events.7tv.io/v3";
+/// Assumed until the server's hello says otherwise.
+const DEFAULT_HEARTBEAT_INTERVAL: Duration = Duration::from_secs(25);
+
+/// How late a heartbeat may be before the connection counts as dead.
+const HEARTBEAT_GRACE: Duration = Duration::from_secs(10);
+
+mod op {
+    pub const DISPATCH: u8 = 0;
+    pub const HELLO: u8 = 1;
+    pub const HEARTBEAT: u8 = 2;
+    pub const RECONNECT: u8 = 4;
+    pub const ACK: u8 = 5;
+    pub const ERROR: u8 = 6;
+    pub const END_OF_STREAM: u8 = 7;
+    pub const RESUME: u8 = 34;
+    pub const SUBSCRIBE: u8 = 35;
+    pub const UNSUBSCRIBE: u8 = 36;
+}
 
 #[derive(Deserialize)]
-struct WebSocketMessage {
+struct Envelope {
     op: u8,
+    #[serde(default)]
     d: serde_json::Value,
 }
 
+#[derive(Deserialize)]
+struct Hello {
+    session_id: String,
+    heartbeat_interval: Option<u64>,
+}
+
 pub struct SeventTvClient {
-    state: ConnectionState<String>,
     subscriptions: SubscriptionStore<serde_json::Value>,
-    sender: mpsc::UnboundedSender<serde_json::Value>,
-    message_tx: mpsc::UnboundedSender<Message>,
-}
-
-pub struct SeventTvHandles {
-    pub events: mpsc::UnboundedReceiver<serde_json::Value>,
-    pub connector: SeventTvConnector,
-}
-
-/// Owns the client's outgoing queue and is consumed by connecting, so a client
-/// can only be connected once, and only ever to its own queue.
-pub struct SeventTvConnector {
-    client: Arc<SeventTvClient>,
-    outgoing: mpsc::UnboundedReceiver<Message>,
-}
-
-impl SeventTvConnector {
-    pub async fn connect(self) -> Result<(), Error> {
-        self.client.run(self.outgoing).await
-    }
 }
 
 impl SeventTvClient {
-    pub fn new() -> (SeventTvHandles, Arc<Self>) {
-        let (sender, events) = mpsc::unbounded_channel::<serde_json::Value>();
-        let (message_tx, outgoing) = mpsc::unbounded_channel();
-
+    pub fn start() -> Started<Self> {
         let client = Arc::new(Self {
-            subscriptions: SubscriptionStore::new(),
-            state: ConnectionState::connecting(),
-            sender,
-            message_tx,
+            subscriptions: SubscriptionStore::default(),
         });
 
-        let connector = SeventTvConnector {
+        let (events_tx, events) = mpsc::unbounded_channel();
+
+        let driver = SeventTvDriver {
             client: Arc::clone(&client),
-            outgoing,
+            events: events_tx,
+            session_id: None,
+            resuming: None,
+            heartbeat_timeout: DEFAULT_HEARTBEAT_INTERVAL + HEARTBEAT_GRACE,
         };
 
-        (SeventTvHandles { events, connector }, client)
-    }
-
-    #[tracing::instrument(name = "7tv_connect", skip_all)]
-    async fn run(&self, mut message_rx: mpsc::UnboundedReceiver<Message>) -> Result<(), Error> {
-        // Held across reconnects so a session can still be resumed after a drop
-        let mut resume: Option<String> = None;
-
-        loop {
-            tracing::info!("Connecting to 7TV Event API");
-            self.state.set_connecting();
-
-            let mut stream = match connect_async(SEVENTV_WS_URI).await {
-                Ok((stream, _)) => stream,
-                Err(err) => {
-                    tracing::error!(%err, "Failed to connect to 7TV Event API");
-                    self.state.disconnect();
-
-                    return Err(Error::WebSocket(err));
-                }
-            };
-
-            tracing::info!("Connected to 7TV Event API");
-
-            if let Some(id) = &resume {
-                tracing::info!(%id, "Resuming 7TV session");
-
-                let payload = json!({
-                    "op": 34,
-                    "d": {
-                        "session_id": id
-                    }
-                });
-
-                if let Err(err) = stream.send(Message::Text(payload.to_string().into())).await {
-                    tracing::error!(%err, "Error sending resume message");
-                }
-            }
-
-            loop {
-                tokio::select! {
-                    Some(data) = message_rx.recv() => {
-                        if let Err(err) = stream.send(data).await {
-                            tracing::error!(%err, "Error sending message");
-                            break;
-                        }
-                    }
-                    result = stream.next() => {
-                        match result {
-                            Some(Ok(message)) => match message {
-                                Message::Text(text) => {
-                                    match serde_json::from_str::<WebSocketMessage>(&text) {
-                                        Ok(msg) => self.handle_ws_message(msg).await,
-                                        Err(err) => tracing::warn!(%err, "Failed to deserialize 7TV message"),
-                                    }
-                                }
-                                Message::Close(cf) => {
-                                    if let Some(frame) = cf {
-                                        tracing::warn!(%frame, "Event API connection closed");
-                                    }
-
-                                    break;
-                                }
-                                _ => (),
-                            },
-                            Some(Err(err)) => {
-                                tracing::error!(%err, "7TV WebSocket error");
-                                break;
-                            }
-                            None => {
-                                tracing::warn!("7TV WebSocket stream ended unexpectedly");
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Keep the previous id when the drop happened before the session
-            // was re-established, so the resume attempt isn't lost
-            resume = self.state.disconnect().or(resume);
+        Started {
+            client,
+            events,
+            run: Some(ws::run(driver).boxed()),
         }
     }
 
-    async fn handle_ws_message(&self, msg: WebSocketMessage) {
-        match msg.op {
-            0 =>
-            {
-                #[allow(clippy::collapsible_match)]
-                if self.sender.send(msg.d).is_err() {
+    /// Replaces the events subscribed to for `channel`.
+    pub fn set_channel(&self, channel: &str, events: Vec<(String, serde_json::Value)>) {
+        self.subscriptions.set_channel(channel, events);
+    }
+
+    pub fn leave(&self, channel: &str) {
+        self.subscriptions.remove_channel(channel);
+    }
+}
+
+struct SeventTvDriver {
+    client: Arc<SeventTvClient>,
+    events: mpsc::UnboundedSender<serde_json::Value>,
+    /// The last session that became ready. Resuming it after a drop keeps its
+    /// subscriptions and replays the events missed in between.
+    session_id: Option<String>,
+    /// This connection's session, while waiting to hear whether resuming
+    /// `session_id` worked.
+    resuming: Option<String>,
+    heartbeat_timeout: Duration,
+}
+
+impl SeventTvDriver {
+    async fn hello(&mut self, hello: Hello, link: &mut Link) -> Result<Flow, WsError> {
+        if let Some(interval) = hello.heartbeat_interval {
+            self.heartbeat_timeout = Duration::from_millis(interval) + HEARTBEAT_GRACE;
+            link.expect_within(self.heartbeat_timeout);
+        }
+
+        let Some(previous) = &self.session_id else {
+            tracing::info!(id = %hello.session_id, "Session established");
+            self.session_id = Some(hello.session_id);
+
+            return Ok(Flow::Ready { restored: false });
+        };
+
+        tracing::info!(%previous, "Resuming session");
+
+        link.send(&json!({
+            "op": op::RESUME,
+            "d": { "session_id": previous }
+        }))
+        .await?;
+
+        self.resuming = Some(hello.session_id);
+
+        Ok(Flow::Continue)
+    }
+
+    fn resumed(&mut self, session_id: String, restored: bool) -> Flow {
+        if restored {
+            tracing::info!(id = %session_id, "Session resumed");
+        } else {
+            tracing::warn!(id = %session_id, "Resume unsuccessful, resubscribing");
+        }
+
+        self.session_id = Some(session_id);
+
+        Flow::Ready { restored }
+    }
+}
+
+impl Protocol for SeventTvDriver {
+    type Subscription = serde_json::Value;
+
+    const NAME: &'static str = "7TV";
+    const URI: &'static str = "wss://events.7tv.io/v3";
+
+    fn subscriptions(&self) -> &SubscriptionStore<serde_json::Value> {
+        &self.client.subscriptions
+    }
+
+    fn opened(&mut self, link: &mut Link) -> Flow {
+        self.resuming = None;
+        link.expect_within(self.heartbeat_timeout);
+
+        Flow::Continue
+    }
+
+    async fn received(&mut self, text: &str, link: &mut Link) -> Result<Flow, WsError> {
+        let Envelope { op, d } = match serde_json::from_str(text) {
+            Ok(envelope) => envelope,
+            Err(err) => {
+                tracing::warn!(%err, "Failed to deserialize 7TV message");
+                return Ok(Flow::Continue);
+            }
+        };
+
+        // Heartbeats are what the server promises, but anything it sends shows
+        // the connection is alive
+        link.expect_within(self.heartbeat_timeout);
+
+        match op {
+            op::DISPATCH => {
+                if self.events.send(d).is_err() {
                     tracing::warn!("7TV event receiver dropped");
                 }
             }
-            1 => {
-                if let Some(id) = msg.d["session_id"].as_str() {
-                    self.state.set_ready(id.to_string());
-                    tracing::info!(%id, "Hello received, session established");
+            op::HELLO => match serde_json::from_value(d) {
+                Ok(hello) => return self.hello(hello, link).await,
+                Err(err) => {
+                    tracing::error!(%err, "Malformed hello");
+                    return Ok(Flow::Reconnect);
+                }
+            },
+            op::HEARTBEAT => tracing::trace!("Heartbeat received"),
+            op::RECONNECT => {
+                tracing::warn!("7TV server requested reconnect");
+                return Ok(Flow::Reconnect);
+            }
+            op::ACK => match self.resuming.take() {
+                // Nothing is subscribed while resuming, so this acknowledges it
+                Some(session_id) => {
+                    let restored = d["data"]["success"].as_bool().unwrap_or(false);
+                    return Ok(self.resumed(session_id, restored));
+                }
+                None => tracing::debug!(payload = %d, "Opcode acknowledged"),
+            },
+            op::ERROR => {
+                tracing::error!(payload = %d, "7TV returned an error");
+
+                // In place of the resume's ack, it means resuming failed
+                if let Some(session_id) = self.resuming.take() {
+                    return Ok(self.resumed(session_id, false));
                 }
             }
-            5 => {
-                tracing::debug!(payload = ?msg.d.to_string(), "Opcode acknowledged");
-
-                if let Some(false) = msg.d["data"]["success"].as_bool() {
-                    let to_restore = self.subscriptions.drain().await;
-
-                    tracing::warn!("Resume unsuccessful, restoring {} events", to_restore.len());
-
-                    for (key, condition) in to_restore {
-                        self.subscribe(&key.channel, &key.event, &condition).await;
-                    }
-                }
+            op::END_OF_STREAM => {
+                tracing::warn!(payload = %d, "End of stream reached");
+                return Ok(Flow::Reconnect);
             }
-            7 => {
-                tracing::info!(payload = ?msg.d.to_string(), "End of stream reached");
-            }
-            _ => {}
+            _ => tracing::debug!(op, "Unhandled 7TV opcode"),
         }
+
+        Ok(Flow::Continue)
     }
 
-    /// Whether the client is connected or still establishing its connection.
-    pub fn active(&self) -> bool {
-        self.state.active()
-    }
+    async fn sync(
+        &mut self,
+        changes: &Changes<serde_json::Value>,
+        link: &mut Link,
+    ) -> Result<(), WsError> {
+        let removed = changes.removed.iter().map(|entry| (op::UNSUBSCRIBE, entry));
+        let added = changes.added.iter().map(|entry| (op::SUBSCRIBE, entry));
 
-    #[tracing::instrument(name = "7tv_subscribe", skip(self, condition), fields(%condition))]
-    pub async fn subscribe(&self, channel: &str, event: &str, condition: &serde_json::Value) {
-        let payload = json!({
-            "op": 35,
-            "d": {
-                "type": event,
-                "condition": condition
-            }
-        });
-
-        match self
-            .message_tx
-            .send(Message::Text(payload.to_string().into()))
-        {
-            Ok(_) => {
-                self.subscriptions
-                    .insert(channel, event, condition.clone())
-                    .await;
-
-                tracing::trace!("Subscription created");
-            }
-            Err(err) => {
-                tracing::error!(%err, "Failed to send subscription message");
-            }
-        }
-    }
-
-    pub async fn unsubscribe(&self, channel: &str, event: &str) {
-        if let Some(condition) = self.subscriptions.remove(channel, event).await {
-            let payload = json!({
-                "op": 36,
+        for (op, (key, condition)) in removed.chain(added) {
+            link.send(&json!({
+                "op": op,
                 "d": {
-                    "type": event,
+                    "type": key.event,
                     "condition": condition
                 }
-            });
-
-            let _ = self
-                .message_tx
-                .send(Message::Text(payload.to_string().into()));
+            }))
+            .await?;
         }
-    }
 
-    pub async fn unsubscribe_all(&self, channel: &str) {
-        let events = self.subscriptions.events_for_channel(channel).await;
-        let futures = events.iter().map(|event| self.unsubscribe(channel, event));
-
-        join_all(futures).await;
+        Ok(())
     }
 }

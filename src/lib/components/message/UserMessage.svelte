@@ -2,7 +2,6 @@
 	import ArrowBendUpRight from "~icons/ph/arrow-bend-up-right";
 
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
-	import type { Viewer } from "#lib/models/viewer.svelte.js";
 
 	import { app } from "#lib/app.svelte.js";
 	import { createMessageMenu } from "#lib/menus/message-menu.js";
@@ -39,34 +38,21 @@
 		const hasMention = message.text.toLowerCase().includes(`@${app.user?.username}`);
 		if (hasMention) return "mention";
 
-		if (message.viewer?.new) return "new";
-		if (message.viewer?.returning) return "returning";
-		if (message.viewer?.broadcaster) return "broadcaster";
-		if (message.viewer?.moderator) return "moderator";
-		if (message.viewer?.suspicious) return "suspicious";
-		if (message.viewer?.vip) return "vip";
-		if (message.viewer?.subscriber) return "subscriber";
+		if (message.viewer.new) return "new";
+		if (message.viewer.returning) return "returning";
+		if (message.viewer.broadcaster) return "broadcaster";
+		if (message.viewer.moderator) return "moderator";
+		if (message.viewer.suspicious) return "suspicious";
+		if (message.viewer.vip) return "vip";
+		if (message.viewer.subscriber) return "subscriber";
 	});
 
 	function getSuspicionInfo() {
-		if (!message.viewer?.suspicious) return;
+		if (!message.viewer.suspicious) return;
 
 		if (message.viewer.monitored) return "Monitoring";
 		if (message.viewer.restricted) return "Restricted";
 		if (message.viewer.possibleBanEvader) return "Possible Ban Evader";
-	}
-
-	function getMentionStyle(viewer?: Viewer) {
-		if (!viewer) return null;
-
-		switch (settings.state["chat.usernames.mentionStyle"]) {
-			case "none":
-				return null;
-			case "colored":
-				return `color: ${viewer.user.color}`;
-			case "painted":
-				return viewer.user.style;
-		}
 	}
 </script>
 
@@ -77,12 +63,12 @@
 	data-deleted={deletedAppearance(message)}
 	oncontextmenu={(event) => openMenu(event, () => createMessageMenu(message))}
 >
-	{#if !message.deleted && !app.user?.banned.has(message.channel.id)}
+	{#if !message.deleted && !message.channel.banned}
 		<QuickActions class="absolute top-0 right-2 z-10 -translate-y-1/2" {message} />
 	{/if}
 
 	{#if message.redemption}
-		<Redemption reward={message.redemption} {message} viewer={message.viewer} />
+		<Redemption reward={message.redemption} {message} />
 	{:else if message.highlighted}
 		<Callout color={message.source.user.color}>
 			<Message {message} />
@@ -115,7 +101,7 @@
 				<ArrowBendUpRight class="ml-1 shrink-0 scale-x-125 text-muted-foreground" />
 
 				<div class="line-clamp-1 text-xs">
-					<span style={getMentionStyle(viewer)}>
+					<span style={viewer?.user.mentionStyle}>
 						@{message.reply.parent.user.name}
 					</span>:
 

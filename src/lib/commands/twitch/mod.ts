@@ -12,7 +12,7 @@ export default defineCommand({
 		const target = await getTarget(args[0], channel);
 
 		await mapErrors(
-			() => channel.viewers.mod(target.id),
+			() => target.mod(),
 			[
 				{
 					code: "TARGET_ALREADY_MOD",

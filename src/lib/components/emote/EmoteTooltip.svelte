@@ -12,10 +12,7 @@
 </script>
 
 <script lang="ts">
-	import SevenTV from "~icons/logos/7tv";
-	import BetterTTV from "~icons/logos/bttv";
-	import FrankerFaceZ from "~icons/logos/ffz";
-	import Twitch from "~icons/logos/twitch";
+	import { PROVIDER_ICONS } from "#lib/emotes.js";
 
 	import EmoteLayers from "./EmoteLayers.svelte";
 
@@ -24,13 +21,6 @@
 	}
 
 	const { tether }: Props = $props();
-
-	const PROVIDER_ICONS = {
-		Twitch,
-		"7TV": SevenTV,
-		BetterTTV: BetterTTV,
-		FrankerFaceZ: FrankerFaceZ,
-	};
 </script>
 
 <Tooltip.Root {tether}>

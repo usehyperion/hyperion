@@ -1,47 +1,51 @@
-// oxlint-disable typescript/no-unsafe-type-assertion
-// oxlint-disable no-await-in-loop
+// oxlint-disable no-await-in-loop, typescript/no-unsafe-type-assertion
 
+import { invoke } from "@tauri-apps/api/core";
 import type { TadaDocumentNode } from "gql.tada";
 
 import type { Connection } from "#lib/graphql/index.js";
 
 import { ApiError } from "#lib/errors/api-error.js";
 import { nodes, request } from "#lib/graphql/index.js";
-import { streamsQuery } from "#lib/graphql/twitch.js";
 import { log } from "#lib/log.js";
 import { UserManager } from "#lib/managers/user-manager.js";
-import { Stream } from "#lib/models/stream.svelte.js";
+import { dedupe } from "#lib/util/resource.js";
 
-import type { Session } from "./session";
+const CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 
-import { expireSession } from "./auth";
+interface Integrity {
+	token: string;
+	deviceId: string;
+}
 
 interface PageVariables {
 	after?: string | null;
 }
 
 export class TwitchClient {
-	// This should only be null between the time of app start up and settings
-	// synchronization because of browser restrictions; however, any subsequent
-	// API calls SHOULD have a valid session as it's set at first layout load.
-	public session: Session | null = null;
+	/**
+	 * The OAuth token of the signed in user; `null` while signed out.
+	 */
+	public token: string | null = null;
 
 	public readonly users = new UserManager(this);
 
-	public async gql<T, U>(query: TadaDocumentNode<T, U>, variables?: U): Promise<T> {
-		const session = this.session;
+	public constructor(private readonly onRevoked: () => void) {}
 
-		if (!session) {
+	public async gql<T, U>(query: TadaDocumentNode<T, U>, variables?: U): Promise<T> {
+		const token = this.token;
+
+		if (!token) {
 			throw new ApiError(401, "OAuth token is not set");
 		}
 
 		try {
 			return await request("https://gql.twitch.tv/gql", query, variables, () =>
-				session.headers(),
+				this.#headers(token),
 			);
 		} catch (error) {
-			if (error instanceof ApiError && error.status === 401) {
-				this.#handleRevoked();
+			if (error instanceof ApiError && error.status === 401 && this.token === token) {
+				this.onRevoked();
 			}
 
 			throw error;
@@ -73,31 +77,25 @@ export class TwitchClient {
 		return results;
 	}
 
-	/**
-	 * Retrieves the streams of the specified channels if they're live.
-	 */
-	public async fetchStreams(ids: string[]) {
-		if (!ids.length) return [];
+	async #headers(token: string) {
+		const headers = new Headers({
+			Authorization: `OAuth ${token}`,
+			"Client-Id": CLIENT_ID,
+		});
 
-		const { users } = await this.gql(streamsQuery, { ids });
-		const streams: Stream[] = [];
+		// The backend caches the token and backs off after failures.
+		const integrity = await dedupe("twitch:integrity", () =>
+			invoke<Integrity | null>("get_integrity"),
+		).catch((error) => {
+			log.error("Failed to get the integrity token", error);
+			return null;
+		});
 
-		for (const user of users ?? []) {
-			const stream = user?.stream;
-			if (!stream) continue;
-
-			const instance = new Stream(this, user.id, stream);
-			instance.setGuests(user.channel);
-
-			streams.push(instance);
+		if (integrity) {
+			headers.set("Client-Integrity", integrity.token);
+			headers.set("X-Device-Id", integrity.deviceId);
 		}
 
-		return streams;
-	}
-
-	#handleRevoked() {
-		if (!this.session) return;
-
-		void expireSession().catch(log.catch("Failed to end the revoked session"));
+		return headers;
 	}
 }

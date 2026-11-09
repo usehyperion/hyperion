@@ -5,18 +5,20 @@ import type { CheermoteTier } from "#lib/graphql/twitch.js";
 import type { Emote as IrcEmote } from "#lib/twitch/irc.js";
 
 import { app } from "#lib/app.svelte.js";
+import { transformTwitchEmote } from "#lib/emotes.js";
+import { settings } from "#lib/settings/index.js";
 
 import type { User } from "../user.svelte";
 import type { UserMessage } from "./user-message.svelte";
 
-export interface BaseNode {
+interface BaseNode {
 	start: number;
 	end: number;
 	value: string;
 	marked: boolean;
 }
 
-export interface TextNode extends BaseNode {
+interface TextNode extends BaseNode {
 	type: "text";
 	data: string;
 }
@@ -36,7 +38,7 @@ export interface MentionNode extends BaseNode {
 	};
 }
 
-export interface CheerNode extends BaseNode {
+interface CheerNode extends BaseNode {
 	type: "cheer";
 	data: {
 		prefix: string;
@@ -45,7 +47,7 @@ export interface CheerNode extends BaseNode {
 	};
 }
 
-export interface EmoteNode extends BaseNode {
+interface EmoteNode extends BaseNode {
 	type: "emote";
 	data: {
 		layers: Emote[];
@@ -157,8 +159,6 @@ function classify(base: BaseNode, message: UserMessage, ircEmotes: IrcEmote[]): 
 	if (ircEmote) {
 		ircEmotes.splice(ircEmotes.indexOf(ircEmote), 1);
 
-		const baseUrl = "https://static-cdn.jtvnw.net/emoticons/v2";
-
 		return {
 			start: ircEmote.range.start,
 			end: ircEmote.range.end,
@@ -166,28 +166,17 @@ function classify(base: BaseNode, message: UserMessage, ircEmotes: IrcEmote[]): 
 			marked: base.marked,
 			type: "emote",
 			data: {
-				emote: {
-					provider: "Twitch",
-					id: ircEmote.id,
-					name: ircEmote.code,
-					displayName: ircEmote.code,
-					width: 56,
-					height: 56,
-					// Twitch serves emotes at 28px for 1.0.
-					displayWidth: 28,
-					displayHeight: 28,
-					srcset: [1, 2, 3].map(
-						(density) =>
-							`${baseUrl}/${ircEmote.id}/default/dark/${density}.0 ${density}x`,
-					),
-				},
+				emote: transformTwitchEmote(ircEmote.id, ircEmote.code),
 				layers: [],
 			},
 		};
 	}
 
+	// Priority: personal emotes -> global emotes -> channel emotes
 	const emote =
-		message.author.emotes.get(part) ?? app.emotes.get(part) ?? message.channel.emotes.get(part);
+		personalEmote(message.author.id, part) ??
+		app.emotes.get(part) ??
+		message.channel.emotes.get(part);
 
 	if (emote) {
 		return {
@@ -200,7 +189,11 @@ function classify(base: BaseNode, message: UserMessage, ircEmotes: IrcEmote[]): 
 		};
 	}
 
-	return { ...base, type: "text", data: part };
+	return {
+		...base,
+		type: "text",
+		data: part,
+	};
 }
 
 function fold(nodes: Node[]): Node[] {
@@ -239,4 +232,10 @@ function precedingEmote(nodes: Node[]): EmoteNode | null {
 	}
 
 	return null;
+}
+
+function personalEmote(userId: string, name: string) {
+	return settings.state["chat.emotes.seventv"]
+		? app.cosmetics.personalEmote(userId, name)
+		: undefined;
 }

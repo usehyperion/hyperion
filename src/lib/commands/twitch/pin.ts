@@ -16,6 +16,6 @@ export default defineCommand({
 			throw new CommandError(ErrorMessage.MISSING_ARG(this.args[0]));
 		}
 
-		await channel.chat.send(message, { pin: true });
+		await channel.chat.sendPinned(message);
 	},
 });

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
 	import { flip } from "svelte/animate";
 
 	import type { Channel } from "#lib/models/channel.svelte.js";
@@ -50,21 +49,6 @@
 
 		return [pinned, ephemeral, online, offline].filter((g) => g.channels.length);
 	});
-
-	const interval = setInterval(
-		async () => {
-			const ids = app.channels.keys().toArray();
-			const streams = await app.twitch.fetchStreams(ids);
-
-			for (const channel of app.channels.values()) {
-				const stream = streams.find((s) => s.channelId === channel.user.id);
-				channel.stream = stream ?? null;
-			}
-		},
-		5 * 60 * 1000,
-	);
-
-	onDestroy(() => clearInterval(interval));
 </script>
 
 {#if userChannel}

@@ -10,7 +10,6 @@ import type { Channel } from "#lib/models/channel.svelte.js";
 import type { SplitDirection } from "#lib/splits/types.js";
 
 import { app } from "#lib/app.svelte.js";
-import { storage } from "#lib/stores.js";
 
 async function splitItem(channel: Channel, direction: SplitDirection) {
 	const enabled = app.splits.focused !== null && app.splits.paneOf(channel.id) === null;
@@ -25,10 +24,7 @@ async function splitItem(channel: Channel, direction: SplitDirection) {
 			const focused = app.splits.focused;
 			if (!focused) return;
 
-			app.splits.splitWithTab(focused.id, direction, {
-				id: channel.id,
-				ephemeral: channel.ephemeral,
-			});
+			app.splits.splitWithTab(focused.id, direction, channel);
 		},
 	});
 }
@@ -52,10 +48,7 @@ export async function createChannelMenu(channel: Channel) {
 		text: "Leave",
 		enabled: channel.status === "joining" || channel.status === "joined",
 		async action() {
-			await channel.leave();
-
-			app.splits.closeTab(channel.id);
-			app.refocus(channel);
+			await app.leave(channel);
 		},
 	});
 
@@ -65,12 +58,8 @@ export async function createChannelMenu(channel: Channel) {
 		accelerator: "CmdOrCtrl+P",
 		enabled: !channel.ephemeral && channel.id !== app.user?.id,
 		checked: channel.pinned,
-		async action() {
-			if (channel.pinned) {
-				storage.state.pinned = storage.state.pinned.filter((id) => id !== channel.id);
-			} else {
-				storage.state.pinned.push(channel.id);
-			}
+		action() {
+			channel.setPinned(!channel.pinned);
 		},
 	});
 
@@ -88,11 +77,7 @@ export async function createChannelMenu(channel: Channel) {
 			id: "remove",
 			text: "Remove",
 			async action() {
-				await channel.leave();
-
-				app.splits.closeTab(channel.id);
-				app.refocus(channel);
-				app.channels.delete(channel.id);
+				await app.remove(channel);
 			},
 		});
 
@@ -102,8 +87,8 @@ export async function createChannelMenu(channel: Channel) {
 	const copyId = await MenuItem.new({
 		id: "copy-id",
 		text: "Copy Channel ID",
-		action() {
-			navigator.clipboard.writeText(channel.id);
+		async action() {
+			await navigator.clipboard.writeText(channel.id);
 		},
 	});
 
