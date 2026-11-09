@@ -1,33 +1,19 @@
-import { ErrorMessage } from "#lib/errors/messages.js";
+import { command } from "../define";
 
-import { defineCommand, getTarget, mapErrors } from "../util";
-
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "unvip",
 	description: "Revoke VIP status from a user",
-	broadcasterOnly: true,
-	args: ["username"],
-	async exec(args, channel) {
-		const target = await getTarget(args[0], channel);
-
-		await mapErrors(
-			() => target.revokeVip(),
-			[
-				{
-					code: "REVOKEE_NOT_VIP",
-					message: ErrorMessage.USER_NOT_VIP(target.displayName),
-				},
-				{
-					code: "REVOKEE_NOT_FOUND",
-					message: ErrorMessage.USER_NOT_FOUND(target.username),
-				},
-				{
-					code: "FORBIDDEN",
-					message: ErrorMessage.NO_PERMISSION,
-				},
-			],
-			ErrorMessage.COMMAND_FAILED,
-		);
+	permission: "broadcaster",
+	args: [
+		{
+			type: "viewer",
+			name: "user",
+		},
+	],
+	errors: (args) => ({
+		REVOKEE_NOT_VIP: `${args.user.displayName} is not a VIP.`,
+	}),
+	async exec(args) {
+		await args.user.revokeVip();
 	},
 });

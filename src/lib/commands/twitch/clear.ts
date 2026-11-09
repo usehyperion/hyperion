@@ -1,10 +1,9 @@
-import { defineCommand } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "clear",
 	description: "Clear chat history for non-moderator viewers",
-	modOnly: true,
+	permission: "mod",
 	async exec(_, channel) {
 		await channel.chat.clear();
 	},

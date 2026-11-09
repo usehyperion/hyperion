@@ -1,22 +1,19 @@
 import { app } from "#lib/app.svelte.js";
 import { CommandError } from "#lib/errors/command-error.js";
-import { ErrorMessage } from "#lib/errors/messages.js";
 
-import { defineCommand, mapErrors } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Built-in",
+export default command({
 	name: "join",
 	description: "Join a channel",
-	args: ["channel"],
+	args: [
+		{
+			type: "string",
+			name: "channel",
+		},
+	],
+	errors: (args) => ({ 404: CommandError.USER_NOT_FOUND(args.channel) }),
 	async exec(args) {
-		if (!args[0]) {
-			throw new CommandError(ErrorMessage.MISSING_ARG(this.args[0]));
-		}
-
-		await mapErrors(
-			() => app.openByLogin(args[0].toLowerCase()),
-			[{ status: 404, message: ErrorMessage.USER_NOT_FOUND(args[0]) }],
-		);
+		await app.openByLogin(args.channel.replace(/^@/, "").toLowerCase());
 	},
 });
