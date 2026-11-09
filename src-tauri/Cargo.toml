@@ -28,7 +28,9 @@ tauri-build = { version = "2", features = [] }
 anyhow = "1.0.104"
 either = "1.19.0"
 futures = "0.3.34"
+keyring = "4.2.0"
 mimalloc = "0.1"
+notify-rust = { version = "4.19.0", features = ["preview-macos-un"] }
 reqwest = { version = "0.12.28", features = ["json"] }
 rustc-hash = "2.1.3"
 rustls = { version = "0.23.46", features = ["ring"] }
@@ -39,7 +41,6 @@ time = { version = "0.3", features = ["formatting", "local-offset"] }
 tauri = { version = "2", features = ["protocol-asset"] }
 tauri-plugin-deep-link = "2"
 tauri-plugin-fs = "2"
-tauri-plugin-notification = "2"
 tauri-plugin-opener = "2"
 tauri-plugin-os = "2"
 tauri-plugin-process = "2"
@@ -51,7 +52,6 @@ tracing = "0.1"
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "time"] }
 twitch_oauth2 = { version = "0.15", features = ["reqwest"] }
-keyring = "4.2.0"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
