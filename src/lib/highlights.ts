@@ -27,64 +27,48 @@ export interface KeywordHighlightConfig extends HighlightConfig {
 
 interface HighlightKind {
 	label: string;
-
-	/**
-	 * The label for the settings list of every viewer of the kind.
-	 */
-	plural: string;
 	icon: Component;
 	defaults: HighlightConfig;
 }
 
-/**
- * The kinds of viewer highlights, in the order they're listed in settings.
- */
 export const HIGHLIGHTS = {
 	mention: {
 		label: "Mention",
-		plural: "Mentions",
 		icon: At,
 		defaults: { enabled: true, color: "#adadb8", style: "background" },
 	},
 	new: {
 		label: "First Time Chat",
-		plural: "First Time Chats",
 		icon: Sparkle,
 		defaults: { enabled: true, color: "#ff75e6", style: "default" },
 	},
 	returning: {
 		label: "Returning Chatter",
-		plural: "Returning Chatters",
 		icon: Repeat,
 		defaults: { enabled: true, color: "#00a3a3", style: "default" },
 	},
 	suspicious: {
 		label: "Suspicious User",
-		plural: "Suspicious Users",
 		icon: ShieldWarning,
 		defaults: { enabled: true, color: "#ff8280", style: "default" },
 	},
 	broadcaster: {
 		label: "Broadcaster",
-		plural: "Broadcasters",
 		icon: VideoCamera,
 		defaults: { enabled: false, color: "#fc3430", style: "default" },
 	},
 	moderator: {
 		label: "Moderator",
-		plural: "Moderators",
 		icon: Sword,
 		defaults: { enabled: false, color: "#00a865", style: "default" },
 	},
 	subscriber: {
 		label: "Subscriber",
-		plural: "Subscribers",
 		icon: Star,
 		defaults: { enabled: false, color: "#528bff", style: "default" },
 	},
 	vip: {
 		label: "VIP",
-		plural: "VIPs",
 		icon: SketchLogo,
 		defaults: { enabled: false, color: "#db00b3", style: "default" },
 	},
@@ -104,7 +88,7 @@ export const KEYWORD_HIGHLIGHT = {
 		wholeWord: false,
 		matchCase: false,
 	},
-} as const satisfies Omit<HighlightKind, "plural" | "defaults"> & {
+} as const satisfies Omit<HighlightKind, "defaults"> & {
 	defaults: KeywordHighlightConfig;
 };
 
@@ -115,11 +99,10 @@ export function defaultHighlights() {
 	) as Record<HighlightType, HighlightConfig>;
 }
 
-/**
- * The highlight a message gets from who sent it, by priority.
- */
 export function highlightOf(text: string, viewer: Viewer, username: string | undefined) {
-	if (username && new RegExp(`@${RegExp.escape(username)}\\b`, "i").test(text)) return "mention";
+	const hasMention = username && new RegExp(`@${RegExp.escape(username)}\\b`, "i").test(text);
+
+	if (hasMention) return "mention";
 	if (viewer.new) return "new";
 	if (viewer.returning) return "returning";
 	if (viewer.broadcaster) return "broadcaster";
@@ -131,10 +114,6 @@ export function highlightOf(text: string, viewer: Viewer, username: string | und
 	return null;
 }
 
-/**
- * Whether the text matches a keyword highlight. Invalid user-supplied patterns
- * never match.
- */
 export function matchesKeyword(text: string, config: KeywordHighlightConfig) {
 	if (!config.pattern.trim()) return false;
 

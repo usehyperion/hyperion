@@ -10,7 +10,7 @@
 	import Row from "./Row.svelte";
 
 	const highlights = Object.entries(HIGHLIGHTS).map(([value, kind]) => ({
-		label: kind.plural,
+		label: `${kind.label}s`,
 		value: value as HighlightType,
 	}));
 
