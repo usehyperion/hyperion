@@ -6,9 +6,6 @@
 		| { type: "spotify"; path: string }
 		| { type: "clip"; slug: string };
 
-	/**
-	 * Returns what a link embeds, or `null` if it can't be embedded.
-	 */
 	export function embedOf({ url, tld }: LinkNode["data"]): EmbedTarget | null {
 		const parts = url.pathname.split("/");
 
@@ -88,31 +85,6 @@
 		return `${m}:${s.toString().padStart(2, "0")}`;
 	}
 </script>
-
-{#snippet card(href: string, label: string, media: Snippet, body: Snippet)}
-	<div
-		class={[
-			"group relative flex h-19 w-full max-w-100 gap-3 overflow-hidden rounded-lg border bg-card",
-			"transition-[background-color,border-color] hover:border-ring/40 hover:bg-accent/40",
-		]}
-	>
-		<a class="absolute inset-0 z-10 rounded-lg" {href} target="_blank" aria-label={label}></a>
-
-		<div class="relative shrink-0">
-			{@render media()}
-		</div>
-
-		<div class="flex min-w-0 flex-col justify-center gap-0.5 py-2 pr-3">
-			{@render body()}
-		</div>
-	</div>
-{/snippet}
-
-{#snippet meta(children: Snippet)}
-	<div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-		{@render children()}
-	</div>
-{/snippet}
 
 {#if target.type === "emote"}
 	{#await fetchEmote(target.id) then emote}
@@ -225,3 +197,28 @@
 		{/if}
 	{/await}
 {/if}
+
+{#snippet card(href: string, label: string, media: Snippet, body: Snippet)}
+	<div
+		class={[
+			"group relative flex h-19 w-full max-w-100 gap-3 overflow-hidden rounded-lg border bg-card",
+			"transition-[background-color,border-color] hover:border-ring/40 hover:bg-accent/40",
+		]}
+	>
+		<a class="absolute inset-0 z-10 rounded-lg" {href} target="_blank" aria-label={label}></a>
+
+		<div class="relative shrink-0">
+			{@render media()}
+		</div>
+
+		<div class="flex min-w-0 flex-col justify-center gap-0.5 py-2 pr-3">
+			{@render body()}
+		</div>
+	</div>
+{/snippet}
+
+{#snippet meta(children: Snippet)}
+	<div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+		{@render children()}
+	</div>
+{/snippet}

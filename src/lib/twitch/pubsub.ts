@@ -525,10 +525,6 @@ export type Whispers =
 	| { type: "whisper_received" | "whisper_sent"; data_object: WhisperMessage }
 	| { type: "thread"; data_object: WhisperThreadUpdate };
 
-/**
- * Sent by the backend when Twitch revokes a topic, e.g. a moderator topic
- * after the user was unmodded.
- */
 export interface AuthRevoked {
 	topic: string;
 }
@@ -550,17 +546,10 @@ export interface PubSubTopicMap {
 	whispers: Whispers;
 }
 
-/**
- * A message as handed to its handler, along with the id at the end of its
- * topic, e.g. the channel id.
- */
 export type PubSubData<K extends keyof PubSubTopicMap> = PubSubTopicMap[K] & {
 	target_id: string;
 };
 
-/**
- * A message as sent by the backend.
- */
 export type PubSubMessage = {
 	[K in keyof PubSubTopicMap]: {
 		topic: K;

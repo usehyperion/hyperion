@@ -21,12 +21,7 @@
 
 	const { chat }: Props = $props();
 
-	function entry<T extends Notice>(label: string, notice: T | null, render: Snippet<[T]>) {
-		if (!notice || notice.hidden) return null;
-
-		// Sound because each render only ever receives its own notice.
-		return { label, notice, render: render as Snippet<[Notice]> };
-	}
+	let selected = $state(0);
 
 	const notices = $derived(
 		[
@@ -36,27 +31,23 @@
 		].filter((notice) => notice !== null),
 	);
 
-	let selected = $state(0);
-
 	const index = $derived(Math.min(selected, Math.max(0, notices.length - 1)));
 	const active = $derived(notices.at(index));
+
+	function entry<T extends Notice>(label: string, notice: T | null, render: Snippet<[T]>) {
+		if (!notice || notice.hidden) return null;
+
+		return {
+			label,
+			notice,
+			render: render as Snippet<[Notice]>,
+		};
+	}
 
 	function cycle(delta: number) {
 		selected = (index + delta + notices.length) % notices.length;
 	}
 </script>
-
-{#snippet pinNotice(pin: PinModel)}
-	<Pin {pin} />
-{/snippet}
-
-{#snippet pollNotice(poll: PollModel)}
-	<Poll {poll} />
-{/snippet}
-
-{#snippet predictionNotice(prediction: PredictionModel)}
-	<Prediction {prediction} />
-{/snippet}
 
 {#if notices.length}
 	<div
@@ -110,3 +101,15 @@
 		{/if}
 	</div>
 {/if}
+
+{#snippet pinNotice(pin: PinModel)}
+	<Pin {pin} />
+{/snippet}
+
+{#snippet pollNotice(poll: PollModel)}
+	<Poll {poll} />
+{/snippet}
+
+{#snippet predictionNotice(prediction: PredictionModel)}
+	<Prediction {prediction} />
+{/snippet}

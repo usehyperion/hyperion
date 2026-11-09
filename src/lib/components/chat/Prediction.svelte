@@ -22,7 +22,10 @@
 
 	const { prediction }: Props = $props();
 
-	const DUEL = { BLUE: "bg-blue-500", PINK: "bg-pink-500" };
+	const DUEL = {
+		BLUE: "bg-blue-500",
+		PINK: "bg-pink-500",
+	};
 
 	const RAINBOW = [
 		"bg-red-500",
@@ -62,7 +65,6 @@
 
 	function colorFor(index: number) {
 		const duel = duelColor(index, prediction.outcomes.length);
-
 		return duel ? DUEL[duel] : RAINBOW[index];
 	}
 
