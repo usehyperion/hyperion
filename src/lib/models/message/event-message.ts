@@ -8,6 +8,7 @@ export interface EventMeta {
 	deleted: boolean;
 	recent: boolean;
 	timestamp: number;
+	bare: boolean;
 }
 
 /**
@@ -18,6 +19,11 @@ export class EventMessage<C extends Component<any> = Component<any>> extends Mes
 
 	public override readonly id = crypto.randomUUID();
 	public override readonly text = "";
+
+	/**
+	 * Whether to render the component without the event chrome.
+	 */
+	public readonly bare: boolean;
 
 	public constructor(
 		channel: Channel,
@@ -30,5 +36,7 @@ export class EventMessage<C extends Component<any> = Component<any>> extends Mes
 			deleted: meta?.deleted ?? false,
 			recent: meta?.recent ?? false,
 		});
+
+		this.bare = meta?.bare ?? false;
 	}
 }

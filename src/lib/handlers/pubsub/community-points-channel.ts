@@ -1,5 +1,5 @@
 import { app } from "#lib/app.svelte.js";
-import Redemption from "#lib/components/message/events/Redemption.svelte";
+import Redemption from "#lib/components/message/Redemption.svelte";
 
 import { defineHandler } from "../helper";
 
@@ -20,10 +20,14 @@ export default defineHandler("pubsub", {
 		} else {
 			const viewer = await channel.viewers.fetch(redemption.user.id);
 
-			channel.chat.event(Redemption, {
-				reward: redemption.reward,
-				viewer,
-			});
+			channel.chat.event(
+				Redemption,
+				{
+					reward: redemption.reward,
+					viewer,
+				},
+				{ bare: true },
+			);
 		}
 	},
 });
