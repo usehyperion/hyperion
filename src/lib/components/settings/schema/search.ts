@@ -7,8 +7,9 @@ function fieldText(field: SettingsField): string {
 		parts.push(field.id.replaceAll(".", " "));
 
 		if (field.description) {
-			// Descriptions may contain markup, which shouldn't match
-			parts.push(field.description.replaceAll(/<[^>]*>/g, " "));
+			// Descriptions are Markdown so only a link's text should match,
+			// not its URL.
+			parts.push(field.description.replaceAll(/\[([^\]]+)\]\([^)]+\)/g, "$1"));
 		}
 
 		if (field.keywords) {

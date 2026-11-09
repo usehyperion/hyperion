@@ -34,7 +34,6 @@ interface GroupField {
 
 interface CustomField extends BaseField {
 	type: "custom";
-	renderAs?: "field" | "set";
 	component: Component;
 }
 
@@ -49,22 +48,16 @@ interface ChoiceItem<Value extends string> {
 	description?: string;
 }
 
-interface RadioFieldFor<K extends KeysWithValue<string>> extends BaseField<K> {
-	type: "radio";
+interface ChoiceFieldFor<K extends KeysWithValue<string>> extends BaseField<K> {
+	type: "radio" | "select";
 	items: ChoiceItem<Settings[K] & string>[];
 }
 
-interface SelectFieldFor<K extends KeysWithValue<string>> extends BaseField<K> {
-	type: "select";
-	items: ChoiceItem<Settings[K] & string>[];
-}
-
-type RadioField = {
-	[K in KeysWithValue<string>]: RadioFieldFor<K>;
-}[KeysWithValue<string>];
-
-type SelectField = {
-	[K in KeysWithValue<string>]: SelectFieldFor<K>;
+/**
+ * A radio group or select whose items are the values of the setting.
+ */
+type ChoiceField = {
+	[K in KeysWithValue<string>]: ChoiceFieldFor<K>;
 }[KeysWithValue<string>];
 
 interface SliderField extends BaseField<KeysWithValue<number>> {
@@ -78,15 +71,13 @@ interface SliderField extends BaseField<KeysWithValue<number>> {
 
 interface SwitchField extends BaseField<KeysWithValue<boolean>> {
 	type: "switch";
-	onchange?: (value: boolean) => void;
 }
 
 export type SettingsField =
 	| GroupField
 	| CustomField
 	| InputField
-	| RadioField
-	| SelectField
+	| ChoiceField
 	| SliderField
 	| SwitchField;
 

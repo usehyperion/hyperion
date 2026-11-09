@@ -1,5 +1,7 @@
 import Toolbox from "~icons/ph/toolbox";
 
+import { LOG_LEVELS } from "#lib/log.js";
+
 import type { SettingsCategory } from "../types";
 
 export default {
@@ -17,13 +19,10 @@ export default {
 					label: "Level",
 					description:
 						"Set the verbosity of application logs. Higher levels provide more detailed information for debugging but may quickly grow in size.",
-					items: [
-						{ label: "Error", value: "error" },
-						{ label: "Warn", value: "warn" },
-						{ label: "Info", value: "info" },
-						{ label: "Debug", value: "debug" },
-						{ label: "Trace", value: "trace" },
-					],
+					items: LOG_LEVELS.map((level) => ({
+						label: level.charAt(0).toUpperCase() + level.slice(1),
+						value: level,
+					})),
 				},
 			],
 		},
