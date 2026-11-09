@@ -1,15 +1,38 @@
 import type { Command } from "./commands";
-import type { Suggestion } from "./components/Suggestions.svelte";
 import type { Emote } from "./emotes";
 import type { Chat } from "./models/chat.svelte";
 import type { User } from "./models/user.svelte";
 import type { Viewer } from "./models/viewer.svelte";
 
 import { app } from "./app.svelte";
-import { commands } from "./commands";
+import { hasPermission, commands } from "./commands";
 import { emoteSources } from "./emotes";
 import { log } from "./log";
 import { debounce } from "./util/index.js";
+
+interface BaseSuggestion {
+	value: string;
+	display: string;
+}
+
+interface CommandSuggestion extends BaseSuggestion {
+	type: "command";
+	command: Command;
+}
+
+interface EmoteSuggestion extends BaseSuggestion {
+	type: "emote";
+	imageUrl: string;
+}
+
+export interface UserSuggestion extends BaseSuggestion {
+	type: "user";
+	style: string;
+	user: User;
+	role?: "broadcaster" | "moderator" | "vip";
+}
+
+export type Suggestion = CommandSuggestion | EmoteSuggestion | UserSuggestion;
 
 interface SearchOptions<T> {
 	source: () => T[];
@@ -47,17 +70,13 @@ export class Completer {
 		this.#input = input;
 
 		this.#commandOptions = {
-			source: () => commands,
+			source: () => commands.filter((command) => hasPermission(command, chat.channel)),
 			comparee: (item) => item.name,
 			map: (item) => ({
 				type: "command" as const,
 				value: `/${item.name}`,
-				provider: item.provider,
 				display: `/${item.name}`,
-				description: item.description,
-				args: item.args ?? [],
-				broadcasterOnly: item.broadcasterOnly ?? false,
-				modOnly: item.modOnly ?? false,
+				command: item,
 			}),
 		};
 
@@ -175,21 +194,7 @@ export class Completer {
 
 		if (this.query.startsWith("/")) {
 			this.prefixed = true;
-			this.suggestions = this.#search(this.#commandOptions).filter((suggestion) => {
-				if (!app.user || suggestion.type !== "command") {
-					return false;
-				}
-
-				if (suggestion.broadcasterOnly && this.chat.channel.id !== app.user.id) {
-					return false;
-				}
-
-				if (suggestion.modOnly && !this.chat.channel.isMod) {
-					return false;
-				}
-
-				return true;
-			});
+			this.suggestions = this.#search(this.#commandOptions);
 		} else if (this.query.startsWith(":")) {
 			this.prefixed = true;
 			this.suggestions = this.#search(this.#emoteOptions);

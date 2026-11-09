@@ -1,23 +1,22 @@
 import { app } from "#lib/app.svelte.js";
-import { CommandError } from "#lib/errors/command-error.js";
-import { ErrorMessage } from "#lib/errors/messages.js";
 
-import { defineCommand, parseBool } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Built-in",
+export default command({
 	name: "reload-emotes",
 	description: "Reload all emotes for the channel and optionally global emotes",
-	args: ["include-global"],
+	args: [
+		{
+			type: "bool",
+			name: "include-global",
+			default: false,
+		},
+	],
 	async exec(args, channel) {
-		const includeGlobal = parseBool(args[0]);
-
-		if (includeGlobal === null) {
-			throw new CommandError(ErrorMessage.INVALID_BOOL_ARG);
-		}
-
-		await app.emotes.fetch(includeGlobal);
-		await channel.emotes.fetch(true);
+		await Promise.all([
+			args["include-global"] && app.emotes.fetch(true),
+			channel.emotes.fetch(true),
+		]);
 
 		channel.chat.notice("Reloaded emotes.");
 	},

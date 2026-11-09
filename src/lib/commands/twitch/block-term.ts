@@ -1,28 +1,16 @@
-import { CommandError } from "#lib/errors/command-error.js";
-import { ErrorMessage } from "#lib/errors/messages.js";
+import { command } from "../define";
 
-import { defineCommand, mapErrors } from "../util";
-
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "block-term",
 	description: "Block a term and prevent it from being used in chat",
-	modOnly: true,
-	args: ["term"],
+	permission: "mod",
+	args: [
+		{
+			type: "text",
+			name: "term",
+		},
+	],
 	async exec(args, channel) {
-		if (!args[0]) {
-			throw new CommandError(ErrorMessage.MISSING_ARG(this.args[0]));
-		}
-
-		await mapErrors(
-			() => channel.blockTerm(args.join(" ")),
-			[
-				{
-					code: "NO_PERMISSIONS",
-					message: ErrorMessage.NO_PERMISSION,
-				},
-			],
-			ErrorMessage.COMMAND_FAILED,
-		);
+		await channel.blockTerm(args.term);
 	},
 });

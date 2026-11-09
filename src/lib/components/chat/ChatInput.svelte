@@ -7,7 +7,6 @@
 
 	import type { Chat } from "#lib/models/chat.svelte.js";
 
-	import { app } from "#lib/app.svelte.js";
 	import { Completer } from "#lib/completer.svelte.js";
 	import { dialogs } from "#lib/dialog.js";
 	import { CommandError } from "#lib/errors/command-error.js";

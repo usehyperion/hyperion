@@ -1,21 +1,16 @@
-import { CommandError } from "#lib/errors/command-error.js";
-import { ErrorMessage } from "#lib/errors/messages.js";
+import { command } from "../define";
 
-import { defineCommand } from "../util";
-
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "pin",
 	description: "Pin a message you send into chat for the channel",
-	modOnly: true,
-	args: ["message"],
+	permission: "mod",
+	args: [
+		{
+			type: "text",
+			name: "message",
+		},
+	],
 	async exec(args, channel) {
-		const message = args.join(" ");
-
-		if (!message) {
-			throw new CommandError(ErrorMessage.MISSING_ARG(this.args[0]));
-		}
-
-		await channel.chat.sendPinned(message);
+		await channel.chat.sendPinned(args.message);
 	},
 });

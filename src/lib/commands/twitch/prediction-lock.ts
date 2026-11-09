@@ -1,31 +1,18 @@
 import { CommandError } from "#lib/errors/command-error.js";
-import { ErrorMessage } from "#lib/errors/messages.js";
 
-import { defineCommand, mapErrors } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "prediction-lock",
 	description: "Lock the active prediction in the channel",
-	modOnly: true,
+	permission: "mod",
+	errors: () => ({ EVENT_NOT_ACTIVE: "The prediction is no longer active." }),
 	async exec(_, channel) {
-		if (!channel.prediction || channel.prediction.status !== "ACTIVE") {
+		// Only a prediction still taking predictions can be locked.
+		if (channel.prediction?.status !== "ACTIVE") {
 			throw new CommandError("There is no active prediction to lock.");
 		}
 
-		await mapErrors(
-			() => channel.prediction!.lock(),
-			[
-				{
-					code: "EVENT_NOT_ACTIVE",
-					message: ErrorMessage.PREDICTION_NOT_ACTIVE,
-				},
-				{
-					code: "FORBIDDEN",
-					message: ErrorMessage.NO_PERMISSION,
-				},
-			],
-			ErrorMessage.COMMAND_FAILED,
-		);
+		await channel.prediction.lock();
 	},
 });

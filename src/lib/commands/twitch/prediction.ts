@@ -1,15 +1,14 @@
 import { dialogs, openDialog } from "#lib/dialog.js";
 import { CommandError } from "#lib/errors/command-error.js";
 
-import { defineCommand } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "prediction",
 	description: "Create a prediction for the channel",
-	modOnly: true,
-	async exec(_, channel) {
-		if (channel.prediction?.status === "ACTIVE" || channel.prediction?.status === "LOCKED") {
+	permission: "mod",
+	exec(_, channel) {
+		if (channel.prediction?.open) {
 			throw new CommandError("A prediction is already active.");
 		}
 
