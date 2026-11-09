@@ -56,54 +56,6 @@ export interface Relationship {
 }
 
 export class User {
-	#color: string | null;
-	#displayName: string;
-
-	public readonly id: string;
-
-	/**
-	 * When the account was created; `null` until the profile is loaded for
-	 * users only seen in chat.
-	 */
-	public createdAt = $state<Date | null>(null);
-	public bio: string;
-	public avatarUrl: string;
-
-	/**
-	 * The url of the user's banner image seen when they are offline.
-	 */
-	public bannerUrl: string;
-
-	/**
-	 * The relationships of the user to other channels.
-	 */
-	public readonly relationships = new SvelteMap<string, Relationship>();
-	public username: string;
-
-	/**
-	 * The 7TV paint for the user if they have one set.
-	 */
-	public readonly paint?: Paint;
-
-	public constructor(
-		public readonly client: TwitchClient,
-		readonly data: ApiUser,
-	) {
-		this.#color = data.chatColor || null;
-		this.#displayName = data.displayName;
-
-		this.id = data.id;
-		this.username = data.login;
-
-		this.createdAt = data.createdAt ? new Date(data.createdAt) : null;
-
-		this.bio = $state(data.description ?? "");
-		this.avatarUrl = $state(data.profileImageURL ?? "");
-		this.bannerUrl = $state(data.bannerImageURL ?? "");
-
-		this.paint = $derived(app.cosmetics.userPaints.get(this.id));
-	}
-
 	/**
 	 * Creates a user from what chat says about them; {@linkcode fetch} loads
 	 * the rest.
@@ -119,6 +71,54 @@ export class User {
 			profileImageURL: "",
 			bannerImageURL: "",
 		});
+	}
+
+	public readonly id: string;
+
+	/**
+	 * The relationships of the user to other channels.
+	 */
+	public readonly relationships = new SvelteMap<string, Relationship>();
+
+	/**
+	 * The 7TV paint for the user if they have one set.
+	 */
+	public readonly paint?: Paint;
+
+	/**
+	 * When the account was created; `null` until the profile is loaded for
+	 * users only seen in chat.
+	 */
+	public createdAt = $state<Date | null>(null);
+	public bio: string;
+	public avatarUrl: string;
+
+	/**
+	 * The url of the user's banner image seen when they are offline.
+	 */
+	public bannerUrl: string;
+	public username: string;
+
+	#color: string | null;
+	#displayName: string;
+
+	public constructor(
+		public readonly client: TwitchClient,
+		public readonly data: ApiUser,
+	) {
+		this.#color = data.chatColor || null;
+		this.#displayName = data.displayName;
+
+		this.id = data.id;
+		this.username = data.login;
+
+		this.createdAt = data.createdAt ? new Date(data.createdAt) : null;
+
+		this.bio = $state(data.description ?? "");
+		this.avatarUrl = $state(data.profileImageURL ?? "");
+		this.bannerUrl = $state(data.bannerImageURL ?? "");
+
+		this.paint = $derived(app.cosmetics.userPaints.get(this.id));
 	}
 
 	/**

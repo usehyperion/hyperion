@@ -44,34 +44,30 @@ async function saveStorage() {
 }
 
 class App {
-	#ending: Promise<void> | null = null;
-
-	#connected = false;
-	#connecting: Promise<void> | null = null;
-
-	#ready = Promise.withResolvers<void>();
-
 	public readonly twitch = new TwitchClient(() => {
 		this.expireSession().catch(log.swallow("Failed to end the revoked session"));
 	});
 
-	public user = $state<CurrentUser | null>(null);
-
 	public readonly channels = new ChannelManager(this.twitch);
-
 	public readonly splits = new SplitController();
 
 	/**
 	 * Provider-specific global emotes.
 	 */
 	public readonly emotes = new EmoteManager();
-
 	public readonly cosmetics = new SevenTvCosmetics();
 
 	/**
 	 * Provider-specific global badges.
 	 */
 	public readonly badges = new BadgeManager(this.twitch);
+
+	public user = $state<CurrentUser | null>(null);
+
+	#ending: Promise<void> | null = null;
+	#connected = false;
+	#connecting: Promise<void> | null = null;
+	#ready = Promise.withResolvers<void>();
 
 	/**
 	 * Resolves once the backend connections are established.

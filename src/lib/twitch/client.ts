@@ -23,12 +23,12 @@ interface PageVariables {
 }
 
 export class TwitchClient {
+	public readonly users = new UserManager(this);
+
 	/**
 	 * The OAuth token of the signed in user; `null` while signed out.
 	 */
 	public token: string | null = null;
-
-	public readonly users = new UserManager(this);
 
 	public constructor(private readonly onRevoked: () => void) {}
 

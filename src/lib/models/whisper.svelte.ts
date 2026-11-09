@@ -37,16 +37,6 @@ type HistoryState =
 	| { status: "loaded" };
 
 export class Whisper {
-	readonly #pager = new Pager<WhisperMessage>((after) => this.#fetchPage(after));
-
-	#history: HistoryState = { status: "unloaded" };
-
-	// The per-thread sequence number of the newest live message.
-	#sequence = 0;
-
-	// The newest message id known to exist on Twitch.
-	#lastReadableId: string | null = null;
-
 	/**
 	 * The most recent message reported by the thread list.
 	 */
@@ -69,6 +59,16 @@ export class Whisper {
 	 * The number of unread messages in the whisper.
 	 */
 	public unread = $state(0);
+
+	readonly #pager = new Pager<WhisperMessage>((after) => this.#fetchPage(after));
+
+	#history: HistoryState = { status: "unloaded" };
+
+	// The per-thread sequence number of the newest live message.
+	#sequence = 0;
+
+	// The newest message id known to exist on Twitch.
+	#lastReadableId: string | null = null;
 
 	public constructor(
 		public readonly client: TwitchClient,

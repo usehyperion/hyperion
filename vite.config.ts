@@ -6,6 +6,8 @@ import icons from "unplugin-icons/vite";
 import devtoolsJson from "vite-plugin-devtools-json";
 import { defineConfig } from "vite-plus";
 
+import { sortClasses } from "./config/sort-classes";
+
 const host = process.env.TAURI_DEV_HOST;
 
 export default defineConfig({
@@ -111,12 +113,16 @@ export default defineConfig({
 		options: {
 			typeAware: true,
 		},
+		jsPlugins: ["eslint-plugin-perfectionist"],
 		rules: {
+			"grouped-accessor-pairs": ["error", "getBeforeSet", { enforceForTSTypes: true }],
 			"no-control-regex": "allow",
 			"no-shadow": "off",
 			"no-underscore-dangle": ["error", { allow: ["__typename"] }],
 			"typescript/adjacent-overload-signatures": "error",
+			"typescript/explicit-member-accessibility": "error",
 			"typescript/no-floating-promises": "allow",
+			"perfectionist/sort-classes": ["error", sortClasses],
 			"unicorn/filename-case": [
 				"error",
 				{

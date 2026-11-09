@@ -27,8 +27,6 @@ export class Viewer {
 	public readonly username: string;
 	public readonly displayName: string;
 
-	#moderator = $state(false);
-
 	public subscriber = $state(false);
 	public vip = $state(false);
 
@@ -58,6 +56,8 @@ export class Viewer {
 	 */
 	public restricted = $state(false);
 	public possibleBanEvader = $state(false);
+
+	#moderator = $state(false);
 
 	public constructor(
 		public readonly channel: Channel,

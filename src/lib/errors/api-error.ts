@@ -11,19 +11,6 @@ function isAbort(error: unknown): boolean {
 }
 
 export class ApiError extends Error {
-	public constructor(
-		/**
-		 * The HTTP status code of the failed request. A value of `0` indicates
-		 * a network failure with no response.
-		 */
-		public readonly status: number,
-		message: string,
-	) {
-		super(message);
-
-		this.name = "ApiError";
-	}
-
 	public static from(error: unknown): ApiError {
 		if (error instanceof ApiError) return error;
 
@@ -62,5 +49,18 @@ export class ApiError extends Error {
 		}
 
 		return undefined;
+	}
+
+	public constructor(
+		/**
+		 * The HTTP status code of the failed request. A value of `0` indicates
+		 * a network failure with no response.
+		 */
+		public readonly status: number,
+		message: string,
+	) {
+		super(message);
+
+		this.name = "ApiError";
 	}
 }

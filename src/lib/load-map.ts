@@ -18,6 +18,11 @@ export abstract class LoadMap<K, V> extends Map<K, V> {
 
 	protected abstract load(): Promise<Iterable<readonly [K, V]>>;
 
+	public override clear() {
+		this.#load.reset();
+		super.clear();
+	}
+
 	public async fetch(force = false) {
 		if (force) {
 			this.#load.reset();
@@ -25,10 +30,5 @@ export abstract class LoadMap<K, V> extends Map<K, V> {
 
 		await this.#load();
 		return this;
-	}
-
-	public override clear() {
-		this.#load.reset();
-		super.clear();
 	}
 }

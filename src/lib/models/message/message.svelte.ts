@@ -16,12 +16,12 @@ export abstract class Message {
 
 	public readonly timestamp: Date;
 
-	public deleted = $state(false);
-
 	/**
 	 * Whether the message was retrieved by the `recent-messages` API.
 	 */
 	public readonly recent: boolean;
+
+	public deleted = $state(false);
 
 	public constructor(
 		public readonly channel: Channel,

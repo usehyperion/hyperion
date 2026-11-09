@@ -19,37 +19,6 @@ interface PinData {
 }
 
 export class Pin extends Notice {
-	#chat: Chat;
-
-	public readonly pinner: User;
-	public readonly message: UserMessage;
-
-	/**
-	 * The duration in seconds for which the message is pinned for; `null` if
-	 * the pin has no expiration.
-	 */
-	public readonly duration: number | null;
-
-	/**
-	 * The timestamp at which the pin expires; `null` if the pin has no
-	 * expiration.
-	 */
-	public readonly expirationTimestamp: number | null;
-
-	private constructor(chat: Chat, data: PinData) {
-		super();
-
-		this.#chat = chat;
-		this.pinner = data.pinner;
-		this.message = data.message;
-		this.duration = data.duration;
-		this.expirationTimestamp = data.expiresAt;
-
-		if (this.expirationTimestamp !== null) {
-			this.expireIn(this.expirationTimestamp - Date.now());
-		}
-	}
-
 	public static async fetch(chat: Chat): Promise<Pin | null> {
 		const { channel } = await chat.channel.client.gql(pinnedMessageQuery, {
 			id: chat.channel.id,
@@ -91,6 +60,37 @@ export class Pin extends Notice {
 			duration: end ? (end - (updated ?? start)) / 1000 : null,
 			expiresAt: end,
 		});
+	}
+
+	public readonly pinner: User;
+	public readonly message: UserMessage;
+
+	/**
+	 * The duration in seconds for which the message is pinned for; `null` if
+	 * the pin has no expiration.
+	 */
+	public readonly duration: number | null;
+
+	/**
+	 * The timestamp at which the pin expires; `null` if the pin has no
+	 * expiration.
+	 */
+	public readonly expirationTimestamp: number | null;
+
+	#chat: Chat;
+
+	private constructor(chat: Chat, data: PinData) {
+		super();
+
+		this.#chat = chat;
+		this.pinner = data.pinner;
+		this.message = data.message;
+		this.duration = data.duration;
+		this.expirationTimestamp = data.expiresAt;
+
+		if (this.expirationTimestamp !== null) {
+			this.expireIn(this.expirationTimestamp - Date.now());
+		}
 	}
 
 	public async update(duration: number | null) {

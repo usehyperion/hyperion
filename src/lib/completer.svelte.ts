@@ -18,7 +18,10 @@ interface SearchOptions<T> {
 }
 
 export class Completer {
-	#input: HTMLInputElement;
+	public query = "";
+	public prefixed = false;
+	public current = $state(0);
+	public suggestions = $state<Suggestion[]>([]);
 
 	#commandOptions: SearchOptions<Command>;
 	#emoteOptions: SearchOptions<Emote>;
@@ -34,18 +37,10 @@ export class Completer {
 			.catch(log.swallow("Failed to load avatars"));
 	}, 200);
 
-	public query = "";
-	public prefixed = false;
-
-	public current = $state(0);
-	public suggestions = $state<Suggestion[]>([]);
-
 	public constructor(
 		private readonly chat: Chat,
-		input: HTMLInputElement,
+		private readonly input: HTMLInputElement,
 	) {
-		this.#input = input;
-
 		this.#commandOptions = {
 			source: () => commands,
 			comparee: (item) => item.name,
@@ -104,7 +99,7 @@ export class Completer {
 
 	public tab(shift: boolean) {
 		// Ignore if in the middle of a word
-		if (this.chat.value.charAt(this.#input.selectionStart ?? 0).trim() !== "") {
+		if (this.chat.value.charAt(this.input.selectionStart ?? 0).trim() !== "") {
 			return;
 		}
 
@@ -130,7 +125,7 @@ export class Completer {
 	public complete(reset = true) {
 		const suggestion = this.suggestions[this.current];
 		const text = this.chat.value;
-		const cursor = this.#input.selectionStart ?? text.length;
+		const cursor = this.input.selectionStart ?? text.length;
 
 		// The word being completed ends at the cursor. Once a suggestion was
 		// inserted, cycling replaces that instead; mentions keep their `@`.
@@ -144,10 +139,10 @@ export class Completer {
 		}
 
 		this.chat.value = `${text.slice(0, start) + suggestion.value} ${text.slice(end).trim()}`;
-		this.#input.focus();
+		this.input.focus();
 
 		const endPos = start + suggestion.value.length + 1;
-		this.#input.setSelectionRange(endPos, endPos);
+		this.input.setSelectionRange(endPos, endPos);
 
 		if (reset) {
 			this.reset();
@@ -159,7 +154,7 @@ export class Completer {
 
 	public search(tab = false) {
 		const text = this.chat.value;
-		const cursor = this.#input.selectionStart ?? text.length;
+		const cursor = this.input.selectionStart ?? text.length;
 
 		const left = text.slice(0, cursor);
 		const lastWord = left.split(" ").pop();
