@@ -80,6 +80,9 @@ const userDetailsFragment = gql(`
 		chatColor
 		profileImageURL(width: 300)
 		bannerImageURL
+		roles {
+			isStaff
+		}
 	}
 `);
 

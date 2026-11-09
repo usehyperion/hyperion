@@ -70,10 +70,14 @@ export class User {
 			description: "",
 			profileImageURL: "",
 			bannerImageURL: "",
+			roles: {
+				isStaff: false,
+			},
 		});
 	}
 
 	public readonly id: string;
+	public readonly staff: boolean;
 
 	/**
 	 * The relationships of the user to other channels.
@@ -110,6 +114,7 @@ export class User {
 		this.#displayName = data.displayName;
 
 		this.id = data.id;
+		this.staff = data.roles?.isStaff ?? false;
 		this.username = data.login;
 
 		this.createdAt = data.createdAt ? new Date(data.createdAt) : null;
