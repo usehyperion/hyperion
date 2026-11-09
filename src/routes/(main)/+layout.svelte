@@ -11,7 +11,7 @@
 	import { dialogs, openDialog } from "#lib/dialog.js";
 	import { THIRD_PARTY_PROVIDERS } from "#lib/emotes.js";
 	import { log } from "#lib/log.js";
-	import { settings } from "#lib/settings/index.js";
+	import { settings } from "#lib/settings.js";
 	import { onDragStart, onDragOver, onDragMove, onDragEnd } from "#lib/splits/events.js";
 	import { updater } from "#lib/updater.svelte.js";
 

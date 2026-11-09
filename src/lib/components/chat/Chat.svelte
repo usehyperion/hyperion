@@ -2,7 +2,7 @@
 	import type { Chat } from "#lib/models/chat.svelte.js";
 	import type { Message } from "#lib/models/message/message.svelte.js";
 
-	import { settings } from "#lib/settings/index.js";
+	import { settings } from "#lib/settings.js";
 
 	import AutoMod from "../message/AutoMod.svelte";
 	import Event from "../message/Event.svelte";

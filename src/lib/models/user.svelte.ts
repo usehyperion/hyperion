@@ -7,7 +7,7 @@ import type { BasicUser } from "#lib/twitch/irc.js";
 
 import { app } from "#lib/app.svelte.js";
 import { relationshipQuery, userQuery } from "#lib/graphql/twitch.js";
-import { settings } from "#lib/settings/index.js";
+import { settings } from "#lib/settings.js";
 import { makeReadable } from "#lib/util/color.js";
 
 import type { Channel } from "./channel.svelte";

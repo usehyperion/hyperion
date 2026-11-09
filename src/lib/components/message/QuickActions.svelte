@@ -8,7 +8,7 @@
 		runAction,
 		type MessageAction,
 	} from "#lib/menus/message-actions.js";
-	import { settings } from "#lib/settings/index.js";
+	import { settings } from "#lib/settings.js";
 
 	import Button from "../ui/Button.svelte";
 	import Separator from "../ui/Separator.svelte";

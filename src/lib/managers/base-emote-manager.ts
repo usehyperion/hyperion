@@ -4,7 +4,7 @@ import type { Emote, EmoteProvider, ThirdPartyProvider } from "#lib/emotes.js";
 
 import { THIRD_PARTY_PROVIDERS } from "#lib/emotes.js";
 import { log } from "#lib/log.js";
-import { settings } from "#lib/settings/index.js";
+import { settings } from "#lib/settings.js";
 
 export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	protected abstract readonly loaders: Record<ThirdPartyProvider, () => Promise<Emote[]>>;

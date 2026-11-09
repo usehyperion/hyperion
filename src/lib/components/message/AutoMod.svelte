@@ -2,7 +2,7 @@
 	import type { AutoModMetadata } from "#lib/models/message/user-message.svelte.js";
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
-	import { deletedAppearance } from "#lib/settings/index.js";
+	import { deletedAppearance } from "#lib/settings.js";
 
 	import Button from "../ui/Button.svelte";
 	import Callout from "./Callout.svelte";

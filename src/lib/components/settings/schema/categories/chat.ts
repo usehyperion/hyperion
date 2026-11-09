@@ -1,6 +1,6 @@
 import Chat from "~icons/ph/chat";
 
-import { settings } from "#lib/settings/index.js";
+import { settings } from "#lib/settings.js";
 
 import type { SettingsCategory } from "../types";
 

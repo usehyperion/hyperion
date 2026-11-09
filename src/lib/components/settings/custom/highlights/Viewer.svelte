@@ -1,38 +1,31 @@
 <script lang="ts">
 	import ArrowClockwise from "~icons/ph/arrow-clockwise";
 
-	import type { HighlightType } from "#lib/settings/index.js";
+	import type { HighlightType } from "#lib/highlights.js";
 
 	import Button from "#lib/components/ui/Button.svelte";
-	import { defaultHighlightTypes, settings } from "#lib/settings/index.js";
+	import { HIGHLIGHTS } from "#lib/highlights.js";
+	import { settings } from "#lib/settings.js";
 
 	import Row from "./Row.svelte";
 
-	const highlights = [
-		{ label: "Mentions", value: "mention" },
-		{ label: "First Time Chats", value: "new" },
-		{ label: "Returning Chatters", value: "returning" },
-		{ label: "Suspicious Users", value: "suspicious" },
-		{ label: "Broadcasters", value: "broadcaster" },
-		{ label: "Moderators", value: "moderator" },
-		{ label: "Subscribers", value: "subscriber" },
-		{ label: "VIPs", value: "vip" },
-	] as const;
+	const highlights = Object.entries(HIGHLIGHTS).map(([value, kind]) => ({
+		label: `${kind.label}s`,
+		value: value as HighlightType,
+	}));
 
 	const viewers = $derived(settings.state["highlights.viewers"]);
 
 	function reset(key: HighlightType) {
-		viewers[key] = { ...defaultHighlightTypes[key] };
+		viewers[key] = { ...HIGHLIGHTS[key].defaults };
 	}
 
 	function isDefault(key: HighlightType) {
 		const config = viewers[key];
-		const original = defaultHighlightTypes[key];
+		const original = HIGHLIGHTS[key].defaults;
 
-		return (
-			config.enabled === original.enabled &&
-			config.color === original.color &&
-			config.style === original.style
+		return Object.entries(original).every(
+			([field, value]) => config[field as keyof typeof original] === value,
 		);
 	}
 </script>

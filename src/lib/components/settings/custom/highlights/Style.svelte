@@ -1,7 +1,5 @@
 <script lang="ts">
-	import { cn } from "tailwind-variants";
-
-	import type { HighlightConfig } from "#lib/settings/index.js";
+	import type { HighlightConfig } from "#lib/highlights.js";
 
 	import Select from "#lib/components/ui/Select.svelte";
 
@@ -12,11 +10,11 @@
 		{ label: "Disabled", value: "disabled" },
 	];
 
-	let { config = $bindable<HighlightConfig>(), class: className = undefined } = $props();
+	let { config = $bindable<HighlightConfig>() } = $props();
 </script>
 
 <Select
-	class={cn("h-8 min-w-32", className)}
+	class="h-8 min-w-32"
 	options={styles}
 	aria-label="Highlight style"
 	bind:value={

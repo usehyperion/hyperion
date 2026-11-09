@@ -5,7 +5,7 @@
 	import * as Field from "#lib/components/ui/field/index.js";
 	import * as RadioGroup from "#lib/components/ui/radio-group/index.js";
 	import Separator from "#lib/components/ui/Separator.svelte";
-	import { settings } from "#lib/settings/index.js";
+	import { settings } from "#lib/settings.js";
 	import { getThemesDir, loadThemes, themes } from "#lib/themes.js";
 
 	const selected = $derived(settings.state["appearance.theme"]);

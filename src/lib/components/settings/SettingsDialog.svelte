@@ -14,7 +14,7 @@
 	import Separator from "#lib/components/ui/Separator.svelte";
 	import { dialogs } from "#lib/dialog.js";
 	import { log } from "#lib/log.js";
-	import { settings } from "#lib/settings/index.js";
+	import { settings } from "#lib/settings.js";
 
 	import Category from "./Category.svelte";
 	import SidebarActions from "./SidebarActions.svelte";

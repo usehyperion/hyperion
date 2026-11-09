@@ -13,7 +13,7 @@
 
 	import { log } from "#lib/log.js";
 	import { MessageHistory } from "#lib/models/message-history.svelte.js";
-	import { deletedAppearance } from "#lib/settings/index.js";
+	import { deletedAppearance } from "#lib/settings.js";
 
 	import Message from "../message/Message.svelte";
 	import ReverseScroll from "../ReverseScroll.svelte";

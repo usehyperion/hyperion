@@ -3,7 +3,7 @@
 
 	import type { Emote } from "#lib/emotes.js";
 
-	import { settings } from "#lib/settings/index.js";
+	import { settings } from "#lib/settings.js";
 
 	import type { EmoteTether } from "./EmoteTooltip.svelte";
 
