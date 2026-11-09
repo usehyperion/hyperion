@@ -27,12 +27,6 @@ type ModLogMessage = NonNullable<
  * The messages a viewer has sent in a channel.
  */
 export class MessageHistory {
-	readonly #pager = new Pager<UserMessage>((after) => this.#fetchPage(after));
-
-	readonly #history = once(async () => {
-		this.#pager.items = await this.#pager.first();
-	});
-
 	/**
 	 * The messages sent by the viewer, oldest first. Only includes messages
 	 * received in chat until {@linkcode load} is called.
@@ -52,6 +46,13 @@ export class MessageHistory {
 			logged.filter((message) => !ids.has(message.id)),
 			received,
 		);
+	});
+
+	// oxlint-disable-next-line perfectionist/sort-classes
+	readonly #pager = new Pager<UserMessage>((after) => this.#fetchPage(after));
+
+	readonly #history = once(async () => {
+		this.#pager.items = await this.#pager.first();
 	});
 
 	public constructor(public readonly viewer: Viewer) {}

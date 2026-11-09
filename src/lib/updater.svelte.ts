@@ -7,11 +7,6 @@ import { platform } from "#lib/util/index.js";
 import { log } from "./log.js";
 
 class Updater {
-	readonly #deferred = platform !== "macos";
-
-	#pending = false;
-	#unlisten: (() => void) | null = null;
-
 	/**
 	 * Whether an update has been downloaded and is waiting for a restart.
 	 */
@@ -26,6 +21,11 @@ class Updater {
 	 * The downloaded update, if any.
 	 */
 	public update = $state.raw<Update | null>(null);
+
+	readonly #deferred = platform !== "macos";
+
+	#pending = false;
+	#unlisten: (() => void) | null = null;
 
 	public async check() {
 		if (this.#pending || this.ready) return;

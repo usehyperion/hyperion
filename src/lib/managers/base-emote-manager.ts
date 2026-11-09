@@ -7,9 +7,9 @@ import { log } from "#lib/log.js";
 import { settings } from "#lib/settings/index.js";
 
 export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
-	readonly #loaded = new Set<EmoteProvider>();
-
 	protected abstract readonly loaders: Record<ThirdPartyProvider, () => Promise<Emote[]>>;
+
+	readonly #loaded = new Set<EmoteProvider>();
 
 	/**
 	 * Removes all emotes from the specified provider or all emotes if no

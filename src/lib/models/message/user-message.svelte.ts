@@ -86,8 +86,89 @@ export type AutoModMetadata = (
  * notifications received by `USERNOTICE` commands.
  */
 export class UserMessage extends Message {
-	#nodes: Node[] | null = null;
-	#badges: IrcBadge[];
+	/**
+	 * Creates a user message from a `PRIVMSG` or `USERNOTICE` command, updating
+	 * what the command says about its sender.
+	 */
+	public static async fromIrc(channel: Channel, data: PrivmsgMessage | UserNoticeMessage) {
+		const tags = data.source ?? data;
+		const notice = data.type === "usernotice";
+
+		const message = new this(channel, {
+			id: data.message_id,
+			text: data.message_text ?? "",
+			sender: data.sender,
+			color: data.name_color,
+			badges: tags.badges,
+			emotes: data.emotes,
+			bits: (notice ? null : data.bits) ?? 0,
+			gif: notice ? null : data.gif,
+			action: !notice && data.is_action,
+			highlighted: !notice && data.is_highlighted,
+			shared: data.source != null,
+			event: notice ? data.event : null,
+			systemMessage: notice ? data.system_message : "",
+			reply: notice ? null : data.reply,
+			deleted: data.deleted,
+			recent: data.is_recent,
+			timestamp: data.server_timestamp,
+		});
+
+		const { author, viewer } = message;
+
+		author.color = data.name_color;
+		author.username = data.sender.login;
+		author.displayName = data.sender.name;
+
+		if (!notice) {
+			viewer.moderator = data.is_mod;
+			viewer.subscriber = data.is_subscriber;
+			viewer.vip = tags.badges.some((b) => b.name.startsWith("vip"));
+			viewer.returning = data.is_returning_chatter;
+			viewer.new = data.is_first_msg;
+		}
+
+		if (data.source && data.source.channel_id !== channel.id) {
+			try {
+				const source = await app.channels.fetchUnlisted(data.source.channel_id);
+				await source.badges.fetch();
+
+				message.source = source;
+				message.#populateBadges();
+			} catch (error) {
+				// The message is still shown, just without the source's badges.
+				log.warn("Failed to load shared chat source", error);
+			}
+		}
+
+		return message;
+	}
+	public static from(channel: Channel, msg: FromMessage) {
+		// CTCP ACTION framing: "\x01ACTION <text>\x01"
+		const match = /^\x01ACTION (.*?)\x01?$/s.exec(msg.text);
+		const action = match !== null;
+		const text = match ? match[1] : msg.text;
+
+		return new this(channel, {
+			id: msg.id,
+			text,
+			sender: msg.sender,
+			color: msg.color ?? null,
+			badges: msg.badges ?? [],
+			emotes: extractEmotes(msg.fragments),
+			bits: msg.fragments.reduce((a, b) => a + (b.type === "cheermote" ? b.bits : 0), 0),
+			action,
+			highlighted: false,
+			shared: false,
+			gif: null,
+			event: null,
+			systemMessage: "",
+			reply: null,
+			deleted: false,
+			recent: false,
+			timestamp: msg.timestamp ?? Date.now(),
+		});
+	}
 
 	public override readonly [Symbol.toStringTag] = "UserMessage";
 	public override readonly id: string;
@@ -153,6 +234,9 @@ export class UserMessage extends Message {
 	 */
 	public redemption = $state<ChannelPointReward | null>(null);
 
+	#nodes: Node[] | null = null;
+	#badges: IrcBadge[];
+
 	private constructor(channel: Channel, init: UserMessageInit) {
 		super(channel, init);
 
@@ -176,91 +260,6 @@ export class UserMessage extends Message {
 
 		this.#badges = init.badges;
 		this.#populateBadges();
-	}
-
-	/**
-	 * Creates a user message from a `PRIVMSG` or `USERNOTICE` command, updating
-	 * what the command says about its sender.
-	 */
-	public static async fromIrc(channel: Channel, data: PrivmsgMessage | UserNoticeMessage) {
-		const tags = data.source ?? data;
-		const notice = data.type === "usernotice";
-
-		const message = new this(channel, {
-			id: data.message_id,
-			text: data.message_text ?? "",
-			sender: data.sender,
-			color: data.name_color,
-			badges: tags.badges,
-			emotes: data.emotes,
-			bits: (notice ? null : data.bits) ?? 0,
-			gif: notice ? null : data.gif,
-			action: !notice && data.is_action,
-			highlighted: !notice && data.is_highlighted,
-			shared: data.source != null,
-			event: notice ? data.event : null,
-			systemMessage: notice ? data.system_message : "",
-			reply: notice ? null : data.reply,
-			deleted: data.deleted,
-			recent: data.is_recent,
-			timestamp: data.server_timestamp,
-		});
-
-		const { author, viewer } = message;
-
-		author.color = data.name_color;
-		author.username = data.sender.login;
-		author.displayName = data.sender.name;
-
-		if (!notice) {
-			viewer.moderator = data.is_mod;
-			viewer.subscriber = data.is_subscriber;
-			viewer.vip = tags.badges.some((b) => b.name.startsWith("vip"));
-			viewer.returning = data.is_returning_chatter;
-			viewer.new = data.is_first_msg;
-		}
-
-		if (data.source && data.source.channel_id !== channel.id) {
-			try {
-				const source = await app.channels.fetchUnlisted(data.source.channel_id);
-				await source.badges.fetch();
-
-				message.source = source;
-				message.#populateBadges();
-			} catch (error) {
-				// The message is still shown, just without the source's badges.
-				log.warn("Failed to load shared chat source", error);
-			}
-		}
-
-		return message;
-	}
-
-	public static from(channel: Channel, msg: FromMessage) {
-		// CTCP ACTION framing: "\x01ACTION <text>\x01"
-		const match = /^\x01ACTION (.*?)\x01?$/s.exec(msg.text);
-		const action = match !== null;
-		const text = match ? match[1] : msg.text;
-
-		return new this(channel, {
-			id: msg.id,
-			text,
-			sender: msg.sender,
-			color: msg.color ?? null,
-			badges: msg.badges ?? [],
-			emotes: extractEmotes(msg.fragments),
-			bits: msg.fragments.reduce((a, b) => a + (b.type === "cheermote" ? b.bits : 0), 0),
-			action,
-			highlighted: false,
-			shared: false,
-			gif: null,
-			event: null,
-			systemMessage: "",
-			reply: null,
-			deleted: false,
-			recent: false,
-			timestamp: msg.timestamp ?? Date.now(),
-		});
 	}
 
 	/**

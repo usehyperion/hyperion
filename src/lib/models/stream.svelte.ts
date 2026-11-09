@@ -18,41 +18,6 @@ export interface Guest {
 
 export class Stream {
 	/**
-	 * The date the stream started.
-	 */
-	public readonly createdAt: Date;
-
-	public title: string;
-	public game: Game;
-	public readonly tags: string[];
-	public readonly thumbnailUrl: string | null;
-	public viewers: number;
-
-	/**
-	 * The users participating in the Stream Together session if there is
-	 * one active.
-	 */
-	public readonly guests = new SvelteMap<string, Guest>();
-
-	private constructor(
-		public readonly channelId: string,
-		data: ApiStream,
-	) {
-		this.createdAt = new Date(data.createdAt ?? 0);
-
-		this.title = $state(data.title ?? "Untitled");
-		this.game = $state({
-			slug: data.game?.slug ?? "",
-			name: data.game?.displayName ?? "Unknown",
-		});
-
-		this.tags = data.freeformTags?.flatMap((tag) => (tag.name ? [tag.name] : [])) ?? [];
-		this.thumbnailUrl = data.previewImageURL ?? null;
-
-		this.viewers = $state(data.viewersCount ?? 0);
-	}
-
-	/**
 	 * Creates a stream along with the guests of its Stream Together session if
 	 * one is active.
 	 */
@@ -73,5 +38,40 @@ export class Stream {
 		}
 
 		return stream;
+	}
+
+	/**
+	 * The date the stream started.
+	 */
+	public readonly createdAt: Date;
+	public readonly tags: string[];
+	public readonly thumbnailUrl: string | null;
+
+	/**
+	 * The users participating in the Stream Together session if there is
+	 * one active.
+	 */
+	public readonly guests = new SvelteMap<string, Guest>();
+
+	public title: string;
+	public game: Game;
+	public viewers: number;
+
+	private constructor(
+		public readonly channelId: string,
+		data: ApiStream,
+	) {
+		this.createdAt = new Date(data.createdAt ?? 0);
+
+		this.title = $state(data.title ?? "Untitled");
+		this.game = $state({
+			slug: data.game?.slug ?? "",
+			name: data.game?.displayName ?? "Unknown",
+		});
+
+		this.tags = data.freeformTags?.flatMap((tag) => (tag.name ? [tag.name] : [])) ?? [];
+		this.thumbnailUrl = data.previewImageURL ?? null;
+
+		this.viewers = $state(data.viewersCount ?? 0);
 	}
 }

@@ -1,10 +1,10 @@
 export abstract class Notice {
-	#timer: ReturnType<typeof setTimeout> | null = null;
-
 	/**
 	 * Whether the notice is hidden for the current user.
 	 */
 	public hidden = $state(false);
+
+	#timer: ReturnType<typeof setTimeout> | null = null;
 
 	protected abstract remove(): void;
 

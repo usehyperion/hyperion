@@ -55,16 +55,6 @@ export interface ChatSettings {
 }
 
 export class Chat {
-	#ids = new Set<string>();
-	#bypassNext = false;
-
-	#lastSent: string | null = null;
-	#lastRecentAt: number | null = null;
-
-	// Timestamps of last messages sent by normal/elevated users.
-	#lastMessage: number[] = [];
-	#lastMessageElevated: number[] = [];
-
 	/**
 	 * The commands available in the chat.
 	 */
@@ -78,16 +68,26 @@ export class Chat {
 	 * What the current user has entered in the chat.
 	 */
 	public history: string[] = [];
-
 	public input = $state<HTMLInputElement | null>(null);
-	public value = $state("");
 
+	public value = $state("");
 	public pinned = $state<Pin | null>(null);
 
 	/**
 	 * The message the current user is replying to, if any.
 	 */
 	public replyTarget = $state<UserMessage | null>(null);
+
+	#ids = new Set<string>();
+
+	#bypassNext = false;
+
+	#lastSent: string | null = null;
+	#lastRecentAt: number | null = null;
+
+	// Timestamps of last messages sent by normal/elevated users.
+	#lastMessage: number[] = [];
+	#lastMessageElevated: number[] = [];
 
 	public constructor(public readonly channel: Channel) {
 		this.mode = $state({

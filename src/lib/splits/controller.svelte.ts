@@ -19,8 +19,6 @@ import {
 type Point = { x: number; y: number } | undefined;
 
 export class SplitController {
-	readonly #paneRefs = new Map<string, HTMLElement>();
-
 	/**
 	 * The id of the focused pane.
 	 */
@@ -40,6 +38,8 @@ export class SplitController {
 	 * The pane and zone currently highlighted while dragging.
 	 */
 	public dropTarget = $state<DropTarget | null>(null);
+
+	readonly #paneRefs = new Map<string, HTMLElement>();
 
 	public get root(): SplitNode | null {
 		return storage.state.layout?.root ?? null;

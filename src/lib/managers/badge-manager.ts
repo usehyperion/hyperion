@@ -26,6 +26,11 @@ export const BADGE_PROVIDERS = ["twitch", "bttv", "ffz"] as const;
 export type BadgeProvider = (typeof BADGE_PROVIDERS)[number];
 
 export class BadgeManager extends SvelteMap<string, Badge> {
+	/**
+	 * The badges third-party providers give to each user keyed by user id.
+	 */
+	public readonly users = new SvelteMap<string, Badge[]>();
+
 	readonly #loads: Record<BadgeProvider, Once<void>> = {
 		twitch: once(async () => {
 			const { badges } = await this.client.gql(globalBadgesQuery);
@@ -88,13 +93,17 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		}),
 	};
 
-	/**
-	 * The badges third-party providers give to each user keyed by user id.
-	 */
-	public readonly users = new SvelteMap<string, Badge[]>();
-
 	public constructor(public readonly client: TwitchClient) {
 		super();
+	}
+
+	public override clear() {
+		for (const load of Object.values(this.#loads)) {
+			load.reset();
+		}
+
+		this.users.clear();
+		super.clear();
 	}
 
 	/**
@@ -114,15 +123,6 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 				}
 			}),
 		);
-	}
-
-	public override clear() {
-		for (const load of Object.values(this.#loads)) {
-			load.reset();
-		}
-
-		this.users.clear();
-		super.clear();
 	}
 
 	/**

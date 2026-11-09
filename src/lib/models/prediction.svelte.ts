@@ -51,6 +51,23 @@ function fromGql(channel: string, prediction: PredictionDetails): ApiPrediction 
  * The active or recently resolved prediction in a channel.
  */
 export class Prediction extends Notice {
+	/**
+	 * Retrieves the active or locked prediction in the channel if there is one.
+	 */
+	public static async fetch(channel: Channel) {
+		const { channel: data } = await channel.client.gql(predictionQuery, { id: channel.id });
+
+		const prediction = data?.active?.[0] ?? data?.locked?.[0];
+		if (!prediction) return null;
+
+		const creator =
+			prediction.createdBy?.__typename === "User"
+				? channel.client.users.from(prediction.createdBy)
+				: null;
+
+		return new Prediction(channel, creator, fromGql(channel.id, prediction));
+	}
+
 	public readonly id: string;
 	public readonly title: string;
 	public readonly outcomes = $state<PredictionOutcome[]>([]);
@@ -64,17 +81,17 @@ export class Prediction extends Notice {
 	public status = $state<PredictionStatus>("ACTIVE");
 
 	/**
-	 * The id of the winning outcome once the prediction is resolved.
-	 */
-	public winningOutcomeId = $state<string | null>(null);
-
-	/**
 	 * Whether the prediction can still be resolved or canceled.
 	 */
 	public readonly open = $derived(this.status === "ACTIVE" || this.status === "LOCKED");
 
 	public readonly totalPoints = $derived(this.outcomes.reduce((sum, o) => sum + o.points, 0));
 	public readonly totalUsers = $derived(this.outcomes.reduce((sum, o) => sum + o.users, 0));
+
+	/**
+	 * The id of the winning outcome once the prediction is resolved.
+	 */
+	public winningOutcomeId = $state<string | null>(null);
 
 	public constructor(
 		public readonly channel: Channel,
@@ -102,23 +119,6 @@ export class Prediction extends Notice {
 		}));
 
 		this.update(data);
-	}
-
-	/**
-	 * Retrieves the active or locked prediction in the channel if there is one.
-	 */
-	public static async fetch(channel: Channel) {
-		const { channel: data } = await channel.client.gql(predictionQuery, { id: channel.id });
-
-		const prediction = data?.active?.[0] ?? data?.locked?.[0];
-		if (!prediction) return null;
-
-		const creator =
-			prediction.createdBy?.__typename === "User"
-				? channel.client.users.from(prediction.createdBy)
-				: null;
-
-		return new Prediction(channel, creator, fromGql(channel.id, prediction));
 	}
 
 	public update(payload: ApiPrediction) {

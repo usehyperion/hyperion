@@ -34,6 +34,17 @@ export function toPage<N, T>(
  * The items of a connection paginated backwards, oldest first.
  */
 export class Pager<T extends { id: string }> {
+	/**
+	 * The loaded items, oldest first.
+	 */
+	public items = $state.raw<T[]>([]);
+
+	/**
+	 * Whether there are older pages that can be fetched with
+	 * {@linkcode older}.
+	 */
+	public hasOlder = $state(false);
+
 	readonly #fetch: (after: string | null) => Promise<Page<T>>;
 
 	#cursor: string | null = null;
@@ -46,17 +57,6 @@ export class Pager<T extends { id: string }> {
 		const known = new Set(this.items.map((item) => item.id));
 		this.items = [...page.items.filter((item) => !known.has(item.id)), ...this.items];
 	});
-
-	/**
-	 * The loaded items, oldest first.
-	 */
-	public items = $state.raw<T[]>([]);
-
-	/**
-	 * Whether there are older pages that can be fetched with
-	 * {@linkcode older}.
-	 */
-	public hasOlder = $state(false);
 
 	public constructor(fetch: (after: string | null) => Promise<Page<T>>) {
 		this.#fetch = fetch;

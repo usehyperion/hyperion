@@ -37,19 +37,32 @@ function fromGql(channel: string, poll: ViewablePoll): ApiPoll {
  * The active or recently completed poll in a channel.
  */
 export class Poll extends Notice {
+	/**
+	 * Retrieves the poll in the channel if one is visible.
+	 */
+	public static async fetch(channel: Channel) {
+		const { user } = await channel.client.gql(pollQuery, { id: channel.id });
+		if (!user?.viewablePoll) return null;
+
+		const { createdBy } = user.viewablePoll;
+		const creator = createdBy ? channel.client.users.from(createdBy) : null;
+
+		return new Poll(channel, creator, fromGql(channel.id, user.viewablePoll));
+	}
+
 	public readonly id: string;
 	public readonly title: string;
 	public readonly choices = $state<PollChoice[]>([]);
 	public readonly startedTimestamp: number;
 	public readonly endsTimestamp: number;
-
-	public totalVotes = $state(0);
 	public status = $state<PollStatus>("ACTIVE");
 
 	/**
 	 * Whether the poll is still accepting votes.
 	 */
 	public readonly active = $derived(this.status === "ACTIVE");
+
+	public totalVotes = $state(0);
 
 	public constructor(
 		public readonly channel: Channel,
@@ -75,19 +88,6 @@ export class Poll extends Notice {
 		}));
 
 		this.update(data);
-	}
-
-	/**
-	 * Retrieves the poll in the channel if one is visible.
-	 */
-	public static async fetch(channel: Channel) {
-		const { user } = await channel.client.gql(pollQuery, { id: channel.id });
-		if (!user?.viewablePoll) return null;
-
-		const { createdBy } = user.viewablePoll;
-		const creator = createdBy ? channel.client.users.from(createdBy) : null;
-
-		return new Poll(channel, creator, fromGql(channel.id, user.viewablePoll));
 	}
 
 	public update(payload: ApiPoll) {

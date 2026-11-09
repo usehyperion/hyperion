@@ -58,31 +58,15 @@ const TTL = 20 * 60 * 1000; // 20 minutes
 export type ChannelStatus = "idle" | "joining" | "joined" | "leaving";
 
 export class Channel {
-	#ttlTimeout: ReturnType<typeof setTimeout> | undefined;
-
-	#status = $state<ChannelStatus>("idle");
-
-	// Identifies the join attempt that is allowed to complete.
-	#attempt: object | null = null;
-
-	#joining: Promise<void> | null = null;
-	#leaving: Promise<void> | null = null;
-
-	#modActions = false;
-
-	// The login the backend joined with; the user may rename meanwhile.
-	#login = "";
-
 	public readonly id: string;
-
-	public seventvId: string | null = null;
-
 	public readonly chat: Chat;
 	public readonly badges: ChannelBadgeManager;
 	public readonly emotes: ChannelEmoteManager;
 	public readonly cheermotes: CheermoteManager;
 	public readonly viewers: ViewerManager;
 	public readonly pinned: boolean;
+
+	public seventvId: string | null = null;
 
 	/**
 	 * The stream associated with the channel if it's currently live.
@@ -98,7 +82,6 @@ export class Channel {
 	 * The prediction associated with the channel if one is currently active.
 	 */
 	public prediction = $state<Prediction | null>(null);
-
 	public ephemeral = $state(false);
 
 	/**
@@ -110,6 +93,20 @@ export class Channel {
 	 * The id of the active 7TV emote set for the channel, if any.
 	 */
 	public emoteSetId = $state<string | null>(null);
+
+	#ttlTimeout: ReturnType<typeof setTimeout> | undefined;
+	#status = $state<ChannelStatus>("idle");
+
+	// Identifies the join attempt that is allowed to complete.
+	#attempt: object | null = null;
+
+	#joining: Promise<void> | null = null;
+	#leaving: Promise<void> | null = null;
+
+	#modActions = false;
+
+	// The login the backend joined with; the user may rename meanwhile.
+	#login = "";
 
 	public constructor(
 		public readonly client: TwitchClient,

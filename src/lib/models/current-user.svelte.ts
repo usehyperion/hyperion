@@ -19,22 +19,17 @@ import { User } from "./user.svelte";
 import { Whisper } from "./whisper.svelte";
 
 export class CurrentUser extends User {
-	/**
-	 * The ids of the channels the current user moderates for.
-	 */
-	readonly #moderating = new SvelteSet<string>();
-
-	readonly #seventvSets = once(() => this.#fetch7tvSets());
-	readonly #twitchSets = once(() => this.#fetchTwitchEmotes());
-
-	public seventvId: string | null = null;
-
 	public readonly whispers = new SvelteMap<string, Whisper>();
 
 	/**
 	 * The emote sets the current user is entitled to use.
 	 */
 	public readonly emoteSets = new SvelteMap<string, EmoteSet>();
+
+	/**
+	 * The ids of the channels the current user moderates for.
+	 */
+	readonly #moderating = new SvelteSet<string>();
 
 	public readonly loadModerating = once(async () => {
 		const moderates = await this.client.paginate(
@@ -50,6 +45,11 @@ export class CurrentUser extends User {
 
 	public readonly loadFollowing = once(() => this.#loadFollowing());
 	public readonly loadWhispers = once(() => this.#loadWhispers());
+
+	public seventvId: string | null = null;
+
+	readonly #seventvSets = once(() => this.#fetch7tvSets());
+	readonly #twitchSets = once(() => this.#fetchTwitchEmotes());
 
 	public constructor(user: User) {
 		super(user.client, user.data);

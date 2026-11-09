@@ -30,6 +30,20 @@ export const BADGE_SETS = {
 } as const;
 
 export class Badge {
+	public static key(setId: string, version: string) {
+		return `${setId}:${version}`;
+	}
+
+	public static fromGql(this: void, data: ApiBadge) {
+		return new Badge({
+			setId: data.setID,
+			version: data.version,
+			title: data.title,
+			description: data.description,
+			imageUrl: data.imageURL,
+		});
+	}
+
 	/**
 	 * The id of the badge in the form of `{setId}:{version}`.
 	 */
@@ -75,19 +89,5 @@ export class Badge {
 		this.description = data.description;
 		this.color = data.color;
 		this.imageUrl = data.imageUrl;
-	}
-
-	public static key(setId: string, version: string) {
-		return `${setId}:${version}`;
-	}
-
-	public static fromGql(this: void, data: ApiBadge) {
-		return new Badge({
-			setId: data.setID,
-			version: data.version,
-			title: data.title,
-			description: data.description,
-			imageUrl: data.imageURL,
-		});
 	}
 }
