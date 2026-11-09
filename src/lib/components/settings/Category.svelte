@@ -1,7 +1,7 @@
 <script lang="ts">
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
 
-	import type { SettingsCategory } from "#lib/settings/types.js";
+	import type { SettingsCategory } from "#lib/components/settings/schema/types.js";
 
 	import * as Empty from "#lib/components/ui/empty/index.js";
 

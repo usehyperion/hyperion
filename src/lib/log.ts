@@ -1,6 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 
-export type LogLevel = "trace" | "debug" | "info" | "warn" | "error";
+export const LOG_LEVELS = ["trace", "debug", "info", "warn", "error"] as const;
+
+export type LogLevel = (typeof LOG_LEVELS)[number];
 
 const fallback = {
 	trace: console.debug,

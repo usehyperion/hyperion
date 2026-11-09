@@ -5,8 +5,9 @@
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
 	import X from "~icons/ph/x";
 
-	import type { SettingsCategory } from "#lib/settings/types.js";
+	import type { SettingsCategory } from "#lib/components/settings/schema/types.js";
 
+	import { countFields, filterCategory } from "#lib/components/settings/schema/search.js";
 	import Button from "#lib/components/ui/Button.svelte";
 	import Dialog from "#lib/components/ui/Dialog.svelte";
 	import * as InputGroup from "#lib/components/ui/input-group/index.js";
@@ -14,12 +15,11 @@
 	import { dialogs } from "#lib/dialog.js";
 	import { log } from "#lib/log.js";
 	import { settings } from "#lib/settings/index.js";
-	import { countFields, filterCategory } from "#lib/settings/search.js";
 
 	import Category from "./Category.svelte";
 	import SidebarActions from "./SidebarActions.svelte";
 
-	const imports = import.meta.glob<SettingsCategory>(["#lib/settings/categories/*.ts"], {
+	const imports = import.meta.glob<SettingsCategory>(["./schema/categories/*.ts"], {
 		eager: true,
 		import: "default",
 	});
@@ -36,7 +36,7 @@
 	const counts = $derived(
 		new Map(results.map((category) => [category.label, countFields(category.fields)])),
 	);
-	const total = $derived(results.reduce((sum, { fields }) => sum + countFields(fields), 0));
+	const total = $derived(counts.values().reduce((sum, count) => sum + count, 0));
 
 	// Keep the selection on a category that still has something to show
 	$effect(() => {

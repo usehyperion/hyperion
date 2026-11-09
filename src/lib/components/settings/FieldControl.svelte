@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BaseField, SettingsField } from "#lib/settings/types.js";
+	import type { BaseField, SettingsField } from "#lib/components/settings/schema/types.js";
 
 	import * as Field from "#lib/components/ui/field/index.js";
 	import Input from "#lib/components/ui/Input.svelte";
@@ -17,22 +17,17 @@
 
 	const { field }: Props = $props();
 
-	// Lightweight Markdown parser
+	// Descriptions use a small subset of Markdown: inline code, links, bold,
+	// and italics.
 	function parseDescription(description: string) {
-		return (
-			description
-				// Inline Code
-				.replace(/`([^`]+)`/g, "<code>$1</code>")
-				// Links
-				.replace(
-					/\[([^\]]+)\]\(([^)]+)\)/g,
-					'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>',
-				)
-				// Bold
-				.replace(/(\*\*)(.*?)\1/g, "<strong>$2</strong>")
-				// Italics
-				.replace(/(\*)(.*?)\1/g, "<em>$2</em>")
-		);
+		return description
+			.replace(/`([^`]+)`/g, "<code>$1</code>")
+			.replace(
+				/\[([^\]]+)\]\(([^)]+)\)/g,
+				'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>',
+			)
+			.replace(/(\*\*)(.*?)\1/g, "<strong>$2</strong>")
+			.replace(/(\*)(.*?)\1/g, "<em>$2</em>");
 	}
 </script>
 
@@ -49,21 +44,13 @@
 		</Field.Group>
 	</Field.Set>
 {:else if field.type === "custom"}
-	{#if field.renderAs === "field"}
-		<Field.Field>
-			{@render content(field)}
+	<Field.Set>
+		<Field.Legend>{field.label}</Field.Legend>
 
-			<field.component />
-		</Field.Field>
-	{:else}
-		<Field.Set>
-			<Field.Legend>{field.label}</Field.Legend>
+		{@render description(field.description)}
 
-			{@render description(field.description)}
-
-			<field.component />
-		</Field.Set>
-	{/if}
+		<field.component />
+	</Field.Set>
 {:else if field.type === "input"}
 	<Field.Field>
 		<Field.Label for={field.id}>{field.label}</Field.Label>
@@ -112,7 +99,12 @@
 		<Field.Label for={field.id}>{field.label}</Field.Label>
 
 		<div class="max-w-52">
-			<Select id={field.id} options={field.items} bind:value={settings.state[field.id]} />
+			<Select
+				id={field.id}
+				options={field.items}
+				disabled={field.disabled?.()}
+				bind:value={settings.state[field.id]}
+			/>
 		</div>
 
 		{@render description(field.description)}
@@ -139,7 +131,7 @@
 
 		<Switch
 			id={field.id}
-			onchange={(event) => field.onchange?.(event.currentTarget.checked)}
+			disabled={field.disabled?.()}
 			bind:checked={settings.state[field.id]}
 		/>
 	</Field.Field>
