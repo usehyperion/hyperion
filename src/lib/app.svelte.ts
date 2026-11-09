@@ -84,6 +84,14 @@ class App {
 		return id ? (this.channels.get(id) ?? null) : null;
 	}
 
+	public async notify() {
+		try {
+			await invoke("notify");
+		} catch (error) {
+			log.warn("Failed to show notification", error);
+		}
+	}
+
 	/**
 	 * Restores the session stored by the backend. Resolves to the signed in
 	 * user or `null` if they have to sign in again.
