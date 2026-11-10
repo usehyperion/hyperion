@@ -15,7 +15,7 @@ on:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-22.04
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     defaults:
       run:
         working-directory: src-tauri
