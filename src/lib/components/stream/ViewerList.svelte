@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { tick } from "svelte";
-	import { SvelteMap } from "svelte/reactivity";
 
 	import ArrowsClockwise from "~icons/ph/arrows-clockwise";
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
