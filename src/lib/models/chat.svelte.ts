@@ -67,6 +67,12 @@ interface SendOptions {
 	 * @default false
 	 */
 	pin?: boolean;
+
+	/**
+	 * The message to reply to. Defaults to the current reply target, which is
+	 * cleared on send.
+	 */
+	replyTo?: UserMessage;
 }
 
 export class Chat {
@@ -278,7 +284,7 @@ export class Chat {
 		}
 
 		try {
-			await this.#sendText(text);
+			await this.#sendText(text, options?.replyTo);
 		} catch (error) {
 			log.error(`Failed to send message in ${this.channel.user.username}`, error);
 			throw new CommandError("Your message could not be sent.");
@@ -297,13 +303,17 @@ export class Chat {
 		void app.user?.sendPresence(this.channel.id);
 	}
 
-	async #sendText(message: string) {
+	async #sendText(message: string, replyTo?: UserMessage) {
 		const text = this.#prepare(message);
 		if (text === null) return;
 
-		// Clear the reply before sending so the UI doesn't wait on it.
-		const replyId = this.replyTarget?.id;
-		this.replyTarget = null;
+		let replyId = replyTo?.id;
+
+		if (!replyTo) {
+			// Clear the reply before sending so the UI doesn't wait on it.
+			replyId = this.replyTarget?.id;
+			this.replyTarget = null;
+		}
 
 		const { sent } = await this.channel.client.gql(sendMessageMutation, {
 			input: {

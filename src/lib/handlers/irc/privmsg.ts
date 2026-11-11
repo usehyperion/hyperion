@@ -1,5 +1,7 @@
 import { app } from "#lib/app.svelte.js";
+import { mentions } from "#lib/highlights.js";
 import { UserMessage } from "#lib/models/message/user-message.svelte.js";
+import { notifyMention } from "#lib/notifications.js";
 
 import { defineHandler } from "../helper";
 
@@ -20,6 +22,17 @@ export default defineHandler("irc", {
 
 		if (data.custom_reward_id) {
 			channel.chat.redemptions.attachMessage(data.custom_reward_id, data.sender.id, message);
+		}
+
+		const user = app.user;
+
+		if (
+			user &&
+			!data.is_recent &&
+			data.sender.id !== user.id &&
+			mentions(message.text, user.username)
+		) {
+			void notifyMention(message);
 		}
 	},
 });
