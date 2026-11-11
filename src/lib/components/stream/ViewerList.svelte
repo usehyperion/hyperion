@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { tick } from "svelte";
+	import { SvelteMap } from "svelte/reactivity";
 
 	import ArrowsClockwise from "~icons/ph/arrows-clockwise";
 	import MagnifyingGlass from "~icons/ph/magnifying-glass";
@@ -224,21 +225,21 @@
 
 				<ul class="px-1.5">
 					{#each section.chatters as chatter (chatter.login)}
+						{@const user =
+							chatter.viewer?.user ?? channel.client.users.getByLogin(chatter.login)}
+
 						<li class="[contain-intrinsic-size:auto_1.75rem] [content-visibility:auto]">
 							<button
 								class="flex h-7 w-full min-w-0 items-center gap-1.5 rounded-md px-1.5 text-left text-sm transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none disabled:opacity-50"
 								disabled={resolving === chatter.login}
 								onclick={(event) => select(chatter, event.currentTarget)}
 							>
-								{#if chatter.viewer}
-									<span
-										class="truncate font-semibold"
-										style={chatter.viewer.user.style}
-									>
-										{chatter.viewer.displayName}
+								{#if user}
+									<span class="truncate font-semibold" style={user.style}>
+										{user.displayName}
 									</span>
 
-									{#if chatter.viewer.displayName.toLowerCase() !== chatter.login}
+									{#if user.localizedName}
 										<span class="truncate text-xs text-muted-foreground">
 											({chatter.login})
 										</span>

@@ -110,9 +110,6 @@ export class User {
 		public readonly client: TwitchClient,
 		public readonly data: ApiUser,
 	) {
-		this.#color = data.chatColor || null;
-		this.#displayName = data.displayName;
-
 		this.id = data.id;
 		this.staff = data.roles?.isStaff ?? false;
 		this.username = data.login;
@@ -124,6 +121,9 @@ export class User {
 		this.bannerUrl = $state(data.bannerImageURL ?? "");
 
 		this.paint = $derived(app.cosmetics.userPaints.get(this.id));
+
+		this.#color = $state(data.chatColor || null);
+		this.#displayName = $state(data.displayName);
 	}
 
 	/**
@@ -252,6 +252,8 @@ export class User {
 	 */
 	public update(data: ApiUser) {
 		this.createdAt = new Date(data.createdAt);
+		this.displayName = data.displayName;
+		this.color = data.chatColor;
 		this.bio = data.description ?? "";
 		this.avatarUrl = data.profileImageURL ?? "";
 		this.bannerUrl = data.bannerImageURL ?? "";
