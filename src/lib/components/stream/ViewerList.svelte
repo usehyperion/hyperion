@@ -137,7 +137,7 @@
 </script>
 
 <Button
-	class="size-8 rounded-none text-muted-foreground hover:text-foreground"
+	class="size-8 rounded-none border-r text-muted-foreground hover:text-foreground"
 	size="icon-sm"
 	variant="ghost"
 	aria-label="Viewer list"
