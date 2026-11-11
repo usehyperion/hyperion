@@ -238,12 +238,6 @@
 									<span class="truncate font-semibold" style={user.style}>
 										{user.displayName}
 									</span>
-
-									{#if user.localizedName}
-										<span class="truncate text-xs text-muted-foreground">
-											({chatter.login})
-										</span>
-									{/if}
 								{:else}
 									<span class="truncate">{chatter.login}</span>
 								{/if}
