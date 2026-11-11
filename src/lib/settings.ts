@@ -1,10 +1,9 @@
-import { RuneStore } from "@tauri-store/svelte";
-
 import type { LogLevel } from "#lib/log.js";
 
 import type { HighlightConfig, HighlightType, KeywordHighlightConfig } from "./highlights";
 
 import { defaultHighlights } from "./highlights";
+import { Persisted } from "./persisted.svelte";
 
 export type DeletedAppearance = "dim" | "strike" | "blur";
 
@@ -83,18 +82,15 @@ const defaults: Settings = {
 	"advanced.logs.level": "info",
 };
 
-export const settings = new RuneStore<Settings>("settings", defaults, {
-	autoStart: true,
-	hooks: {
-		beforeFrontendSync: (state) => {
-			// Highlight kinds added since the settings were saved get defaults.
-			state["highlights.viewers"] = {
-				...defaultHighlights(),
-				...state["highlights.viewers"],
-			};
+export const settings = new Persisted<Settings>("hyperion:settings", defaults, {
+	restore(state) {
+		// Highlight kinds added since the settings were saved get defaults.
+		state["highlights.viewers"] = {
+			...defaultHighlights(),
+			...state["highlights.viewers"],
+		};
 
-			return state;
-		},
+		return state;
 	},
 });
 

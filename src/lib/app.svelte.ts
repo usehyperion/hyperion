@@ -1,5 +1,4 @@
 import { invoke, Channel as IpcChannel } from "@tauri-apps/api/core";
-import { tick } from "svelte";
 
 import { goto } from "$app/navigation";
 import { page } from "$app/state";
@@ -33,15 +32,6 @@ export interface Account {
 
 const CONNECT_RETRY_MIN = 1000;
 const CONNECT_RETRY_MAX = 60 * 1000;
-
-/**
- * Persists the storage right away.
- */
-async function saveStorage() {
-	// Let the store see the latest state before saving.
-	await tick();
-	await storage.saveNow();
-}
 
 class App {
 	public readonly twitch = new TwitchClient(() => {
@@ -115,7 +105,7 @@ class App {
 
 		log.info(`Logged in as ${account.login}`);
 
-		await saveStorage();
+		storage.save();
 		await goto("/", { refreshAll: true });
 	}
 
@@ -324,8 +314,7 @@ class App {
 
 		this.#reset();
 		storage.state.user = null;
-
-		await saveStorage();
+		storage.save();
 
 		try {
 			// Drop the backend credentials and keyring entry too, otherwise the

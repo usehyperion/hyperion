@@ -8,7 +8,6 @@ use seventv::SeventTvClient;
 use tauri::Manager;
 use tauri::async_runtime::{self, Mutex};
 use tauri::ipc::Invoke;
-use tauri_plugin_svelte::PrettyJsonMarshaler;
 use twitch_oauth2::UserToken;
 
 mod api;
@@ -17,6 +16,7 @@ mod commands;
 mod connection;
 mod error;
 mod irc;
+mod legacy;
 mod log;
 mod pubsub;
 mod seventv;
@@ -94,15 +94,6 @@ pub fn run() {
         .setup(|app| {
             log::init_tracing(app);
 
-            let app_handle = app.handle();
-
-            let svelte = tauri_plugin_svelte::Builder::new()
-                .path(app_handle.path().app_data_dir()?)
-                .marshaler(Box::new(PrettyJsonMarshaler))
-                .build();
-
-            app_handle.plugin(svelte)?;
-
             let http = reqwest::Client::builder().timeout(HTTP_TIMEOUT).build()?;
             let mut state = AppState::new(http);
 
@@ -112,7 +103,7 @@ pub fn run() {
 
             app.manage(Mutex::new(state));
 
-            let handle = app_handle.clone();
+            let handle = app.handle().clone();
 
             async_runtime::spawn(async move {
                 auth::ensure_integrity(&handle).await;
@@ -137,6 +128,8 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         irc::connect_irc,
         irc::fetch_recent_messages,
         irc::privmsg,
+        legacy::read_legacy_store,
+        legacy::remove_legacy_store,
         log::log,
         log::update_log_level,
         pubsub::connect_pubsub,

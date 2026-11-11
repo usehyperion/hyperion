@@ -2,10 +2,13 @@ import { redirect } from "@sveltejs/kit";
 
 import { app } from "#lib/app.svelte.js";
 import { log } from "#lib/log.js";
+import { migrateLegacyStores } from "#lib/stores.js";
 
 export const ssr = false;
 
 export async function load({ url }) {
+	await migrateLegacyStores();
+
 	const user = await app.restoreSession();
 
 	if (!user) {

@@ -13,8 +13,6 @@
 	import * as InputGroup from "#lib/components/ui/input-group/index.js";
 	import Separator from "#lib/components/ui/Separator.svelte";
 	import { dialogs } from "#lib/dialog.js";
-	import { log } from "#lib/log.js";
-	import { settings } from "#lib/settings.js";
 
 	import Category from "./Category.svelte";
 	import SidebarActions from "./SidebarActions.svelte";
@@ -61,11 +59,6 @@
 		query = "";
 		searchRef?.focus();
 	}
-
-	async function onclose() {
-		await settings.saveNow();
-		log.info("Settings saved");
-	}
 </script>
 
 <Dialog
@@ -73,7 +66,6 @@
 	class="m-0 h-screen max-h-none max-w-none! overflow-hidden rounded-none p-0 *:data-[slot=dialog-content]:h-full *:data-[slot=dialog-content]:space-y-0"
 	aria-label="Settings"
 	{onkeydown}
-	{onclose}
 >
 	<Tabs.Root
 		id="settings-tabs"

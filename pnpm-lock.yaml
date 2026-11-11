@@ -223,9 +223,6 @@ importers:
       '@tauri-apps/plugin-window-state':
         specifier: ~2.5.0
         version: 2.5.0
-      '@tauri-store/svelte':
-        specifier: ^3.2.1
-        version: 3.2.1(@typescript-eslint/types@8.72.1)
       bits-ui:
         specifier: ^2.20.0
         version: 2.20.0(@internationalized/date@3.12.4)(@sveltejs/kit@3.1.0(@sveltejs/vite-plugin-svelte@7.3.0(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.5)(jiti@2.7.0)(typescript@6.0.3))(svelte@5.57.2(@typescript-eslint/types@8.72.1)))(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.5)(jiti@2.7.0)(typescript@6.0.3))(svelte@5.57.2(@typescript-eslint/types@8.72.1))(typescript@6.0.3))(svelte@5.57.2(@typescript-eslint/types@8.72.1))
@@ -1060,12 +1057,6 @@ packages:
   '@tauri-apps/plugin-window-state@2.5.0':
     resolution: {integrity: sha512-ySI/32fpC1ZTslIZ00/wf9HujyDnkG3OPL16uuLjG53y1hTgjIJ9G2VPuOL1IV8GVr3xeF6lnr6h2T73HuGXow==}
 
-  '@tauri-store/shared@0.10.6':
-    resolution: {integrity: sha512-vRC4MH52j6ITeD9yWs6jwmYxJwt17x0YwSzigxwEkUQad6JC9m6lIJPD4r+ebZYpVJ47RlI9g5SPy2dxMOpYqg==}
-
-  '@tauri-store/svelte@3.2.1':
-    resolution: {integrity: sha512-uuBn7/XAtyEoDY4R8ZsQJ02eJpX0id69xRAbkxXlx6nmds9vUSJkq65e4UHe+Pq2KC3QlJW6FumYKWhZv4xiUA==}
-
   '@testing-library/dom@10.4.2':
     resolution: {integrity: sha512-yzr2S9HyAIdhz2/6qHgbs665Q7PKVcDF05vsOlHPxG1mo36gKVesdYVeDLnXgfjJ03CrKRk08knc6+E/9m8v2Q==}
     engines: {node: '>=18'}
@@ -1496,9 +1487,6 @@ packages:
 
   es-module-lexer@2.3.2:
     resolution: {integrity: sha512-poHGpORABojJJucnV9KbOavETW8lBVnphkW77ER5/BQ5Fz7oXSoCNek7IH3vR5nRjdsEz926ibFYX8KtLQmdyw==}
-
-  es-toolkit@1.52.0:
-    resolution: {integrity: sha512-XTNEJQh1tY1ZJVcf6ayP/2n4ZPyaHlW2FWs7xvw5ddPuhUVjLD3olQVQS7kf58JbAB48iL0uL/jerTrjtV3lDA==}
 
   escape-string-regexp@4.0.0:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
@@ -2992,19 +2980,6 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 2.12.4
 
-  '@tauri-store/shared@0.10.6':
-    dependencies:
-      '@tauri-apps/api': 2.12.4
-      es-toolkit: 1.52.0
-
-  '@tauri-store/svelte@3.2.1(@typescript-eslint/types@8.72.1)':
-    dependencies:
-      '@tauri-apps/api': 2.12.4
-      '@tauri-store/shared': 0.10.6
-      svelte: 5.57.2(@typescript-eslint/types@8.72.1)
-    transitivePeerDependencies:
-      - '@typescript-eslint/types'
-
   '@testing-library/dom@10.4.2':
     dependencies:
       '@babel/code-frame': 7.29.7
@@ -3349,8 +3324,6 @@ snapshots:
       tapable: 2.3.3
 
   es-module-lexer@2.3.2: {}
-
-  es-toolkit@1.52.0: {}
 
   escape-string-regexp@4.0.0: {}
 
