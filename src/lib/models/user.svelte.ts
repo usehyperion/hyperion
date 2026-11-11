@@ -77,7 +77,6 @@ export class User {
 	}
 
 	public readonly id: string;
-	public readonly staff: boolean;
 
 	/**
 	 * The relationships of the user to other channels.
@@ -88,6 +87,8 @@ export class User {
 	 * The 7TV paint for the user if they have one set.
 	 */
 	public readonly paint?: Paint;
+
+	public staff: boolean;
 
 	/**
 	 * When the account was created; `null` until the profile is loaded for
@@ -111,7 +112,7 @@ export class User {
 		public readonly data: ApiUser,
 	) {
 		this.id = data.id;
-		this.staff = data.roles?.isStaff ?? false;
+		this.staff = $state(data.roles?.isStaff ?? false);
 		this.username = data.login;
 
 		this.createdAt = data.createdAt ? new Date(data.createdAt) : null;
@@ -252,6 +253,7 @@ export class User {
 	 */
 	public update(data: ApiUser) {
 		this.createdAt = new Date(data.createdAt);
+		this.staff = data.roles?.isStaff ?? false;
 		this.displayName = data.displayName;
 		this.color = data.chatColor;
 		this.bio = data.description ?? "";
