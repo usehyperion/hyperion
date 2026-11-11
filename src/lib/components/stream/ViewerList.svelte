@@ -10,18 +10,18 @@
 	import type { User } from "#lib/models/user.svelte.js";
 
 	import { log } from "#lib/log.js";
-	import { type Chatter, type ChatterRole, mergeChatters } from "#lib/managers/viewer-manager.js";
+	import {
+		CHATTER_ROLES,
+		type Chatter,
+		type ChatterRole,
+		mergeChatters,
+	} from "#lib/managers/viewer-manager.js";
 
 	import Button from "../ui/Button.svelte";
 	import * as Empty from "../ui/empty";
 	import * as InputGroup from "../ui/input-group";
 	import Sheet from "../ui/Sheet.svelte";
 	import UserCard from "../user/UserCard.svelte";
-
-	interface Group {
-		role: ChatterRole;
-		label: string;
-	}
 
 	interface Selection {
 		user: User;
@@ -34,14 +34,14 @@
 
 	const { channel }: Props = $props();
 
-	const groups: Group[] = [
-		{ role: "broadcaster", label: "Broadcaster" },
-		{ role: "staff", label: "Staff" },
-		{ role: "moderator", label: "Moderators" },
-		{ role: "vip", label: "VIPs" },
-		{ role: "chatbot", label: "Chatbots" },
-		{ role: "viewer", label: "Viewers" },
-	];
+	const labels: Record<ChatterRole, string> = {
+		broadcaster: "Broadcaster",
+		staff: "Staff",
+		moderator: "Moderators",
+		vip: "VIPs",
+		chatbot: "Chatbots",
+		viewer: "Viewers",
+	};
 
 	let sheet = $state<HTMLDialogElement | null>(null);
 	let search = $state<HTMLInputElement | null>(null);
@@ -65,16 +65,16 @@
 		return chatters.filter(
 			(chatter) =>
 				chatter.login.includes(needle) ||
-				chatter.viewer?.displayName.toLowerCase().includes(needle),
+				chatter.user?.displayName.toLowerCase().includes(needle),
 		);
 	});
 
 	const sections = $derived.by(() => {
 		const byRole = Map.groupBy(filtered, (chatter) => chatter.role);
 
-		return groups.flatMap(({ role, label }) => {
+		return CHATTER_ROLES.flatMap((role) => {
 			const chatters = byRole.get(role);
-			return chatters ? [{ role, label, chatters }] : [];
+			return chatters ? [{ role, label: labels[role], chatters }] : [];
 		});
 	});
 
@@ -86,7 +86,7 @@
 		loading = true;
 		error = false;
 
-		let roles = new Map<string, ChatterRole>();
+		let roles: Map<string, ChatterRole> | null = null;
 
 		try {
 			const list = await channel.viewers.fetchChatters();
@@ -98,12 +98,13 @@
 			if (current !== token) return;
 
 			error = true;
+			count = null;
 			log.error("Failed to fetch chatters", cause);
 		}
 
 		// Snapshot the merge so new chat activity doesn't reshuffle the list
 		// while it's being browsed. Refreshing picks up new viewers.
-		chatters = mergeChatters(roles, channel.viewers.values());
+		chatters = mergeChatters(channel, roles);
 		loading = false;
 	}
 
@@ -120,11 +121,25 @@
 		try {
 			resolving = chatter.login;
 
-			const user =
-				chatter.viewer?.user ??
-				(await channel.client.users.fetch(chatter.login, { by: "login" }));
+			let { viewer } = chatter;
 
-			selected = { user, anchor };
+			if (!viewer) {
+				// Register the viewer so the card can show their message history.
+				viewer = await channel.viewers.fetchByLogin(chatter.login);
+
+				viewer.moderator = chatter.role === "moderator";
+				viewer.vip = chatter.role === "vip";
+
+				const resolved = {
+					...chatter,
+					user: viewer.user,
+					viewer,
+				};
+
+				chatters = chatters.map((entry) => (entry === chatter ? resolved : entry));
+			}
+
+			selected = { user: viewer.user, anchor };
 
 			await tick();
 			document.getElementById(cardId)?.showPopover();
@@ -224,8 +239,7 @@
 
 				<ul class="px-1.5">
 					{#each section.chatters as chatter (chatter.login)}
-						{@const user =
-							chatter.viewer?.user ?? channel.client.users.getByLogin(chatter.login)}
+						{@const user = chatter.user}
 
 						<li class="[contain-intrinsic-size:auto_1.75rem] [content-visibility:auto]">
 							<button
