@@ -265,7 +265,7 @@ export class Chat {
 		});
 	}
 
-	public async send(message: string) {
+	public async send(message: string, replyTo?: UserMessage) {
 		if (message.startsWith("/")) {
 			await this.#runCommand(message);
 			return;
@@ -274,9 +274,13 @@ export class Chat {
 		const text = this.#prepare(message);
 		if (text === null) return;
 
-		// Clear the reply before sending so the UI doesn't wait on it.
-		const replyId = this.replyTarget?.id;
-		this.replyTarget = null;
+		let replyId = replyTo?.id;
+
+		if (!replyTo) {
+			// Clear the reply before sending so the UI doesn't wait on it.
+			replyId = this.replyTarget?.id;
+			this.replyTarget = null;
+		}
 
 		const { sent } = await this.channel.client.gql(sendMessageMutation, {
 			input: {

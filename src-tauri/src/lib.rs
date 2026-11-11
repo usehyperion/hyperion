@@ -3,7 +3,6 @@ use std::time::Duration;
 use auth::{IntegrityState, PendingToken};
 use connection::Connection;
 use irc::IrcClient;
-use notify_rust::Notification;
 use pubsub::PubSubClient;
 use seventv::SeventTvClient;
 use tauri::Manager;
@@ -19,6 +18,7 @@ mod connection;
 mod error;
 mod irc;
 mod log;
+mod notify;
 mod pubsub;
 mod seventv;
 mod ws;
@@ -125,49 +125,6 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-// Must stay async: sync commands run on the main thread, and a panic there
-// aborts the whole process instead of just failing the invoke.
-#[tauri::command]
-#[tracing::instrument(skip(app))]
-async fn notify(#[allow(unused_variables)] app: tauri::AppHandle) -> Result<(), error::Error> {
-    let mut notification = Notification::new();
-
-    notification
-        .summary("Hyperion")
-        .body("Test notification from Hyperion");
-
-    #[cfg(target_os = "macos")]
-    if !notify_rust::request_auth()
-        .await
-        .map_err(anyhow::Error::from)?
-    {
-        return Err(anyhow::anyhow!("notification permission denied").into());
-    }
-
-    #[cfg(not(windows))]
-    notification
-        .show_async()
-        .await
-        .map_err(anyhow::Error::from)?;
-
-    #[cfg(windows)]
-    {
-        let exe = std::env::current_exe().map_err(anyhow::Error::from)?;
-
-        let in_target = exe
-            .parent()
-            .is_some_and(|dir| dir.ends_with("target/debug") || dir.ends_with("target/release"));
-
-        if !in_target {
-            notification.app_id(&app.config().identifier);
-        }
-
-        notification.show().map_err(anyhow::Error::from)?
-    };
-
-    Ok(())
-}
-
 fn get_handler() -> impl Fn(Invoke) -> bool {
     tauri::generate_handler![
         api::join,
@@ -185,6 +142,6 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         pubsub::connect_pubsub,
         seventv::connect_seventv,
         seventv::sync_seventv,
-        notify,
+        notify::notify,
     ]
 }

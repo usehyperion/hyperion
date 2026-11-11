@@ -5,6 +5,7 @@ import { goto } from "$app/navigation";
 import { page } from "$app/state";
 
 import type { Channel } from "./models/channel.svelte";
+import type { NotificationOptions, NotificationResponse } from "./notifications";
 import type { DispatchPayload } from "./seventv";
 import type { IrcMessage } from "./twitch/irc";
 import type { PubSubMessage } from "./twitch/pubsub";
@@ -84,11 +85,19 @@ class App {
 		return id ? (this.channels.get(id) ?? null) : null;
 	}
 
-	public async notify() {
+	/**
+	 * Shows a system notification. Resolves with the user's response, or
+	 * `null` if the notification couldn't be shown.
+	 *
+	 * It only resolves once the user responds, which may be never, so don't
+	 * await it where that would hold up other work.
+	 */
+	public async notify(options: NotificationOptions) {
 		try {
-			await invoke("notify");
+			return await invoke<NotificationResponse>("notify", { options });
 		} catch (error) {
 			log.warn("Failed to show notification", error);
+			return null;
 		}
 	}
 

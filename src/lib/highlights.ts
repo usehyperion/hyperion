@@ -99,10 +99,15 @@ export function defaultHighlights() {
 	) as Record<HighlightType, HighlightConfig>;
 }
 
-export function highlightOf(text: string, viewer: Viewer, username: string | undefined) {
-	const hasMention = username && new RegExp(`@${RegExp.escape(username)}\\b`, "i").test(text);
+/**
+ * Whether the text @-mentions the given username.
+ */
+export function mentions(text: string, username: string | undefined) {
+	return !!username && new RegExp(`@${RegExp.escape(username)}\\b`, "i").test(text);
+}
 
-	if (hasMention) return "mention";
+export function highlightOf(text: string, viewer: Viewer, username: string | undefined) {
+	if (mentions(text, username)) return "mention";
 	if (viewer.new) return "new";
 	if (viewer.returning) return "returning";
 	if (viewer.broadcaster) return "broadcaster";
