@@ -28,7 +28,7 @@
 
 <div class="flex h-full flex-col">
 	{#if channel.stream}
-		<StreamHeader stream={channel.stream} />
+		<StreamHeader {channel} stream={channel.stream} />
 	{/if}
 
 	<div class="relative grow">

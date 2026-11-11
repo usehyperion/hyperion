@@ -23,10 +23,11 @@
 		id: string;
 		user: User;
 		channel: Channel;
+		anchor?: HTMLElement | null;
 		onclose?: () => void;
 	}
 
-	const { id, user, channel, onclose }: Props = $props();
+	const { id, user, channel, anchor, onclose }: Props = $props();
 
 	let loading = $state(false);
 	let loadingHistory = $state(false);
@@ -72,6 +73,7 @@
 
 <Popover
 	{id}
+	{anchor}
 	class="w-sm overflow-hidden p-0"
 	onbeforetoggle={(event) => {
 		if (event.newState !== "open") return;
