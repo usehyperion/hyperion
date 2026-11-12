@@ -42,7 +42,7 @@ export async function revalidate<T>(
 	const age = entry ? Math.round((Date.now() - entry.fetchedAt) / 1000) : 0;
 
 	if (entry && age < options.fresh) {
-		void log.debug(`Cache hit for ${key} (${age}s old)`);
+		log.debug(`Cache hit for ${key} (${age}s old)`);
 		return entry.data;
 	}
 
@@ -52,11 +52,11 @@ export async function revalidate<T>(
 	});
 
 	if (!entry) {
-		void log.debug(`Cache miss for ${key}`);
+		log.debug(`Cache miss for ${key}`);
 		return pending;
 	}
 
-	void log.debug(`Cache stale for ${key} (${age}s old), revalidating`);
+	log.debug(`Cache stale for ${key} (${age}s old), revalidating`);
 
 	pending
 		.then(options.onRevalidate)
@@ -77,7 +77,7 @@ export async function get<T>(key: string) {
 		return await invoke<T | null>("cache_get", { key });
 	} catch (error) {
 		// A broken entry shouldn't prevent loading from the network.
-		void log.warn(`Failed to read ${key} from the cache`, error);
+		log.warn(`Failed to read ${key} from the cache`, error);
 		return null;
 	}
 }
@@ -86,7 +86,7 @@ export async function set(key: string, value: unknown, ttl?: number) {
 	try {
 		await invoke("cache_set", { key, value, ttl });
 	} catch (error) {
-		void log.warn(`Failed to write ${key} to the cache`, error);
+		log.warn(`Failed to write ${key} to the cache`, error);
 	}
 }
 
