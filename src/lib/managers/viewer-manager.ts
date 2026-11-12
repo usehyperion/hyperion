@@ -44,4 +44,19 @@ export class ViewerManager extends SvelteMap<string, Viewer> {
 		this.set(id, viewer);
 		return viewer;
 	}
+
+	public async fetchByLogin(login: string) {
+		const cached = this.getByLogin(login);
+		if (cached) return cached;
+
+		const user = await this.channel.client.users.fetch(login, { by: "login" });
+
+		const existing = this.get(user.id);
+		if (existing) return existing;
+
+		const viewer = new Viewer(this.channel, user);
+
+		this.set(user.id, viewer);
+		return viewer;
+	}
 }

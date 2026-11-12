@@ -80,6 +80,9 @@ const userDetailsFragment = gql(`
 		chatColor
 		profileImageURL(width: 300)
 		bannerImageURL
+		roles {
+			isStaff
+		}
 	}
 `);
 
@@ -167,6 +170,34 @@ export const channelBadgesQuery = gql(
 	}`,
 	[badgeDetailsFragment],
 );
+
+export const chattersQuery = gql(`
+	query GetChatters($id: ID!) {
+		channel(id: $id) {
+			chatters {
+				broadcasters {
+					login
+				}
+				moderators {
+					login
+				}
+				staff {
+					login
+				}
+				chatbots {
+					login
+				}
+				vips {
+					login
+				}
+				viewers {
+					login
+				}
+				count
+			}
+		}
+	}
+`);
 
 export const cheermoteQuery = gql(
 	`query GetCheermotes($id: ID!) {

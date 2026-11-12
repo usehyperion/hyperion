@@ -70,6 +70,9 @@ export class User {
 			description: "",
 			profileImageURL: "",
 			bannerImageURL: "",
+			roles: {
+				isStaff: false,
+			},
 		});
 	}
 
@@ -84,6 +87,8 @@ export class User {
 	 * The 7TV paint for the user if they have one set.
 	 */
 	public readonly paint?: Paint;
+
+	public staff: boolean;
 
 	/**
 	 * When the account was created; `null` until the profile is loaded for
@@ -106,10 +111,8 @@ export class User {
 		public readonly client: TwitchClient,
 		public readonly data: ApiUser,
 	) {
-		this.#color = data.chatColor || null;
-		this.#displayName = data.displayName;
-
 		this.id = data.id;
+		this.staff = $state(data.roles?.isStaff ?? false);
 		this.username = data.login;
 
 		this.createdAt = data.createdAt ? new Date(data.createdAt) : null;
@@ -119,6 +122,9 @@ export class User {
 		this.bannerUrl = $state(data.bannerImageURL ?? "");
 
 		this.paint = $derived(app.cosmetics.userPaints.get(this.id));
+
+		this.#color = $state(data.chatColor || null);
+		this.#displayName = $state(data.displayName);
 	}
 
 	/**
@@ -247,6 +253,9 @@ export class User {
 	 */
 	public update(data: ApiUser) {
 		this.createdAt = new Date(data.createdAt);
+		this.staff = data.roles?.isStaff ?? false;
+		this.displayName = data.displayName;
+		this.color = data.chatColor;
 		this.bio = data.description ?? "";
 		this.avatarUrl = data.profileImageURL ?? "";
 		this.bannerUrl = data.bannerImageURL ?? "";

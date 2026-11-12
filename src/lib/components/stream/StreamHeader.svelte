@@ -5,17 +5,20 @@
 	import Clock from "~icons/ph/clock";
 	import Users from "~icons/ph/users";
 
+	import type { Channel } from "#lib/models/channel.svelte.js";
 	import type { Stream } from "#lib/models/stream.svelte.js";
 
 	import { everySecond } from "#lib/clock.js";
 
 	import StreamInfo from "./StreamInfo.svelte";
+	import ViewerList from "./ViewerList.svelte";
 
 	interface Props {
+		channel: Channel;
 		stream: Stream;
 	}
 
-	const { stream }: Props = $props();
+	const { channel, stream }: Props = $props();
 
 	let header = $state<HTMLElement | null>(null);
 
@@ -46,5 +49,6 @@
 		</div>
 	</div>
 
+	<ViewerList {channel} />
 	<StreamInfo {stream} anchor={header} />
 </div>
