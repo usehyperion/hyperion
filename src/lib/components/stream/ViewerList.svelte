@@ -12,10 +12,10 @@
 	import { log } from "#lib/log.js";
 	import {
 		CHATTER_ROLES,
+		ChatterList,
 		type Chatter,
 		type ChatterRole,
-		mergeChatters,
-	} from "#lib/managers/viewer-manager.js";
+	} from "#lib/models/chatter-list.svelte.js";
 
 	import Button from "../ui/Button.svelte";
 	import * as Empty from "../ui/empty";
@@ -47,22 +47,20 @@
 	let search = $state<HTMLInputElement | null>(null);
 
 	let query = $state("");
-	let loading = $state(false);
-	let error = $state(false);
-	let count = $state<number | null>(null);
-	let chatters = $state.raw<Chatter[]>([]);
 
 	let selected = $state.raw<Selection | null>(null);
 	let resolving = $state<string | null>(null);
+
+	const list = $derived(new ChatterList(channel));
 
 	const id = $derived(`viewer-list-${channel.id}`);
 	const cardId = $derived(`viewer-card-${channel.id}`);
 
 	const filtered = $derived.by(() => {
 		const needle = query.trim().toLowerCase();
-		if (!needle) return chatters;
+		if (!needle) return list.chatters;
 
-		return chatters.filter(
+		return list.chatters.filter(
 			(chatter) =>
 				chatter.login.includes(needle) ||
 				chatter.user?.displayName.toLowerCase().includes(needle),
@@ -78,41 +76,11 @@
 		});
 	});
 
-	let token = 0;
-
-	async function refresh() {
-		const current = ++token;
-
-		loading = true;
-		error = false;
-
-		let roles: Map<string, ChatterRole> | null = null;
-
-		try {
-			const list = await channel.viewers.fetchChatters();
-			if (current !== token) return;
-
-			roles = list.roles;
-			count = list.count;
-		} catch (cause) {
-			if (current !== token) return;
-
-			error = true;
-			count = null;
-			log.error("Failed to fetch chatters", cause);
-		}
-
-		// Snapshot the merge so new chat activity doesn't reshuffle the list
-		// while it's being browsed. Refreshing picks up new viewers.
-		chatters = mergeChatters(channel, roles);
-		loading = false;
-	}
-
 	function open() {
 		sheet?.showModal();
 		search?.focus();
 
-		void refresh();
+		void list.refresh();
 	}
 
 	async function select(chatter: Chatter, anchor: HTMLElement) {
@@ -121,24 +89,7 @@
 		try {
 			resolving = chatter.login;
 
-			let { viewer } = chatter;
-
-			if (!viewer) {
-				// Register the viewer so the card can show their message history.
-				viewer = await channel.viewers.fetchByLogin(chatter.login);
-
-				viewer.moderator = chatter.role === "moderator";
-				viewer.vip = chatter.role === "vip";
-
-				const resolved = {
-					...chatter,
-					user: viewer.user,
-					viewer,
-				};
-
-				chatters = chatters.map((entry) => (entry === chatter ? resolved : entry));
-			}
-
+			const viewer = await list.resolve(chatter);
 			selected = { user: viewer.user, anchor };
 
 			await tick();
@@ -176,21 +127,21 @@
 			<div class="mr-auto flex items-baseline gap-1.5">
 				<h2 class="text-sm font-semibold">Viewers</h2>
 
-				{#if count !== null}
+				{#if list.count !== null}
 					<span class="text-xs text-muted-foreground tabular-nums">
-						{count.toLocaleString()} in chat
+						{list.count.toLocaleString()} in chat
 					</span>
 				{/if}
 			</div>
 
 			<Button
-				disabled={loading}
+				disabled={list.loading}
 				size="icon-sm"
 				variant="ghost"
 				aria-label="Refresh viewer list"
-				onclick={refresh}
+				onclick={() => list.refresh()}
 			>
-				<ArrowsClockwise class={["size-3.5", loading && "animate-spin"]} />
+				<ArrowsClockwise class={["size-3.5", list.loading && "animate-spin"]} />
 			</Button>
 
 			<Button
@@ -220,7 +171,7 @@
 			/>
 		</InputGroup.Root>
 
-		{#if error}
+		{#if list.error}
 			<p class="text-xs text-destructive">
 				Couldn't load the full viewer list. Showing viewers seen in chat.
 			</p>
@@ -260,7 +211,7 @@
 				</ul>
 			</section>
 		{/each}
-	{:else if !loading}
+	{:else if !list.loading}
 		<Empty.Root class="h-full">
 			<Empty.Header>
 				<Empty.Media variant="icon">
