@@ -1,8 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
 import { log } from "#lib/log.js";
-import { settings } from "#lib/settings.js";
-
 interface Entry<T> {
 	data: T;
 	fetchedAt: number;
@@ -29,15 +27,6 @@ export interface RevalidateOptions<T> {
 	 * Called with the refetched data after stale data was returned.
 	 */
 	onRevalidate: (data: T) => void;
-}
-
-/**
- * Whether entries are read from and written to disk. When disabled, every
- * load goes to the network and only the in-memory state of the managers is
- * kept, which is useful for comparing both behaviors.
- */
-function enabled() {
-	return settings.state["advanced.cache.persistent"];
 }
 
 /**
@@ -84,8 +73,6 @@ async function getEntry<T>(key: string) {
 }
 
 export async function get<T>(key: string) {
-	if (!enabled()) return null;
-
 	try {
 		return await invoke<T | null>("cache_get", { key });
 	} catch (error) {
@@ -96,8 +83,6 @@ export async function get<T>(key: string) {
 }
 
 export async function set(key: string, value: unknown, ttl?: number) {
-	if (!enabled()) return;
-
 	try {
 		await invoke("cache_set", { key, value, ttl });
 	} catch (error) {

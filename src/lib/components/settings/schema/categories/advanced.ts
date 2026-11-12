@@ -32,13 +32,6 @@ export default {
 			label: "Cache",
 			fields: [
 				{
-					id: "advanced.cache.persistent",
-					type: "switch",
-					label: "Persist to disk",
-					description:
-						"Keep emotes, badges, and cheermotes on disk so channels load instantly after a restart. When disabled, they're fetched again every launch.",
-				},
-				{
 					id: "advanced.cache.clear",
 					type: "custom",
 					label: "Clear",
