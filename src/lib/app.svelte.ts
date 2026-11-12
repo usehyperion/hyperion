@@ -134,13 +134,12 @@ class App {
 	 * on the next call if it failed.
 	 */
 	public async load(user: CurrentUser) {
-		await Promise.all([
-			// Without it no channel counts as moderated until the next load.
-			user.loadModerating().catch(log.swallow("Failed to load moderated channels")),
-			// Before joining their channel so it's joined under the current
-			// username.
-			this.#refreshProfile(user).catch(log.swallow("Failed to refresh the user's profile")),
-		]);
+		// Not awaited so it doesn't stall startup. Waited before a join since
+		// it decides which moderator topics they follow.
+		user.loadModerating().catch(log.swallow("Failed to load moderated channels"));
+
+		// Before joining a channel so it's joined under the current username.
+		await this.#refreshProfile(user).catch(log.swallow("Failed to refresh the user's profile"));
 
 		if (!this.channels.has(user.id)) {
 			this.channels.add(user);
