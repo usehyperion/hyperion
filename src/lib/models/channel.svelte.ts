@@ -404,7 +404,13 @@ export class Channel {
 	}
 
 	async #joinBackend() {
-		await app.ready;
+		await Promise.all([
+			app.ready,
+			// Shared with the load started at startup
+			app.user
+				?.loadModerating()
+				.catch(log.swallow("Failed to load moderated channels", "warn")),
+		]);
 
 		// Left or logged out while waiting.
 		if (this.#status !== "joined") return;
