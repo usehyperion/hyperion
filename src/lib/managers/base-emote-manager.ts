@@ -156,7 +156,7 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 		const entry = force ? null : await cache.get<VersionedEntry>(key);
 
 		if (entry && this.isCurrent7tvVersion(entry.version)) {
-			void log.debug(`Cache hit for ${key} (version ${entry.version}), revalidating`);
+			log.debug(`Cache hit for ${key} (version ${entry.version}), revalidating`);
 
 			this.#revalidate7tv(key, entry.version).catch(
 				log.swallow(`Failed to revalidate ${key}`, "warn"),
@@ -165,7 +165,7 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 			return entry.data;
 		}
 
-		void log.debug(`Cache miss for ${key}`);
+		log.debug(`Cache miss for ${key}`);
 
 		const [emotes, version] = await Promise.all([
 			this.loaders["7TV"](),
@@ -185,11 +185,11 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 		const version = await this.fetch7tvVersion();
 
 		if (version === cached) {
-			void log.debug(`Cache for ${key} is up to date`);
+			log.debug(`Cache for ${key} is up to date`);
 			return;
 		}
 
-		void log.debug(`Cache for ${key} is outdated (version ${version}), refetching`);
+		log.debug(`Cache for ${key} is outdated (version ${version}), refetching`);
 
 		const emotes = await this.loaders["7TV"]();
 		await cache.set(key, { data: emotes, version } satisfies VersionedEntry, TTL);
