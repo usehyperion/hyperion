@@ -104,16 +104,22 @@ export class User {
 	public bannerUrl: string;
 	public username: string;
 
+	/**
+	 * The profile the user was last created or updated from.
+	 */
+	public data: ApiUser;
+
 	#color: string | null;
 	#displayName: string;
 
 	public constructor(
 		public readonly client: TwitchClient,
-		public readonly data: ApiUser,
+		data: ApiUser,
 	) {
+		this.data = data;
 		this.id = data.id;
 		this.staff = $state(data.roles?.isStaff ?? false);
-		this.username = data.login;
+		this.username = $state(data.login);
 
 		this.createdAt = data.createdAt ? new Date(data.createdAt) : null;
 
@@ -252,6 +258,8 @@ export class User {
 	 * Updates what may have changed since the user was first seen.
 	 */
 	public update(data: ApiUser) {
+		this.data = data;
+		this.username = data.login;
 		this.createdAt = new Date(data.createdAt);
 		this.staff = data.roles?.isStaff ?? false;
 		this.displayName = data.displayName;
