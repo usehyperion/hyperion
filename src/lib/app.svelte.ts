@@ -134,8 +134,13 @@ class App {
 	 * on the next call if it failed.
 	 */
 	public async load(user: CurrentUser) {
-		// Without it no channel counts as moderated until the next load.
-		await user.loadModerating().catch(log.swallow("Failed to load moderated channels"));
+		await Promise.all([
+			// Without it no channel counts as moderated until the next load.
+			user.loadModerating().catch(log.swallow("Failed to load moderated channels")),
+			// Before joining their channel so it's joined under the current
+			// username.
+			this.#refreshProfile(user).catch(log.swallow("Failed to refresh the user's profile")),
+		]);
 
 		if (!this.channels.has(user.id)) {
 			this.channels.add(user);
@@ -334,6 +339,16 @@ class App {
 		} finally {
 			await goto("/auth/login");
 		}
+	}
+
+	async #refreshProfile(user: CurrentUser) {
+		await user.loadProfile();
+
+		// Logged out or switched accounts meanwhile.
+		if (this.user !== user) return;
+
+		storage.state.user = user.data;
+		await saveStorage();
 	}
 
 	async #leaveClosed(ids: string[]) {

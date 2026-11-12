@@ -43,6 +43,11 @@ export class CurrentUser extends User {
 		}
 	});
 
+	/**
+	 * Refreshes the profile, which may have changed since the session was
+	 * stored.
+	 */
+	public readonly loadProfile = once(() => this.#loadProfile());
 	public readonly loadFollowing = once(() => this.#loadFollowing());
 	public readonly loadWhispers = once(() => this.#loadWhispers());
 
@@ -121,6 +126,19 @@ export class CurrentUser extends User {
 				}
 			}),
 		);
+	}
+
+	async #loadProfile() {
+		const previous = this.data;
+
+		await this.fetch();
+
+		// The cached instance is shown wherever the user appears in chat.
+		this.client.users.get(this.id)?.update(this.data);
+
+		if (previous.login !== this.data.login) {
+			log.info(`Username changed from ${previous.login} to ${this.data.login}`);
+		}
 	}
 
 	async #loadFollowing() {
