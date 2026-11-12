@@ -36,7 +36,7 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 
 	/**
 	 * Retrieves a value that changes whenever the 7TV emote set is modified.
-	 * 7TV emotes are only reused from the cache while it matches.
+	 * Cached 7TV emotes are replaced once it no longer matches.
 	 */
 	protected abstract fetch7tvVersion(): Promise<string | null>;
 
@@ -91,6 +91,14 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	}
 
 	/**
+	 * Whether cached 7TV emotes of the given version can be shown while
+	 * they're revalidated, i.e. they aren't known to be of another set.
+	 */
+	protected isCurrent7tvVersion(_version: string | null) {
+		return true;
+	}
+
+	/**
 	 * Replaces the emotes from the specified provider, reusing cached ones
 	 * unless `force` is set.
 	 */
@@ -139,29 +147,56 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 		}
 	}
 
+	/**
+	 * Returns cached 7TV emotes immediately and checks whether the set has
+	 * changed since in the background, replacing them if it has.
+	 */
 	async #load7tv(force: boolean) {
 		const key = this.#key("7TV");
+		const entry = force ? null : await cache.get<VersionedEntry>(key);
 
-		const [entry, version] = await Promise.all([
-			force ? null : cache.get<VersionedEntry>(key),
-			// undefined means the version couldn't be checked, in which case
-			// cached emotes are preferred over failing.
-			this.fetch7tvVersion().catch(() => undefined),
-		]);
+		if (entry && this.isCurrent7tvVersion(entry.version)) {
+			void log.debug(`Cache hit for ${key} (version ${entry.version}), revalidating`);
 
-		if (entry && (version === undefined || entry.version === version)) {
-			void log.debug(`Cache hit for ${key} (version ${entry.version})`);
+			this.#revalidate7tv(key, entry.version).catch(
+				log.swallow(`Failed to revalidate ${key}`, "warn"),
+			);
+
 			return entry.data;
 		}
 
 		void log.debug(`Cache miss for ${key}`);
 
-		const emotes = await this.loaders["7TV"]();
+		const [emotes, version] = await Promise.all([
+			this.loaders["7TV"](),
+			// undefined means the version couldn't be checked, in which case
+			// the emotes aren't cached since they couldn't be revalidated.
+			this.fetch7tvVersion().catch(() => undefined),
+		]);
 
 		if (version !== undefined) {
 			await cache.set(key, { data: emotes, version } satisfies VersionedEntry, TTL);
 		}
 
 		return emotes;
+	}
+
+	async #revalidate7tv(key: string, cached: string | null) {
+		const version = await this.fetch7tvVersion();
+
+		if (version === cached) {
+			void log.debug(`Cache for ${key} is up to date`);
+			return;
+		}
+
+		void log.debug(`Cache for ${key} is outdated (version ${version}), refetching`);
+
+		const emotes = await this.loaders["7TV"]();
+		await cache.set(key, { data: emotes, version } satisfies VersionedEntry, TTL);
+
+		// 7TV may have been disabled or reloaded while revalidating.
+		if (this.#loaded.has("7TV")) {
+			this.#replace("7TV", emotes);
+		}
 	}
 }

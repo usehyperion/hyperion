@@ -73,6 +73,15 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 		]);
 	}
 
+	protected override isCurrent7tvVersion(version: string | null) {
+		// Unknown until the channel's 7TV user has been resolved, which happens
+		// while revalidating on launch.
+		if (this.channel.seventvId === null) return true;
+
+		const setId = this.channel.emoteSetId;
+		return setId === null ? version === null : version?.startsWith(`${setId}:`) === true;
+	}
+
 	protected async fetch7tvVersion() {
 		const set = await this.#fetchActiveSet(false);
 
