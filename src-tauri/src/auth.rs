@@ -2,7 +2,6 @@ use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::anyhow;
-use keyring::Entry;
 use serde::{Deserialize, Serialize};
 use tauri::webview::PageLoadEvent;
 use tauri::{
@@ -19,9 +18,6 @@ use crate::{AppState, MAIN_WINDOW_LABEL};
 
 /// The public client id Twitch uses.
 const CLIENT_ID: &str = "kimne78kx3ncx6brgo4mv6wki5h1ko";
-
-const KEYRING_SERVICE: &str = "com.hyperion.chat";
-const KEYRING_USER: &str = "session";
 
 const LOGIN_WINDOW_LABEL: &str = "twitch-login";
 const INTEGRITY_WINDOW_LABEL: &str = "twitch-integrity";
@@ -42,10 +38,6 @@ const INTEGRITY_EXPIRY_SKEW_MS: i64 = 5 * 60 * 1000;
 /// Each refresh opens a webview, so after a failure callers get no token for a
 /// while instead of each retrying.
 const INTEGRITY_RETRY_DELAY: Duration = Duration::from_secs(30);
-
-fn keyring_entry() -> Result<Entry, Error> {
-    Ok(Entry::new(KEYRING_SERVICE, KEYRING_USER)?)
-}
 
 fn now_ms() -> i64 {
     SystemTime::now()
@@ -154,7 +146,6 @@ impl PendingToken {
     }
 }
 
-/// The credentials kept in the keyring.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TwitchAuth {
@@ -197,14 +188,100 @@ impl IntegrityResult {
     }
 }
 
-fn read_credentials() -> Option<TwitchAuth> {
-    let entry = keyring_entry()
-        .inspect_err(|err| tracing::error!(%err, "Failed to open keyring entry"))
-        .ok()?;
+#[cfg(not(all(debug_assertions, target_os = "macos")))]
+mod store {
+    use keyring::Entry;
 
-    let stored = match entry.get_password() {
-        Ok(stored) => stored,
-        Err(keyring::Error::NoEntry) => {
+    use crate::error::Error;
+
+    const SERVICE: &str = "com.hyperion.chat";
+    const USER: &str = "session";
+
+    fn entry() -> Result<Entry, Error> {
+        Ok(Entry::new(SERVICE, USER)?)
+    }
+
+    pub fn get() -> Result<Option<String>, Error> {
+        match entry()?.get_password() {
+            Ok(stored) => Ok(Some(stored)),
+            Err(keyring::Error::NoEntry) => Ok(None),
+            Err(err) => Err(err.into()),
+        }
+    }
+
+    pub fn set(value: &str) -> Result<(), Error> {
+        entry()?.set_password(value)?;
+        Ok(())
+    }
+
+    pub fn delete() -> Result<(), Error> {
+        match entry()?.delete_credential() {
+            Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+            Err(err) => Err(err.into()),
+        }
+    }
+}
+
+#[cfg(all(debug_assertions, target_os = "macos"))]
+mod store {
+    use std::io::{ErrorKind, Write};
+    use std::os::unix::fs::OpenOptionsExt;
+    use std::path::PathBuf;
+    use std::{env, fs};
+
+    use anyhow::anyhow;
+
+    use crate::error::Error;
+
+    fn path() -> Result<PathBuf, Error> {
+        let home = env::var_os("HOME").ok_or_else(|| anyhow!("HOME is not set"))?;
+
+        Ok(PathBuf::from(home)
+            .join("Library/Application Support/com.hyperion.chat")
+            .join("dev-credentials.json"))
+    }
+
+    pub fn get() -> Result<Option<String>, Error> {
+        match fs::read_to_string(path()?) {
+            Ok(stored) => Ok(Some(stored)),
+            Err(err) if err.kind() == ErrorKind::NotFound => Ok(None),
+            Err(err) => Err(anyhow::Error::from(err).into()),
+        }
+    }
+
+    pub fn set(value: &str) -> Result<(), Error> {
+        let path = path()?;
+
+        let write = || -> std::io::Result<()> {
+            if let Some(dir) = path.parent() {
+                fs::create_dir_all(dir)?;
+            }
+
+            fs::OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .mode(0o600)
+                .open(&path)?
+                .write_all(value.as_bytes())
+        };
+
+        write().map_err(|err| anyhow::Error::from(err).into())
+    }
+
+    pub fn delete() -> Result<(), Error> {
+        match fs::remove_file(path()?) {
+            Ok(()) => Ok(()),
+            Err(err) if err.kind() == ErrorKind::NotFound => Ok(()),
+            Err(err) => Err(anyhow::Error::from(err).into()),
+        }
+    }
+}
+
+fn read_credentials() -> Option<TwitchAuth> {
+    let stored = match store::get() {
+        Ok(Some(stored)) => stored,
+        Ok(None) => {
             tracing::info!("No stored credentials");
             return None;
         }
@@ -220,15 +297,11 @@ fn read_credentials() -> Option<TwitchAuth> {
 }
 
 fn write_credentials(auth: &TwitchAuth) -> Result<(), Error> {
-    keyring_entry()?.set_password(&serde_json::to_string(auth)?)?;
-    Ok(())
+    store::set(&serde_json::to_string(auth)?)
 }
 
 fn delete_credentials() -> Result<(), Error> {
-    match keyring_entry()?.delete_credential() {
-        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
-        Err(err) => Err(err.into()),
-    }
+    store::delete()
 }
 
 fn is_rejection<E: std::error::Error + Send + Sync + 'static>(err: &ValidationError<E>) -> bool {
