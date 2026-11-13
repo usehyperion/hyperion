@@ -1,6 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 
 import { log } from "#lib/log.js";
+
+const VERSION = 1;
+
 interface Entry<T> {
 	data: T;
 	fetchedAt: number;
@@ -46,8 +49,9 @@ export async function revalidate<T>(
 		return entry.data;
 	}
 
-	const pending = fetcher().then(async (data) => {
-		await set(key, { data, fetchedAt: Date.now() } satisfies Entry<T>, options.ttl);
+	const pending = fetcher().then((data) => {
+		// Not awaited since the data doesn't depend on being written.
+		set(key, { data, fetchedAt: Date.now() } satisfies Entry<T>, options.ttl);
 		return data;
 	});
 
@@ -65,6 +69,10 @@ export async function revalidate<T>(
 	return entry.data;
 }
 
+function versioned(key: string) {
+	return `v${VERSION}:${key}`;
+}
+
 async function getEntry<T>(key: string) {
 	const entry = await get<Entry<T>>(key);
 
@@ -74,7 +82,7 @@ async function getEntry<T>(key: string) {
 
 export async function get<T>(key: string) {
 	try {
-		return await invoke<T | null>("cache_get", { key });
+		return await invoke<T | null>("cache_get", { key: versioned(key) });
 	} catch (error) {
 		// A broken entry shouldn't prevent loading from the network.
 		log.warn(`Failed to read ${key} from the cache`, error);
@@ -84,14 +92,14 @@ export async function get<T>(key: string) {
 
 export async function set(key: string, value: unknown, ttl?: number) {
 	try {
-		await invoke("cache_set", { key, value, ttl });
+		await invoke("cache_set", { key: versioned(key), value, ttl });
 	} catch (error) {
 		log.warn(`Failed to write ${key} to the cache`, error);
 	}
 }
 
 export async function remove(key: string) {
-	await invoke("cache_remove", { key });
+	await invoke("cache_remove", { key: versioned(key) });
 }
 
 export async function clear() {
