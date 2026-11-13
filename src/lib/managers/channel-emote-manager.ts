@@ -44,13 +44,6 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 				? [...data.channelEmotes, ...data.sharedEmotes].map(transformBttvEmote)
 				: [];
 		},
-		"7TV": async () => {
-			const set = await this.#fetchActiveSet();
-
-			return (
-				set?.emotes.items.map((item) => transformGql7tvEmote(item.emote, item.alias)) ?? []
-			);
-		},
 	};
 
 	public constructor(public readonly channel: Channel) {
@@ -73,19 +66,26 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 		]);
 	}
 
-	protected override isCurrent7tvVersion(version: string | null) {
+	protected override isCurrent7tvSet(setId: string | null) {
 		// Unknown until the channel's 7TV user has been resolved, which happens
 		// while revalidating on launch.
-		if (this.channel.seventvId === null) return true;
+		return this.channel.seventvId === null || setId === this.channel.emoteSetId;
+	}
 
-		const setId = this.channel.emoteSetId;
-		return setId === null ? version === null : version?.startsWith(`${setId}:`) === true;
+	protected async fetch7tv() {
+		const set = await this.#fetchActiveSet();
+
+		return {
+			emotes:
+				set?.emotes.items.map((item) => transformGql7tvEmote(item.emote, item.alias)) ?? [],
+			version: set && { setId: set.id, updatedAt: set.updatedAt },
+		};
 	}
 
 	protected async fetch7tvVersion() {
 		const set = await this.#fetchActiveSet(false);
 
-		return set ? `${set.id}:${set.updatedAt}` : null;
+		return set && { setId: set.id, updatedAt: set.updatedAt };
 	}
 
 	async #fetchActiveSet(): Promise<ActiveEmoteSet | null>;

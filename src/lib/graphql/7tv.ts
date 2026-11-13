@@ -92,6 +92,7 @@ export const globalEmoteSetQuery = gql(
 	`query GetGlobalEmoteSet {
 		emoteSets {
 			global: emoteSet(id: "01HKQT8EWR000ESSWF3625XCS4") {
+				updatedAt
 				...EmoteSetDetails
 			}
 		}
@@ -103,6 +104,7 @@ export const globalEmoteSetVersionQuery = gql(
 	`query GetGlobalEmoteSetVersion {
 		emoteSets {
 			global: emoteSet(id: "01HKQT8EWR000ESSWF3625XCS4") {
+				id
 				updatedAt
 			}
 		}

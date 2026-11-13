@@ -10,13 +10,21 @@ import { settings } from "#lib/settings.js";
 const FRESH = 5 * 60; // 5 minutes
 const TTL = 30 * 24 * 60 * 60; // 30 days
 
-interface VersionedEntry {
-	data: Emote[];
-	version: string | null;
+export interface SetVersion {
+	setId: string;
+	updatedAt: string;
+}
+
+export interface Versioned7tvEmotes {
+	emotes: Emote[];
+	version: SetVersion | null;
 }
 
 export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
-	protected abstract readonly loaders: Record<ThirdPartyProvider, () => Promise<Emote[]>>;
+	protected abstract readonly loaders: Record<
+		Exclude<ThirdPartyProvider, "7TV">,
+		() => Promise<Emote[]>
+	>;
 
 	/**
 	 * Identifies this manager's entries in the cache.
@@ -24,12 +32,19 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	protected abstract readonly cacheId: string;
 
 	readonly #loaded = new Set<EmoteProvider>();
+	readonly #generations = new Map<EmoteProvider, number>();
 
 	/**
-	 * Retrieves a value that changes whenever the 7TV emote set is modified.
-	 * Cached 7TV emotes are replaced once it no longer matches.
+	 * Retrieves the 7TV emotes along with the version of their set from the
+	 * same response.
 	 */
-	protected abstract fetch7tvVersion(): Promise<string | null>;
+	protected abstract fetch7tv(): Promise<Versioned7tvEmotes>;
+
+	/**
+	 * Retrieves only the version of the 7TV set, to check whether cached
+	 * emotes are outdated.
+	 */
+	protected abstract fetch7tvVersion(): Promise<SetVersion | null>;
 
 	/**
 	 * Removes all emotes from the specified provider or all emotes if no
@@ -37,12 +52,19 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	 */
 	public override clear(provider?: EmoteProvider) {
 		if (provider) {
+			this.#bump(provider);
 			this.#loaded.delete(provider);
 
 			for (const emote of this.values()) {
-				if (emote.provider === provider) this.delete(emote.displayName);
+				if (emote.provider === provider) {
+					this.delete(emote.displayName);
+				}
 			}
 		} else {
+			for (const { id } of THIRD_PARTY_PROVIDERS) {
+				this.#bump(id);
+			}
+
 			this.#loaded.clear();
 			super.clear();
 		}
@@ -79,10 +101,10 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	}
 
 	/**
-	 * Whether cached 7TV emotes of the given version can be shown while
-	 * they're revalidated, i.e. they aren't known to be of another set.
+	 * Whether cached 7TV emotes from the given set can be shown while they're
+	 * revalidated, i.e. it isn't known to have been replaced by another set.
 	 */
-	protected isCurrent7tvVersion(_version: string | null) {
+	protected isCurrent7tvSet(_setId: string | null) {
 		return true;
 	}
 
@@ -91,22 +113,39 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	 * unless `force` is set.
 	 */
 	protected async load(provider: ThirdPartyProvider, force = false) {
+		const generation = this.#bump(provider);
+
+		// Applies emotes unless the provider has been cleared or loaded again
+		// since, e.g. by a reload or a 7TV set change.
+		const apply = (emotes: Emote[]) => {
+			if (this.#generations.get(provider) !== generation) {
+				return false;
+			}
+
+			this.#replace(provider, emotes);
+			return true;
+		};
+
 		const emotes =
 			provider === "7TV"
-				? await this.#load7tv(force)
+				? await this.#load7tv(force, apply)
 				: await cache.revalidate(this.#key(provider), this.loaders[provider], {
 						fresh: FRESH,
 						ttl: TTL,
 						force,
-						onRevalidate: (emotes) => {
-							// The provider may have been disabled or reloaded
-							// while revalidating.
-							if (this.#loaded.has(provider)) this.#replace(provider, emotes);
-						},
+						onRevalidate: apply,
 					});
 
-		this.#replace(provider, emotes);
-		this.#loaded.add(provider);
+		if (apply(emotes)) {
+			this.#loaded.add(provider);
+		}
+	}
+
+	#bump(provider: EmoteProvider) {
+		const generation = this.#generations.getOrInsert(provider, 0) + 1;
+		this.#generations.set(provider, generation);
+
+		return generation;
 	}
 
 	#key(provider: ThirdPartyProvider) {
@@ -137,54 +176,43 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 
 	/**
 	 * Returns cached 7TV emotes immediately and checks whether the set has
-	 * changed since in the background, replacing them if it has.
+	 * changed since in the background, applying the new emotes if it has.
 	 */
-	async #load7tv(force: boolean) {
+	async #load7tv(force: boolean, apply: (emotes: Emote[]) => void) {
 		const key = this.#key("7TV");
-		const entry = force ? null : await cache.get<VersionedEntry>(key);
+		const entry = force ? null : await cache.get<Versioned7tvEmotes>(key);
 
-		if (entry && this.isCurrent7tvVersion(entry.version)) {
-			log.debug(`Cache hit for ${key} (version ${entry.version}), revalidating`);
+		if (entry && this.isCurrent7tvSet(entry.version?.setId ?? null)) {
+			log.debug(`Cache hit for ${key}, revalidating`);
 
-			this.#revalidate7tv(key, entry.version).catch(
+			this.#revalidate7tv(key, entry.version, apply).catch(
 				log.swallow(`Failed to revalidate ${key}`, "warn"),
 			);
 
-			return entry.data;
+			return entry.emotes;
 		}
 
 		log.debug(`Cache miss for ${key}`);
 
-		const [emotes, version] = await Promise.all([
-			this.loaders["7TV"](),
-			// undefined means the version couldn't be checked, in which case
-			// the emotes aren't cached since they couldn't be revalidated.
-			this.fetch7tvVersion().catch(() => undefined),
-		]);
+		const fetched = await this.fetch7tv();
+		cache.set(key, fetched, TTL);
 
-		if (version !== undefined) {
-			await cache.set(key, { data: emotes, version } satisfies VersionedEntry, TTL);
-		}
-
-		return emotes;
+		return fetched.emotes;
 	}
 
-	async #revalidate7tv(key: string, cached: string | null) {
+	async #revalidate7tv(key: string, cached: SetVersion | null, apply: (emotes: Emote[]) => void) {
 		const version = await this.fetch7tvVersion();
 
-		if (version === cached) {
+		if (version?.setId === cached?.setId && version?.updatedAt === cached?.updatedAt) {
 			log.debug(`Cache for ${key} is up to date`);
 			return;
 		}
 
-		log.debug(`Cache for ${key} is outdated (version ${version}), refetching`);
+		log.debug(`Cache for ${key} is outdated, refetching`);
 
-		const emotes = await this.loaders["7TV"]();
-		await cache.set(key, { data: emotes, version } satisfies VersionedEntry, TTL);
+		const fetched = await this.fetch7tv();
+		cache.set(key, fetched, TTL);
 
-		// 7TV may have been disabled or reloaded while revalidating.
-		if (this.#loaded.has("7TV")) {
-			this.#replace("7TV", emotes);
-		}
+		apply(fetched.emotes);
 	}
 }

@@ -31,18 +31,22 @@ export class EmoteManager extends BaseEmoteManager {
 
 			return data.map(transformBttvEmote);
 		},
-		async "7TV"() {
-			const { emoteSets } = await execute7tvQuery(globalEmoteSetQuery);
-
-			return emoteSets.global!.emotes.items.map((item) =>
-				transformGql7tvEmote(item.emote, item.alias),
-			);
-		},
 	};
+
+	protected async fetch7tv() {
+		const { emoteSets } = await execute7tvQuery(globalEmoteSetQuery);
+		const set = emoteSets.global!;
+
+		return {
+			emotes: set.emotes.items.map((item) => transformGql7tvEmote(item.emote, item.alias)),
+			version: { setId: set.id, updatedAt: set.updatedAt },
+		};
+	}
 
 	protected async fetch7tvVersion() {
 		const { emoteSets } = await execute7tvQuery(globalEmoteSetVersionQuery);
+		const set = emoteSets.global;
 
-		return emoteSets.global?.updatedAt ?? null;
+		return set ? { setId: set.id, updatedAt: set.updatedAt } : null;
 	}
 }
