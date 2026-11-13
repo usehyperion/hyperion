@@ -33,11 +33,15 @@ export abstract class LoadMap<K, V> extends Map<K, V> {
 		const entries = await this.load({
 			force,
 			update: (entries) => {
-				if (this.#generation === generation) this.#replace(entries);
+				if (this.#generation === generation) {
+					this.#replace(entries);
+				}
 			},
 		});
 
-		this.#replace(entries);
+		if (this.#generation === generation) {
+			this.#replace(entries);
+		}
 	});
 
 	protected abstract load(context: LoadContext<K, V>): Promise<Entries<K, V>>;
