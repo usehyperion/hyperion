@@ -36,6 +36,9 @@
 					"path": "$APPLOG"
 				},
 				{
+					"path": "$APPCACHE"
+				},
+				{
 					"path": "$APPCONFIG/**"
 				}
 			]
