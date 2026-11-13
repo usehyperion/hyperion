@@ -3,7 +3,7 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use rusqlite::{Connection, OptionalExtension, params};
+use rusqlite::{Connection, ErrorCode, OptionalExtension, params};
 use serde_json::Value;
 use tauri::{State, async_runtime};
 
@@ -18,7 +18,13 @@ impl Cache {
     pub fn open(path: &Path) -> Self {
         match Self::init(Connection::open(path)) {
             Ok(cache) => return cache,
-            Err(error) => tracing::warn!(%error, "Failed to open cache, recreating it"),
+            Err(error) if is_corrupt(&error) => {
+                tracing::warn!(%error, "Cache is corrupt, recreating it");
+            }
+            Err(error) => {
+                tracing::error!(%error, "Failed to open cache, falling back to memory");
+                return Self::in_memory();
+            }
         }
 
         for suffix in ["", "-wal", "-shm"] {
@@ -32,10 +38,13 @@ impl Cache {
             Ok(cache) => cache,
             Err(error) => {
                 tracing::error!(%error, "Failed to recreate cache, falling back to memory");
-
-                Self::init(Connection::open_in_memory()).expect("failed to open in-memory cache")
+                Self::in_memory()
             }
         }
+    }
+
+    fn in_memory() -> Self {
+        Self::init(Connection::open_in_memory()).expect("failed to open in-memory cache")
     }
 
     fn init(conn: rusqlite::Result<Connection>) -> rusqlite::Result<Self> {
@@ -120,6 +129,13 @@ impl Cache {
 
         Ok(size)
     }
+}
+
+fn is_corrupt(error: &rusqlite::Error) -> bool {
+    matches!(
+        error.sqlite_error_code(),
+        Some(ErrorCode::DatabaseCorrupt | ErrorCode::NotADatabase)
+    )
 }
 
 fn now() -> i64 {
