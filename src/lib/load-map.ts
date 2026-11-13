@@ -22,11 +22,6 @@ export interface LoadContext<K, V> {
  */
 export abstract class LoadMap<K, V> extends Map<K, V> {
 	#force = false;
-
-	/**
-	 * Incremented whenever the loaded entries are discarded so background
-	 * updates from an earlier load are ignored.
-	 */
 	#generation = 0;
 
 	readonly #load = once(async () => {
