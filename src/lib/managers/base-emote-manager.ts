@@ -7,17 +7,8 @@ import { THIRD_PARTY_PROVIDERS } from "#lib/emotes.js";
 import { log } from "#lib/log.js";
 import { settings } from "#lib/settings.js";
 
-/**
- * Seconds after a fetch during which cached FFZ and BTTV emotes are used
- * without revalidating.
- */
-const FRESH = 5 * 60;
-
-/**
- * Seconds until a cached entry is evicted. Entries are refreshed on every
- * fetch, so this only evicts channels that haven't been joined in a while.
- */
-const TTL = 30 * 24 * 60 * 60;
+const FRESH = 5 * 60; // 5 minutes
+const TTL = 30 * 24 * 60 * 60; // 30 days
 
 interface VersionedEntry {
 	data: Emote[];
@@ -65,9 +56,6 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	 * Loads the emotes from the providers enabled in the settings that haven't
 	 * been loaded yet and removes the emotes from disabled providers. A
 	 * provider that fails to load is skipped and retried on the next call.
-	 *
-	 * Cached emotes are used immediately and refreshed in the background if
-	 * stale. Forcing a fetch bypasses the cache.
 	 */
 	public async fetch(force = false) {
 		if (force) this.clear();
