@@ -226,6 +226,12 @@ importers:
       '@tauri-store/svelte':
         specifier: ^3.2.1
         version: 3.2.1(@typescript-eslint/types@8.72.1)
+      '@ui-sdk/core':
+        specifier: 0.1.0-beta.1
+        version: 0.1.0-beta.1
+      '@ui-sdk/svelte':
+        specifier: 0.1.0-beta.1
+        version: 0.1.0-beta.1(@ui-sdk/core@0.1.0-beta.1)(svelte@5.57.2(@typescript-eslint/types@8.72.1))
       bits-ui:
         specifier: ^2.20.0
         version: 2.20.0(@internationalized/date@3.12.4)(@sveltejs/kit@3.1.0(@sveltejs/vite-plugin-svelte@7.3.0(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.5)(jiti@2.7.0)(typescript@6.0.3))(svelte@5.57.2(@typescript-eslint/types@8.72.1)))(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.5)(jiti@2.7.0)(typescript@6.0.3))(svelte@5.57.2(@typescript-eslint/types@8.72.1))(typescript@6.0.3))(svelte@5.57.2(@typescript-eslint/types@8.72.1))
@@ -1136,6 +1142,15 @@ packages:
   '@typescript-eslint/visitor-keys@8.72.1':
     resolution: {integrity: sha512-SB8xqipSzZHUePCCLNeYxqnxq83X61/qzNhjQGbTfjxGZIeOEP7tBgWYX05Tcd6CgE02WdTJnh5b8kMZJ/+bnQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@ui-sdk/core@0.1.0-beta.1':
+    resolution: {integrity: sha512-sWsZW8RN6Gviir7REQYuDIafm9hierHQE31OJ+2g+1Pp3lDVKp/dk0+0dxFvqOQRmBveRvlE9FiARgNlQ9dMFw==}
+
+  '@ui-sdk/svelte@0.1.0-beta.1':
+    resolution: {integrity: sha512-nQQaFKn7e/M87yj/ax7JgZc3uYjiacmKs05ljCIrdOiPbkiROGcbKHgngVZUF7x0GJWhGTDg67Yc28kirKUoLA==}
+    peerDependencies:
+      '@ui-sdk/core': ^0.1.0-beta.1
+      svelte: '>=5.33'
 
   '@vitest/browser-preview@5.0.5':
     resolution: {integrity: sha512-ViNg4UlomGSJHtnnr7Txm+55P7/aAMMoS+1WYnWjp5w5tzf7YEUAICcs2sb1uMovEnC8el/8zUfkWZ8+7fPCKA==}
@@ -3091,6 +3106,13 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.72.1
       eslint-visitor-keys: 5.0.1
+
+  '@ui-sdk/core@0.1.0-beta.1': {}
+
+  '@ui-sdk/svelte@0.1.0-beta.1(@ui-sdk/core@0.1.0-beta.1)(svelte@5.57.2(@typescript-eslint/types@8.72.1))':
+    dependencies:
+      '@ui-sdk/core': 0.1.0-beta.1
+      svelte: 5.57.2(@typescript-eslint/types@8.72.1)
 
   '@vitest/browser-preview@5.0.5(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.5)(jiti@2.7.0)(typescript@6.0.3))(vitest@5.0.5)':
     dependencies:

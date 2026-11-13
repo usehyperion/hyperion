@@ -5,13 +5,19 @@ catalog:
   vite-plus: ^1.4.0
 minimumReleaseAgeExclude:
   - "@sveltejs/kit"
+  - "@ui-sdk/*"
   - "@voidzero-dev/*"
   - "svelte"
-  - vite-plus
+  - "vite-plus"
 overrides:
   vite: "catalog:"
 peerDependencyRules:
   allowAny:
-    - vite
+    - "vite"
   allowedVersions:
     vite: "*"
+permissions:
+  "@tanstack/svelte-hotkeys":
+    skills: true
+  "@ui-sdk/core":
+    skills: true

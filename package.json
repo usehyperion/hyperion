@@ -37,6 +37,8 @@
 		"@tauri-apps/plugin-updater": "~2.14.0",
 		"@tauri-apps/plugin-window-state": "~2.5.0",
 		"@tauri-store/svelte": "^3.2.1",
+		"@ui-sdk/core": "0.1.0-beta.1",
+		"@ui-sdk/svelte": "0.1.0-beta.1",
 		"bits-ui": "^2.20.0",
 		"chroma-js": "^3.2.0",
 		"dayjs": "^1.11.23",
