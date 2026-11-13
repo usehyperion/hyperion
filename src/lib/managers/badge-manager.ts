@@ -110,21 +110,20 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		),
 	};
 
-	/**
-	 * Incremented when the badges are cleared so background updates from an
-	 * earlier load are ignored.
-	 */
-	#generation = 0;
+	readonly #generations: Record<BadgeProvider, number> = {
+		twitch: 0,
+		bttv: 0,
+		ffz: 0,
+	};
 
 	public constructor(public readonly client: TwitchClient) {
 		super();
 	}
 
 	public override clear() {
-		this.#generation++;
-
-		for (const load of Object.values(this.#loads)) {
-			load.reset();
+		for (const provider of BADGE_PROVIDERS) {
+			this.#generations[provider]++;
+			this.#loads[provider].reset();
 		}
 
 		this.users.clear();
@@ -143,6 +142,7 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 
 				if (force) {
 					this.#forced.add(provider);
+					this.#generations[provider]++;
 					load.reset();
 				}
 
@@ -176,18 +176,20 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 	#cached<T>(provider: BadgeProvider, fetcher: () => Promise<T>, apply: (data: T) => void) {
 		return once(async () => {
 			const force = this.#forced.delete(provider);
-			const generation = this.#generation;
+			const generation = this.#generations[provider];
+
+			const superseded = () => this.#generations[provider] !== generation;
 
 			const data = await cache.revalidate(`badges:${provider}:global`, fetcher, {
 				fresh: FRESH,
 				ttl: TTL,
 				force,
 				onRevalidate: (data) => {
-					if (this.#generation === generation) apply(data);
+					if (!superseded()) apply(data);
 				},
 			});
 
-			apply(data);
+			if (!superseded()) apply(data);
 		});
 	}
 }
