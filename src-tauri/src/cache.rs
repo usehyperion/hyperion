@@ -120,12 +120,38 @@ impl Cache {
         Ok(())
     }
 
-    fn size(&self) -> Result<i64, Error> {
-        let size = self.0.lock().unwrap().query_row(
-            "SELECT COALESCE(SUM(LENGTH(key) + LENGTH(value)), 0) FROM cache",
+    /// Returns how many bytes the cache takes up on disk, including the WAL
+    /// file and free pages, or zero if clearing it wouldn't free anything.
+    fn size(&self) -> Result<u64, Error> {
+        let conn = self.0.lock().unwrap();
+
+        let reclaimable: bool = conn.query_row(
+            "SELECT EXISTS (SELECT 1 FROM cache)
+                OR (SELECT freelist_count FROM pragma_freelist_count()) > 0",
             [],
             |row| row.get(0),
         )?;
+
+        if !reclaimable {
+            return Ok(0);
+        }
+
+        let Some(path) = conn.path().filter(|path| !path.is_empty()) else {
+            // In-memory fallback, which has no files.
+            let size: i64 = conn.query_row(
+                "SELECT page_count * page_size FROM pragma_page_count(), pragma_page_size()",
+                [],
+                |row| row.get(0),
+            )?;
+
+            return Ok(size as u64);
+        };
+
+        let size = ["", "-wal"]
+            .into_iter()
+            .filter_map(|suffix| fs::metadata(format!("{path}{suffix}")).ok())
+            .map(|metadata| metadata.len())
+            .sum();
 
         Ok(size)
     }
@@ -183,6 +209,6 @@ pub async fn cache_clear(cache: State<'_, Cache>) -> Result<(), Error> {
 }
 
 #[tauri::command]
-pub async fn cache_size(cache: State<'_, Cache>) -> Result<i64, Error> {
+pub async fn cache_size(cache: State<'_, Cache>) -> Result<u64, Error> {
     blocking(&cache, Cache::size).await
 }
