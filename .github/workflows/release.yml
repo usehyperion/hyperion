@@ -5,6 +5,11 @@ concurrency:
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to (re)build assets for. Leave empty to run release-please."
+        required: false
+        type: string
   push:
     branches:
       - main
@@ -17,12 +22,25 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      release_id: ${{ steps.release.outputs.id }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
+      release_created: ${{ steps.release.outputs.release_created || steps.existing.outputs.release_created }}
+      release_id: ${{ steps.release.outputs.id || steps.existing.outputs.id }}
+      tag_name: ${{ steps.release.outputs.tag_name || steps.existing.outputs.tag_name }}
     steps:
+      - id: existing
+        name: Look up existing release
+        if: ${{ inputs.tag }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          id=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG" --jq .id)
+          echo "release_created=true" >> "$GITHUB_OUTPUT"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
+
       - id: release
         name: Open pull request
+        if: ${{ !inputs.tag }}
         uses: googleapis/release-please-action@v5
         with:
           config-file: .github/release-please-config.json
