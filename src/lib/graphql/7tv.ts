@@ -59,6 +59,7 @@ export const activeEmoteSetQuery = gql(
 				style {
 					activeEmoteSet {
 						id
+						updatedAt
 						...EmoteSetDetails @include(if: $details)
 					}
 				}
@@ -91,11 +92,23 @@ export const globalEmoteSetQuery = gql(
 	`query GetGlobalEmoteSet {
 		emoteSets {
 			global: emoteSet(id: "01HKQT8EWR000ESSWF3625XCS4") {
+				updatedAt
 				...EmoteSetDetails
 			}
 		}
 	}`,
 	[emoteSetDetailsFragment],
+);
+
+export const globalEmoteSetVersionQuery = gql(
+	`query GetGlobalEmoteSetVersion {
+		emoteSets {
+			global: emoteSet(id: "01HKQT8EWR000ESSWF3625XCS4") {
+				id
+				updatedAt
+			}
+		}
+	}`,
 );
 
 export const userEmoteSetsQuery = gql(

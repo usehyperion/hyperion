@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use auth::{IntegrityState, PendingToken};
+use cache::Cache;
 use connection::Connection;
 use irc::IrcClient;
 use pubsub::PubSubClient;
@@ -13,6 +14,7 @@ use twitch_oauth2::UserToken;
 
 mod api;
 mod auth;
+mod cache;
 mod commands;
 mod connection;
 mod error;
@@ -103,6 +105,14 @@ pub fn run() {
 
             app_handle.plugin(svelte)?;
 
+            let cache_dir = app_handle.path().app_cache_dir()?;
+
+            if let Err(error) = std::fs::create_dir_all(&cache_dir) {
+                tracing::error!(%error, "Failed to create cache directory");
+            }
+
+            app.manage(Cache::open(&cache_dir.join("cache.db")));
+
             let http = reqwest::Client::builder().timeout(HTTP_TIMEOUT).build()?;
             let mut state = AppState::new(http);
 
@@ -133,6 +143,11 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         auth::get_auth,
         auth::get_integrity,
         auth::open_twitch_login,
+        cache::cache_clear,
+        cache::cache_get,
+        cache::cache_remove,
+        cache::cache_set,
+        cache::cache_size,
         commands::get_about_info,
         irc::connect_irc,
         irc::fetch_recent_messages,
