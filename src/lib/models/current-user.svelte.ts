@@ -1,7 +1,9 @@
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
 import type { EmoteSet } from "#lib/emotes.js";
+import type { TwitchClient } from "#lib/twitch/client.js";
 
+import * as cache from "#lib/cache.js";
 import { transformGql7tvEmote, transformTwitchEmote } from "#lib/emotes.js";
 import { execute7tvQuery, userEmoteSetsQuery } from "#lib/graphql/7tv.js";
 import {
@@ -17,6 +19,17 @@ import { once } from "#lib/util/resource.js";
 import { Stream } from "./stream.svelte";
 import { User } from "./user.svelte";
 import { Whisper } from "./whisper.svelte";
+
+export interface Followed {
+	user: User;
+	stream: Stream | null;
+}
+
+async function fetchFollowing(client: TwitchClient, id: string) {
+	return client.paginate(followsQuery, { id }, (data) => data.user?.follows);
+}
+
+type FollowedData = Awaited<ReturnType<typeof fetchFollowing>>;
 
 export class CurrentUser extends User {
 	public readonly whispers = new SvelteMap<string, Whisper>();
@@ -48,8 +61,24 @@ export class CurrentUser extends User {
 	 * stored.
 	 */
 	public readonly loadProfile = once(() => this.#loadProfile());
-	public readonly loadFollowing = once(() => this.#loadFollowing());
+
+	public readonly loadFollowing = once(async () => {
+		const data = await cache.revalidate(
+			`following:${this.id}`,
+			() => fetchFollowing(this.client, this.id),
+			{
+				// Who's live changes constantly, so cached follows are only
+				// shown until they've been refetched.
+				fresh: 0,
+				onRevalidate: (data) => this.onFollowingRevalidated?.(this.#toFollowed(data)),
+			},
+		);
+
+		return this.#toFollowed(data);
+	});
+
 	public readonly loadWhispers = once(() => this.#loadWhispers());
+	public onFollowingRevalidated: ((follows: Followed[]) => void) | null = null;
 
 	public seventvId: string | null = null;
 
@@ -141,14 +170,8 @@ export class CurrentUser extends User {
 		}
 	}
 
-	async #loadFollowing() {
-		const follows = await this.client.paginate(
-			followsQuery,
-			{ id: this.id },
-			(data) => data.user?.follows,
-		);
-
-		return follows.map((followed) => ({
+	#toFollowed(data: FollowedData): Followed[] {
+		return data.map((followed) => ({
 			user: this.client.users.from(followed),
 			stream: followed.stream
 				? Stream.from(followed.id, followed.stream, followed.channel)

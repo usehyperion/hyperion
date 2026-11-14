@@ -5,6 +5,7 @@ import { goto } from "$app/navigation";
 import { page } from "$app/state";
 
 import type { Channel } from "./models/channel.svelte";
+import type { Followed } from "./models/current-user.svelte";
 import type { DispatchPayload } from "./seventv";
 import type { IrcMessage } from "./twitch/irc";
 import type { PubSubMessage } from "./twitch/pubsub";
@@ -68,6 +69,11 @@ class App {
 	#connected = false;
 	#connecting: Promise<void> | null = null;
 	#ready = Promise.withResolvers<void>();
+
+	/**
+	 * The ids of the channels the current user followed as of the last sync.
+	 */
+	#followed = new Set<string>();
 
 	/**
 	 * Resolves once the backend connections are established.
@@ -145,17 +151,22 @@ class App {
 			this.channels.add(user);
 		}
 
-		user.loadFollowing().then((follows) => {
-			for (const followed of follows) {
-				if (!this.channels.has(followed.user.id)) {
-					this.channels.add(followed.user, followed.stream);
-				}
-			}
-		}, log.swallow("Failed to load followed channels"));
+		// Follows can arrive after logging out or switching accounts, e.g. from
+		// a background revalidation, and must not leak into the next session.
+		const syncFollowing = (follows: Followed[]) => {
+			if (this.user === user) this.#syncFollowing(follows);
+		};
 
+		user.onFollowingRevalidated = syncFollowing;
 		user.loadWhispers().catch(log.swallow("Failed to load whispers"));
 
-		await Promise.all([this.emotes.fetch(), this.badges.fetch()]);
+		await Promise.all([
+			user
+				.loadFollowing()
+				.then(syncFollowing, log.swallow("Failed to load followed channels")),
+			this.emotes.fetch(),
+			this.badges.fetch(),
+		]);
 	}
 
 	/**
@@ -255,6 +266,36 @@ class App {
 		}));
 	}
 
+	/**
+	 * Adds the followed channels that aren't known yet and updates whether the
+	 * known ones are live. Channels that are no longer followed are removed
+	 * unless they're in use.
+	 */
+	#syncFollowing(follows: Followed[]) {
+		const ids = new Set<string>();
+
+		for (const { user, stream } of follows) {
+			ids.add(user.id);
+
+			const channel = this.channels.get(user.id);
+
+			if (channel) {
+				channel.stream = stream;
+			} else {
+				this.channels.add(user, stream);
+			}
+		}
+
+		for (const id of this.#followed) {
+			if (ids.has(id) || id === this.user?.id || this.splits.paneOf(id)) continue;
+
+			const channel = this.channels.get(id);
+			if (channel && channel.status === "idle") this.channels.delete(id);
+		}
+
+		this.#followed = ids;
+	}
+
 	async #connectUntilReady() {
 		for (let delay = CONNECT_RETRY_MIN; this.user && !this.#connected;) {
 			try {
@@ -304,8 +345,14 @@ class App {
 	}
 
 	#reset() {
+		if (this.user) {
+			this.user.onFollowingRevalidated = null;
+		}
+
 		this.#connected = false;
 		this.#ready = Promise.withResolvers();
+		this.#followed.clear();
+
 		this.user = null;
 		this.twitch.token = null;
 
