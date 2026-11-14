@@ -151,19 +151,22 @@ class App {
 			this.channels.add(user);
 		}
 
-		user.onFollowingRevalidated = (follows) => this.#syncFollowing(follows);
+		// Follows can arrive after logging out or switching accounts, e.g. from
+		// a background revalidation, and must not leak into the next session.
+		const syncFollowing = (follows: Followed[]) => {
+			if (this.user === user) this.#syncFollowing(follows);
+		};
 
-		// Waited so the layout and sidebar don't show up empty.
-		await user
-			.loadFollowing()
-			.then(
-				(follows) => this.#syncFollowing(follows),
-				log.swallow("Failed to load followed channels"),
-			);
-
+		user.onFollowingRevalidated = syncFollowing;
 		user.loadWhispers().catch(log.swallow("Failed to load whispers"));
 
-		await Promise.all([this.emotes.fetch(), this.badges.fetch()]);
+		await Promise.all([
+			user
+				.loadFollowing()
+				.then(syncFollowing, log.swallow("Failed to load followed channels")),
+			this.emotes.fetch(),
+			this.badges.fetch(),
+		]);
 	}
 
 	/**
@@ -342,6 +345,10 @@ class App {
 	}
 
 	#reset() {
+		if (this.user) {
+			this.user.onFollowingRevalidated = null;
+		}
+
 		this.#connected = false;
 		this.#ready = Promise.withResolvers();
 		this.#followed.clear();
