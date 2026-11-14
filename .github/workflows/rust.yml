@@ -8,6 +8,11 @@ on:
       - "src-tauri/**"
       - ".github/workflows/rust.yml"
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
     paths:
       - "src-tauri/**"
       - ".github/workflows/rust.yml"
