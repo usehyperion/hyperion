@@ -20,8 +20,6 @@ import { Stream } from "./stream.svelte";
 import { User } from "./user.svelte";
 import { Whisper } from "./whisper.svelte";
 
-const FOLLOWING_TTL = 30 * 24 * 60 * 60; // 30 days
-
 export interface Followed {
 	user: User;
 	stream: Stream | null;
@@ -72,7 +70,6 @@ export class CurrentUser extends User {
 				// Who's live changes constantly, so cached follows are only
 				// shown until they've been refetched.
 				fresh: 0,
-				ttl: FOLLOWING_TTL,
 				onRevalidate: (data) => this.onFollowingRevalidated?.(this.#toFollowed(data)),
 			},
 		);
