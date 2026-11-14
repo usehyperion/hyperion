@@ -55,7 +55,7 @@
 		"@gql.tada/svelte-support": "^1.0.3",
 		"@iconify-json/ph": "^1.2.2",
 		"@internationalized/date": "^3.12.4",
-		"@sveltejs/adapter-static": "^4.0.0",
+		"@sveltejs/adapter-static": "^4.0.1",
 		"@sveltejs/kit": "^3.1.0",
 		"@tauri-apps/cli": "^2.12.4",
 		"@types/chroma-js": "^3.1.3",
