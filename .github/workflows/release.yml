@@ -80,7 +80,7 @@ jobs:
           ref: ${{ needs.release.outputs.tag_name }}
 
       - name: Install dependencies (Ubuntu only)
-        if: matrix.os == 'ubuntu-22.04'
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf pkg-config libssl-dev gcc-aarch64-linux-gnu
