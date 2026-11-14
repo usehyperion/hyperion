@@ -22,9 +22,6 @@ interface FfzResponse {
 
 const FFZ_BOT_BADGE = 2;
 
-const FRESH = 60 * 60; // 1 hour
-const TTL = 30 * 24 * 60 * 60; // 30 days
-
 export const BADGE_PROVIDERS = ["twitch", "bttv", "ffz"] as const;
 
 export type BadgeProvider = (typeof BADGE_PROVIDERS)[number];
@@ -181,8 +178,6 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 			const superseded = () => this.#generations[provider] !== generation;
 
 			const data = await cache.revalidate(`badges:${provider}:global`, fetcher, {
-				fresh: FRESH,
-				ttl: TTL,
 				force,
 				onRevalidate: (data) => {
 					if (!superseded()) apply(data);

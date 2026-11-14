@@ -7,9 +7,6 @@ import { channelBadgesQuery } from "#lib/graphql/twitch.js";
 import { LoadMap } from "#lib/load-map.js";
 import { Badge } from "#lib/models/badge.js";
 
-const FRESH = 60 * 60; // 1 hour
-const TTL = 30 * 24 * 60 * 60; // 30 days
-
 export class ChannelBadgeManager extends LoadMap<string, Badge> {
 	public constructor(public readonly channel: Channel) {
 		super();
@@ -17,8 +14,6 @@ export class ChannelBadgeManager extends LoadMap<string, Badge> {
 
 	protected async load({ force, update }: LoadContext<string, Badge>) {
 		const badges = await cache.revalidate(`badges:${this.channel.id}`, () => this.#fetch(), {
-			fresh: FRESH,
-			ttl: TTL,
 			force,
 			onRevalidate: (badges) => update(toEntries(badges)),
 		});

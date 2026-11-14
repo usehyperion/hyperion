@@ -6,9 +6,7 @@ import * as cache from "#lib/cache.js";
 import { THIRD_PARTY_PROVIDERS } from "#lib/emotes.js";
 import { log } from "#lib/log.js";
 import { settings } from "#lib/settings.js";
-
-const FRESH = 5 * 60; // 5 minutes
-const TTL = 30 * 24 * 60 * 60; // 30 days
+import { MINUTE } from "#lib/util/time.js";
 
 export interface SetVersion {
 	setId: string;
@@ -130,8 +128,7 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 			provider === "7TV"
 				? await this.#load7tv(force, apply)
 				: await cache.revalidate(this.#key(provider), this.loaders[provider], {
-						fresh: FRESH,
-						ttl: TTL,
+						fresh: 5 * MINUTE,
 						force,
 						onRevalidate: apply,
 					});
@@ -195,7 +192,7 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 		log.debug(`Cache miss for ${key}`);
 
 		const fetched = await this.fetch7tv();
-		cache.set(key, fetched, TTL);
+		cache.set(key, fetched);
 
 		return fetched.emotes;
 	}
@@ -211,7 +208,7 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 		log.debug(`Cache for ${key} is outdated, refetching`);
 
 		const fetched = await this.fetch7tv();
-		cache.set(key, fetched, TTL);
+		cache.set(key, fetched);
 
 		apply(fetched.emotes);
 	}

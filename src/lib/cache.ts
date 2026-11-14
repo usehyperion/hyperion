@@ -2,7 +2,11 @@ import { invoke } from "@tauri-apps/api/core";
 
 import { log } from "#lib/log.js";
 
+import { DAY, HOUR } from "./util/time.js";
+
 const VERSION = 1;
+
+export const DEFAULT_TTL = 30 * DAY;
 
 interface Entry<T> {
 	data: T;
@@ -12,12 +16,13 @@ interface Entry<T> {
 export interface RevalidateOptions<T> {
 	/**
 	 * Seconds after a fetch during which the cached data is used without
-	 * revalidating.
+	 * revalidating. Defaults to one hour.
 	 */
-	fresh: number;
+	fresh?: number;
 
 	/**
-	 * Seconds until the entry is evicted if it isn't refetched.
+	 * Seconds until the entry is evicted if it isn't refetched. Defaults to 30
+	 * days.
 	 */
 	ttl?: number;
 
@@ -41,6 +46,9 @@ export async function revalidate<T>(
 	fetcher: () => Promise<T>,
 	options: RevalidateOptions<T>,
 ) {
+	options.fresh ??= HOUR;
+	options.ttl ??= DEFAULT_TTL;
+
 	const entry = options.force ? null : await getEntry<T>(key);
 	const age = entry ? Math.round((Date.now() - entry.fetchedAt) / 1000) : 0;
 
@@ -90,7 +98,7 @@ export async function get<T>(key: string) {
 	}
 }
 
-export async function set(key: string, value: unknown, ttl?: number) {
+export async function set(key: string, value: unknown, ttl = DEFAULT_TTL) {
 	try {
 		await invoke("cache_set", { key: versioned(key), value, ttl });
 	} catch (error) {
