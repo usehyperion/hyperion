@@ -4,6 +4,7 @@
 
 	import FolderOpen from "~icons/ph/folder-open";
 	import Info from "~icons/ph/info";
+	import SignIn from "~icons/ph/sign-in";
 	import SignOut from "~icons/ph/sign-out";
 
 	import { app } from "#lib/app.svelte.js";
@@ -33,7 +34,7 @@
 		<span class="text-sm">About</span>
 	</Button>
 
-	{#if app.user}
+	{#if app.hasSession}
 		<Button
 			class="text-muted-foreground"
 			variant="ghost"
@@ -42,8 +43,13 @@
 				await app.logOut();
 			}}
 		>
-			<SignOut />
-			<span class="text-sm">Log out</span>
+			{#if app.user}
+				<SignOut />
+				<span class="text-sm">Log out</span>
+			{:else}
+				<SignIn />
+				<span class="text-sm">Log in</span>
+			{/if}
 		</Button>
 	{/if}
 </div>

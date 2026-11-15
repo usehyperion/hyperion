@@ -60,11 +60,11 @@
 	{onDragEnd}
 >
 	<div class="flex grow overflow-hidden">
-		{#if app.user}
+		{#if app.hasSession}
 			<Sidebar />
 		{/if}
 
-		<main class={["grow overflow-hidden bg-accent/15", app.user && "border-l"]}>
+		<main class={["grow overflow-hidden bg-accent/15", app.hasSession && "border-l"]}>
 			{@render children()}
 		</main>
 	</div>

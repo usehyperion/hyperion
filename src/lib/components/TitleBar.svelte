@@ -70,7 +70,7 @@
 		<img class="size-4" src="/logo.svg" alt="Hyperion logo" />
 	</div>
 
-	{#if app.user}
+	{#if app.hasSession}
 		<div class="flex items-center justify-center gap-1.5" data-tauri-drag-region>
 			<Button
 				class="relative size-min p-1 text-muted-foreground"
@@ -92,24 +92,27 @@
 
 			<JoinDialog />
 
-			<Link
-				class="relative size-min p-1 text-muted-foreground"
-				href={resolve("whispers")}
-				size="icon"
-				variant="ghost"
-				aria-label={hasUnread ? "Go to whispers (unread)" : "Go to whispers"}
-			>
-				<Chats />
+			{#if app.user}
+				<Link
+					class="relative size-min p-1 text-muted-foreground"
+					href={resolve("whispers")}
+					size="icon"
+					variant="ghost"
+					aria-label={hasUnread ? "Go to whispers (unread)" : "Go to whispers"}
+				>
+					<Chats />
 
-				{#if hasUnread}
-					<span class="pointer-events-none absolute top-0.5 right-0.5 flex size-1.5">
-						<span
-							class="absolute inline-flex size-full animate-ping rounded-full bg-red-400 opacity-75 motion-reduce:hidden"
-						></span>
-						<span class="relative inline-flex size-1.5 rounded-full bg-red-500"></span>
-					</span>
-				{/if}
-			</Link>
+					{#if hasUnread}
+						<span class="pointer-events-none absolute top-0.5 right-0.5 flex size-1.5">
+							<span
+								class="absolute inline-flex size-full animate-ping rounded-full bg-red-400 opacity-75 motion-reduce:hidden"
+							></span>
+							<span class="relative inline-flex size-1.5 rounded-full bg-red-500"
+							></span>
+						</span>
+					{/if}
+				</Link>
+			{/if}
 		</div>
 	{/if}
 

@@ -97,8 +97,12 @@
 				<Empty.Title>No channel selected</Empty.Title>
 
 				<Empty.Description>
-					Select a channel from your following list or search for a channel to start
-					chatting.
+					{#if app.user}
+						Select a channel from your following list or search for a channel to start
+						chatting.
+					{:else}
+						Search for a channel to start viewing its chat.
+					{/if}
 				</Empty.Description>
 			</Empty.Header>
 

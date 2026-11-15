@@ -9,6 +9,7 @@ import Trash from "~icons/ph/trash";
 
 import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
+import { app } from "#lib/app.svelte.js";
 import { log } from "#lib/log.js";
 import { timeoutDuration, timeoutLabel } from "#lib/moderation.js";
 
@@ -36,7 +37,7 @@ export const messageActions = {
 		label: () => "Reply",
 		icon: ArrowBendUpLeft,
 		moderation: false,
-		enabled: (message) => !message.deleted,
+		enabled: (message) => !message.deleted && app.user !== null,
 		run(message) {
 			message.channel.chat.replyTarget = message;
 			message.channel.chat.input?.focus();

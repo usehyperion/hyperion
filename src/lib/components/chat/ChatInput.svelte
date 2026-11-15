@@ -33,6 +33,15 @@
 	let error = $state<string>("");
 
 	const banned = $derived(chat.channel.banned);
+	const anonymous = $derived(!app.user);
+
+	const placeholder = $derived.by(() => {
+		if (anonymous) return "Log in to send messages";
+		if (banned) return "You are banned from the channel";
+
+		return "Send a message";
+	});
+
 	const showSuggestions = $derived(!!completer?.suggestions.length && completer.prefixed);
 
 	$effect(() => {
@@ -145,9 +154,9 @@
 			class={[(chat.replyTarget || error) && "rounded-t-none", className]}
 			autocapitalize="off"
 			autocorrect="off"
-			disabled={banned}
+			disabled={banned || anonymous}
 			maxlength={500}
-			placeholder={banned ? "You are banned from the channel" : "Send a message"}
+			{placeholder}
 			oninput={() => completer?.search()}
 			onkeydown={send}
 			onmousedown={() => completer?.reset()}
@@ -182,7 +191,9 @@
 				</InputGroup.Button>
 			{/if}
 
-			<EmotePicker channel={chat.channel} />
+			{#if !anonymous}
+				<EmotePicker channel={chat.channel} />
+			{/if}
 		</InputGroup.Addon>
 	</InputGroup.Root>
 
