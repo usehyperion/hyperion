@@ -159,16 +159,10 @@ jobs:
               }'
           }
 
-          mkdir -p manifests/github manifests/r2
-          manifest "https://github.com/${GH_REPO}/releases/download/${VERSION_TAG}" > manifests/github/latest.json
-          if [ -n "$R2_PUBLIC_URL" ]; then
-            manifest "${R2_PUBLIC_URL%/}/releases/${VERSION}" > manifests/r2/latest.json
-            echo "Generated R2 manifest for ${VERSION_TAG}:"
-            cat manifests/r2/latest.json
-          fi
-
-          echo "Generated GitHub manifest for ${VERSION_TAG}:"
-          cat manifests/github/latest.json
+          : "${R2_PUBLIC_URL:?The R2_PUBLIC_URL repository variable is not set}"
+          manifest "${R2_PUBLIC_URL%/}/releases/${VERSION}" > latest.json
+          echo "Generated manifest for ${VERSION_TAG}:"
+          cat latest.json
 
       - name: Check if this is the latest release
         id: latest
@@ -178,7 +172,6 @@ jobs:
           echo "Latest release is $latest, publishing $VERSION_TAG"
 
       - name: Upload release files to R2
-        if: env.R2_PUBLIC_URL != ''
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -195,12 +188,18 @@ jobs:
 
           if [ "${{ steps.latest.outputs.is_latest }}" = "true" ]; then
             # Uploaded last, so clients never see a manifest before its files exist.
-            aws s3 cp manifests/r2/latest.json "s3://${R2_BUCKET}/releases/latest.json" \
+            aws s3 cp latest.json "s3://${R2_BUCKET}/releases/latest.json" \
               --content-type application/json \
               --cache-control "no-cache"
           fi
 
-      - name: Upload release files to GitHub
+      - name: Upload installers to GitHub
         run: |
-          gh release upload "$VERSION_TAG" dist/* --clobber
-          gh release upload "$VERSION_TAG" manifests/github/latest.json --clobber
+          gh release upload "$VERSION_TAG" --clobber \
+            dist/Hyperion-aarch64.dmg \
+            dist/Hyperion-x64.dmg \
+            dist/Hyperion-amd64.AppImage \
+            dist/Hyperion-amd64.deb \
+            dist/Hyperion-x64.exe \
+            dist/Hyperion-arm64.exe
+          gh release upload "$VERSION_TAG" latest.json --clobber
