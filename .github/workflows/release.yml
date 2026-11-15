@@ -114,6 +114,8 @@ jobs:
           stage x86_64-apple-darwin      '*.dmg'         Hyperion-x64.dmg
           stage x86_64-unknown-linux-gnu '*.AppImage'    Hyperion-amd64.AppImage
           stage x86_64-unknown-linux-gnu '*.deb'         Hyperion-amd64.deb
+          stage aarch64-unknown-linux-gnu '*.AppImage'   Hyperion-arm64.AppImage
+          stage aarch64-unknown-linux-gnu '*.deb'        Hyperion-arm64.deb
           stage x86_64-pc-windows-msvc   '*-setup.exe'   Hyperion-x64.exe
           stage aarch64-pc-windows-msvc  '*-setup.exe'   Hyperion-arm64.exe
 
@@ -135,6 +137,8 @@ jobs:
               --rawfile macX64 dist/Hyperion-x64.app.tar.gz.sig \
               --rawfile appImage dist/Hyperion-amd64.AppImage.sig \
               --rawfile deb dist/Hyperion-amd64.deb.sig \
+              --rawfile appImageArm dist/Hyperion-arm64.AppImage.sig \
+              --rawfile debArm dist/Hyperion-arm64.deb.sig \
               --rawfile winX64 dist/Hyperion-x64.exe.sig \
               --rawfile winArm dist/Hyperion-arm64.exe.sig \
               '
@@ -144,17 +148,20 @@ jobs:
                 notes: $notes,
                 pub_date: (now | todateiso8601),
                 platforms: {
-                  "darwin-aarch64":        entry("Hyperion-aarch64.app.tar.gz"; $macArm),
-                  "darwin-aarch64-app":    entry("Hyperion-aarch64.app.tar.gz"; $macArm),
-                  "darwin-x86_64":         entry("Hyperion-x64.app.tar.gz"; $macX64),
-                  "darwin-x86_64-app":     entry("Hyperion-x64.app.tar.gz"; $macX64),
-                  "linux-x86_64":          entry("Hyperion-amd64.AppImage"; $appImage),
-                  "linux-x86_64-appimage": entry("Hyperion-amd64.AppImage"; $appImage),
-                  "linux-x86_64-deb":      entry("Hyperion-amd64.deb"; $deb),
-                  "windows-x86_64":        entry("Hyperion-x64.exe"; $winX64),
-                  "windows-x86_64-nsis":   entry("Hyperion-x64.exe"; $winX64),
-                  "windows-aarch64":       entry("Hyperion-arm64.exe"; $winArm),
-                  "windows-aarch64-nsis":  entry("Hyperion-arm64.exe"; $winArm)
+                  "darwin-aarch64":         entry("Hyperion-aarch64.app.tar.gz"; $macArm),
+                  "darwin-aarch64-app":     entry("Hyperion-aarch64.app.tar.gz"; $macArm),
+                  "darwin-x86_64":          entry("Hyperion-x64.app.tar.gz"; $macX64),
+                  "darwin-x86_64-app":      entry("Hyperion-x64.app.tar.gz"; $macX64),
+                  "linux-x86_64":           entry("Hyperion-amd64.AppImage"; $appImage),
+                  "linux-x86_64-appimage":  entry("Hyperion-amd64.AppImage"; $appImage),
+                  "linux-x86_64-deb":       entry("Hyperion-amd64.deb"; $deb),
+                  "linux-aarch64":          entry("Hyperion-arm64.AppImage"; $appImageArm),
+                  "linux-aarch64-appimage": entry("Hyperion-arm64.AppImage"; $appImageArm),
+                  "linux-aarch64-deb":      entry("Hyperion-arm64.deb"; $debArm),
+                  "windows-x86_64":         entry("Hyperion-x64.exe"; $winX64),
+                  "windows-x86_64-nsis":    entry("Hyperion-x64.exe"; $winX64),
+                  "windows-aarch64":        entry("Hyperion-arm64.exe"; $winArm),
+                  "windows-aarch64-nsis":   entry("Hyperion-arm64.exe"; $winArm)
                 }
               }'
           }
@@ -200,6 +207,8 @@ jobs:
             dist/Hyperion-x64.dmg \
             dist/Hyperion-amd64.AppImage \
             dist/Hyperion-amd64.deb \
+            dist/Hyperion-arm64.AppImage \
+            dist/Hyperion-arm64.deb \
             dist/Hyperion-x64.exe \
             dist/Hyperion-arm64.exe
           gh release upload "$VERSION_TAG" latest.json --clobber
