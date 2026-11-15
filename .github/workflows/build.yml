@@ -77,6 +77,7 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: "./src-tauri -> target"
+          key: ${{ matrix.artifact-target-name }}
 
       - name: Remove bundles restored from cache
         shell: bash
