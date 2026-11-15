@@ -554,12 +554,12 @@ async fn sign_in(
 
     state.unverified.reset(None);
     state.integrity.reset(integrity);
+    state.token = Some(token);
 
     // Connections authenticate once, when they open, so ones opened with the
-    // previous token would keep using it. The frontend connects again.
-    if state.token.replace(token).is_some() {
-        state.close_connections();
-    }
+    // previous token, or anonymously, would keep using it. The frontend
+    // connects again.
+    state.close_connections();
 
     Ok(signed_in)
 }
@@ -664,6 +664,14 @@ pub fn get_access_token(state: &AppState) -> Result<&UserToken, Error> {
         tracing::error!("Attempted to retrieve access token but no token is set");
         Error::Generic(anyhow!("Access token not set"))
     })
+}
+
+pub fn connection_token(state: &AppState, anonymous: bool) -> Result<Option<&UserToken>, Error> {
+    if anonymous {
+        Ok(None)
+    } else {
+        get_access_token(state).map(Some)
+    }
 }
 
 pub fn restore_credentials() -> (Option<AccessToken>, Option<Integrity>) {

@@ -6,7 +6,7 @@ use tauri::AppHandle;
 use tauri::ipc::Channel;
 
 use crate::AppState;
-use crate::auth::get_access_token;
+use crate::auth::connection_token;
 use crate::connection::{self, Client, Connection};
 use crate::error::Error;
 
@@ -36,14 +36,16 @@ const TOPICS: &[(&str, Scope)] = &[
     ("whispers", Scope::User),
 ];
 
-fn channel_topics(user_id: &str, channel_id: &str, is_mod: bool) -> Vec<String> {
+fn channel_topics(user_id: Option<&str>, channel_id: &str, is_mod: bool) -> Vec<String> {
     TOPICS
         .iter()
-        .filter_map(|(name, scope)| match scope {
-            Scope::Channel => Some(format!("{name}.{channel_id}")),
-            Scope::UserInChannel => Some(format!("{name}.{user_id}.{channel_id}")),
-            Scope::ModeratorInChannel if is_mod => Some(format!("{name}.{user_id}.{channel_id}")),
-            Scope::ModeratorInChannel | Scope::User => None,
+        .filter_map(|(name, scope)| match (scope, user_id) {
+            (Scope::Channel, _) => Some(format!("{name}.{channel_id}")),
+            (Scope::UserInChannel, Some(user_id)) => Some(format!("{name}.{user_id}.{channel_id}")),
+            (Scope::ModeratorInChannel, Some(user_id)) if is_mod => {
+                Some(format!("{name}.{user_id}.{channel_id}"))
+            }
+            _ => None,
         })
         .collect()
 }
@@ -70,9 +72,10 @@ impl Client for PubSubClient {
 pub async fn connect_pubsub(
     app_handle: AppHandle,
     channel: Channel<PubSubMessage>,
+    anonymous: bool,
 ) -> Result<(), Error> {
     connection::connect(app_handle, channel, |state| {
-        let token = get_access_token(state)?.clone();
+        let token = connection_token(state, anonymous)?.cloned();
 
         Ok(PubSubClient::start(token))
     })

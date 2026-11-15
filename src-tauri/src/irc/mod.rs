@@ -18,7 +18,7 @@ use tauri::{AppHandle, State};
 use tokio::sync::Mutex;
 
 use crate::AppState;
-use crate::auth::get_access_token;
+use crate::auth::connection_token;
 use crate::connection::{Client, Connection, Started};
 use crate::error::Error as AppError;
 
@@ -66,16 +66,18 @@ pub fn client(state: &AppState) -> Result<Arc<IrcClient>, AppError> {
 pub async fn connect_irc(
     app_handle: AppHandle,
     channel: Channel<ServerMessage>,
+    anonymous: bool,
 ) -> Result<(), AppError> {
     crate::connection::connect(app_handle, channel, |state| {
-        let token = get_access_token(state)?;
-
-        let config = ClientConfig::new(
-            token.login.to_string(),
-            // Need to convert to &str first because AccessToken::to_string masks
-            // the actual token
-            token.access_token.as_str().to_string(),
-        );
+        let config = match connection_token(state, anonymous)? {
+            Some(token) => ClientConfig::new(
+                token.login.to_string(),
+                // Need to convert to &str first because AccessToken::to_string
+                // masks the actual token
+                token.access_token.as_str().to_string(),
+            ),
+            None => ClientConfig::anonymous(),
+        };
 
         let (events, client) = IrcClient::new(config);
 

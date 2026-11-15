@@ -147,11 +147,13 @@ pub(crate) async fn run(
         }};
     }
 
-    let handshake = [
-        irc!["CAP", "REQ", "twitch.tv/tags twitch.tv/commands"],
-        irc!["PASS", format!("oauth:{}", config.token)],
-        irc!["NICK", config.login.as_str()],
-    ];
+    let mut handshake = vec![irc!["CAP", "REQ", "twitch.tv/tags twitch.tv/commands"]];
+
+    if let Some(token) = &config.token {
+        handshake.push(irc!["PASS", format!("oauth:{token}")]);
+    }
+
+    handshake.push(irc!["NICK", config.login.as_str()]);
 
     for msg in handshake {
         if let Err(err) = send_or_close!(msg, None) {

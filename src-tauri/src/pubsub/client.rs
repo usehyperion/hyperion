@@ -85,16 +85,18 @@ enum Incoming {
 }
 
 pub struct PubSubClient {
-    user_id: String,
+    user_id: Option<String>,
     subscriptions: SubscriptionStore<()>,
 }
 
 impl PubSubClient {
-    pub fn start(token: UserToken) -> Started<Self> {
-        let user_id = token.user_id.to_string();
+    pub fn start(token: Option<UserToken>) -> Started<Self> {
+        let user_id = token.as_ref().map(|token| token.user_id.to_string());
         let subscriptions = SubscriptionStore::default();
 
-        subscriptions.set_session(user_topics(&user_id).into_iter().map(|topic| (topic, ())));
+        if let Some(user_id) = &user_id {
+            subscriptions.set_session(user_topics(user_id).into_iter().map(|topic| (topic, ())));
+        }
 
         let client = Arc::new(Self {
             user_id,
@@ -121,7 +123,7 @@ impl PubSubClient {
     /// login. Calling it again recomputes them.
     #[tracing::instrument(name = "pubsub_listen", skip(self))]
     pub fn listen(&self, channel: &str, channel_id: &str, is_mod: bool) {
-        let topics = channel_topics(&self.user_id, channel_id, is_mod);
+        let topics = channel_topics(self.user_id.as_deref(), channel_id, is_mod);
 
         tracing::trace!("Listening to {} topics", topics.len());
 
@@ -137,7 +139,7 @@ impl PubSubClient {
 
 struct PubSubDriver {
     client: Arc<PubSubClient>,
-    token: UserToken,
+    token: Option<UserToken>,
     events: mpsc::UnboundedSender<PubSubMessage>,
     nonce: u64,
 }
@@ -151,13 +153,16 @@ impl PubSubDriver {
     ) -> Result<(), WsError> {
         self.nonce += 1;
 
+        let mut data = json!({ "topics": topics });
+
+        if let Some(token) = &self.token {
+            data["auth_token"] = token.access_token.as_str().into();
+        }
+
         let payload = json!({
             "type": command,
             "nonce": format!("hyperion-{}", self.nonce),
-            "data": {
-                "topics": topics,
-                "auth_token": self.token.access_token.as_str(),
-            }
+            "data": data,
         });
 
         link.send(&payload).await
