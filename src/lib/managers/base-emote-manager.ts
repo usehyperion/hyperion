@@ -30,7 +30,7 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	protected abstract readonly cacheId: string;
 
 	readonly #loaded = new Set<EmoteProvider>();
-	readonly #generations = new Map<EmoteProvider, number>();
+	readonly #controllers = new Map<EmoteProvider, AbortController>();
 
 	/**
 	 * Retrieves the 7TV emotes along with the version of their set from the
@@ -50,7 +50,7 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	 */
 	public override clear(provider?: EmoteProvider) {
 		if (provider) {
-			this.#bump(provider);
+			this.#abort(provider);
 			this.#loaded.delete(provider);
 
 			for (const emote of this.values()) {
@@ -60,7 +60,7 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 			}
 		} else {
 			for (const { id } of THIRD_PARTY_PROVIDERS) {
-				this.#bump(id);
+				this.#abort(id);
 			}
 
 			this.#loaded.clear();
@@ -111,12 +111,17 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	 * unless `force` is set.
 	 */
 	protected async load(provider: ThirdPartyProvider, force = false) {
-		const generation = this.#bump(provider);
+		this.#abort(provider);
+
+		const controller = new AbortController();
+		this.#controllers.set(provider, controller);
+
+		const { signal } = controller;
 
 		// Applies emotes unless the provider has been cleared or loaded again
 		// since, e.g. by a reload or a 7TV set change.
 		const apply = (emotes: Emote[]) => {
-			if (this.#generations.get(provider) !== generation) {
+			if (signal.aborted) {
 				return false;
 			}
 
@@ -138,11 +143,9 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 		}
 	}
 
-	#bump(provider: EmoteProvider) {
-		const generation = this.#generations.getOrInsert(provider, 0) + 1;
-		this.#generations.set(provider, generation);
-
-		return generation;
+	#abort(provider: EmoteProvider) {
+		this.#controllers.get(provider)?.abort();
+		this.#controllers.delete(provider);
 	}
 
 	#key(provider: ThirdPartyProvider) {

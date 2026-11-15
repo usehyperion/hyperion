@@ -59,12 +59,15 @@ export class ChatterList {
 	public error = $state(false);
 	public chatters = $state.raw<Chatter[]>([]);
 
-	#token = 0;
+	#controller: AbortController | null = null;
 
 	public constructor(public readonly channel: Channel) {}
 
 	public async refresh() {
-		const current = ++this.#token;
+		this.#controller?.abort();
+		this.#controller = new AbortController();
+
+		const { signal } = this.#controller;
 
 		this.loading = true;
 		this.error = false;
@@ -73,12 +76,12 @@ export class ChatterList {
 
 		try {
 			const list = await this.#fetch();
-			if (current !== this.#token) return;
+			if (signal.aborted) return;
 
 			roles = list.roles;
 			this.count = list.count;
 		} catch (cause) {
-			if (current !== this.#token) return;
+			if (signal.aborted) return;
 
 			this.error = true;
 			this.count = null;

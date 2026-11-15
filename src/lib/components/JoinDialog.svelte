@@ -66,14 +66,15 @@
 		};
 	}
 
-	// A monotonic token discards responses that resolve out of order, so a slow
-	// early query can't clobber the results of a later one.
-	let token = 0;
+	let controller: AbortController | null = null;
 
 	async function search(query: string) {
 		error = null;
 
-		const current = ++token;
+		controller?.abort();
+		controller = new AbortController();
+
+		const { signal } = controller;
 
 		if (!query.trim()) {
 			suggestions = [];
@@ -85,7 +86,7 @@
 
 		try {
 			const { searchSuggestions } = await app.twitch.gql(searchSuggestionsQuery, { query });
-			if (current !== token) return;
+			if (signal.aborted) return;
 
 			const channels: ChannelSuggestion[] = [];
 
@@ -99,9 +100,13 @@
 
 			suggestions = channels;
 		} catch (err) {
-			if (current === token) error = err instanceof Error ? err.message : String(err);
+			if (!signal.aborted) {
+				error = err instanceof Error ? err.message : String(err);
+			}
 		} finally {
-			if (current === token) searching = false;
+			if (!signal.aborted) {
+				searching = false;
+			}
 		}
 	}
 

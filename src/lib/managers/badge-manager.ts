@@ -107,10 +107,14 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		),
 	};
 
-	readonly #generations: Record<BadgeProvider, number> = {
-		twitch: 0,
-		bttv: 0,
-		ffz: 0,
+	/**
+	 * Aborted when a provider's badges are cleared or reloaded, so an older
+	 * load doesn't apply its badges over newer ones.
+	 */
+	readonly #controllers: Record<BadgeProvider, AbortController> = {
+		twitch: new AbortController(),
+		bttv: new AbortController(),
+		ffz: new AbortController(),
 	};
 
 	public constructor(public readonly client: TwitchClient) {
@@ -119,8 +123,7 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 
 	public override clear() {
 		for (const provider of BADGE_PROVIDERS) {
-			this.#generations[provider]++;
-			this.#loads[provider].reset();
+			this.#reset(provider);
 		}
 
 		this.users.clear();
@@ -135,16 +138,13 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 	public async fetch(providers: readonly BadgeProvider[] = BADGE_PROVIDERS, force = false) {
 		await Promise.all(
 			providers.map(async (provider) => {
-				const load = this.#loads[provider];
-
 				if (force) {
 					this.#forced.add(provider);
-					this.#generations[provider]++;
-					load.reset();
+					this.#reset(provider);
 				}
 
 				try {
-					await load();
+					await this.#loads[provider]();
 				} catch (error) {
 					log.warn(`Failed to load ${provider} badges`, error);
 				}
@@ -166,6 +166,12 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		}
 	}
 
+	#reset(provider: BadgeProvider) {
+		this.#controllers[provider].abort();
+		this.#controllers[provider] = new AbortController();
+		this.#loads[provider].reset();
+	}
+
 	/**
 	 * Loads a provider's badges from the cache if possible and applies them,
 	 * reapplying newer ones once they've been revalidated.
@@ -173,18 +179,16 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 	#cached<T>(provider: BadgeProvider, fetcher: () => Promise<T>, apply: (data: T) => void) {
 		return once(async () => {
 			const force = this.#forced.delete(provider);
-			const generation = this.#generations[provider];
-
-			const superseded = () => this.#generations[provider] !== generation;
+			const { signal } = this.#controllers[provider];
 
 			const data = await cache.revalidate(`badges:${provider}:global`, fetcher, {
 				force,
 				onRevalidate: (data) => {
-					if (!superseded()) apply(data);
+					if (!signal.aborted) apply(data);
 				},
 			});
 
-			if (!superseded()) apply(data);
+			if (!signal.aborted) apply(data);
 		});
 	}
 }

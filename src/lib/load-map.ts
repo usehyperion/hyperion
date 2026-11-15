@@ -22,24 +22,24 @@ export interface LoadContext<K, V> {
  */
 export abstract class LoadMap<K, V> extends Map<K, V> {
 	#force = false;
-	#generation = 0;
+	#controller = new AbortController();
 
 	readonly #load = once(async () => {
 		const force = this.#force;
 		this.#force = false;
 
-		const generation = this.#generation;
+		const { signal } = this.#controller;
 
 		const entries = await this.load({
 			force,
 			update: (entries) => {
-				if (this.#generation === generation) {
+				if (!signal.aborted) {
 					this.#replace(entries);
 				}
 			},
 		});
 
-		if (this.#generation === generation) {
+		if (!signal.aborted) {
 			this.#replace(entries);
 		}
 	});
@@ -62,7 +62,8 @@ export abstract class LoadMap<K, V> extends Map<K, V> {
 	}
 
 	#reset() {
-		this.#generation++;
+		this.#controller.abort();
+		this.#controller = new AbortController();
 		this.#load.reset();
 	}
 
