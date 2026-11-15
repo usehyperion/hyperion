@@ -30,21 +30,31 @@ export class TwitchClient {
 	 */
 	public token: string | null = null;
 
+	/**
+	 * Whether requests are sent without a token while browsing anonymously.
+	 */
+	public anonymous = false;
+
 	public constructor(private readonly onRevoked: () => void) {}
 
 	public async gql<T, U>(query: TadaDocumentNode<T, U>, variables?: U): Promise<T> {
 		const token = this.token;
 
-		if (!token) {
+		if (!token && !this.anonymous) {
 			throw new ApiError(401, "OAuth token is not set");
 		}
 
 		try {
 			return await request("https://gql.twitch.tv/gql", query, variables, () =>
-				this.#headers(token),
+				token ? this.#headers(token) : Promise.resolve({ "Client-Id": CLIENT_ID }),
 			);
 		} catch (error) {
-			if (error instanceof ApiError && error.status === 401 && this.token === token) {
+			if (
+				error instanceof ApiError &&
+				error.status === 401 &&
+				token &&
+				this.token === token
+			) {
 				this.onRevoked();
 			}
 

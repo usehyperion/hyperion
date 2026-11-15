@@ -46,6 +46,15 @@ export function firstLeaf(node: SplitNode): Pane {
 	return isLeaf(node) ? node : firstLeaf(node.before);
 }
 
+export function* leaves(node: SplitNode): Generator<Pane> {
+	if (isLeaf(node)) {
+		yield node;
+	} else {
+		yield* leaves(node.before);
+		yield* leaves(node.after);
+	}
+}
+
 export function findLeaf(node: SplitNode, predicate: (pane: Pane) => boolean): Pane | null {
 	if (isLeaf(node)) {
 		return predicate(node) ? node : null;

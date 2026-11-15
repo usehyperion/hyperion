@@ -19,7 +19,7 @@ import { CurrentUser } from "./models/current-user.svelte";
 import { settings } from "./settings";
 import { SevenTvCosmetics } from "./seventv";
 import { SplitController } from "./splits/controller.svelte";
-import { firstLeaf } from "./splits/tree";
+import { firstLeaf, leaves } from "./splits/tree";
 import { storage } from "./stores";
 import { TwitchClient } from "./twitch/client";
 
@@ -65,6 +65,11 @@ class App {
 
 	public user = $state<CurrentUser | null>(null);
 
+	/**
+	 * Whether the user is browsing without an account.
+	 */
+	public anonymous = $state(false);
+
 	#ending: Promise<void> | null = null;
 	#connected = false;
 	#connecting: Promise<void> | null = null;
@@ -91,28 +96,59 @@ class App {
 	}
 
 	/**
-	 * Restores the session stored by the backend. Resolves to the signed in
-	 * user or `null` if they have to sign in again.
+	 * Whether the user is logged in or browsing anonymously.
+	 */
+	public get hasSession() {
+		return this.user !== null || this.anonymous;
+	}
+
+	/**
+	 * Restores the session stored by the backend, or the anonymous one if the
+	 * user chose to browse without an account. Resolves to whether there is a
+	 * session or the user has to log in.
 	 */
 	public async restoreSession() {
-		if (this.user) return this.user;
+		if (this.hasSession) return true;
 
 		const credentials = await invoke<{ accessToken: string } | null>("get_auth");
 
 		if (!credentials) {
 			storage.state.user = null;
-			return null;
+
+			if (storage.state.anonymous) {
+				this.#setAnonymous(true);
+				return true;
+			}
+
+			return false;
 		}
 
-		if (!storage.state.user) return null;
+		if (!storage.state.user) return false;
 
 		this.twitch.token = credentials.accessToken;
 		this.user = new CurrentUser(this.twitch.users.from(storage.state.user));
 
-		return this.user;
+		return true;
+	}
+
+	/**
+	 * Starts a session without an account, which is restored on the next
+	 * launch until the user logs in.
+	 */
+	public async browseAnonymously() {
+		this.#setAnonymous(true);
+		storage.state.anonymous = true;
+
+		log.info("Browsing anonymously");
+
+		await saveStorage();
+		await goto("/", { refreshAll: true });
 	}
 
 	public async completeLogin(account: Account) {
+		this.#setAnonymous(false);
+		storage.state.anonymous = false;
+
 		this.twitch.token = account.accessToken;
 
 		const user = await this.twitch.users.fetch(account.id);
@@ -126,8 +162,10 @@ class App {
 	}
 
 	public async logOut() {
+		const anonymous = this.anonymous;
+
 		await this.#endSession();
-		log.info("User logged out");
+		log.info(anonymous ? "Stopped browsing anonymously" : "User logged out");
 	}
 
 	public async expireSession() {
@@ -136,10 +174,17 @@ class App {
 	}
 
 	/**
-	 * Loads what the signed in user needs. Each load runs once and is retried
-	 * on the next call if it failed.
+	 * Loads what the session needs. Each load runs once and is retried on the
+	 * next call if it failed.
 	 */
-	public async load(user: CurrentUser) {
+	public async load() {
+		const user = this.user;
+
+		if (!user) {
+			await Promise.all([this.#addSavedChannels(), this.emotes.fetch(), this.badges.fetch()]);
+			return;
+		}
+
 		// Not awaited so it doesn't stall startup. Waited before a join since
 		// it decides which moderator topics they follow.
 		user.loadModerating().catch(log.swallow("Failed to load moderated channels"));
@@ -189,7 +234,7 @@ class App {
 	}
 
 	/**
-	 * Opens a channel by login, adding it as ephemeral if it isn't known yet.
+	 * Opens a channel by login, adding it if it isn't known yet.
 	 */
 	public async openByLogin(login: string) {
 		let channel = this.channels.getByLogin(login);
@@ -198,7 +243,10 @@ class App {
 			const user = await this.twitch.users.fetch(login, { by: "login" });
 
 			channel = this.channels.add(user);
-			channel.ephemeral = true;
+
+			// Keep all channels if the user is browsing anonymously so they
+			// can be restored on the next launch.
+			channel.ephemeral = !this.anonymous;
 		}
 
 		await this.open(channel);
@@ -296,8 +344,42 @@ class App {
 		this.#followed = ids;
 	}
 
+	async #addSavedChannels() {
+		const tabs = this.splits.root
+			? leaves(this.splits.root).flatMap((pane) => pane.tabs.map((tab) => tab.id))
+			: [];
+
+		const ids = new Set([...storage.state.pinned, ...tabs]).difference(
+			new Set(this.channels.keys()),
+		);
+
+		if (!ids.size) return;
+
+		const results = await Promise.allSettled(
+			ids.values().map((id) => this.twitch.users.fetch(id)),
+		);
+
+		// Logged in or out meanwhile.
+		if (!this.anonymous) return;
+
+		for (const result of results) {
+			if (result.status === "fulfilled") {
+				this.channels.add(result.value);
+			} else {
+				log.warn("Failed to restore a saved channel", result.reason);
+			}
+		}
+
+		await this.channels.refreshStreams().catch(log.swallow("Failed to refresh streams"));
+	}
+
+	#setAnonymous(anonymous: boolean) {
+		this.anonymous = anonymous;
+		this.twitch.anonymous = anonymous;
+	}
+
 	async #connectUntilReady() {
-		for (let delay = CONNECT_RETRY_MIN; this.user && !this.#connected;) {
+		for (let delay = CONNECT_RETRY_MIN; this.hasSession && !this.#connected;) {
 			try {
 				// Attempts are sequential by design.
 				// oxlint-disable-next-line no-await-in-loop
@@ -332,9 +414,11 @@ class App {
 			);
 		});
 
+		const anonymous = this.anonymous;
+
 		await Promise.all([
-			invoke("connect_irc", { channel: irc }),
-			invoke("connect_pubsub", { channel: pubsub }),
+			invoke("connect_irc", { channel: irc, anonymous }),
+			invoke("connect_pubsub", { channel: pubsub, anonymous }),
 			invoke("connect_seventv", { channel: seventv }),
 		]);
 
@@ -355,6 +439,7 @@ class App {
 
 		this.user = null;
 		this.twitch.token = null;
+		this.#setAnonymous(false);
 
 		this.channels.clear();
 		this.emotes.clear();
@@ -375,6 +460,7 @@ class App {
 
 		this.#reset();
 		storage.state.user = null;
+		storage.state.anonymous = false;
 
 		await saveStorage();
 

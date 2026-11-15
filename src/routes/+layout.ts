@@ -6,9 +6,9 @@ import { log } from "#lib/log.js";
 export const ssr = false;
 
 export async function load({ url }) {
-	const user = await app.restoreSession();
+	const hasSession = await app.restoreSession();
 
-	if (!user) {
+	if (!hasSession) {
 		if (url.pathname !== "/auth/login") {
 			log.info("User not authenticated, redirecting to login");
 			redirect(302, "/auth/login");
@@ -17,5 +17,5 @@ export async function load({ url }) {
 		return;
 	}
 
-	await app.load(user);
+	await app.load();
 }

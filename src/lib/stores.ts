@@ -17,6 +17,7 @@ export interface RecentSearch {
 interface Storage {
 	[key: string]: unknown;
 	user: User | null;
+	anonymous: boolean;
 	accounts: User[];
 	layout: Layout | null;
 	pinned: string[];
@@ -28,6 +29,7 @@ export const storage = new RuneStore<Storage>(
 	"storage",
 	{
 		user: null,
+		anonymous: false,
 		accounts: [],
 		layout: null,
 		pinned: [],

@@ -48,10 +48,21 @@
 	<p class="max-w-sm text-muted-foreground">Connect your Twitch account to start chatting.</p>
 </div>
 
-<Button class="h-12" size="lg" onclickwait={() => handleLogIn()}>
-	<Twitch class="size-5 fill-white" />
-	Log in with Twitch
-</Button>
+<div class="flex flex-col items-center gap-y-3">
+	<Button class="h-12" size="lg" onclickwait={() => handleLogIn()}>
+		<Twitch class="size-5 fill-white" />
+		Log in with Twitch
+	</Button>
+
+	<Button
+		class="text-muted-foreground"
+		variant="ghost"
+		size="sm"
+		onclickwait={() => app.browseAnonymously()}
+	>
+		Continue without an account
+	</Button>
+</div>
 
 {#if error}
 	<p class="text-sm text-destructive">{error}</p>
