@@ -112,6 +112,7 @@ async function parseArgs(specs: readonly Arg[], input: string, channel: Channel)
 	const users: [spec: Extract<Arg, { type: "user" | "viewer" }>, login: string][] = [];
 
 	let next = 0;
+	let skipped: Arg | undefined;
 
 	for (const [index, spec] of specs.entries()) {
 		const token = tokens.at(next);
@@ -131,10 +132,11 @@ async function parseArgs(specs: readonly Arg[], input: string, channel: Channel)
 				// An optional argument that doesn't parse belongs to the next one.
 				if (spec.default !== undefined && !last) {
 					values[spec.name] = spec.default;
+					skipped ??= spec;
 					continue;
 				}
 
-				throw new CommandError(invalidMessage(spec, token[0]));
+				throw new CommandError(invalidMessage(skipped ?? spec, token[0]));
 			}
 
 			values[spec.name] = value;
@@ -142,11 +144,14 @@ async function parseArgs(specs: readonly Arg[], input: string, channel: Channel)
 		} else if (spec.type === "user" || spec.type === "viewer") {
 			users.push([spec, token[0]]);
 			next++;
+			skipped = undefined;
 			continue;
 		} else {
 			values[spec.name] = token[0];
 			next++;
 		}
+
+		skipped = undefined;
 
 		if (values[spec.name] === undefined && !("optional" in spec && spec.optional)) {
 			throw new CommandError(`Missing ${spec.name} argument.`);
