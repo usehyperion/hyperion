@@ -1,5 +1,6 @@
 import { chattersQuery } from "#lib/graphql/twitch.js";
 import { log } from "#lib/log.js";
+import { latest } from "#lib/util/resource.js";
 
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";
@@ -59,15 +60,12 @@ export class ChatterList {
 	public error = $state(false);
 	public chatters = $state.raw<Chatter[]>([]);
 
-	#controller: AbortController | null = null;
+	readonly #request = latest();
 
 	public constructor(public readonly channel: Channel) {}
 
 	public async refresh() {
-		this.#controller?.abort();
-		this.#controller = new AbortController();
-
-		const { signal } = this.#controller;
+		const signal = this.#request.next();
 
 		this.loading = true;
 		this.error = false;

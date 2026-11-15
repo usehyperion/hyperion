@@ -14,21 +14,26 @@ export class CheermoteManager extends LoadMap<string, Cheermote> {
 		super();
 	}
 
-	protected async load({ force, update }: LoadContext<string, Cheermote>) {
+	protected async load(ctx: LoadContext<string, Cheermote>) {
 		const cheermotes = await cache.revalidate(
 			`cheermotes:${this.channel.id}`,
-			() => this.#fetch(),
+			() => this.#fetch(ctx.signal),
 			{
-				force,
-				onRevalidate: (cheermotes) => update(toEntries(cheermotes)),
+				force: ctx.force,
+				signal: ctx.signal,
+				onRevalidate: (cheermotes) => ctx.update(toEntries(cheermotes)),
 			},
 		);
 
 		return toEntries(cheermotes);
 	}
 
-	async #fetch() {
-		const { user } = await this.channel.client.gql(cheermoteQuery, { id: this.channel.id });
+	async #fetch(signal: AbortSignal) {
+		const { user } = await this.channel.client.gql(
+			cheermoteQuery,
+			{ id: this.channel.id },
+			{ signal },
+		);
 
 		return (user?.cheer?.emotes ?? []).filter((cheermote) => cheermote != null);
 	}

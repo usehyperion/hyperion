@@ -26,18 +26,18 @@ interface BttvUser {
  */
 export class ChannelEmoteManager extends BaseEmoteManager {
 	protected readonly loaders = {
-		FrankerFaceZ: async () => {
+		FrankerFaceZ: async (signal: AbortSignal) => {
 			const data = await fetchJson<Room | null>(
 				`https://api.frankerfacez.com/v1/room/id/${this.channel.id}`,
-				{ notFound: null },
+				{ notFound: null, signal },
 			);
 
 			return data?.sets[data.room.set].emoticons.map(transformFfzEmote) ?? [];
 		},
-		BetterTTV: async () => {
+		BetterTTV: async (signal: AbortSignal) => {
 			const data = await fetchJson<BttvUser | null>(
 				`https://api.betterttv.net/3/cached/users/twitch/${this.channel.id}`,
-				{ notFound: null },
+				{ notFound: null, signal },
 			);
 
 			return data
@@ -72,8 +72,8 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 		return this.channel.seventvId === null || setId === this.channel.emoteSetId;
 	}
 
-	protected async fetch7tv() {
-		const set = await this.#fetchActiveSet();
+	protected async fetch7tv(signal?: AbortSignal) {
+		const set = await this.#fetchActiveSet(true, signal);
 
 		return {
 			emotes:
@@ -82,19 +82,26 @@ export class ChannelEmoteManager extends BaseEmoteManager {
 		};
 	}
 
-	protected async fetch7tvVersion() {
-		const set = await this.#fetchActiveSet(false);
+	protected async fetch7tvVersion(signal?: AbortSignal) {
+		const set = await this.#fetchActiveSet(false, signal);
 
 		return set && { setId: set.id, updatedAt: set.updatedAt };
 	}
 
-	async #fetchActiveSet(): Promise<ActiveEmoteSet | null>;
-	async #fetchActiveSet(details: false): Promise<ActiveEmoteSet<false> | null>;
-	async #fetchActiveSet(details = true): Promise<ActiveEmoteSet<boolean> | null> {
-		const { users } = await execute7tvQuery(activeEmoteSetQuery, {
-			id: this.channel.id,
-			details,
-		});
+	async #fetchActiveSet(details: true, signal?: AbortSignal): Promise<ActiveEmoteSet | null>;
+	async #fetchActiveSet(
+		details: false,
+		signal?: AbortSignal,
+	): Promise<ActiveEmoteSet<false> | null>;
+	async #fetchActiveSet(
+		details: boolean,
+		signal?: AbortSignal,
+	): Promise<ActiveEmoteSet<boolean> | null> {
+		const { users } = await execute7tvQuery(
+			activeEmoteSetQuery,
+			{ id: this.channel.id, details },
+			{ signal },
+		);
 
 		const user = users.userByConnection;
 		const set = user?.style.activeEmoteSet ?? null;

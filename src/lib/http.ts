@@ -29,7 +29,9 @@ export async function fetchJson<T>(url: string, options: RequestOptions<T> = {})
 		});
 	} catch (error) {
 		// A cancelled request isn't a failure, so don't report it as a timeout.
-		options.signal?.throwIfAborted();
+		if (options.signal?.aborted && isAbortError(error)) {
+			throw options.signal.reason;
+		}
 
 		const apiError = ApiError.from(error);
 
@@ -39,4 +41,12 @@ export async function fetchJson<T>(url: string, options: RequestOptions<T> = {})
 
 		throw apiError;
 	}
+}
+
+function isAbortError(error: unknown) {
+	return (
+		error instanceof Error &&
+		(error.name === "AbortError" ||
+			(error.cause instanceof Error && error.cause.name === "AbortError"))
+	);
 }

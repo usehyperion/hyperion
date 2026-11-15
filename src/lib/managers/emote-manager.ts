@@ -19,22 +19,25 @@ export class EmoteManager extends BaseEmoteManager {
 	protected readonly cacheId = "global";
 
 	protected readonly loaders = {
-		async FrankerFaceZ() {
-			const data = await fetchJson<GlobalSet>("https://api.frankerfacez.com/v1/set/global");
+		async FrankerFaceZ(signal: AbortSignal) {
+			const data = await fetchJson<GlobalSet>("https://api.frankerfacez.com/v1/set/global", {
+				signal,
+			});
 
 			return data.sets[FFZ_GLOBAL_SET].emoticons.map(transformFfzEmote);
 		},
-		async BetterTTV() {
+		async BetterTTV(signal: AbortSignal) {
 			const data = await fetchJson<BttvEmote[]>(
 				"https://api.betterttv.net/3/cached/emotes/global",
+				{ signal },
 			);
 
 			return data.map(transformBttvEmote);
 		},
 	};
 
-	protected async fetch7tv() {
-		const { emoteSets } = await execute7tvQuery(globalEmoteSetQuery);
+	protected async fetch7tv(signal?: AbortSignal) {
+		const { emoteSets } = await execute7tvQuery(globalEmoteSetQuery, undefined, { signal });
 		const set = emoteSets.global!;
 
 		return {
@@ -43,8 +46,10 @@ export class EmoteManager extends BaseEmoteManager {
 		};
 	}
 
-	protected async fetch7tvVersion() {
-		const { emoteSets } = await execute7tvQuery(globalEmoteSetVersionQuery);
+	protected async fetch7tvVersion(signal?: AbortSignal) {
+		const { emoteSets } = await execute7tvQuery(globalEmoteSetVersionQuery, undefined, {
+			signal,
+		});
 		const set = emoteSets.global;
 
 		return set ? { setId: set.id, updatedAt: set.updatedAt } : null;

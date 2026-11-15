@@ -60,3 +60,36 @@ export function dedupe<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
 
 	return promise;
 }
+
+export interface Latest {
+	/**
+	 * Aborts the signal handed out last and returns a new one.
+	 */
+	next(): AbortSignal;
+
+	/**
+	 * Aborts the signal handed out last, if any.
+	 */
+	abort(): void;
+}
+
+/**
+ * Tracks the latest of a series of operations, where starting one cancels the
+ * one before it.
+ */
+export function latest(): Latest {
+	let controller: AbortController | null = null;
+
+	return {
+		next() {
+			controller?.abort();
+			controller = new AbortController();
+
+			return controller.signal;
+		},
+		abort() {
+			controller?.abort();
+			controller = null;
+		},
+	};
+}

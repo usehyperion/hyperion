@@ -8,7 +8,7 @@ import { globalBadgesQuery } from "#lib/graphql/twitch.js";
 import { fetchJson } from "#lib/http.js";
 import { log } from "#lib/log.js";
 import { BADGE_SETS, Badge } from "#lib/models/badge.js";
-import { once, type Once } from "#lib/util/resource.js";
+import { latest, once, type Latest, type Once } from "#lib/util/resource.js";
 
 interface BttvUser {
 	providerId: string;
@@ -40,8 +40,8 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 	readonly #loads: Record<BadgeProvider, Once<void>> = {
 		twitch: this.#cached(
 			"twitch",
-			async () => {
-				const { badges } = await this.client.gql(globalBadgesQuery);
+			async (signal) => {
+				const { badges } = await this.client.gql(globalBadgesQuery, undefined, { signal });
 				return (badges ?? []).filter((data) => data != null);
 			},
 			(badges) => {
@@ -53,7 +53,8 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		),
 		bttv: this.#cached(
 			"bttv",
-			() => fetchJson<BttvUser[]>("https://api.betterttv.net/3/cached/badges"),
+			(signal) =>
+				fetchJson<BttvUser[]>("https://api.betterttv.net/3/cached/badges", { signal }),
 			(users) => {
 				for (const user of users) {
 					const badge = this.getOrInsertComputed(
@@ -74,7 +75,8 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		),
 		ffz: this.#cached(
 			"ffz",
-			() => fetchJson<FfzResponse>("https://api.frankerfacez.com/v1/badges/ids"),
+			(signal) =>
+				fetchJson<FfzResponse>("https://api.frankerfacez.com/v1/badges/ids", { signal }),
 			(data) => {
 				const badges = new Map<string, Badge>();
 
@@ -107,14 +109,10 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		),
 	};
 
-	/**
-	 * Aborted when a provider's badges are cleared or reloaded, so an older
-	 * load doesn't apply its badges over newer ones.
-	 */
-	readonly #controllers: Record<BadgeProvider, AbortController> = {
-		twitch: new AbortController(),
-		bttv: new AbortController(),
-		ffz: new AbortController(),
+	readonly #requests: Record<BadgeProvider, Latest> = {
+		twitch: latest(),
+		bttv: latest(),
+		ffz: latest(),
 	};
 
 	public constructor(public readonly client: TwitchClient) {
@@ -167,8 +165,7 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 	}
 
 	#reset(provider: BadgeProvider) {
-		this.#controllers[provider].abort();
-		this.#controllers[provider] = new AbortController();
+		this.#requests[provider].abort();
 		this.#loads[provider].reset();
 	}
 
@@ -176,17 +173,26 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 	 * Loads a provider's badges from the cache if possible and applies them,
 	 * reapplying newer ones once they've been revalidated.
 	 */
-	#cached<T>(provider: BadgeProvider, fetcher: () => Promise<T>, apply: (data: T) => void) {
+	#cached<T>(
+		provider: BadgeProvider,
+		fetcher: (signal: AbortSignal) => Promise<T>,
+		apply: (data: T) => void,
+	) {
 		return once(async () => {
 			const force = this.#forced.delete(provider);
-			const { signal } = this.#controllers[provider];
+			const signal = this.#requests[provider].next();
+			let data: T;
 
-			const data = await cache.revalidate(`badges:${provider}:global`, fetcher, {
-				force,
-				onRevalidate: (data) => {
-					if (!signal.aborted) apply(data);
-				},
-			});
+			try {
+				data = await cache.revalidate(`badges:${provider}:global`, () => fetcher(signal), {
+					force,
+					signal,
+					onRevalidate: apply,
+				});
+			} catch (error) {
+				if (signal.aborted) return;
+				throw error;
+			}
 
 			if (!signal.aborted) apply(data);
 		});

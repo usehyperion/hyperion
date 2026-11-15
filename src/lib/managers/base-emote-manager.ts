@@ -6,6 +6,7 @@ import * as cache from "#lib/cache.js";
 import { THIRD_PARTY_PROVIDERS } from "#lib/emotes.js";
 import { log } from "#lib/log.js";
 import { settings } from "#lib/settings.js";
+import { latest, type Latest } from "#lib/util/resource.js";
 import { MINUTE } from "#lib/util/time.js";
 
 export interface SetVersion {
@@ -21,7 +22,7 @@ export interface Versioned7tvEmotes {
 export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	protected abstract readonly loaders: Record<
 		Exclude<ThirdPartyProvider, "7TV">,
-		() => Promise<Emote[]>
+		(signal: AbortSignal) => Promise<Emote[]>
 	>;
 
 	/**
@@ -30,19 +31,19 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	protected abstract readonly cacheId: string;
 
 	readonly #loaded = new Set<EmoteProvider>();
-	readonly #controllers = new Map<EmoteProvider, AbortController>();
+	readonly #requests = new Map<EmoteProvider, Latest>();
 
 	/**
 	 * Retrieves the 7TV emotes along with the version of their set from the
 	 * same response.
 	 */
-	protected abstract fetch7tv(): Promise<Versioned7tvEmotes>;
+	protected abstract fetch7tv(signal?: AbortSignal): Promise<Versioned7tvEmotes>;
 
 	/**
 	 * Retrieves only the version of the 7TV set, to check whether cached
 	 * emotes are outdated.
 	 */
-	protected abstract fetch7tvVersion(): Promise<SetVersion | null>;
+	protected abstract fetch7tvVersion(signal?: AbortSignal): Promise<SetVersion | null>;
 
 	/**
 	 * Removes all emotes from the specified provider or all emotes if no
@@ -111,12 +112,7 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	 * unless `force` is set.
 	 */
 	protected async load(provider: ThirdPartyProvider, force = false) {
-		this.#abort(provider);
-
-		const controller = new AbortController();
-		this.#controllers.set(provider, controller);
-
-		const { signal } = controller;
+		const signal = this.#request(provider).next();
 
 		// Applies emotes unless the provider has been cleared or loaded again
 		// since, e.g. by a reload or a 7TV set change.
@@ -129,14 +125,26 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 			return true;
 		};
 
-		const emotes =
-			provider === "7TV"
-				? await this.#load7tv(force, apply)
-				: await cache.revalidate(this.#key(provider), this.loaders[provider], {
-						fresh: 5 * MINUTE,
-						force,
-						onRevalidate: apply,
-					});
+		let emotes: Emote[];
+
+		try {
+			emotes =
+				provider === "7TV"
+					? await this.#load7tv(force, signal, apply)
+					: await cache.revalidate(
+							this.#key(provider),
+							() => this.loaders[provider](signal),
+							{
+								fresh: 5 * MINUTE,
+								force,
+								signal,
+								onRevalidate: apply,
+							},
+						);
+		} catch (error) {
+			if (signal.aborted) return;
+			throw error;
+		}
 
 		if (apply(emotes)) {
 			this.#loaded.add(provider);
@@ -144,8 +152,11 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	}
 
 	#abort(provider: EmoteProvider) {
-		this.#controllers.get(provider)?.abort();
-		this.#controllers.delete(provider);
+		this.#requests.get(provider)?.abort();
+	}
+
+	#request(provider: EmoteProvider) {
+		return this.#requests.getOrInsertComputed(provider, latest);
 	}
 
 	#key(provider: ThirdPartyProvider) {
@@ -178,30 +189,37 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 	 * Returns cached 7TV emotes immediately and checks whether the set has
 	 * changed since in the background, applying the new emotes if it has.
 	 */
-	async #load7tv(force: boolean, apply: (emotes: Emote[]) => void) {
+	async #load7tv(force: boolean, signal: AbortSignal, apply: (emotes: Emote[]) => void) {
 		const key = this.#key("7TV");
 		const entry = force ? null : await cache.get<Versioned7tvEmotes>(key);
 
 		if (entry && this.isCurrent7tvSet(entry.version?.setId ?? null)) {
 			log.debug(`Cache hit for ${key}, revalidating`);
 
-			this.#revalidate7tv(key, entry.version, apply).catch(
-				log.swallow(`Failed to revalidate ${key}`, "warn"),
-			);
+			this.#revalidate7tv(key, entry.version, signal, apply).catch((error) => {
+				if (!signal.aborted) {
+					log.warn(`Failed to revalidate ${key}`, error);
+				}
+			});
 
 			return entry.emotes;
 		}
 
 		log.debug(`Cache miss for ${key}`);
 
-		const fetched = await this.fetch7tv();
+		const fetched = await this.fetch7tv(signal);
 		cache.set(key, fetched);
 
 		return fetched.emotes;
 	}
 
-	async #revalidate7tv(key: string, cached: SetVersion | null, apply: (emotes: Emote[]) => void) {
-		const version = await this.fetch7tvVersion();
+	async #revalidate7tv(
+		key: string,
+		cached: SetVersion | null,
+		signal: AbortSignal,
+		apply: (emotes: Emote[]) => void,
+	) {
+		const version = await this.fetch7tvVersion(signal);
 
 		if (version?.setId === cached?.setId && version?.updatedAt === cached?.updatedAt) {
 			log.debug(`Cache for ${key} is up to date`);
@@ -210,7 +228,7 @@ export abstract class BaseEmoteManager extends SvelteMap<string, Emote> {
 
 		log.debug(`Cache for ${key} is outdated, refetching`);
 
-		const fetched = await this.fetch7tv();
+		const fetched = await this.fetch7tv(signal);
 		cache.set(key, fetched);
 
 		apply(fetched.emotes);

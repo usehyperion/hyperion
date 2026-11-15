@@ -1,4 +1,4 @@
-import { once } from "#lib/util/resource.js";
+import { latest, once } from "#lib/util/resource.js";
 
 type Entries<K, V> = Iterable<readonly [K, V]>;
 
@@ -8,6 +8,12 @@ export interface LoadContext<K, V> {
 	 * used.
 	 */
 	force: boolean;
+
+	/**
+	 * Aborted once the map is cleared or reloaded, at which point the load's
+	 * result is discarded.
+	 */
+	signal: AbortSignal;
 
 	/**
 	 * Replaces the entries with newer ones loaded in the background, unless
@@ -21,23 +27,30 @@ export interface LoadContext<K, V> {
  * cleared or a reload is forced.
  */
 export abstract class LoadMap<K, V> extends Map<K, V> {
+	readonly #request = latest();
 	#force = false;
-	#controller = new AbortController();
 
 	readonly #load = once(async () => {
 		const force = this.#force;
 		this.#force = false;
 
-		const { signal } = this.#controller;
+		const signal = this.#request.next();
+		let entries: Entries<K, V>;
 
-		const entries = await this.load({
-			force,
-			update: (entries) => {
-				if (!signal.aborted) {
-					this.#replace(entries);
-				}
-			},
-		});
+		try {
+			entries = await this.load({
+				force,
+				signal,
+				update: (entries) => {
+					if (!signal.aborted) {
+						this.#replace(entries);
+					}
+				},
+			});
+		} catch (error) {
+			if (signal.aborted) return;
+			throw error;
+		}
 
 		if (!signal.aborted) {
 			this.#replace(entries);
@@ -62,8 +75,7 @@ export abstract class LoadMap<K, V> extends Map<K, V> {
 	}
 
 	#reset() {
-		this.#controller.abort();
-		this.#controller = new AbortController();
+		this.#request.abort();
 		this.#load.reset();
 	}
 

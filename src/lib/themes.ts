@@ -5,6 +5,7 @@ import { SvelteMap } from "svelte/reactivity";
 import * as v from "valibot";
 
 import { log } from "./log";
+import { latest } from "./util/resource";
 
 const MANIFEST_FILE = "manifest.json";
 const STYLESHEET_FILE = "main.css";
@@ -188,7 +189,7 @@ export async function loadThemes() {
 	log.info(`Loaded ${themes.size} themes`);
 }
 
-let controller: AbortController | null = null;
+const injection = latest();
 let revision = Date.now();
 
 // The theme whose stylesheet is applied. Reloading replaces the theme objects,
@@ -207,10 +208,7 @@ export async function injectTheme(id: string) {
 		return;
 	}
 
-	controller?.abort();
-	controller = new AbortController();
-
-	const { signal } = controller;
+	const signal = injection.next();
 	const theme = (id && themes.get(id)) || null;
 
 	if (id && !theme) {
