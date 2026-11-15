@@ -86,26 +86,9 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install
 
-      - name: Generate release config
-        shell: bash
-        env:
-          R2_PUBLIC_URL: ${{ vars.R2_PUBLIC_URL }}
-        run: |
-          if [ -n "$R2_PUBLIC_URL" ]; then
-            jq -n \
-              --arg r2 "${R2_PUBLIC_URL%/}/releases/latest.json" \
-              --arg github "https://github.com/${{ github.repository }}/releases/latest/download/latest.json" \
-              '{ plugins: { updater: { endpoints: [$r2, $github] } } }' > src-tauri/tauri.release.conf.json
-            echo "Using release config:"
-            cat src-tauri/tauri.release.conf.json
-            # Absolute path; `pwd -W` gives a native D:/... path on Windows runners
-            dir=$(cd src-tauri && (pwd -W 2>/dev/null || pwd))
-            echo "TAURI_CONFIG_ARGS=--config $dir/tauri.release.conf.json" >> "$GITHUB_ENV"
-          fi
-
       - name: Build app
         shell: bash
-        run: pnpm tauri build ${{ matrix.args }} $TAURI_CONFIG_ARGS
+        run: pnpm tauri build ${{ matrix.args }}
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
