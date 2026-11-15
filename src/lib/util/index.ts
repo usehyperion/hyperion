@@ -11,10 +11,19 @@ export function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
 ) {
 	let id: ReturnType<typeof setTimeout>;
 
-	return (...args: Parameters<F>) => {
+	const debounced = (...args: Parameters<F>) => {
 		clearTimeout(id);
 		id = setTimeout(() => fn(...args), timeout);
 	};
+
+	return Object.assign(debounced, {
+		/**
+		 * Drops the pending call, if any.
+		 */
+		cancel() {
+			clearTimeout(id);
+		},
+	});
 }
 
 export function chunk<T>(items: T[], size: number): T[][] {

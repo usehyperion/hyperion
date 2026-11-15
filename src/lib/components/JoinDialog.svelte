@@ -16,6 +16,7 @@
 	import { searchSuggestionsQuery } from "#lib/graphql/twitch.js";
 	import { storage } from "#lib/stores.js";
 	import { debounce } from "#lib/util/index.js";
+	import { latest } from "#lib/util/resource.js";
 
 	import Avatar from "./ui/Avatar.svelte";
 	import Dialog from "./ui/Dialog.svelte";
@@ -27,7 +28,7 @@
 		{ key: "live", label: "Live" },
 	];
 
-	let controller: AbortController | null = null;
+	const request = latest();
 
 	let value = $state("");
 	let filter = $state<Filter>("all");
@@ -57,8 +58,7 @@
 		active = 0;
 	});
 
-	// Cancel a search still in flight when the dialog closes.
-	$effect(() => () => controller?.abort());
+	$effect(() => () => cancelSearch());
 
 	function toRow(suggestion: ChannelSuggestion): RecentSearch {
 		return {
@@ -74,10 +74,7 @@
 	async function search(query: string) {
 		error = null;
 
-		controller?.abort();
-		controller = new AbortController();
-
-		const { signal } = controller;
+		const signal = request.next();
 
 		if (!query.trim()) {
 			suggestions = [];
@@ -175,21 +172,28 @@
 		}
 	}
 
+	function cancelSearch() {
+		suggest.cancel();
+		request.abort();
+	}
+
 	function reset() {
+		cancelSearch();
+
 		value = "";
 		filter = "all";
 		error = null;
 		suggestions = [];
+		searching = false;
 		active = 0;
 	}
 
 	function handleClose() {
 		closeDialog(dialogs.join);
-		reset();
 	}
 </script>
 
-<Dialog id={dialogs.join} class="overflow-hidden p-0 sm:max-w-xl">
+<Dialog id={dialogs.join} class="overflow-hidden p-0 sm:max-w-xl" onclose={reset}>
 	<div class="flex flex-col">
 		<div class="flex items-center gap-3 border-b px-5 py-4">
 			<!-- svelte-ignore a11y_autofocus -- palette should be typeable on open -->
