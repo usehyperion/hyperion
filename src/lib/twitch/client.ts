@@ -32,7 +32,11 @@ export class TwitchClient {
 
 	public constructor(private readonly onRevoked: () => void) {}
 
-	public async gql<T, U>(query: TadaDocumentNode<T, U>, variables?: U): Promise<T> {
+	public async gql<T, U>(
+		query: TadaDocumentNode<T, U>,
+		variables?: U,
+		options: { signal?: AbortSignal } = {},
+	): Promise<T> {
 		const token = this.token;
 
 		if (!token) {
@@ -40,9 +44,10 @@ export class TwitchClient {
 		}
 
 		try {
-			return await request("https://gql.twitch.tv/gql", query, variables, () =>
-				this.#headers(token),
-			);
+			return await request("https://gql.twitch.tv/gql", query, variables, {
+				headers: () => this.#headers(token),
+				signal: options.signal,
+			});
 		} catch (error) {
 			if (error instanceof ApiError && error.status === 401 && this.token === token) {
 				this.onRevoked();

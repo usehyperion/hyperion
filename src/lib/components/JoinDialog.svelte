@@ -27,6 +27,8 @@
 		{ key: "live", label: "Live" },
 	];
 
+	let controller: AbortController | null = null;
+
 	let value = $state("");
 	let filter = $state<Filter>("all");
 	let loading = $state(false);
@@ -66,8 +68,6 @@
 		};
 	}
 
-	let controller: AbortController | null = null;
-
 	async function search(query: string) {
 		error = null;
 
@@ -85,7 +85,12 @@
 		searching = true;
 
 		try {
-			const { searchSuggestions } = await app.twitch.gql(searchSuggestionsQuery, { query });
+			const { searchSuggestions } = await app.twitch.gql(
+				searchSuggestionsQuery,
+				{ query },
+				{ signal },
+			);
+
 			if (signal.aborted) return;
 
 			const channels: ChannelSuggestion[] = [];

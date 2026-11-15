@@ -75,7 +75,7 @@ export class ChatterList {
 		let roles: Map<string, ChatterRole> | null = null;
 
 		try {
-			const list = await this.#fetch();
+			const list = await this.#fetch(signal);
 			if (signal.aborted) return;
 
 			roles = list.roles;
@@ -117,10 +117,12 @@ export class ChatterList {
 		return viewer;
 	}
 
-	async #fetch() {
-		const { channel } = await this.channel.client.gql(chattersQuery, {
-			id: this.channel.id,
-		});
+	async #fetch(signal: AbortSignal) {
+		const { channel } = await this.channel.client.gql(
+			chattersQuery,
+			{ id: this.channel.id },
+			{ signal },
+		);
 
 		const chatters = channel?.chatters;
 		const roles = new Map<string, ChatterRole>();
