@@ -29,6 +29,12 @@ const PERMISSION_CODES = new Set([
 	"USER_UNAUTHORIZED",
 ]);
 
+const USER_NOT_FOUND_CODES = new Set([
+	"TARGET_NOT_FOUND",
+	"GRANTEE_NOT_FOUND",
+	"REVOKEE_NOT_FOUND",
+]);
+
 const modules = import.meta.glob<CommandDefinition | CommandDefinition[]>(
 	["./built-in/*.ts", "./twitch/*.ts"],
 	{ eager: true, import: "default" },
@@ -204,7 +210,7 @@ function defaultMessage(failure: ApiError | MutationError, args: ArgValues | nul
 		return NO_PERMISSION;
 	}
 
-	if (failure.code.endsWith("_NOT_FOUND")) {
+	if (USER_NOT_FOUND_CODES.has(failure.code)) {
 		const target = Object.values(args ?? {}).find(
 			(value) => value instanceof User || value instanceof Viewer,
 		);
