@@ -1,6 +1,4 @@
 export class CommandError extends Error {
-	public override readonly name = "CommandError";
-
 	public static readonly CANNOT_TARGET_SELF =
 		"This command cannot target the channel it's being sent in.";
 
@@ -14,4 +12,6 @@ export class CommandError extends Error {
 	public static USER_NOT_FOUND(user: string) {
 		return `User ${user} not found.`;
 	}
+
+	public override readonly name = "CommandError";
 }
