@@ -1,22 +1,16 @@
-import { ErrorMessage } from "#lib/errors/messages.js";
+import { command } from "../define";
 
-import { defineCommand, mapErrors } from "../util";
+const NO_PENDING_RAID = "The channel does not have a pending raid to cancel.";
 
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "unraid",
 	description: "Stop an ongoing raid",
-	modOnly: true,
+	permission: "mod",
+	errors: () => ({
+		RAID_DOES_NOT_EXIST: NO_PENDING_RAID,
+		NO_ACTIVE_RAID: NO_PENDING_RAID,
+	}),
 	async exec(_, channel) {
-		await mapErrors(
-			() => channel.cancelRaid(),
-			[
-				{
-					code: ["RAID_DOES_NOT_EXIST", "NO_ACTIVE_RAID"],
-					message: ErrorMessage.NO_PENDING_RAID,
-				},
-			],
-			ErrorMessage.COMMAND_FAILED,
-		);
+		await channel.cancelRaid();
 	},
 });

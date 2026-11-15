@@ -1,33 +1,17 @@
 import { CommandError } from "#lib/errors/command-error.js";
-import { ErrorMessage } from "#lib/errors/messages.js";
 
-import { defineCommand, mapErrors } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "prediction-cancel",
 	description: "Cancel the active prediction and refund all points",
-	modOnly: true,
+	permission: "mod",
+	errors: () => ({ EVENT_ENDED: "The prediction has already ended." }),
 	async exec(_, channel) {
-		const status = channel.prediction?.status;
-
-		if (status !== "ACTIVE" && status !== "LOCKED") {
+		if (!channel.prediction?.open) {
 			throw new CommandError("There is no active prediction to cancel.");
 		}
 
-		await mapErrors(
-			() => channel.prediction!.cancel(),
-			[
-				{
-					code: "EVENT_ENDED",
-					message: ErrorMessage.PREDICTION_ENDED,
-				},
-				{
-					code: "FORBIDDEN",
-					message: ErrorMessage.NO_PERMISSION,
-				},
-			],
-			ErrorMessage.COMMAND_FAILED,
-		);
+		await channel.prediction.cancel();
 	},
 });

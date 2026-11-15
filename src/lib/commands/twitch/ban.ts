@@ -1,29 +1,27 @@
-import { ErrorMessage } from "#lib/errors/messages.js";
+import { CommandError } from "#lib/errors/command-error.js";
 
-import { defineCommand, getTarget, mapErrors } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Twitch",
+export default command({
 	name: "ban",
 	description: "Permanently ban a user from chat",
-	modOnly: true,
-	args: ["username", "reason"],
-	async exec(args, channel) {
-		const target = await getTarget(args[0], channel);
-
-		await mapErrors(
-			() => target.ban(args.slice(1).join(" ")),
-			[
-				{
-					code: "TARGET_ALREADY_BANNED",
-					message: ErrorMessage.USER_ALREADY_BANNED(target.displayName),
-				},
-				{
-					code: "TARGET_NOT_FOUND",
-					message: ErrorMessage.USER_NOT_FOUND(target.username),
-				},
-			],
-			ErrorMessage.USER_CANNOT_BE_BANNED(target.displayName),
-		);
+	permission: "mod",
+	args: [
+		{
+			type: "viewer",
+			name: "user",
+		},
+		{
+			type: "text",
+			name: "reason",
+			optional: true,
+		},
+	],
+	errors: (args) => ({
+		TARGET_ALREADY_BANNED: CommandError.USER_ALREADY_BANNED(args.user.displayName),
+	}),
+	fallback: (args) => `${args.user.displayName} cannot be banned.`,
+	async exec(args) {
+		await args.user.ban(args.reason);
 	},
 });

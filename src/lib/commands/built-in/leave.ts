@@ -1,13 +1,11 @@
-import { goto } from "$app/navigation";
+import { app } from "#lib/app.svelte.js";
 
-import { defineCommand } from "../util";
+import { command } from "../define";
 
-export default defineCommand({
-	provider: "Built-in",
+export default command({
 	name: "leave",
 	description: "Leave the current channel",
 	async exec(_, channel) {
-		await channel.leave();
-		await goto("/");
+		await app.leave(channel);
 	},
 });

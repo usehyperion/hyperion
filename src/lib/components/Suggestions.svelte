@@ -1,35 +1,11 @@
 <script lang="ts" module>
-	import type { Command } from "#lib/commands/index.js";
-	import type { User } from "#lib/models/user.svelte.js";
-
-	interface BaseSuggestion {
-		value: string;
-		display: string;
-	}
-
-	interface CommandSuggestion extends BaseSuggestion, Omit<Required<Command>, "name" | "exec"> {
-		type: "command";
-	}
-
-	interface EmoteSuggestion extends BaseSuggestion {
-		type: "emote";
-		imageUrl: string;
-	}
-
-	interface UserSuggestion extends BaseSuggestion {
-		type: "user";
-		style: string;
-		user: User;
-		role?: "broadcaster" | "moderator" | "vip";
-	}
+	import type { Suggestion, UserSuggestion } from "#lib/completer.svelte.js";
 
 	const roleLabels: Record<NonNullable<UserSuggestion["role"]>, string> = {
 		broadcaster: "Broadcaster",
 		moderator: "Mod",
 		vip: "VIP",
 	};
-
-	export type Suggestion = CommandSuggestion | EmoteSuggestion | UserSuggestion;
 </script>
 
 <script lang="ts">
@@ -96,22 +72,22 @@
 							<div class="flex items-center gap-1">
 								<span class="font-medium">{suggestion.display}</span>
 
-								{#each suggestion.args as arg (arg)}
+								{#each suggestion.command.args as arg (arg.name)}
 									<span
 										class="rounded border border-primary/20 bg-background px-1 py-0.5 text-xs text-muted-foreground"
 									>
-										{arg}
+										{arg.name}
 									</span>
 								{/each}
 							</div>
 
 							<p class="truncate text-xs text-muted-foreground">
-								{suggestion.description}
+								{suggestion.command.description}
 							</p>
 						</div>
 
 						<span class="shrink-0 text-xs text-muted-foreground">
-							{suggestion.provider}
+							{suggestion.command.provider}
 						</span>
 					{:else if suggestion.type === "emote"}
 						<img
