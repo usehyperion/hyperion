@@ -57,6 +57,9 @@
 		active = 0;
 	});
 
+	// Cancel a search still in flight when the dialog closes.
+	$effect(() => () => controller?.abort());
+
 	function toRow(suggestion: ChannelSuggestion): RecentSearch {
 		return {
 			id: suggestion.id,
