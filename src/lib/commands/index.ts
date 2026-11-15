@@ -178,16 +178,16 @@ function invalidMessage(spec: Arg, token: string) {
 
 async function resolveUser(arg: string, type: "user" | "viewer", channel: Channel) {
 	const login = arg.replace(/^@/, "").toLowerCase();
-	const viewer = channel.viewers.getByLogin(login);
-
-	if (viewer) {
-		return type === "viewer" ? viewer : viewer.user;
-	}
 
 	try {
-		const user = await app.twitch.users.fetch(login, { by: "login" });
+		if (type === "viewer") {
+			return await channel.viewers.fetchByLogin(login);
+		}
 
-		return type === "viewer" ? new Viewer(channel, user) : user;
+		return (
+			channel.viewers.getByLogin(login)?.user ??
+			(await app.twitch.users.fetch(login, { by: "login" }))
+		);
 	} catch (error) {
 		if (error instanceof ApiError && error.status === 404) {
 			throw new CommandError(CommandError.USER_NOT_FOUND(login));
