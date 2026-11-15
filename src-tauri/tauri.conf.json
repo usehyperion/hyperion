@@ -54,6 +54,7 @@
 		"updater": {
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc1MDJBMzZDMDkyQUQwOUYKUldTZjBDb0piS01DZGErSzA2SE1NemZLb2lPL1lvMW1SSDBkMXpSWEpwNDhpVVhBbmJmZjZqR2kK",
 			"endpoints": [
+				"https://assets.usehyperion.app/releases/latest.json",
 				"https://github.com/usehyperion/hyperion/releases/latest/download/latest.json"
 			]
 		}
