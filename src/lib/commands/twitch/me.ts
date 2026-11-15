@@ -6,6 +6,6 @@ export default command({
 	args: [{ type: "text", name: "message" }],
 	async exec(args, channel) {
 		// /me is the only slash command Twitch still accepts in a chat message.
-		await channel.chat.send(`/me ${args.message}`);
+		await channel.chat.send(`/me ${args.message}`, { raw: true });
 	},
 });

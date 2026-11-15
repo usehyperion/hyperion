@@ -53,6 +53,22 @@ export interface ChatSettings {
 	slow?: number;
 }
 
+interface SendOptions {
+	/**
+	 * Sends the message as is without checking if it's a command.
+	 *
+	 * @default false
+	 */
+	raw?: boolean;
+
+	/**
+	 * Sends the message and pins it.
+	 *
+	 * @default false
+	 */
+	pin?: boolean;
+}
+
 export class Chat {
 	public readonly redemptions = new RedemptionManager();
 
@@ -250,8 +266,13 @@ export class Chat {
 		});
 	}
 
-	public async send(text: string) {
-		if (text.startsWith("/")) {
+	public async send(text: string, options?: SendOptions) {
+		if (options?.pin) {
+			await this.#sendPinned(text);
+			return;
+		}
+
+		if (text.startsWith("/") && !options?.raw) {
 			await execute(this.channel, text.slice(1));
 			return;
 		}
@@ -264,10 +285,7 @@ export class Chat {
 		}
 	}
 
-	/**
-	 * Sends a message and pins it.
-	 */
-	public async sendPinned(message: string) {
+	async #sendPinned(message: string) {
 		const text = this.#prepare(message);
 		if (text === null) return;
 

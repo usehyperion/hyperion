@@ -11,6 +11,6 @@ export default command({
 		},
 	],
 	async exec(args, channel) {
-		await channel.chat.sendPinned(args.message);
+		await channel.chat.send(args.message, { pin: true });
 	},
 });
