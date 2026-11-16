@@ -16,6 +16,7 @@
 	import { searchSuggestionsQuery } from "#lib/graphql/twitch.js";
 	import { storage } from "#lib/stores.js";
 	import { debounce } from "#lib/util/index.js";
+	import { latest } from "#lib/util/resource.js";
 
 	import Avatar from "./ui/Avatar.svelte";
 	import Dialog from "./ui/Dialog.svelte";
@@ -26,6 +27,8 @@
 		{ key: "all", label: "All" },
 		{ key: "live", label: "Live" },
 	];
+
+	const request = latest();
 
 	let value = $state("");
 	let filter = $state<Filter>("all");
@@ -55,6 +58,8 @@
 		active = 0;
 	});
 
+	$effect(() => () => cancelSearch());
+
 	function toRow(suggestion: ChannelSuggestion): RecentSearch {
 		return {
 			id: suggestion.id,
@@ -66,14 +71,10 @@
 		};
 	}
 
-	// A monotonic token discards responses that resolve out of order, so a slow
-	// early query can't clobber the results of a later one.
-	let token = 0;
-
 	async function search(query: string) {
 		error = null;
 
-		const current = ++token;
+		const signal = request.next();
 
 		if (!query.trim()) {
 			suggestions = [];
@@ -84,8 +85,13 @@
 		searching = true;
 
 		try {
-			const { searchSuggestions } = await app.twitch.gql(searchSuggestionsQuery, { query });
-			if (current !== token) return;
+			const { searchSuggestions } = await app.twitch.gql(
+				searchSuggestionsQuery,
+				{ query },
+				{ signal },
+			);
+
+			if (signal.aborted) return;
 
 			const channels: ChannelSuggestion[] = [];
 
@@ -99,9 +105,13 @@
 
 			suggestions = channels;
 		} catch (err) {
-			if (current === token) error = err instanceof Error ? err.message : String(err);
+			if (!signal.aborted) {
+				error = err instanceof Error ? err.message : String(err);
+			}
 		} finally {
-			if (current === token) searching = false;
+			if (!signal.aborted) {
+				searching = false;
+			}
 		}
 	}
 
@@ -162,21 +172,28 @@
 		}
 	}
 
+	function cancelSearch() {
+		suggest.cancel();
+		request.abort();
+	}
+
 	function reset() {
+		cancelSearch();
+
 		value = "";
 		filter = "all";
 		error = null;
 		suggestions = [];
+		searching = false;
 		active = 0;
 	}
 
 	function handleClose() {
 		closeDialog(dialogs.join);
-		reset();
 	}
 </script>
 
-<Dialog id={dialogs.join} class="overflow-hidden p-0 sm:max-w-xl">
+<Dialog id={dialogs.join} class="overflow-hidden p-0 sm:max-w-xl" onclose={reset}>
 	<div class="flex flex-col">
 		<div class="flex items-center gap-3 border-b px-5 py-4">
 			<!-- svelte-ignore a11y_autofocus -- palette should be typeable on open -->

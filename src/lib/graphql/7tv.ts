@@ -1,7 +1,7 @@
 import { initGraphQLTada } from "gql.tada";
 import type { FragmentOf, ResultOf, TadaDocumentNode } from "gql.tada";
 
-import { request, type NonNullableDeep } from ".";
+import { request, type GqlRequestOptions, type NonNullableDeep } from ".";
 
 const gql = initGraphQLTada<{
 	disableMasking: true;
@@ -12,8 +12,12 @@ const gql = initGraphQLTada<{
 	};
 }>();
 
-export function execute7tvQuery<T, U>(query: TadaDocumentNode<T, U>, variables?: U) {
-	return request("https://7tv.io/v4/gql", query, variables);
+export function execute7tvQuery<T, U>(
+	query: TadaDocumentNode<T, U>,
+	variables?: U,
+	{ signal }: Pick<GqlRequestOptions, "signal"> = {},
+) {
+	return request("https://7tv.io/v4/gql", query, variables, { signal });
 }
 
 const emoteDetailsFragment = gql(`

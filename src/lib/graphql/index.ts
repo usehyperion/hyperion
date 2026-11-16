@@ -82,11 +82,16 @@ function isQuery(document: TadaDocumentNode<any, any>) {
 	);
 }
 
+export interface GqlRequestOptions {
+	headers?: () => Promise<HeadersInit>;
+	signal?: AbortSignal;
+}
+
 export function request<T, U>(
 	url: string,
 	document: TadaDocumentNode<T, U>,
 	variables?: U,
-	headers?: () => Promise<HeadersInit>,
+	{ headers, signal }: GqlRequestOptions = {},
 ): Promise<T> {
 	// @ts-expect-error - outdated types
 	const query: string = print(document);
@@ -100,6 +105,7 @@ export function request<T, U>(
 				query,
 				variables,
 			},
+			signal,
 		});
 
 		if (response.errors) {
@@ -115,5 +121,7 @@ export function request<T, U>(
 		return response.data;
 	};
 
-	return mutation ? send() : dedupe(`${url}:${query}:${JSON.stringify(variables ?? {})}`, send);
+	return mutation || signal
+		? send()
+		: dedupe(`${url}:${query}:${JSON.stringify(variables ?? {})}`, send);
 }

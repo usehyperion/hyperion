@@ -1,5 +1,6 @@
 import { chattersQuery } from "#lib/graphql/twitch.js";
 import { log } from "#lib/log.js";
+import { latest } from "#lib/util/resource.js";
 
 import type { Channel } from "./channel.svelte";
 import type { User } from "./user.svelte";
@@ -59,12 +60,12 @@ export class ChatterList {
 	public error = $state(false);
 	public chatters = $state.raw<Chatter[]>([]);
 
-	#token = 0;
+	readonly #request = latest();
 
 	public constructor(public readonly channel: Channel) {}
 
 	public async refresh() {
-		const current = ++this.#token;
+		const signal = this.#request.next();
 
 		this.loading = true;
 		this.error = false;
@@ -72,13 +73,13 @@ export class ChatterList {
 		let roles: Map<string, ChatterRole> | null = null;
 
 		try {
-			const list = await this.#fetch();
-			if (current !== this.#token) return;
+			const list = await this.#fetch(signal);
+			if (signal.aborted) return;
 
 			roles = list.roles;
 			this.count = list.count;
 		} catch (cause) {
-			if (current !== this.#token) return;
+			if (signal.aborted) return;
 
 			this.error = true;
 			this.count = null;
@@ -114,10 +115,12 @@ export class ChatterList {
 		return viewer;
 	}
 
-	async #fetch() {
-		const { channel } = await this.channel.client.gql(chattersQuery, {
-			id: this.channel.id,
-		});
+	async #fetch(signal: AbortSignal) {
+		const { channel } = await this.channel.client.gql(
+			chattersQuery,
+			{ id: this.channel.id },
+			{ signal },
+		);
 
 		const chatters = channel?.chatters;
 		const roles = new Map<string, ChatterRole>();

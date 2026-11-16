@@ -8,7 +8,7 @@ import { globalBadgesQuery } from "#lib/graphql/twitch.js";
 import { fetchJson } from "#lib/http.js";
 import { log } from "#lib/log.js";
 import { BADGE_SETS, Badge } from "#lib/models/badge.js";
-import { once, type Once } from "#lib/util/resource.js";
+import { latest, once, type Latest, type Once } from "#lib/util/resource.js";
 
 interface BttvUser {
 	providerId: string;
@@ -40,8 +40,8 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 	readonly #loads: Record<BadgeProvider, Once<void>> = {
 		twitch: this.#cached(
 			"twitch",
-			async () => {
-				const { badges } = await this.client.gql(globalBadgesQuery);
+			async (signal) => {
+				const { badges } = await this.client.gql(globalBadgesQuery, undefined, { signal });
 				return (badges ?? []).filter((data) => data != null);
 			},
 			(badges) => {
@@ -53,7 +53,8 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		),
 		bttv: this.#cached(
 			"bttv",
-			() => fetchJson<BttvUser[]>("https://api.betterttv.net/3/cached/badges"),
+			(signal) =>
+				fetchJson<BttvUser[]>("https://api.betterttv.net/3/cached/badges", { signal }),
 			(users) => {
 				for (const user of users) {
 					const badge = this.getOrInsertComputed(
@@ -74,7 +75,8 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		),
 		ffz: this.#cached(
 			"ffz",
-			() => fetchJson<FfzResponse>("https://api.frankerfacez.com/v1/badges/ids"),
+			(signal) =>
+				fetchJson<FfzResponse>("https://api.frankerfacez.com/v1/badges/ids", { signal }),
 			(data) => {
 				const badges = new Map<string, Badge>();
 
@@ -107,10 +109,10 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		),
 	};
 
-	readonly #generations: Record<BadgeProvider, number> = {
-		twitch: 0,
-		bttv: 0,
-		ffz: 0,
+	readonly #requests: Record<BadgeProvider, Latest> = {
+		twitch: latest(),
+		bttv: latest(),
+		ffz: latest(),
 	};
 
 	public constructor(public readonly client: TwitchClient) {
@@ -119,8 +121,7 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 
 	public override clear() {
 		for (const provider of BADGE_PROVIDERS) {
-			this.#generations[provider]++;
-			this.#loads[provider].reset();
+			this.#reset(provider);
 		}
 
 		this.users.clear();
@@ -135,16 +136,13 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 	public async fetch(providers: readonly BadgeProvider[] = BADGE_PROVIDERS, force = false) {
 		await Promise.all(
 			providers.map(async (provider) => {
-				const load = this.#loads[provider];
-
 				if (force) {
 					this.#forced.add(provider);
-					this.#generations[provider]++;
-					load.reset();
+					this.#reset(provider);
 				}
 
 				try {
-					await load();
+					await this.#loads[provider]();
 				} catch (error) {
 					log.warn(`Failed to load ${provider} badges`, error);
 				}
@@ -166,25 +164,37 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 		}
 	}
 
+	#reset(provider: BadgeProvider) {
+		this.#requests[provider].abort();
+		this.#loads[provider].reset();
+	}
+
 	/**
 	 * Loads a provider's badges from the cache if possible and applies them,
 	 * reapplying newer ones once they've been revalidated.
 	 */
-	#cached<T>(provider: BadgeProvider, fetcher: () => Promise<T>, apply: (data: T) => void) {
+	#cached<T>(
+		provider: BadgeProvider,
+		fetcher: (signal: AbortSignal) => Promise<T>,
+		apply: (data: T) => void,
+	) {
 		return once(async () => {
 			const force = this.#forced.delete(provider);
-			const generation = this.#generations[provider];
+			const signal = this.#requests[provider].next();
+			let data: T;
 
-			const superseded = () => this.#generations[provider] !== generation;
+			try {
+				data = await cache.revalidate(`badges:${provider}:global`, () => fetcher(signal), {
+					force,
+					signal,
+					onRevalidate: apply,
+				});
+			} catch (error) {
+				if (signal.aborted) return;
+				throw error;
+			}
 
-			const data = await cache.revalidate(`badges:${provider}:global`, fetcher, {
-				force,
-				onRevalidate: (data) => {
-					if (!superseded()) apply(data);
-				},
-			});
-
-			if (!superseded()) apply(data);
+			if (!signal.aborted) apply(data);
 		});
 	}
 }

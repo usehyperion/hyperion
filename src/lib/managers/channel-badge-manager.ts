@@ -12,19 +12,26 @@ export class ChannelBadgeManager extends LoadMap<string, Badge> {
 		super();
 	}
 
-	protected async load({ force, update }: LoadContext<string, Badge>) {
-		const badges = await cache.revalidate(`badges:${this.channel.id}`, () => this.#fetch(), {
-			force,
-			onRevalidate: (badges) => update(toEntries(badges)),
-		});
+	protected async load(ctx: LoadContext<string, Badge>) {
+		const badges = await cache.revalidate(
+			`badges:${this.channel.id}`,
+			() => this.#fetch(ctx.signal),
+			{
+				force: ctx.force,
+				signal: ctx.signal,
+				onRevalidate: (badges) => ctx.update(toEntries(badges)),
+			},
+		);
 
 		return toEntries(badges);
 	}
 
-	async #fetch() {
-		const { user } = await this.channel.client.gql(channelBadgesQuery, {
-			id: this.channel.id,
-		});
+	async #fetch(signal: AbortSignal) {
+		const { user } = await this.channel.client.gql(
+			channelBadgesQuery,
+			{ id: this.channel.id },
+			{ signal },
+		);
 
 		return (user?.broadcastBadges ?? []).filter((data) => data != null);
 	}

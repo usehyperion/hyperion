@@ -3,7 +3,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { TadaDocumentNode } from "gql.tada";
 
-import type { Connection } from "#lib/graphql/index.js";
+import type { Connection, GqlRequestOptions } from "#lib/graphql/index.js";
 
 import { ApiError } from "#lib/errors/api-error.js";
 import { nodes, request } from "#lib/graphql/index.js";
@@ -32,7 +32,11 @@ export class TwitchClient {
 
 	public constructor(private readonly onRevoked: () => void) {}
 
-	public async gql<T, U>(query: TadaDocumentNode<T, U>, variables?: U): Promise<T> {
+	public async gql<T, U>(
+		query: TadaDocumentNode<T, U>,
+		variables?: U,
+		{ signal }: Pick<GqlRequestOptions, "signal"> = {},
+	): Promise<T> {
 		const token = this.token;
 
 		if (!token) {
@@ -40,9 +44,10 @@ export class TwitchClient {
 		}
 
 		try {
-			return await request("https://gql.twitch.tv/gql", query, variables, () =>
-				this.#headers(token),
-			);
+			return await request("https://gql.twitch.tv/gql", query, variables, {
+				headers: () => this.#headers(token),
+				signal,
+			});
 		} catch (error) {
 			if (error instanceof ApiError && error.status === 401 && this.token === token) {
 				this.onRevoked();
@@ -56,12 +61,13 @@ export class TwitchClient {
 		query: TadaDocumentNode<T, U>,
 		variables: Omit<U, "after">,
 		select: (data: T) => Connection<N> | null | undefined,
+		options: Pick<GqlRequestOptions, "signal"> = {},
 	): Promise<N[]> {
 		const results: N[] = [];
 		let after: string | null = null;
 
 		do {
-			const data = await this.gql(query, { ...variables, after } as U);
+			const data = await this.gql(query, { ...variables, after } as U, options);
 			const connection = select(data);
 
 			results.push(...nodes(connection));

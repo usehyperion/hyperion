@@ -5,6 +5,7 @@ import { SvelteMap } from "svelte/reactivity";
 import * as v from "valibot";
 
 import { log } from "./log";
+import { latest } from "./util/resource";
 
 const MANIFEST_FILE = "manifest.json";
 const STYLESHEET_FILE = "main.css";
@@ -188,9 +189,7 @@ export async function loadThemes() {
 	log.info(`Loaded ${themes.size} themes`);
 }
 
-// Identifies the most recent injectTheme call so a slower one cannot overwrite
-// a newer selection when their path lookups interleave.
-let generation = 0;
+const injection = latest();
 let revision = Date.now();
 
 // The theme whose stylesheet is applied. Reloading replaces the theme objects,
@@ -209,7 +208,7 @@ export async function injectTheme(id: string) {
 		return;
 	}
 
-	const token = ++generation;
+	const signal = injection.next();
 	const theme = (id && themes.get(id)) || null;
 
 	if (id && !theme) {
@@ -225,9 +224,7 @@ export async function injectTheme(id: string) {
 	}
 
 	const href = convertFileSrc(await join(theme.path, STYLESHEET_FILE));
-
-	// A newer call landed while the path was resolving, so leave its result be.
-	if (token !== generation) return;
+	if (signal.aborted) return;
 
 	applied = theme;
 

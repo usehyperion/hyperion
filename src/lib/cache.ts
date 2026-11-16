@@ -32,6 +32,11 @@ export interface RevalidateOptions<T> {
 	force?: boolean;
 
 	/**
+	 * Cancels the fetch.
+	 */
+	signal?: AbortSignal;
+
+	/**
 	 * Called with the refetched data after stale data was returned.
 	 */
 	onRevalidate: (data: T) => void;
@@ -43,7 +48,7 @@ export interface RevalidateOptions<T> {
  */
 export async function revalidate<T>(
 	key: string,
-	fetcher: () => Promise<T>,
+	fetcher: (signal?: AbortSignal) => Promise<T>,
 	options: RevalidateOptions<T>,
 ) {
 	options.fresh ??= HOUR;
@@ -57,7 +62,9 @@ export async function revalidate<T>(
 		return entry.data;
 	}
 
-	const pending = fetcher().then((data) => {
+	const { signal } = options;
+
+	const pending = fetcher(signal).then((data) => {
 		// Not awaited since the data doesn't depend on being written.
 		set(key, { data, fetchedAt: Date.now() } satisfies Entry<T>, options.ttl);
 		return data;
@@ -71,8 +78,16 @@ export async function revalidate<T>(
 	log.debug(`Cache stale for ${key} (${age}s old), revalidating`);
 
 	pending
-		.then(options.onRevalidate)
-		.catch((error) => log.warn(`Failed to revalidate ${key}`, error));
+		.then((data) => {
+			if (!signal?.aborted) {
+				options.onRevalidate(data);
+			}
+		})
+		.catch((error) => {
+			if (!signal?.aborted) {
+				log.warn(`Failed to revalidate ${key}`, error);
+			}
+		});
 
 	return entry.data;
 }
