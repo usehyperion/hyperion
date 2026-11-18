@@ -191,8 +191,15 @@ export class UserMessage extends Message {
 	 * Whether the message was sent in a shared chat.
 	 */
 	public readonly shared: boolean;
-	public readonly badges: Badge[] = [];
+
+	#twitchBadges = $state.raw<Badge[]>([]);
+
+	/**
+	 * The badges shown next to the author's name.
+	 */
+	public readonly badges = $derived.by(() => [...this.#twitchBadges, ...this.#externalBadges()]);
 	public readonly bits: number;
+
 	public readonly emotes: Emote[];
 
 	/**
@@ -322,12 +329,12 @@ export class UserMessage extends Message {
 	}
 
 	#populateBadges() {
-		this.badges.length = 0;
+		const badges: Badge[] = [];
 
 		if (this.shared) {
 			const { user } = this.source;
 
-			this.badges.push(
+			badges.push(
 				new Badge({
 					setId: "shared-chat",
 					version: user.id,
@@ -347,21 +354,23 @@ export class UserMessage extends Message {
 			const resolved = chatBadge ?? globalBadge;
 
 			if (resolved) {
-				this.badges.push(resolved);
+				badges.push(resolved);
 			}
 		}
 
+		this.#twitchBadges = badges;
+	}
+
+	#externalBadges() {
 		const enabled = new Set<string>(
 			THIRD_PARTY_PROVIDERS.filter((p) => settings.state[p.badgesSetting]).map(
 				(p) => p.badgeSetId,
 			),
 		);
 
-		const external = (app.badges.users.get(this.author.id) ?? [])
+		return (app.badges.users.get(this.author.id) ?? [])
 			.filter((badge) => enabled.has(badge.setId))
 			.toSorted((a, b) => b.setId.localeCompare(a.setId));
-
-		this.badges.push(...external);
 	}
 
 	async #updateHeldMessage(allow: boolean) {

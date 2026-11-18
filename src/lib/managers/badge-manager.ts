@@ -154,14 +154,12 @@ export class BadgeManager extends SvelteMap<string, Badge> {
 	 * Gives a provider badge to a user, replacing an older copy of it.
 	 */
 	public give(userId: string, badge: Badge) {
-		const badges = this.users.getOrInsert(userId, []);
+		const badges = this.users.get(userId) ?? [];
 		const index = badges.findIndex((b) => b.id === badge.id);
 
-		if (index === -1) {
-			badges.push(badge);
-		} else {
-			badges[index] = badge;
-		}
+		// Replace the array rather than mutating it so existing messages get
+		// updated
+		this.users.set(userId, index === -1 ? [...badges, badge] : badges.with(index, badge));
 	}
 
 	#reset(provider: BadgeProvider) {
