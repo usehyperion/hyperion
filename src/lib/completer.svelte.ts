@@ -40,6 +40,12 @@ interface SearchOptions<T> {
 	map: (item: T) => Suggestion;
 }
 
+interface Match<T> {
+	item: T;
+	name: string;
+	rank: number;
+}
+
 export class Completer {
 	public query = "";
 	public prefixed = false;
@@ -229,18 +235,28 @@ export class Completer {
 	}
 
 	#search<T>(options: SearchOptions<T>, tab = false) {
-		const searchFunction = tab ? "startsWith" : "includes";
-		const query = tab ? this.query : this.query.slice(1);
-
+		const query = (tab ? this.query : this.query.slice(1)).toLowerCase();
 		if (!query) return [];
 
-		return options
-			.source()
-			.filter((item) =>
-				options.comparee(item).toLowerCase()[searchFunction](query.toLowerCase()),
-			)
+		const matches: Match<T>[] = [];
+
+		for (const item of options.source()) {
+			const name = options.comparee(item);
+			const lower = name.toLowerCase();
+
+			// Exact matches > prefixes > substrings
+			if (lower === query) {
+				matches.push({ item, name, rank: 0 });
+			} else if (lower.startsWith(query)) {
+				matches.push({ item, name, rank: 1 });
+			} else if (!tab && lower.includes(query)) {
+				matches.push({ item, name, rank: 2 });
+			}
+		}
+
+		return matches
+			.toSorted((a, b) => a.rank - b.rank || a.name.localeCompare(b.name))
 			.slice(0, 25)
-			.map(options.map)
-			.toSorted((a, b) => a.value.localeCompare(b.value));
+			.map(({ item }) => options.map(item));
 	}
 }
