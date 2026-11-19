@@ -70,13 +70,7 @@
 		<div class="flex flex-col items-center gap-3 text-center">
 			<img class="size-16" src="/logo.svg" alt="Hyperion logo" />
 
-			<div>
-				<h2 class="text-lg/tight font-semibold">Hyperion</h2>
-
-				<p class="text-sm text-muted-foreground tabular-nums">
-					{info ? `v${info.version}` : " "}
-				</p>
-			</div>
+			<h2 class="font-geist text-2xl/tight font-medium">Hyperion</h2>
 		</div>
 	{/snippet}
 

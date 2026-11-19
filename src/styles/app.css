@@ -120,6 +120,8 @@
 }
 
 @theme {
+	--font-geist: "Geist", sans-serif;
+
 	--color-twitch: oklch(0.59 0.2535 296);
 	--color-twitch-link: oklch(0.75 0.1549 301.29);
 
