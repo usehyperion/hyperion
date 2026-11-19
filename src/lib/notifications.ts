@@ -60,7 +60,6 @@ export async function notifyWhisper(whisper: Whisper, message: WhisperMessage) {
 
 	const response = await app.notify({
 		title: sender.displayName,
-		subtitle: "Whisper",
 		body: message.text,
 		actions: [{ id: "view", label: "View" }],
 		reply: `Reply to ${sender.displayName}`,
@@ -93,8 +92,7 @@ export async function notifyMention(message: UserMessage) {
 	if (document.hasFocus() && app.focused === channel) return;
 
 	const response = await app.notify({
-		title: author.displayName,
-		subtitle: `Mentioned you in ${channel.user.displayName}`,
+		title: `${author.displayName} (in @${channel.user.displayName})`,
 		body: message.text,
 		reply: `Reply to ${author.displayName}`,
 	});
