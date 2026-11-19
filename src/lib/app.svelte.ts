@@ -189,9 +189,9 @@ class App {
 	}
 
 	/**
-	 * Opens a channel by login, adding it as ephemeral if it isn't known yet.
+	 * Finds a channel by login, adding it as ephemeral if it isn't known yet.
 	 */
-	public async openByLogin(login: string) {
+	public async resolveLogin(login: string) {
 		let channel = this.channels.getByLogin(login);
 
 		if (!channel) {
@@ -201,6 +201,14 @@ class App {
 			channel.ephemeral = true;
 		}
 
+		return channel;
+	}
+
+	/**
+	 * Opens a channel by login, adding it as ephemeral if it isn't known yet.
+	 */
+	public async openByLogin(login: string) {
+		const channel = await this.resolveLogin(login);
 		await this.open(channel);
 
 		return channel;

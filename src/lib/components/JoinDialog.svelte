@@ -14,6 +14,7 @@
 	import { app } from "#lib/app.svelte.js";
 	import { closeDialog, dialogs } from "#lib/dialog.js";
 	import { searchSuggestionsQuery } from "#lib/graphql/twitch.js";
+	import { log } from "#lib/log.js";
 	import { storage } from "#lib/stores.js";
 	import { debounce } from "#lib/util/index.js";
 	import { latest } from "#lib/util/resource.js";
@@ -122,9 +123,11 @@
 		try {
 			loading = true;
 
-			const channel = await app.openByLogin(login);
+			const channel = await app.resolveLogin(login);
 			record(channel, meta);
 			handleClose();
+
+			app.open(channel).catch(log.swallow(`Failed to join ${login}`));
 		} catch (err) {
 			error = err instanceof Error ? err.message : "An unknown error occurred.";
 		} finally {
@@ -210,7 +213,7 @@
 				bind:value
 			/>
 
-			{#if searching}
+			{#if searching || loading}
 				<Spinner class="size-5 shrink-0 animate-spin text-muted-foreground" />
 			{/if}
 
