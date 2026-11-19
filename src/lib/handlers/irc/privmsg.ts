@@ -1,7 +1,7 @@
 import { app } from "#lib/app.svelte.js";
-import { mentions } from "#lib/highlights.js";
 import { UserMessage } from "#lib/models/message/user-message.svelte.js";
 import { notifyMention } from "#lib/notifications.js";
+import { mentions } from "#lib/util/index.js";
 
 import { defineHandler } from "../helper";
 

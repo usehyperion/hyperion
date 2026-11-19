@@ -12,6 +12,8 @@ import VideoCamera from "~icons/ph/video-camera";
 
 import type { Viewer } from "./models/viewer.svelte";
 
+import { mentions } from "./util/index.js";
+
 export interface HighlightConfig {
 	enabled: boolean;
 	color: string;
@@ -97,13 +99,6 @@ export function defaultHighlights() {
 	return Object.fromEntries(
 		Object.entries(HIGHLIGHTS).map(([type, kind]) => [type, { ...kind.defaults }]),
 	) as Record<HighlightType, HighlightConfig>;
-}
-
-/**
- * Whether the text @-mentions the given username.
- */
-export function mentions(text: string, username: string | undefined) {
-	return !!username && new RegExp(`@${RegExp.escape(username)}\\b`, "i").test(text);
 }
 
 export function highlightOf(text: string, viewer: Viewer, username: string | undefined) {

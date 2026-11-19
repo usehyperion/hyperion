@@ -42,3 +42,7 @@ export async function openMenu(event: MouseEvent, menufn: () => Promise<Menu>) {
 	const menu = await menufn();
 	await menu.popup();
 }
+
+export function mentions(text: string, username: string | undefined) {
+	return !!username && new RegExp(`@${RegExp.escape(username)}\\b`, "i").test(text);
+}
