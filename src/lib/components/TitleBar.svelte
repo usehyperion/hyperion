@@ -67,7 +67,9 @@
 		]}
 		data-tauri-drag-region
 	>
-		<img class="size-4" src="/logo.svg" alt="Hyperion logo" />
+		<a title="Home" href={resolve("/(main)")} draggable="false">
+			<img class="size-4" src="/logo.svg" alt="Hyperion logo" draggable="false" />
+		</a>
 	</div>
 
 	{#if app.user}
