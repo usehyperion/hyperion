@@ -11,6 +11,10 @@ on:
         description: "Existing release tag to (re)build assets for. Leave empty to run release-please."
         required: false
         type: string
+      ref:
+        description: "Git ref to build (branch, tag, or SHA) when rebuilding an existing release. Defaults to the tag."
+        required: false
+        type: string
   push:
     branches:
       - main
@@ -70,7 +74,7 @@ jobs:
     if: needs.release.outputs.release_created == 'true'
     uses: ./.github/workflows/build.yml
     with:
-      ref: ${{ needs.release.outputs.tag_name }}
+      ref: ${{ (inputs.tag && inputs.ref) || needs.release.outputs.tag_name }}
     secrets: inherit
 
   publish:
