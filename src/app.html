@@ -5,6 +5,14 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 		<link rel="icon" href="%sveltekit.assets%/logo.svg" />
+		<link
+			rel="preload"
+			href="%sveltekit.assets%/fonts/geist-400.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
+		/>
+
 		<link id="hyperion-custom-theme" rel="stylesheet" />
 
 		<title>Hyperion</title>
@@ -22,6 +30,14 @@
 		</script>
 
 		<style>
+			@font-face {
+				font-family: "Geist";
+				font-style: normal;
+				font-weight: 100 900;
+				font-display: block;
+				src: url("%sveltekit.assets%/fonts/geist.woff2") format("woff2");
+			}
+
 			#splash {
 				position: fixed;
 				inset: 0;
@@ -35,19 +51,59 @@
 				}
 			}
 
-			#splash img {
+			#splash-content {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 1rem;
+			}
+
+			#splash svg {
 				width: 4rem;
 				height: 4rem;
-				object-fit: contain;
+				fill: #ff6900;
+			}
+
+			#splash path {
+				transform-box: fill-box;
+				transform-origin: center;
 
 				@media (prefers-reduced-motion: no-preference) {
-					animation: splash-pulse 1.2s ease-in-out infinite;
+					animation: splash-part 1.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+				}
+
+				&:nth-child(2) {
+					animation-delay: 0.15s;
+				}
+
+				&:nth-child(3) {
+					animation-delay: 0.3s;
 				}
 			}
 
-			@keyframes splash-pulse {
-				50% {
-					opacity: 0.5;
+			#splash span {
+				margin: 0;
+				font-family: "Geist", sans-serif;
+				font-size: 2rem;
+				font-weight: 400;
+				color: oklch(0.145 0 0);
+
+				.dark & {
+					color: oklch(0.985 0 0);
+				}
+			}
+
+			@keyframes splash-part {
+				0%,
+				60%,
+				100% {
+					opacity: 1;
+					transform: none;
+				}
+
+				30% {
+					opacity: 0.3;
+					transform: scale(0.9);
 				}
 			}
 		</style>
@@ -57,7 +113,21 @@
 
 	<body data-sveltekit-preload-data="hover">
 		<div id="splash" aria-hidden="true">
-			<img src="%sveltekit.assets%/logo.svg" alt="" />
+			<div id="splash-content">
+				<svg viewBox="0 0 1025.06 1025.06">
+					<path
+						d="M735.95,51.78L.53,787.2v-274.67C.53,229.75,229.75.53,512.53.53c3.99,0,7.96.07,11.92.15.7.02,1.38.03,2.06.05,3.67.1,7.33.25,10.97.41,1,.05,1.99.1,3,.17q5.17.27,10.3.64c1.26.1,2.5.2,3.74.3,2.37.2,4.74.42,7.09.63,2.55.25,5.08.51,7.62.8q2.36.24,4.72.54C631.42,11.09,685.96,27.49,735.95,51.78Z"
+					/>
+					<path
+						d="M945.66,239.47L161.21,1023.92l-80.82-.15c-44.11-.08-79.86-35.88-79.86-80.01v-84.81L782.2,77.28C848.2,118.24,904.2,173.81,945.66,239.47Z"
+					/>
+					<path
+						d="M1024.53,512.53c0,282.77-229.23,512-512,512l-279.69-.5L971.48,285.4c25.25,50.88,42.25,106.57,49.32,165.32.22,1.85.44,3.71.63,5.56.27,2.34.5,4.69.73,7.04.23,2.42.45,4.85.65,7.28.1,1.16.2,2.32.28,3.48q.4,5.22.66,10.47c.05.97.12,1.97.17,2.96.16,3.64.31,7.32.41,11q.03,1.06.05,2.13C1024.46,504.6,1024.53,508.56,1024.53,512.53Z"
+					/>
+				</svg>
+
+				<span>Hyperion</span>
+			</div>
 		</div>
 
 		<div style="display: contents">%sveltekit.body%</div>
