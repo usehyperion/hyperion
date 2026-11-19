@@ -68,7 +68,6 @@ export async function notifyWhisper(whisper: Whisper, message: WhisperMessage) {
 	if (response?.type === "reply" && response.text) {
 		try {
 			await whisper.send(response.text);
-			await whisper.markRead();
 		} catch (error) {
 			log.error("Failed to send whisper reply", error);
 
@@ -76,8 +75,11 @@ export async function notifyWhisper(whisper: Whisper, message: WhisperMessage) {
 				title: "Whisper not sent",
 				body: `Your reply to ${sender.displayName} could not be sent.`,
 			});
+
+			return;
 		}
 
+		await whisper.markRead().catch(log.swallow("Failed to mark whisper as read"));
 		return;
 	}
 
@@ -89,7 +91,11 @@ export async function notifyWhisper(whisper: Whisper, message: WhisperMessage) {
 export async function notifyMention(message: UserMessage) {
 	const { channel, author } = message;
 
-	if (document.hasFocus() && app.focused === channel) return;
+	// The split view keeps its focused channel on other pages, where the chat
+	// isn't visible.
+	const viewing = document.hasFocus() && page.route.id === "/(main)" && app.focused === channel;
+
+	if (viewing) return;
 
 	const response = await app.notify({
 		title: `${author.displayName} (in @${channel.user.displayName})`,
