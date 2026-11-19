@@ -1,0 +1,12 @@
+{
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "nodenext",
+		"types": ["node"],
+		"strict": true,
+		"noEmit": true,
+		"erasableSyntaxOnly": true,
+		"verbatimModuleSyntax": true
+	},
+	"include": ["**/*.ts"]
+}
