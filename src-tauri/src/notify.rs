@@ -13,14 +13,6 @@ pub struct NotifyAction {
     label: String,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum NotifyUrgency {
-    Low,
-    Normal,
-    Critical,
-}
-
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NotifyOptions {
@@ -31,7 +23,6 @@ pub struct NotifyOptions {
     #[serde(default)]
     actions: Vec<NotifyAction>,
     reply: Option<String>,
-    urgency: Option<NotifyUrgency>,
     timeout: Option<u32>,
 }
 
@@ -94,7 +85,7 @@ mod platform {
     use mac_usernotifications::{Action, InterruptionLevel, Notification, NotificationResponse};
     use tauri::AppHandle;
 
-    use super::{NotifyOptions, NotifyResponse, NotifyUrgency, REPLY_ACTION, REPLY_LABEL};
+    use super::{NotifyOptions, NotifyResponse, REPLY_ACTION, REPLY_LABEL};
 
     pub async fn show(_app: &AppHandle, options: &NotifyOptions) -> anyhow::Result<NotifyResponse> {
         if !mac_usernotifications::request_auth().await? {
@@ -113,10 +104,6 @@ mod platform {
             .title(&options.title)
             .message(&options.body)
             .maybe_subtitle(options.subtitle.as_deref());
-
-        if let Some(urgency) = options.urgency {
-            notification = notification.interruption_level(urgency.into());
-        }
 
         // Without a timeout the notification stays in Notification Center.
         if let Some(ms) = options.timeout.filter(|&ms| ms > 0) {
@@ -137,16 +124,6 @@ mod platform {
         }
 
         notification
-    }
-
-    impl From<NotifyUrgency> for InterruptionLevel {
-        fn from(urgency: NotifyUrgency) -> Self {
-            match urgency {
-                NotifyUrgency::Low => InterruptionLevel::Passive,
-                NotifyUrgency::Normal => InterruptionLevel::Active,
-                NotifyUrgency::Critical => InterruptionLevel::TimeSensitive,
-            }
-        }
     }
 
     impl From<NotificationResponse> for NotifyResponse {
@@ -170,10 +147,10 @@ mod platform {
 
 #[cfg(not(target_os = "macos"))]
 mod platform {
-    use notify_rust::{Notification, NotificationResponse, Timeout, Urgency};
+    use notify_rust::{Notification, NotificationResponse, Timeout};
     use tauri::AppHandle;
 
-    use super::{NotifyOptions, NotifyResponse, NotifyUrgency, REPLY_ACTION, REPLY_LABEL};
+    use super::{NotifyOptions, NotifyResponse, REPLY_ACTION, REPLY_LABEL};
 
     #[cfg(unix)]
     pub async fn show(_app: &AppHandle, options: &NotifyOptions) -> anyhow::Result<NotifyResponse> {
@@ -230,10 +207,6 @@ mod platform {
             notification.subtitle(subtitle);
         }
 
-        if let Some(urgency) = options.urgency {
-            notification.urgency(urgency.into());
-        }
-
         if let Some(timeout) = options.timeout {
             notification.timeout(match timeout {
                 0 => Timeout::Never,
@@ -255,16 +228,6 @@ mod platform {
         }
 
         notification
-    }
-
-    impl From<NotifyUrgency> for Urgency {
-        fn from(urgency: NotifyUrgency) -> Self {
-            match urgency {
-                NotifyUrgency::Low => Urgency::Low,
-                NotifyUrgency::Normal => Urgency::Normal,
-                NotifyUrgency::Critical => Urgency::Critical,
-            }
-        }
     }
 
     impl From<NotificationResponse> for NotifyResponse {

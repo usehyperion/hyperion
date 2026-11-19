@@ -16,8 +16,6 @@ export interface NotificationAction {
 	label: string;
 }
 
-export type NotificationUrgency = "low" | "normal" | "critical";
-
 export interface NotificationOptions {
 	title: string;
 
@@ -32,7 +30,6 @@ export interface NotificationOptions {
 	 * Placeholder of an inline reply field.
 	 */
 	reply?: string;
-	urgency?: NotificationUrgency;
 
 	/**
 	 * How long the notification stays up in milliseconds, `0` keeps it until
