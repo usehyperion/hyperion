@@ -272,19 +272,19 @@ export class Chat {
 		});
 	}
 
-	public async send(text: string, options?: SendOptions) {
+	public async send(text: string, options?: SendOptions): Promise<boolean> {
 		if (options?.pin) {
 			await this.#sendPinned(text);
-			return;
+			return true;
 		}
 
 		if (text.startsWith("/") && !options?.raw) {
 			await execute(this.channel, text.slice(1));
-			return;
+			return true;
 		}
 
 		try {
-			await this.#sendText(text, options?.replyTo);
+			return await this.#sendText(text, options?.replyTo);
 		} catch (error) {
 			log.error(`Failed to send message in ${this.channel.user.username}`, error);
 			throw new CommandError("Your message could not be sent.");
@@ -305,7 +305,7 @@ export class Chat {
 
 	async #sendText(message: string, replyTo?: UserMessage) {
 		const text = this.#prepare(message);
-		if (text === null) return;
+		if (text === null) return false;
 
 		let replyId = replyTo?.id;
 
@@ -337,13 +337,15 @@ export class Chat {
 				this.notice(`Your message was not sent: ${reason}`);
 			}
 
-			return;
+			return false;
 		}
 
 		if (sent?.message) {
 			log.info("Message sent");
 			void app.user?.sendPresence(this.channel.id);
 		}
+
+		return !!sent?.message;
 	}
 
 	#prepare(message: string) {

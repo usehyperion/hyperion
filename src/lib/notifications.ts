@@ -98,11 +98,15 @@ export async function notifyMention(message: UserMessage) {
 	});
 
 	if (response?.type === "reply" && response.text) {
+		let sent = false;
+
 		try {
-			await channel.chat.send(response.text, { replyTo: message });
+			sent = await channel.chat.send(response.text, { replyTo: message });
 		} catch (error) {
 			log.error("Failed to send mention reply", error);
+		}
 
+		if (!sent) {
 			void app.notify({
 				title: "Reply not sent",
 				body: `Your reply in ${channel.user.displayName} could not be sent.`,
