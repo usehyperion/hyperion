@@ -201,7 +201,14 @@ mod platform {
     fn build(options: &NotifyOptions) -> Notification {
         let mut notification = Notification::new();
 
-        notification.summary(&options.title).body(&options.body);
+        // XDG servers may parse the body as markup.
+        #[cfg(unix)]
+        let body = &escape_markup(&options.body);
+
+        #[cfg(windows)]
+        let body = options.body.as_str();
+
+        notification.summary(&options.title).body(body);
 
         if let Some(subtitle) = &options.subtitle {
             notification.subtitle(subtitle);
@@ -228,6 +235,22 @@ mod platform {
         }
 
         notification
+    }
+
+    #[cfg(unix)]
+    fn escape_markup(text: &str) -> String {
+        let mut escaped = String::with_capacity(text.len());
+
+        for ch in text.chars() {
+            match ch {
+                '&' => escaped.push_str("&amp;"),
+                '<' => escaped.push_str("&lt;"),
+                '>' => escaped.push_str("&gt;"),
+                _ => escaped.push(ch),
+            }
+        }
+
+        escaped
     }
 
     impl From<NotificationResponse> for NotifyResponse {
