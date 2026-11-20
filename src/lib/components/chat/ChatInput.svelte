@@ -2,14 +2,12 @@
 	import { tick } from "svelte";
 	import type { HTMLInputAttributes, KeyboardEventHandler } from "svelte/elements";
 
-	import ChartBarHorizontal from "~icons/ph/chart-bar-horizontal";
-	import SealQuestion from "~icons/ph/seal-question";
-
 	import type { Chat } from "#lib/models/chat.svelte.js";
 
 	import { Completer } from "#lib/completer.svelte.js";
 	import { dialogs } from "#lib/dialog.js";
 	import { CommandError } from "#lib/errors/command-error.js";
+	import { IconPoll, IconPrediction } from "#lib/icons.js";
 
 	import EmotePicker from "../emote-picker/EmotePicker.svelte";
 	import Suggestions from "../Suggestions.svelte";
@@ -169,7 +167,7 @@
 					command="show-modal"
 					commandfor={dialogs.poll(chat.channel.id)}
 				>
-					<ChartBarHorizontal />
+					<IconPoll />
 				</InputGroup.Button>
 
 				<InputGroup.Button
@@ -177,7 +175,7 @@
 					command="show-modal"
 					commandfor={dialogs.prediction(chat.channel.id)}
 				>
-					<SealQuestion />
+					<IconPrediction />
 				</InputGroup.Button>
 			{/if}
 

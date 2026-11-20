@@ -1,11 +1,11 @@
-import Layout from "~icons/ph/layout";
+import { IconSplits } from "#lib/icons.js";
 
 import type { SettingsCategory } from "../types";
 
 export default {
 	order: 15,
 	label: "Splits",
-	icon: Layout,
+	icon: IconSplits,
 	fields: [
 		{
 			id: "splits.leaveOnClose",

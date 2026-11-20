@@ -2,9 +2,6 @@
 	import { platform as getPlatform } from "@tauri-apps/plugin-os";
 	import { Tabs } from "bits-ui";
 
-	import MagnifyingGlass from "~icons/ph/magnifying-glass";
-	import X from "~icons/ph/x";
-
 	import type { SettingsCategory } from "#lib/components/settings/schema/types.js";
 
 	import { countFields, filterCategory } from "#lib/components/settings/schema/search.js";
@@ -13,6 +10,7 @@
 	import * as InputGroup from "#lib/components/ui/input-group/index.js";
 	import Separator from "#lib/components/ui/Separator.svelte";
 	import { dialogs } from "#lib/dialog.js";
+	import { IconClear, IconClose, IconSearch } from "#lib/icons.js";
 	import { log } from "#lib/log.js";
 	import { settings } from "#lib/settings.js";
 
@@ -89,7 +87,7 @@
 		>
 			<InputGroup.Root class="h-9 bg-background">
 				<InputGroup.Addon>
-					<MagnifyingGlass />
+					<IconSearch />
 				</InputGroup.Addon>
 
 				<InputGroup.Input
@@ -116,7 +114,7 @@
 							aria-label="Clear search"
 							onclick={clearSearch}
 						>
-							<X />
+							<IconClear />
 						</InputGroup.Button>
 					</InputGroup.Addon>
 				{/if}
@@ -179,7 +177,7 @@
 					variant="ghost"
 					aria-label="Close settings"
 				>
-					<X />
+					<IconClose />
 				</Button>
 			</div>
 

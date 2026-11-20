@@ -2,12 +2,10 @@
 	import { invoke } from "@tauri-apps/api/core";
 	import { scale } from "svelte/transition";
 
-	import Check from "~icons/ph/check";
-	import Clipboard from "~icons/ph/clipboard";
-
 	import Button from "#lib/components/ui/Button.svelte";
 	import Dialog from "#lib/components/ui/Dialog.svelte";
 	import { dialogs } from "#lib/dialog.js";
+	import { IconCopied, IconCopy } from "#lib/icons.js";
 	import { log } from "#lib/log.js";
 
 	interface AboutInfo {
@@ -91,11 +89,11 @@
 		<Button variant="ghost" disabled={!info} onclick={copyInfo}>
 			{#if copied}
 				<span in:scale={{ duration: 300, start: 0.85 }}>
-					<Check />
+					<IconCopied />
 				</span>
 			{:else}
 				<span in:scale={{ duration: 300, start: 0.85 }}>
-					<Clipboard />
+					<IconCopy />
 				</span>
 			{/if}
 

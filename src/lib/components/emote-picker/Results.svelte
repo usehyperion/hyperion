@@ -1,7 +1,7 @@
 <script lang="ts">
-	import SmileySad from "~icons/ph/smiley-sad";
-
 	import type { Emote } from "#lib/emotes.js";
+
+	import { IconNoResults } from "#lib/icons.js";
 
 	import EmoteGrid from "./EmoteGrid.svelte";
 
@@ -21,7 +21,7 @@
 	<div
 		class="flex h-full flex-col items-center justify-center p-4 text-center text-sm text-muted-foreground"
 	>
-		<SmileySad class="mb-2 size-6" />
+		<IconNoResults class="mb-2 size-6" />
 		No emotes found.
 	</div>
 {/if}

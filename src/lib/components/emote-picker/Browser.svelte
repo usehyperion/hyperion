@@ -2,9 +2,9 @@
 	import { Accordion } from "bits-ui";
 	import { onDestroy, tick } from "svelte";
 
-	import CaretRight from "~icons/ph/caret-right";
-
 	import type { EmoteSet } from "#lib/emotes.js";
+
+	import { IconDisclosure } from "#lib/icons.js";
 
 	import Avatar from "../ui/Avatar.svelte";
 	import EmoteGrid from "./EmoteGrid.svelte";
@@ -88,7 +88,7 @@
 							<span class="text-sm font-medium">{set.name}</span>
 						</div>
 
-						<CaretRight
+						<IconDisclosure
 							class="text-muted-foreground group-data-[state=open]:rotate-90"
 						/>
 					</Accordion.Trigger>

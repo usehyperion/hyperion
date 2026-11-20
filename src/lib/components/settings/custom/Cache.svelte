@@ -3,11 +3,9 @@
 	import { openPath } from "@tauri-apps/plugin-opener";
 	import { onMount } from "svelte";
 
-	import Broom from "~icons/ph/broom";
-	import FolderOpen from "~icons/ph/folder-open";
-
 	import { clear, size as getSize } from "#lib/cache.js";
 	import Button from "#lib/components/ui/Button.svelte";
+	import { IconClearCache, IconOpenFolder } from "#lib/icons.js";
 
 	let bytes = $state(0);
 
@@ -35,12 +33,12 @@
 
 <div class="flex items-center gap-x-2">
 	<Button size="sm" disabled={!bytes} onclickwait={clearCache}>
-		<Broom /> Free up {size}
+		<IconClearCache /> Free up {size}
 	</Button>
 
 	{#if import.meta.env.DEV}
 		<Button size="sm" variant="outline" onclickwait={async () => openPath(await appCacheDir())}>
-			<FolderOpen /> Open folder
+			<IconOpenFolder /> Open folder
 		</Button>
 	{/if}
 </div>

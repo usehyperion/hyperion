@@ -1,5 +1,4 @@
-import Chat from "~icons/ph/chat";
-
+import { IconChat } from "#lib/icons.js";
 import { settings } from "#lib/settings.js";
 
 import type { SettingsCategory } from "../types";
@@ -7,7 +6,7 @@ import type { SettingsCategory } from "../types";
 export default {
 	order: 20,
 	label: "Chat",
-	icon: Chat,
+	icon: IconChat,
 	fields: [
 		{
 			type: "group",

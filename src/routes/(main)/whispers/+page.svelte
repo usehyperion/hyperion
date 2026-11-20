@@ -3,12 +3,11 @@
 
 	import { resolve } from "$app/paths";
 
-	import ChatDots from "~icons/ph/chat-dots";
-
 	import { app } from "#lib/app.svelte.js";
 	import { everyMinute } from "#lib/clock.js";
 	import Avatar from "#lib/components/ui/Avatar.svelte";
 	import * as Empty from "#lib/components/ui/empty/index.js";
+	import { IconWhispers } from "#lib/icons.js";
 
 	const { data } = $props();
 
@@ -113,7 +112,7 @@
 		<Empty.Root class="h-full">
 			<Empty.Header>
 				<Empty.Media variant="icon">
-					<ChatDots />
+					<IconWhispers />
 				</Empty.Media>
 
 				<Empty.Title>No whispers</Empty.Title>

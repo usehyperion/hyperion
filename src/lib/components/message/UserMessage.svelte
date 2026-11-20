@@ -1,10 +1,9 @@
 <script lang="ts">
-	import ArrowBendUpRight from "~icons/ph/arrow-bend-up-right";
-
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 	import { app } from "#lib/app.svelte.js";
 	import { highlightOf, matchesKeyword } from "#lib/highlights.js";
+	import { IconRepliedTo } from "#lib/icons.js";
 	import { createMessageMenu } from "#lib/menus/message-menu.js";
 	import { deletedAppearance, settings } from "#lib/settings.js";
 	import { openMenu } from "#lib/util/index.js";
@@ -80,7 +79,7 @@
 			{@const viewer = message.channel.viewers.get(message.reply.parent.user.id)}
 
 			<div class="mb-0.5 flex items-center gap-2">
-				<ArrowBendUpRight class="ml-1 shrink-0 scale-x-125 text-muted-foreground" />
+				<IconRepliedTo class="ml-1 shrink-0 scale-x-125 text-muted-foreground" />
 
 				<div class="line-clamp-1 text-xs">
 					<span style={viewer?.user.mentionStyle}>

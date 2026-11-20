@@ -2,13 +2,11 @@
 	import CaseSensitive from "~icons/local/case-sensitive";
 	import Regex from "~icons/local/regex";
 	import WholeWord from "~icons/local/whole-word";
-	import Highlighter from "~icons/ph/highlighter";
-	import Plus from "~icons/ph/plus";
-	import Trash from "~icons/ph/trash";
 
 	import Button from "#lib/components/ui/Button.svelte";
 	import * as Empty from "#lib/components/ui/empty/index.js";
 	import { KEYWORD_HIGHLIGHT } from "#lib/highlights.js";
+	import { IconAdd, IconDelete, IconKeywordHighlight } from "#lib/icons.js";
 	import { settings } from "#lib/settings.js";
 
 	import Edit from "./Edit.svelte";
@@ -26,7 +24,7 @@
 		<Empty.Root class="border border-dashed py-8">
 			<Empty.Header>
 				<Empty.Media variant="icon">
-					<Highlighter />
+					<IconKeywordHighlight />
 				</Empty.Media>
 
 				<Empty.Title>No keyword triggers</Empty.Title>
@@ -72,14 +70,14 @@
 					aria-label="Delete trigger"
 					onclick={() => keywords.splice(i, 1)}
 				>
-					<Trash />
+					<IconDelete />
 				</Button>
 			{/snippet}
 		</Row>
 	{/each}
 
 	<Button class="self-start" variant="outline" onclick={add}>
-		<Plus />
+		<IconAdd />
 		Add new trigger
 	</Button>
 </div>

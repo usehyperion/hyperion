@@ -3,8 +3,7 @@
 	import type { WithoutChildrenOrChild } from "bits-ui";
 	import { cn } from "tailwind-variants";
 
-	import CheckIcon from "~icons/ph/check";
-	import MinusIcon from "~icons/ph/minus";
+	import { IconChecked, IconIndeterminate } from "#lib/icons.js";
 
 	let {
 		class: className,
@@ -33,9 +32,9 @@
 	{#snippet children({ checked, indeterminate })}
 		<div class="text-current transition-none" data-slot="checkbox-indicator">
 			{#if checked}
-				<CheckIcon class="size-3.5" />
+				<IconChecked class="size-3.5" />
 			{:else if indeterminate}
-				<MinusIcon class="size-3.5" />
+				<IconIndeterminate class="size-3.5" />
 			{/if}
 		</div>
 	{/snippet}

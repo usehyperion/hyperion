@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { page } from "$app/state";
 
-	import WarningCircle from "~icons/ph/warning-circle";
-
 	import * as Empty from "#lib/components/ui/empty/index.js";
 	import Link from "#lib/components/ui/Link.svelte";
+	import { IconError } from "#lib/icons.js";
 	import { log } from "#lib/log.js";
 
 	if (page.error) {
@@ -15,7 +14,7 @@
 <Empty.Root class="h-full">
 	<Empty.Header>
 		<Empty.Media variant="icon">
-			<WarningCircle />
+			<IconError />
 		</Empty.Media>
 
 		<Empty.Title>This is awkward...</Empty.Title>

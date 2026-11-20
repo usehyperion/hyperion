@@ -7,9 +7,7 @@
 	import type { HTMLButtonAttributes } from "svelte/elements";
 	import { cn } from "tailwind-variants";
 
-	import CaretDown from "~icons/ph/caret-down";
-	import CaretUp from "~icons/ph/caret-up";
-	import X from "~icons/ph/x";
+	import { IconCollapse, IconExpand, IconHide } from "#lib/icons.js";
 
 	import { buttonVariants } from "../ui/Button.svelte";
 	import Tooltip from "../ui/Tooltip.svelte";
@@ -40,12 +38,12 @@
 
 {#snippet details(expanded: boolean, onclick: () => void)}
 	<NoticeAction
-		icon={expanded ? CaretUp : CaretDown}
+		icon={expanded ? IconCollapse : IconExpand}
 		tooltip={expanded ? "Collapse" : "Expand"}
 		{onclick}
 	/>
 {/snippet}
 
 {#snippet hide(onclick: () => void)}
-	<NoticeAction icon={X} tooltip="Hide" {onclick} />
+	<NoticeAction icon={IconHide} tooltip="Hide" {onclick} />
 {/snippet}

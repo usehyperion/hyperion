@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { createDroppable } from "@dnd-kit/svelte";
 
-	import Layout from "~icons/ph/layout";
-
 	import type { Pane } from "#lib/splits/types.js";
 
 	import { app } from "#lib/app.svelte.js";
 	import * as Empty from "#lib/components/ui/empty/index.js";
+	import { IconSplits } from "#lib/icons.js";
 
 	import Channel from "../channel/Channel.svelte";
 	import TabBar from "./TabBar.svelte";
@@ -79,7 +78,7 @@
 				<Empty.Root class="h-full">
 					<Empty.Header>
 						<Empty.Media variant="icon">
-							<Layout />
+							<IconSplits />
 						</Empty.Media>
 
 						<Empty.Title>Empty split</Empty.Title>

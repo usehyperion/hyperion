@@ -1,14 +1,13 @@
-import Highlighter from "~icons/ph/highlighter";
-
 import Keyword from "#lib/components/settings/custom/highlights/Keyword.svelte";
 import Viewer from "#lib/components/settings/custom/highlights/Viewer.svelte";
+import { IconHighlights } from "#lib/icons.js";
 
 import type { SettingsCategory } from "../types";
 
 export default {
 	order: 30,
 	label: "Highlights",
-	icon: Highlighter,
+	icon: IconHighlights,
 	fields: [
 		{
 			id: "highlights.enabled",

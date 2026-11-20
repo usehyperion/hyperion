@@ -1,5 +1,4 @@
-import Shield from "~icons/ph/shield";
-
+import { IconModeration } from "#lib/icons.js";
 import { timeoutPresets } from "#lib/moderation.js";
 
 import type { SettingsCategory } from "../types";
@@ -7,7 +6,7 @@ import type { SettingsCategory } from "../types";
 export default {
 	order: 40,
 	label: "Moderation",
-	icon: Shield,
+	icon: IconModeration,
 	fields: [
 		{
 			type: "group",

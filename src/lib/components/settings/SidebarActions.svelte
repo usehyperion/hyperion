@@ -2,13 +2,10 @@
 	import { appLogDir } from "@tauri-apps/api/path";
 	import { openPath } from "@tauri-apps/plugin-opener";
 
-	import FolderOpen from "~icons/ph/folder-open";
-	import Info from "~icons/ph/info";
-	import SignOut from "~icons/ph/sign-out";
-
 	import { app } from "#lib/app.svelte.js";
 	import Button from "#lib/components/ui/Button.svelte";
 	import { closeDialog, dialogs } from "#lib/dialog.js";
+	import { IconAbout, IconLogOut, IconOpenFolder } from "#lib/icons.js";
 
 	import AboutDialog from "./AboutDialog.svelte";
 
@@ -19,7 +16,7 @@
 
 <div class="space-y-0.5 *:w-full *:justify-start">
 	<Button class="text-muted-foreground" variant="ghost" onclick={openLogDir}>
-		<FolderOpen />
+		<IconOpenFolder />
 		<span class="text-sm">Open logs</span>
 	</Button>
 
@@ -29,7 +26,7 @@
 		commandfor={dialogs.about}
 		variant="ghost"
 	>
-		<Info />
+		<IconAbout />
 		<span class="text-sm">About</span>
 	</Button>
 
@@ -42,7 +39,7 @@
 				await app.logOut();
 			}}
 		>
-			<SignOut />
+			<IconLogOut />
 			<span class="text-sm">Log out</span>
 		</Button>
 	{/if}

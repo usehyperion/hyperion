@@ -269,9 +269,9 @@ importers:
       '@gql.tada/svelte-support':
         specifier: ^1.0.3
         version: 1.0.3(svelte@5.57.3(@typescript-eslint/types@8.72.1))(typescript@6.0.3)
-      '@iconify-json/ph':
-        specifier: ^1.2.2
-        version: 1.2.2
+      '@iconify-json/hugeicons':
+        specifier: ^1.2.36
+        version: 1.2.36
       '@internationalized/date':
         specifier: ^3.12.4
         version: 3.12.4
@@ -471,8 +471,8 @@ packages:
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
 
-  '@iconify-json/ph@1.2.2':
-    resolution: {integrity: sha512-PgkEZNtqa8hBGjHXQa4pMwZa93hmfu8FUSjs/nv4oUU6yLsgv+gh9nu28Kqi8Fz9CCVu4hj1MZs9/60J57IzFw==}
+  '@iconify-json/hugeicons@1.2.36':
+    resolution: {integrity: sha512-AN5LVEmU7X/ynnA+HItRZq+YtFLtbjeFezRI3cPwpAuHerzi5WhwaH7ChoXakJqVLL/CvorDWl9rUFJBSG4nEA==}
 
   '@iconify/types@2.0.0':
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
@@ -2505,7 +2505,7 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
-  '@iconify-json/ph@1.2.2':
+  '@iconify-json/hugeicons@1.2.36':
     dependencies:
       '@iconify/types': 2.0.0
 

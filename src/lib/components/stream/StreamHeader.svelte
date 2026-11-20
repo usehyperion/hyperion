@@ -2,13 +2,11 @@
 	import NumberFlow from "@number-flow/svelte";
 	import dayjs from "dayjs";
 
-	import Clock from "~icons/ph/clock";
-	import Users from "~icons/ph/users";
-
 	import type { Channel } from "#lib/models/channel.svelte.js";
 	import type { Stream } from "#lib/models/stream.svelte.js";
 
 	import { everySecond } from "#lib/clock.js";
+	import { IconUptime, IconViewers } from "#lib/icons.js";
 
 	import StreamInfo from "./StreamInfo.svelte";
 	import ViewerList from "./ViewerList.svelte";
@@ -38,12 +36,12 @@
 
 		<div class="ml-[3ch] flex items-center gap-x-2.5">
 			<div class="flex items-center">
-				<Users class="mr-1" />
+				<IconViewers class="mr-1" />
 				<NumberFlow class="tabular-nums" value={stream.viewers} />
 			</div>
 
 			<div class="flex items-center">
-				<Clock class="mr-1" />
+				<IconUptime class="mr-1" />
 				<span class="tabular-nums">{uptime}</span>
 			</div>
 		</div>

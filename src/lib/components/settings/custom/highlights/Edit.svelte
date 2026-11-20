@@ -1,6 +1,4 @@
 <script lang="ts">
-	import Pencil from "~icons/ph/pencil";
-
 	import type { KeywordHighlightConfig } from "#lib/highlights.js";
 
 	import Button from "#lib/components/ui/Button.svelte";
@@ -8,6 +6,7 @@
 	import Dialog from "#lib/components/ui/Dialog.svelte";
 	import * as Field from "#lib/components/ui/field/index.js";
 	import Input from "#lib/components/ui/Input.svelte";
+	import { IconEdit } from "#lib/icons.js";
 
 	let { config = $bindable<KeywordHighlightConfig>() } = $props();
 
@@ -25,7 +24,7 @@
 	variant="ghost"
 	aria-label="Edit pattern"
 >
-	<Pencil />
+	<IconEdit />
 </Button>
 
 <Dialog id={dialogId}>

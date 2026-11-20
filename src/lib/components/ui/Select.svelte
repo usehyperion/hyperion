@@ -2,7 +2,7 @@
 	import type { HTMLSelectAttributes } from "svelte/elements";
 	import { cn } from "tailwind-variants";
 
-	import CaretDown from "~icons/ph/caret-down";
+	import { IconExpand } from "#lib/icons.js";
 
 	interface Option {
 		label: string;
@@ -45,7 +45,7 @@
 		{/each}
 	</select>
 
-	<CaretDown
+	<IconExpand
 		class="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-muted-foreground"
 		aria-hidden="true"
 	/>

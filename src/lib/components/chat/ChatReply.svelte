@@ -1,7 +1,7 @@
 <script lang="ts">
-	import XCircle from "~icons/ph/x-circle";
-
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
+
+	import { IconCancelReply } from "#lib/icons.js";
 
 	import Message from "../message/Message.svelte";
 
@@ -20,7 +20,7 @@
 		<span class="text-muted-foreground">Replying to:</span>
 
 		<button type="button" aria-label="Cancel reply" onclick={oncancel}>
-			<XCircle
+			<IconCancelReply
 				class="block text-muted-foreground transition-colors duration-150 hover:text-foreground"
 			/>
 		</button>

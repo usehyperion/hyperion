@@ -1,14 +1,13 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 
-	import CaretLeft from "~icons/ph/caret-left";
-	import CaretRight from "~icons/ph/caret-right";
-
 	import type { Chat } from "#lib/models/chat.svelte.js";
 	import type { Notice } from "#lib/models/notice.svelte.js";
 	import type { Pin as PinModel } from "#lib/models/pin.svelte.js";
 	import type { Poll as PollModel } from "#lib/models/poll.svelte.js";
 	import type { Prediction as PredictionModel } from "#lib/models/prediction.svelte.js";
+
+	import { IconNext, IconPrevious } from "#lib/icons.js";
 
 	import Button from "../ui/Button.svelte";
 	import Pin from "./Pin.svelte";
@@ -62,7 +61,7 @@
 					aria-label="Previous notice"
 					onclick={() => cycle(-1)}
 				>
-					<CaretLeft class="size-3.5" />
+					<IconPrevious class="size-3.5" />
 				</Button>
 
 				<span class="truncate">{active?.label}</span>
@@ -91,7 +90,7 @@
 					aria-label="Next notice"
 					onclick={() => cycle(1)}
 				>
-					<CaretRight class="size-3.5" />
+					<IconNext class="size-3.5" />
 				</Button>
 			</div>
 		{/if}

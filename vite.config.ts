@@ -33,7 +33,7 @@ export default defineConfig({
 				logos: FileSystemIconLoader("./src/assets/logos"),
 			},
 			iconCustomizer(collection, _icon, props) {
-				if (collection === "ph") {
+				if (collection === "hugeicons") {
 					props.width = "1em";
 					props.height = "1em";
 				}

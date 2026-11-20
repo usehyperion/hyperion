@@ -1,9 +1,8 @@
 <script lang="ts">
-	import DotsThreeCircle from "~icons/ph/dots-three-circle";
-
 	import type { Channel } from "#lib/models/channel.svelte.js";
 
 	import { useSidebar } from "#lib/hooks/use-sidebar.svelte.js";
+	import { IconGuests } from "#lib/icons.js";
 
 	import Avatar from "../ui/Avatar.svelte";
 
@@ -33,6 +32,6 @@
 	<div
 		class="absolute right-1 bottom-1 flex items-center justify-center rounded-full bg-muted/70"
 	>
-		<DotsThreeCircle class="size-5" />
+		<IconGuests class="size-5" />
 	</div>
 {/if}

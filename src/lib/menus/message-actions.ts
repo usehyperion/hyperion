@@ -1,14 +1,8 @@
 import type { Component } from "svelte";
 
-import ArrowBendUpLeft from "~icons/ph/arrow-bend-up-left";
-import Clipboard from "~icons/ph/clipboard";
-import Clock from "~icons/ph/clock";
-import Gavel from "~icons/ph/gavel";
-import PushPin from "~icons/ph/push-pin";
-import Trash from "~icons/ph/trash";
-
 import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
+import { IconBan, IconCopy, IconDelete, IconPin, IconReply, IconTimeout } from "#lib/icons.js";
 import { log } from "#lib/log.js";
 import { timeoutDuration, timeoutLabel } from "#lib/moderation.js";
 
@@ -27,14 +21,14 @@ export interface MessageAction {
 export const messageActions = {
 	copy: {
 		label: () => "Copy",
-		icon: Clipboard,
+		icon: IconCopy,
 		moderation: false,
 		enabled: () => true,
 		run: (message) => navigator.clipboard.writeText(message.text),
 	},
 	reply: {
 		label: () => "Reply",
-		icon: ArrowBendUpLeft,
+		icon: IconReply,
 		moderation: false,
 		enabled: (message) => !message.deleted,
 		run(message) {
@@ -44,28 +38,28 @@ export const messageActions = {
 	},
 	pin: {
 		label: () => "Pin",
-		icon: PushPin,
+		icon: IconPin,
 		moderation: true,
 		enabled: (message) => !message.deleted && message.actionable && !message.pinned,
 		run: (message) => message.channel.chat.pin(message.id),
 	},
 	delete: {
 		label: () => "Delete",
-		icon: Trash,
+		icon: IconDelete,
 		moderation: true,
 		enabled: (message) => !message.deleted && message.actionable,
 		run: (message) => message.delete(),
 	},
 	timeout: {
 		label: () => `Timeout (${timeoutLabel()})`,
-		icon: Clock,
+		icon: IconTimeout,
 		moderation: true,
 		enabled: (message) => message.actionable,
 		run: (message) => message.viewer.timeout({ duration: timeoutDuration() }),
 	},
 	ban: {
 		label: () => "Ban",
-		icon: Gavel,
+		icon: IconBan,
 		moderation: true,
 		enabled: (message) => message.actionable,
 		run: (message) => message.viewer.ban(),

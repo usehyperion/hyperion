@@ -34,13 +34,11 @@
 	import dayjs from "dayjs";
 	import type { Snippet } from "svelte";
 
-	import Eye from "~icons/ph/eye";
-	import EyeSlash from "~icons/ph/eye-slash";
-
 	import { app } from "#lib/app.svelte.js";
 	import { transformGql7tvEmote } from "#lib/emotes.js";
 	import { emoteQuery, execute7tvQuery } from "#lib/graphql/7tv.js";
 	import { clipQuery } from "#lib/graphql/twitch.js";
+	import { IconHidden, IconViews } from "#lib/icons.js";
 	import { log } from "#lib/log.js";
 
 	interface Props {
@@ -106,7 +104,7 @@
 						aria-label="Click to reveal unlisted emote"
 						onclick={() => (blurred = false)}
 					>
-						<EyeSlash class="size-5 text-muted-foreground" />
+						<IconHidden class="size-5 text-muted-foreground" />
 					</button>
 				{/if}
 			{/snippet}
@@ -181,7 +179,7 @@
 					<span class="text-border">&bullet;</span>
 
 					<span class="flex shrink-0 items-center gap-1">
-						<Eye />
+						<IconViews />
 						{clip.viewCount}
 					</span>
 

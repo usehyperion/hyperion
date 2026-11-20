@@ -1,8 +1,7 @@
 <script lang="ts">
-	import GameController from "~icons/ph/game-controller";
-	import Info from "~icons/ph/info";
-
 	import type { Stream } from "#lib/models/stream.svelte.js";
+
+	import { IconCategory, IconStreamInfo } from "#lib/icons.js";
 
 	import Button from "../ui/Button.svelte";
 	import Popover from "../ui/Popover.svelte";
@@ -24,7 +23,7 @@
 	popovertarget={id}
 	aria-label="Stream info"
 >
-	<Info class="size-3.5" />
+	<IconStreamInfo class="size-3.5" />
 </Button>
 
 <Popover
@@ -57,7 +56,7 @@
 				<p class="text-sm font-medium wrap-break-word">{stream.title}</p>
 
 				<div class="flex items-center gap-1 text-xs text-twitch dark:text-twitch-link">
-					<GameController class="shrink-0" />
+					<IconCategory class="shrink-0" />
 
 					{#if stream.game.slug}
 						<a

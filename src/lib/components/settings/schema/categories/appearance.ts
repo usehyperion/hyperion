@@ -1,14 +1,13 @@
-import Monitor from "~icons/ph/palette";
-
 import Custom from "#lib/components/settings/custom/theme/Custom.svelte";
 import Default from "#lib/components/settings/custom/theme/Default.svelte";
+import { IconAppearance } from "#lib/icons.js";
 
 import type { SettingsCategory } from "../types";
 
 export default {
 	order: 10,
 	label: "Appearance",
-	icon: Monitor,
+	icon: IconAppearance,
 	fields: [
 		{
 			id: "appearance.default",

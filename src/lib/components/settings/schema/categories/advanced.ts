@@ -1,6 +1,5 @@
-import Toolbox from "~icons/ph/toolbox";
-
 import Cache from "#lib/components/settings/custom/Cache.svelte";
+import { IconAdvanced } from "#lib/icons.js";
 import { LOG_LEVELS } from "#lib/log.js";
 
 import type { SettingsCategory } from "../types";
@@ -8,7 +7,7 @@ import type { SettingsCategory } from "../types";
 export default {
 	order: 9999,
 	label: "Advanced",
-	icon: Toolbox,
+	icon: IconAdvanced,
 	fields: [
 		{
 			type: "group",
