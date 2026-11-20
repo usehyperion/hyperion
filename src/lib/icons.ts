@@ -63,7 +63,7 @@ export { default as IconUptime } from "~icons/hugeicons/clock-01";
 export { default as IconViewers } from "~icons/hugeicons/user-group";
 
 // Messages and message actions
-export { default as IconBan } from "~icons/hugeicons/legal-hammer";
+export { default as IconBan } from "~icons/hugeicons/auction";
 export { default as IconCancelReply } from "~icons/hugeicons/cancel-circle";
 export { default as IconHidden } from "~icons/hugeicons/view-off-slash";
 export { default as IconPin } from "~icons/hugeicons/pin";
@@ -81,7 +81,7 @@ export { default as IconCancelPrediction } from "~icons/hugeicons/unavailable";
 export { default as IconCharity } from "~icons/hugeicons/hand-heart";
 export { default as IconEndPoll } from "~icons/hugeicons/stop";
 export { default as IconGiftSub } from "~icons/hugeicons/gift";
-export { default as IconLockPrediction } from "~icons/hugeicons/lock";
+export { default as IconLockPrediction } from "~icons/hugeicons/lock-keyhole";
 export { default as IconPoll } from "~icons/hugeicons/bar-chart-horizontal";
 export { default as IconPrediction } from "~icons/hugeicons/badge-question-mark";
 export { default as IconWatchStreak } from "~icons/hugeicons/fire";
