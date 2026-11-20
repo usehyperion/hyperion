@@ -82,11 +82,11 @@ export class Completer {
 		};
 
 		this.#emoteOptions = {
-			source: () =>
-				chat.channel.emotes
-					.values()
-					.toArray()
-					.concat(...(app.user?.ownEmotes ?? []), ...app.emotes.values()),
+			source: () => [
+				...(app.user?.ownEmotes ?? []),
+				...app.emotes.values(),
+				...chat.channel.emotes.values(),
+			],
 			comparee: (item) => item.displayName,
 			map: (item) => {
 				const sources = emoteSources(item);
@@ -203,9 +203,14 @@ export class Completer {
 			this.prefixed = true;
 			this.suggestions = this.#search(this.#viewerOptions);
 		} else if (tab) {
+			const emotes = this.#search(this.#emoteOptions, true);
+			const names = new Set(emotes.map((suggestion) => suggestion.value));
+
 			this.suggestions = [
-				...this.#search(this.#emoteOptions, true),
-				...this.#search(this.#viewerOptions, true),
+				...emotes,
+				...this.#search(this.#viewerOptions, true).filter(
+					(suggestion) => !names.has(suggestion.value),
+				),
 			];
 		}
 
@@ -239,9 +244,14 @@ export class Completer {
 		if (!query) return [];
 
 		const matches: Match<T>[] = [];
+		const seen = new Set<string>();
 
 		for (const item of options.source()) {
 			const name = options.comparee(item);
+
+			if (seen.has(name)) continue;
+			seen.add(name);
+
 			const lower = name.toLowerCase();
 
 			// Exact matches > prefixes > substrings
