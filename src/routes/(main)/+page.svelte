@@ -2,9 +2,6 @@
 	import { createHotkey, createHotkeys } from "@tanstack/svelte-hotkeys";
 	import { onMount } from "svelte";
 
-	import ChatDots from "~icons/ph/chat-dots";
-	import Spinner from "~icons/ph/spinner";
-
 	import type { SplitDirection } from "#lib/splits/types.js";
 
 	import { app } from "#lib/app.svelte.js";
@@ -12,6 +9,7 @@
 	import Button from "#lib/components/ui/Button.svelte";
 	import * as Empty from "#lib/components/ui/empty/index.js";
 	import { dialogs } from "#lib/dialog.js";
+	import { IconChat, IconLoading } from "#lib/icons.js";
 	import { createPane } from "#lib/splits/tree.js";
 
 	let loading = $state(true);
@@ -84,14 +82,14 @@
 		<SplitNode node={app.splits.root} />
 	{:else if loading}
 		<div class="flex size-full flex-col items-center justify-center">
-			<Spinner class="size-6 animate-spin" />
+			<IconLoading class="size-6 animate-spin" />
 			<span class="mt-2 text-lg font-medium">Loading</span>
 		</div>
 	{:else}
 		<Empty.Root class="h-full">
 			<Empty.Header>
 				<Empty.Media variant="icon">
-					<ChatDots />
+					<IconChat />
 				</Empty.Media>
 
 				<Empty.Title>No channel selected</Empty.Title>

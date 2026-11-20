@@ -1,12 +1,9 @@
 <script lang="ts">
-	import Clock from "~icons/ph/clock";
-	import PushPin from "~icons/ph/push-pin";
-	import PushPinSlash from "~icons/ph/push-pin-slash";
-
 	import type { Pin } from "#lib/models/pin.svelte.js";
 
 	import { everySecond } from "#lib/clock.js";
 	import { dialogs } from "#lib/dialog.js";
+	import { IconPin, IconPinDuration, IconUnpin } from "#lib/icons.js";
 	import { clamp } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
 
@@ -29,20 +26,20 @@
 
 <div class="relative p-2 text-sm">
 	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
-		<PushPin class="size-3" />
+		<IconPin class="size-3" />
 
 		<span>Pinned by <Username user={pin.pinner} /></span>
 
 		<div class="ml-auto flex items-center gap-0.5">
 			{#if pin.message.channel.isMod}
 				<NoticeAction
-					icon={Clock}
+					icon={IconPinDuration}
 					tooltip="Change duration"
 					command="show-modal"
 					commandfor={dialogs.pinDuration(pin.message.id)}
 				/>
 
-				<NoticeAction icon={PushPinSlash} tooltip="Unpin" onclick={() => pin.unpin()} />
+				<NoticeAction icon={IconUnpin} tooltip="Unpin" onclick={() => pin.unpin()} />
 			{/if}
 
 			{@render details(expanded, () => (expanded = !expanded))}

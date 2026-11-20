@@ -2,15 +2,10 @@
 	import { Avatar } from "bits-ui";
 	import dayjs from "dayjs";
 
-	import Cake from "~icons/ph/cake-fill";
-	import Heart from "~icons/ph/heart-fill";
-	import StarOutline from "~icons/ph/star";
-	import Star from "~icons/ph/star-fill";
-	import UserIcon from "~icons/ph/user-bold";
-
 	import type { Channel } from "#lib/models/channel.svelte.js";
 	import type { User } from "#lib/models/user.svelte.js";
 
+	import { IconAvatarFallback, IconCreated, IconFollowing, IconSubscriber } from "#lib/icons.js";
 	import { log } from "#lib/log.js";
 	import { MessageHistory } from "#lib/models/message-history.svelte.js";
 	import { deletedAppearance } from "#lib/settings.js";
@@ -111,14 +106,14 @@
 				<Avatar.Image src={user.avatarUrl} alt={user.displayName} />
 
 				<Avatar.Fallback>
-					<UserIcon class="size-10 text-primary-foreground" />
+					<IconAvatarFallback class="size-10 text-primary-foreground" />
 				</Avatar.Fallback>
 			</div>
 		</Avatar.Root>
 
 		<div class="absolute top-2 right-2 space-y-1 text-xs text-muted-foreground">
 			<div class="flex items-center gap-1">
-				<Cake class="mr-1 size-3" />
+				<IconCreated class="mr-1 size-3" />
 
 				{#if loading}
 					Loading...
@@ -132,7 +127,7 @@
 			</div>
 
 			<div class="flex items-center gap-1">
-				<Heart class="mr-1 size-3" />
+				<IconFollowing class="mr-1 size-3" />
 
 				{#if loading}
 					Loading...
@@ -146,11 +141,9 @@
 			</div>
 
 			<div class="flex items-center gap-1">
-				{#if !relationship?.subscription.tier}
-					<StarOutline class="mr-1 size-3" />
-				{:else}
-					<Star class="mr-1 size-3" />
-				{/if}
+				<IconSubscriber
+					class={["mr-1 size-3", relationship?.subscription.tier && "*:fill-current"]}
+				/>
 
 				{#if loading}
 					Loading...

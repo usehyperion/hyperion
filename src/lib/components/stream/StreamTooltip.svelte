@@ -1,14 +1,11 @@
 <script lang="ts">
 	import NumberFlow from "@number-flow/svelte";
 
-	import ClockCountdown from "~icons/ph/clock-countdown";
-	import PushPin from "~icons/ph/push-pin";
-	import Users from "~icons/ph/users-bold";
-
 	import type { Channel } from "#lib/models/channel.svelte.js";
 
 	import { app } from "#lib/app.svelte.js";
 	import { useSidebar } from "#lib/hooks/use-sidebar.svelte.js";
+	import { IconEphemeral, IconPin, IconViewers } from "#lib/icons.js";
 	import { createChannelMenu } from "#lib/menus/channel-menu.js";
 	import { openMenu } from "#lib/util/index.js";
 
@@ -44,11 +41,11 @@
 
 {#snippet indicators()}
 	{#if channel.pinned}
-		<PushPin />
+		<IconPin />
 	{/if}
 
 	{#if channel.ephemeral}
-		<ClockCountdown />
+		<IconEphemeral />
 	{/if}
 {/snippet}
 
@@ -71,7 +68,7 @@
 
 			{#if !sidebar.collapsed}
 				<div class="flex items-center text-red-500 dark:text-red-400">
-					<Users class="mr-1 size-3" />
+					<IconViewers class="mr-1 size-3" />
 
 					<p class="text-xs">
 						<NumberFlow class="tabular-nums" value={channel.stream.viewers} /> viewers

@@ -1,14 +1,16 @@
 import type { Component } from "svelte";
 
-import At from "~icons/ph/at";
-import Highlighter from "~icons/ph/highlighter";
-import Repeat from "~icons/ph/repeat";
-import ShieldWarning from "~icons/ph/shield-warning";
-import SketchLogo from "~icons/ph/sketch-logo";
-import Sparkle from "~icons/ph/sparkle";
-import Star from "~icons/ph/star-fill";
-import Sword from "~icons/ph/sword";
-import VideoCamera from "~icons/ph/video-camera";
+import {
+	IconBroadcaster,
+	IconFirstTimeChat,
+	IconKeywordHighlight,
+	IconMention,
+	IconModerator,
+	IconReturningChatter,
+	IconSubscriber,
+	IconSuspiciousUser,
+	IconVip,
+} from "#lib/icons.js";
 
 import type { Viewer } from "./models/viewer.svelte";
 
@@ -34,42 +36,42 @@ interface HighlightKind {
 export const HIGHLIGHTS = {
 	mention: {
 		label: "Mention",
-		icon: At,
+		icon: IconMention,
 		defaults: { enabled: true, color: "#adadb8", style: "background" },
 	},
 	new: {
 		label: "First Time Chat",
-		icon: Sparkle,
+		icon: IconFirstTimeChat,
 		defaults: { enabled: true, color: "#ff75e6", style: "default" },
 	},
 	returning: {
 		label: "Returning Chatter",
-		icon: Repeat,
+		icon: IconReturningChatter,
 		defaults: { enabled: true, color: "#00a3a3", style: "default" },
 	},
 	suspicious: {
 		label: "Suspicious User",
-		icon: ShieldWarning,
+		icon: IconSuspiciousUser,
 		defaults: { enabled: true, color: "#ff8280", style: "default" },
 	},
 	broadcaster: {
 		label: "Broadcaster",
-		icon: VideoCamera,
+		icon: IconBroadcaster,
 		defaults: { enabled: false, color: "#fc3430", style: "default" },
 	},
 	moderator: {
 		label: "Moderator",
-		icon: Sword,
+		icon: IconModerator,
 		defaults: { enabled: false, color: "#00a865", style: "default" },
 	},
 	subscriber: {
 		label: "Subscriber",
-		icon: Star,
+		icon: IconSubscriber,
 		defaults: { enabled: false, color: "#528bff", style: "default" },
 	},
 	vip: {
 		label: "VIP",
-		icon: SketchLogo,
+		icon: IconVip,
 		defaults: { enabled: false, color: "#db00b3", style: "default" },
 	},
 } as const satisfies Record<string, HighlightKind>;
@@ -78,7 +80,7 @@ export type HighlightType = keyof typeof HIGHLIGHTS;
 
 export const KEYWORD_HIGHLIGHT = {
 	label: "Custom",
-	icon: Highlighter,
+	icon: IconKeywordHighlight,
 	defaults: {
 		enabled: true,
 		color: "#ff0000",

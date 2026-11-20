@@ -1,9 +1,5 @@
 <script lang="ts">
-	import Confetti from "~icons/ph/confetti";
-	import Fire from "~icons/ph/fire";
-	import HandHeart from "~icons/ph/hand-heart";
-	import Megaphone from "~icons/ph/megaphone";
-
+	import { IconAnnouncement, IconBitsBadge, IconCharity, IconWatchStreak } from "#lib/icons.js";
 	import { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 	import Username from "../user/Username.svelte";
@@ -46,7 +42,7 @@
 			style:border-image-source="linear-gradient({stops[0]}, {stops[1]})"
 		>
 			<div class="flex items-center bg-muted px-2.5 py-1.5 text-xs font-medium">
-				<Megaphone class="mr-2 -scale-x-100" /> Announcement
+				<IconAnnouncement class="mr-2 -scale-x-100" /> Announcement
 			</div>
 
 			<div class="bg-muted/50 p-2">
@@ -59,7 +55,7 @@
 		<Callout color={message.source.user.color}>
 			{#if type === "bits_badge_tier"}
 				<div class="flex gap-1">
-					<Confetti class="mt-0.5 shrink-0" />
+					<IconBitsBadge class="mt-0.5 shrink-0" />
 
 					<p>
 						<Username user={message.author} />
@@ -72,7 +68,7 @@
 				{@const amount = message.event.donation_amount / 10 ** message.event.exponent}
 
 				<div class="flex gap-1">
-					<HandHeart class="mt-0.5 shrink-0" />
+					<IconCharity class="mt-0.5 shrink-0" />
 
 					<div class="flex flex-col gap-0.5">
 						<Username user={message.author} />
@@ -138,7 +134,7 @@
 				</p>
 			{:else if type === "watch_streak"}
 				<div class="flex gap-1">
-					<Fire class="mt-0.5 shrink-0" />
+					<IconWatchStreak class="mt-0.5 shrink-0" />
 
 					<p>
 						<Username user={message.author} />

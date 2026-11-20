@@ -1,12 +1,6 @@
 <script lang="ts">
 	import { cn } from "tailwind-variants";
 
-	import Broadcast from "~icons/ph/broadcast";
-	import CaretRight from "~icons/ph/caret-right";
-	import ClockCounterClockwise from "~icons/ph/clock-counter-clockwise";
-	import Spinner from "~icons/ph/spinner";
-	import X from "~icons/ph/x";
-
 	import type { ChannelSuggestion } from "#lib/graphql/twitch.js";
 	import type { Channel } from "#lib/models/channel.svelte.js";
 	import type { RecentSearch } from "#lib/stores.js";
@@ -14,6 +8,14 @@
 	import { app } from "#lib/app.svelte.js";
 	import { closeDialog, dialogs } from "#lib/dialog.js";
 	import { searchSuggestionsQuery } from "#lib/graphql/twitch.js";
+	import {
+		IconChannels,
+		IconClose,
+		IconJoin,
+		IconLoading,
+		IconRecent,
+		IconRemove,
+	} from "#lib/icons.js";
 	import { log } from "#lib/log.js";
 	import { storage } from "#lib/stores.js";
 	import { debounce } from "#lib/util/index.js";
@@ -214,7 +216,7 @@
 			/>
 
 			{#if searching || loading}
-				<Spinner class="size-5 shrink-0 animate-spin text-muted-foreground" />
+				<IconLoading class="size-5 shrink-0 animate-spin text-muted-foreground" />
 			{/if}
 
 			<button
@@ -223,7 +225,7 @@
 				aria-label="Close"
 				onclick={handleClose}
 			>
-				<X class="size-5" />
+				<IconClose class="size-5" />
 			</button>
 		</div>
 
@@ -254,10 +256,10 @@
 					class="flex items-center gap-2 px-3 pt-1 pb-2 text-xs font-medium text-muted-foreground"
 				>
 					{#if isSearch}
-						<Broadcast class="size-4" />
+						<IconChannels class="size-4" />
 						Channels
 					{:else}
-						<ClockCounterClockwise class="size-4" />
+						<IconRecent class="size-4" />
 						Recent searches
 					{/if}
 				</div>
@@ -302,7 +304,7 @@
 						</button>
 
 						{#if isSearch}
-							<CaretRight class="mr-3 size-4 shrink-0 text-muted-foreground" />
+							<IconJoin class="mr-3 size-4 shrink-0 text-muted-foreground" />
 						{:else}
 							<button
 								class="mr-1.5 flex size-10 shrink-0 items-center justify-center text-muted-foreground opacity-0 transition-[opacity,color,scale] group-hover:opacity-100 hover:text-foreground active:scale-[0.96]"
@@ -310,14 +312,14 @@
 								aria-label="Remove from recent searches"
 								onclick={(event) => removeRecent(event, item.id)}
 							>
-								<X class="size-4" />
+								<IconRemove class="size-4" />
 							</button>
 						{/if}
 					</div>
 				{/each}
 			{:else if searching}
 				<p class="flex items-center gap-2 px-3 py-8 text-sm text-muted-foreground">
-					<Spinner class="animate-spin" />
+					<IconLoading class="animate-spin" />
 					Searching&hellip;
 				</p>
 			{:else if isSearch}

@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { createDraggable, createDroppable } from "@dnd-kit/svelte";
 
-	import X from "~icons/ph/x";
-
 	import { app } from "#lib/app.svelte.js";
+	import { IconClose } from "#lib/icons.js";
 
 	interface Props {
 		id: string;
@@ -84,6 +83,6 @@
 		aria-label="Close tab"
 		onclick={close}
 	>
-		<X class="size-3" />
+		<IconClose class="size-3" />
 	</button>
 </div>

@@ -4,8 +4,7 @@
 	import { fly } from "svelte/transition";
 	import { VList } from "virtua/svelte";
 
-	import ArrowDown from "~icons/ph/arrow-down";
-
+	import { IconScrollToBottom } from "#lib/icons.js";
 	import { settings } from "#lib/settings.js";
 
 	interface Props {
@@ -130,7 +129,7 @@
 				onclick={scrollToEnd}
 				transition:fly={{ y: 16, duration: 200 }}
 			>
-				<ArrowDown class="size-4 shrink-0" />
+				<IconScrollToBottom class="size-4 shrink-0" />
 
 				<span
 					class="grid overflow-hidden transition-[grid-template-columns] duration-200 ease-out"

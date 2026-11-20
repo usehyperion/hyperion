@@ -1,10 +1,9 @@
 <script lang="ts">
-	import ArrowClockwise from "~icons/ph/arrow-clockwise";
-
 	import type { HighlightType } from "#lib/highlights.js";
 
 	import Button from "#lib/components/ui/Button.svelte";
 	import { HIGHLIGHTS } from "#lib/highlights.js";
+	import { IconReset } from "#lib/icons.js";
 	import { settings } from "#lib/settings.js";
 
 	import Row from "./Row.svelte";
@@ -48,7 +47,7 @@
 					disabled={isDefault(highlight.value)}
 					onclick={() => reset(highlight.value)}
 				>
-					<ArrowClockwise />
+					<IconReset />
 				</Button>
 			{/snippet}
 		</Row>

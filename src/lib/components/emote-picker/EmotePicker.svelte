@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { Tabs } from "bits-ui";
 
-	import Smiley from "~icons/ph/smiley";
-
 	import type { Emote, EmoteProvider, EmoteSet } from "#lib/emotes.js";
 	import type { Channel } from "#lib/models/channel.svelte.js";
 
 	import { app } from "#lib/app.svelte.js";
 	import { PROVIDER_ICONS, THIRD_PARTY_PROVIDERS, toProviderSets } from "#lib/emotes.js";
+	import { IconEmotes } from "#lib/icons.js";
 
 	import * as InputGroup from "../ui/input-group";
 	import Input from "../ui/Input.svelte";
@@ -88,7 +87,7 @@
 	disabled={channel.banned}
 	aria-label="Toggle emote picker"
 >
-	<Smiley />
+	<IconEmotes />
 </InputGroup.Button>
 
 <Popover id="emote-picker-{channel.id}" class="h-100 w-120 flex-col overflow-hidden p-0 open:flex">

@@ -1,10 +1,8 @@
 <script lang="ts">
-	import ChartBar from "~icons/ph/chart-bar";
-	import Stop from "~icons/ph/stop-fill";
-
 	import type { Poll } from "#lib/models/poll.svelte.js";
 
 	import { everySecond } from "#lib/clock.js";
+	import { IconEndPoll, IconPoll } from "#lib/icons.js";
 	import { percent } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
 
@@ -33,7 +31,7 @@
 
 <div class="p-2 text-sm">
 	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
-		<ChartBar class="size-3 shrink-0" />
+		<IconPoll class="size-3 shrink-0" />
 
 		<span class="truncate">
 			Poll {#if poll.creator}by <Username user={poll.creator} />{/if}
@@ -43,7 +41,7 @@
 
 		<div class="flex shrink-0 items-center gap-0.5">
 			{#if poll.active && poll.channel.isMod}
-				<NoticeAction icon={Stop} tooltip="End poll" onclick={() => poll.end()} />
+				<NoticeAction icon={IconEndPoll} tooltip="End poll" onclick={() => poll.end()} />
 			{/if}
 
 			{@render details(expanded, () => (expanded = !expanded))}

@@ -1,14 +1,10 @@
 <script lang="ts">
 	import { tick } from "svelte";
 
-	import ArrowsClockwise from "~icons/ph/arrows-clockwise";
-	import MagnifyingGlass from "~icons/ph/magnifying-glass";
-	import Users from "~icons/ph/users";
-	import X from "~icons/ph/x";
-
 	import type { Channel } from "#lib/models/channel.svelte.js";
 	import type { User } from "#lib/models/user.svelte.js";
 
+	import { IconClose, IconRefresh, IconSearch, IconViewers } from "#lib/icons.js";
 	import { log } from "#lib/log.js";
 	import {
 		CHATTER_ROLES,
@@ -110,7 +106,7 @@
 	aria-haspopup="dialog"
 	onclick={open}
 >
-	<Users class="size-3.5" />
+	<IconViewers class="size-3.5" />
 </Button>
 
 <Sheet
@@ -141,7 +137,7 @@
 				aria-label="Refresh viewer list"
 				onclick={() => list.refresh()}
 			>
-				<ArrowsClockwise class={["size-3.5", list.loading && "animate-spin"]} />
+				<IconRefresh class={["size-3.5", list.loading && "animate-spin"]} />
 			</Button>
 
 			<Button
@@ -151,13 +147,13 @@
 				variant="ghost"
 				aria-label="Close viewer list"
 			>
-				<X class="size-3.5" />
+				<IconClose class="size-3.5" />
 			</Button>
 		</div>
 
 		<InputGroup.Root>
 			<InputGroup.Addon>
-				<MagnifyingGlass />
+				<IconSearch />
 			</InputGroup.Addon>
 
 			<InputGroup.Input
@@ -215,7 +211,7 @@
 		<Empty.Root class="h-full">
 			<Empty.Header>
 				<Empty.Media variant="icon">
-					<Users />
+					<IconViewers />
 				</Empty.Media>
 
 				{#if query.trim()}

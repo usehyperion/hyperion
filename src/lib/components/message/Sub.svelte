@@ -1,7 +1,5 @@
 <script lang="ts">
 	import PrimeCrown from "~icons/local/prime-crown";
-	import Gift from "~icons/ph/gift";
-	import Star from "~icons/ph/star-fill";
 
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 	import type {
@@ -11,6 +9,8 @@
 		SubMysteryGiftEvent,
 		SubOrResubEvent,
 	} from "#lib/twitch/irc.js";
+
+	import { IconGiftSub, IconSubscriber } from "#lib/icons.js";
 
 	import Username from "../user/Username.svelte";
 	import Callout from "./Callout.svelte";
@@ -35,10 +35,10 @@
 			{#if sub.type === "sub_or_resub" && sub.sub_plan === "Prime"}
 				<PrimeCrown class="fill-current" />
 			{:else}
-				<Star class="mt-0.5 shrink-0" />
+				<IconSubscriber class="mt-0.5 shrink-0" />
 			{/if}
 		{:else}
-			<Gift class="mt-px shrink-0" />
+			<IconGiftSub class="mt-px shrink-0" />
 		{/if}
 
 		{#if sub.type === "sub_or_resub"}

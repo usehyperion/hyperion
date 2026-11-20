@@ -1,14 +1,11 @@
 <script lang="ts">
 	import { createDroppable } from "@dnd-kit/svelte";
 
-	import SquareHalfBottom from "~icons/ph/square-half-bottom-fill";
-	import SquareHalf from "~icons/ph/square-half-fill";
-	import X from "~icons/ph/x";
-
 	import type { Pane } from "#lib/splits/types.js";
 
 	import { app } from "#lib/app.svelte.js";
 	import Button from "#lib/components/ui/Button.svelte";
+	import { IconClose, IconSplitDown, IconSplitRight } from "#lib/icons.js";
 
 	import GuestList from "../stream/GuestList.svelte";
 	import Tab from "./Tab.svelte";
@@ -67,7 +64,7 @@
 				app.splits.split(pane.id, "right");
 			}}
 		>
-			<SquareHalf />
+			<IconSplitRight />
 		</Button>
 
 		<Button
@@ -79,7 +76,7 @@
 				app.splits.split(pane.id, "down");
 			}}
 		>
-			<SquareHalfBottom />
+			<IconSplitDown />
 		</Button>
 
 		<Button
@@ -89,7 +86,7 @@
 			title="Close split"
 			onclick={() => app.closePane(pane.id)}
 		>
-			<X />
+			<IconClose />
 		</Button>
 	</div>
 </div>

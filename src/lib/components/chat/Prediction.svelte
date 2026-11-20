@@ -1,12 +1,13 @@
 <script lang="ts">
-	import Crown from "~icons/ph/crown-simple-fill";
-	import LockSimple from "~icons/ph/lock-simple";
-	import Prohibit from "~icons/ph/prohibit";
-	import SealQuestion from "~icons/ph/seal-question";
-
 	import type { Prediction } from "#lib/models/prediction.svelte.js";
 
 	import { everySecond } from "#lib/clock.js";
+	import {
+		IconCancelPrediction,
+		IconLockPrediction,
+		IconPrediction,
+		IconWinner,
+	} from "#lib/icons.js";
 	import { duelColor } from "#lib/models/prediction.svelte.js";
 	import { percent } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
@@ -75,7 +76,7 @@
 
 <div class="p-2 text-sm">
 	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
-		<SealQuestion class="size-3 shrink-0" />
+		<IconPrediction class="size-3 shrink-0" />
 
 		<span class="truncate">
 			Prediction {#if prediction.creator}by <Username user={prediction.creator} />{/if}
@@ -87,7 +88,7 @@
 			{#if prediction.channel.isMod}
 				{#if prediction.status === "ACTIVE"}
 					<NoticeAction
-						icon={LockSimple}
+						icon={IconLockPrediction}
 						tooltip="Lock prediction"
 						onclick={() => prediction.lock()}
 					/>
@@ -95,7 +96,7 @@
 
 				{#if prediction.open}
 					<NoticeAction
-						icon={Prohibit}
+						icon={IconCancelPrediction}
 						tooltip="Cancel prediction"
 						onclick={() => prediction.cancel()}
 					/>
@@ -123,7 +124,7 @@
 						<span class="truncate">{outcome.title}</span>
 
 						{#if won}
-							<Crown class="size-3 shrink-0 text-yellow-400" />
+							<IconWinner class="size-3 shrink-0 text-yellow-400" />
 						{/if}
 
 						<span
@@ -134,7 +135,7 @@
 
 						{#if prediction.channel.isMod && prediction.open}
 							<NoticeAction
-								icon={Crown}
+								icon={IconWinner}
 								tooltip="Resolve as winner"
 								onclick={() => prediction.resolve(outcome.id)}
 							/>
@@ -157,7 +158,7 @@
 							{outcome.title}
 
 							{#if won}
-								<Crown class="size-3 text-yellow-400" />
+								<IconWinner class="size-3 text-yellow-400" />
 							{/if}
 						</span>
 

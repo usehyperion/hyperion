@@ -1,9 +1,8 @@
 <script lang="ts">
-	import MagnifyingGlass from "~icons/ph/magnifying-glass";
-
 	import type { SettingsCategory } from "#lib/components/settings/schema/types.js";
 
 	import * as Empty from "#lib/components/ui/empty/index.js";
+	import { IconSearch } from "#lib/icons.js";
 
 	import FieldControl from "./FieldControl.svelte";
 
@@ -36,7 +35,7 @@
 		<Empty.Root class="border">
 			<Empty.Header>
 				<Empty.Media variant="icon">
-					<MagnifyingGlass />
+					<IconSearch />
 				</Empty.Media>
 
 				<Empty.Title>No settings found</Empty.Title>

@@ -54,7 +54,7 @@
 	},
 	"devDependencies": {
 		"@gql.tada/svelte-support": "^1.0.3",
-		"@iconify-json/ph": "^1.2.2",
+		"@iconify-json/hugeicons": "^1.2.36",
 		"@internationalized/date": "^3.12.4",
 		"@sveltejs/adapter-static": "^4.0.1",
 		"@sveltejs/kit": "^3.2.0",

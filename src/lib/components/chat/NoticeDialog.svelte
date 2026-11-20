@@ -9,8 +9,7 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 
-	import Plus from "~icons/ph/plus";
-	import X from "~icons/ph/x";
+	import { IconAdd, IconRemove } from "#lib/icons.js";
 
 	import Button from "../ui/Button.svelte";
 	import Dialog from "../ui/Dialog.svelte";
@@ -141,7 +140,7 @@
 						aria-label="Remove {noun}"
 						onclick={() => options.splice(index, 1)}
 					>
-						<X />
+						<IconRemove />
 					</Button>
 				{/if}
 			</div>
@@ -149,7 +148,7 @@
 
 		{#if options.length < maxOptions}
 			<Button class="self-start" size="sm" variant="ghost" onclick={() => options.push("")}>
-				<Plus />
+				<IconAdd />
 				Add {noun}
 			</Button>
 		{/if}

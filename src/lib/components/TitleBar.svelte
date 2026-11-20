@@ -6,15 +6,10 @@
 
 	import { resolve } from "$app/paths";
 
-	import Chats from "~icons/ph/chats";
-	import Download from "~icons/ph/download-simple";
-	import Gear from "~icons/ph/gear";
-	import MagnifyingGlass from "~icons/ph/magnifying-glass";
-	import Sidebar from "~icons/ph/sidebar";
-
 	import { app } from "#lib/app.svelte.js";
 	import { dialogs } from "#lib/dialog.js";
 	import { useSidebar } from "#lib/hooks/use-sidebar.svelte.js";
+	import { IconSearch, IconSettings, IconSidebar, IconUpdate, IconWhispers } from "#lib/icons.js";
 	import { updater } from "#lib/updater.svelte.js";
 	import { platform } from "#lib/util/index.js";
 
@@ -81,7 +76,7 @@
 				onclick={() => sidebar.toggle()}
 				aria-label="Toggle sidebar"
 			>
-				<Sidebar />
+				<IconSidebar />
 			</Button>
 
 			<button
@@ -89,7 +84,7 @@
 				command="show-modal"
 				commandfor={dialogs.join}
 			>
-				<MagnifyingGlass /> Search channels
+				<IconSearch /> Search channels
 			</button>
 
 			<JoinDialog />
@@ -101,7 +96,7 @@
 				variant="ghost"
 				aria-label={hasUnread ? "Go to whispers (unread)" : "Go to whispers"}
 			>
-				<Chats />
+				<IconWhispers />
 
 				{#if hasUnread}
 					<span class="pointer-events-none absolute top-0.5 right-0.5 flex size-1.5">
@@ -128,7 +123,7 @@
 							aria-label={label}
 							onclickwait={() => updater.restart()}
 						>
-							<Download />
+							<IconUpdate />
 						</Button>
 					{/snippet}
 
@@ -144,7 +139,7 @@
 				variant="ghost"
 				aria-label="Open settings"
 			>
-				<Gear />
+				<IconSettings />
 			</Button>
 		</div>
 

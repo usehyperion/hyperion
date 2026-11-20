@@ -1,8 +1,8 @@
 <script lang="ts">
-	import Users from "~icons/ph/users-bold";
-
 	import type { Channel } from "#lib/models/channel.svelte.js";
 	import type { Guest } from "#lib/models/stream.svelte.js";
+
+	import { IconViewers } from "#lib/icons.js";
 
 	import Avatar from "../ui/Avatar.svelte";
 	import Button from "../ui/Button.svelte";
@@ -81,7 +81,7 @@
 
 		{#if viewers != null}
 			<div class="flex items-center text-xs text-red-500 tabular-nums dark:text-red-400">
-				<Users class="mr-1" />
+				<IconViewers class="mr-1" />
 				{viewers}
 			</div>
 		{/if}
