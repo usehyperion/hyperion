@@ -14,6 +14,8 @@ import {
 
 import type { Viewer } from "./models/viewer.svelte";
 
+import { mentions } from "./util/index.js";
+
 export interface HighlightConfig {
 	enabled: boolean;
 	color: string;
@@ -102,9 +104,7 @@ export function defaultHighlights() {
 }
 
 export function highlightOf(text: string, viewer: Viewer, username: string | undefined) {
-	const hasMention = username && new RegExp(`@${RegExp.escape(username)}\\b`, "i").test(text);
-
-	if (hasMention) return "mention";
+	if (mentions(text, username)) return "mention";
 	if (viewer.new) return "new";
 	if (viewer.returning) return "returning";
 	if (viewer.broadcaster) return "broadcaster";

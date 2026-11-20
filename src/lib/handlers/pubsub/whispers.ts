@@ -1,6 +1,7 @@
 import { app } from "#lib/app.svelte.js";
 import { Badge } from "#lib/models/badge.js";
 import { Whisper } from "#lib/models/whisper.svelte.js";
+import { notifyWhisper } from "#lib/notifications.js";
 
 import { defineHandler } from "../helper";
 
@@ -35,19 +36,22 @@ export default defineHandler("pubsub", {
 			() => new Whisper(app.twitch, data.thread_id, other),
 		);
 
-		whisper.add(
-			{
-				id: data.message_id,
-				createdAt: new Date(data.sent_ts * 1000),
-				badges: data.tags.badges
-					.map((badge) => app.badges.get(Badge.key(badge.id, badge.version)))
-					.filter((badge) => badge != null),
-				user: incoming ? other : user,
-				text: data.body,
-			},
-			data.id,
-		);
+		const message = {
+			id: data.message_id,
+			createdAt: new Date(data.sent_ts * 1000),
+			badges: data.tags.badges
+				.map((badge) => app.badges.get(Badge.key(badge.id, badge.version)))
+				.filter((badge) => badge != null),
+			user: incoming ? other : user,
+			text: data.body,
+		};
 
-		if (incoming) whisper.unread++;
+		whisper.add(message, data.id);
+
+		if (incoming) {
+			whisper.unread++;
+
+			void notifyWhisper(whisper, message);
+		}
 	},
 });
