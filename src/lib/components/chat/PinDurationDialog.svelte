@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Pin } from "#lib/models/pin.svelte.js";
 
-	import { dialogs } from "#lib/dialog.js";
+	import { closeDialog, dialogs } from "#lib/dialog.js";
 	import { clamp } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
 
@@ -21,15 +21,28 @@
 	const { pin }: Props = $props();
 	const id = $props.id();
 
+	let error = $state<string | null>(null);
+
 	let mode = $derived(pin.duration === null ? "stream" : "duration");
 	let duration = $derived(clamp(MIN_DURATION, pin.duration ?? 1200, MAX_DURATION));
 
+	const dialogId = $derived(dialogs.pinDuration(pin.message.id));
+
 	async function save() {
-		await pin.update(mode === "stream" ? null : duration);
+		error = null;
+
+		try {
+			await pin.update(mode === "stream" ? null : duration);
+		} catch (err) {
+			error = err instanceof Error ? err.message : "An unknown error occurred.";
+			return;
+		}
+
+		closeDialog(dialogId);
 	}
 </script>
 
-<Dialog id={dialogs.pinDuration(pin.message.id)}>
+<Dialog id={dialogId} onclose={() => (error = null)}>
 	{#snippet header()}
 		<h2>Pin duration</h2>
 		<p>Choose how long this message stays pinned</p>
@@ -58,6 +71,10 @@
 			<Field.Label class="font-normal" for="s-{id}">Until the stream ends</Field.Label>
 		</Field.Field>
 	</RadioGroup.Root>
+
+	{#if error}
+		<p class="text-sm text-destructive">{error}</p>
+	{/if}
 
 	{#snippet footer()}
 		<Button onclickwait={save}>Save</Button>

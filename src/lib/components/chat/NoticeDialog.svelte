@@ -9,6 +9,7 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 
+	import { closeDialog } from "#lib/dialog.js";
 	import { IconAdd, IconRemove } from "#lib/icons.js";
 
 	import Button from "../ui/Button.svelte";
@@ -70,6 +71,7 @@
 	let title = $state("");
 	let options = $state(["", ""]);
 	let duration = $state(DEFAULT_DURATION);
+	let error = $state<string | null>(null);
 
 	const label = $derived(noun[0].toUpperCase() + noun.slice(1));
 	const validOptions = $derived(options.map((o) => o.trim()).filter(Boolean));
@@ -99,17 +101,25 @@
 	async function start() {
 		if (!canSubmit) return;
 
-		await onstart({
-			title: title.trim(),
-			options: validOptions,
-			duration,
-		});
+		error = null;
+
+		try {
+			await onstart({
+				title: title.trim(),
+				options: validOptions,
+				duration,
+			});
+		} catch (err) {
+			error = err instanceof Error ? err.message : "An unknown error occurred.";
+			return;
+		}
 
 		reset();
+		closeDialog(dialogId);
 	}
 </script>
 
-<Dialog id={dialogId}>
+<Dialog id={dialogId} onclose={() => (error = null)}>
 	{#snippet header()}
 		<h2>{heading}</h2>
 		<p>{description}</p>
@@ -161,6 +171,10 @@
 	</Field.Field>
 
 	{@render children?.()}
+
+	{#if error}
+		<p class="text-sm text-destructive">{error}</p>
+	{/if}
 
 	{#snippet footer()}
 		<Button disabled={!canSubmit} onclickwait={start}>{submitLabel}</Button>
