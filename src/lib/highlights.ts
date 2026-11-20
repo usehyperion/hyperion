@@ -122,7 +122,7 @@ export function matchesKeyword(text: string, config: KeywordHighlightConfig) {
 	let pattern = config.regex ? config.pattern : RegExp.escape(config.pattern);
 
 	if (config.wholeWord) {
-		pattern = `\\b${pattern}\\b`;
+		pattern = `\\b(?:${pattern})\\b`;
 	}
 
 	try {
