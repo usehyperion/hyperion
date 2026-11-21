@@ -21,8 +21,8 @@
 	const { message }: Props = $props();
 
 	const customMatched = $derived(
-		settings.state["highlights.keywords"].find((config) =>
-			matchesKeyword(message.text, config),
+		settings.state["highlights.keywords"].find(
+			(config) => config.enabled && matchesKeyword(message.text, config),
 		),
 	);
 
@@ -61,7 +61,7 @@
 			<Highlight type={hlType!} info={getSuspicionInfo()} {config}>
 				{@render content(config.style !== "background")}
 			</Highlight>
-		{:else if customMatched?.enabled && message.author.id !== app.user?.id}
+		{:else if customMatched && message.author.id !== app.user?.id}
 			<Highlight type="custom" config={customMatched}>
 				{@render content(customMatched.style !== "background")}
 			</Highlight>
