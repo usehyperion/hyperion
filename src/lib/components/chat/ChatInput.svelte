@@ -16,6 +16,8 @@
 	import ChatReply from "./ChatReply.svelte";
 	import Restrictions from "./Restrictions.svelte";
 
+	const MODIFIER_KEYS = new Set(["Shift", "Control", "Alt", "Meta"]);
+
 	interface Props extends HTMLInputAttributes {
 		chat: Chat;
 	}
@@ -113,7 +115,7 @@
 					}
 				}
 			}
-		} else if (completer.suggestions.length) {
+		} else if (completer.suggestions.length && !MODIFIER_KEYS.has(event.key)) {
 			completer.reset();
 		}
 	};
