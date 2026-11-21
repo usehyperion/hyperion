@@ -24,15 +24,21 @@
 
 		const input = event.currentTarget;
 		const value = input.value.trim();
+		if (!value) return;
+
+		const whisper = data.whisper;
+		input.value = "";
 
 		try {
-			await data.whisper.send(value);
-
-			input.value = "";
+			await whisper.send(value);
 			sendError = null;
 		} catch (error) {
 			log.error("Failed to send whisper", error);
 			sendError = "Your whisper could not be sent.";
+
+			if (data.whisper === whisper && !input.value) {
+				input.value = value;
+			}
 		}
 	};
 </script>
