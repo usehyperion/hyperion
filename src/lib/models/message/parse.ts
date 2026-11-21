@@ -160,10 +160,7 @@ function classify(base: BaseNode, message: UserMessage, ircEmotes: IrcEmote[]): 
 		ircEmotes.splice(ircEmotes.indexOf(ircEmote), 1);
 
 		return {
-			start: ircEmote.range.start,
-			end: ircEmote.range.end,
-			value: ircEmote.code,
-			marked: base.marked,
+			...base,
 			type: "emote",
 			data: {
 				emote: transformTwitchEmote(ircEmote.id, ircEmote.code),
