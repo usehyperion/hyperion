@@ -70,6 +70,16 @@
 		}
 	});
 
+	export function scrollToIndex(index: number) {
+		if (!scrollingPaused) {
+			lastSeen = data.at(-1);
+			countSnapshot = data.length;
+			scrollingPaused = true;
+		}
+
+		list?.scrollToIndex(index, { align: "center" });
+	}
+
 	function scrollToEnd() {
 		list?.scrollToIndex(data.length - 1, { align: "end" });
 	}

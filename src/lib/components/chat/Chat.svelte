@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { untrack } from "svelte";
+
 	import type { Chat } from "#lib/models/chat.svelte.js";
 	import type { Message } from "#lib/models/message/message.svelte.js";
 
@@ -18,6 +20,20 @@
 	const { chat }: Props = $props();
 
 	let lastRead = $state<Message | null>(null);
+	let scroller = $state<ReturnType<typeof ReverseScroll>>();
+
+	$effect(() => {
+		const target = chat.jumpTarget;
+		if (!target) return;
+
+		untrack(() => {
+			const index = chat.messages.findIndex((message) => message.id === target.id);
+
+			if (index !== -1) {
+				scroller?.scrollToIndex(index);
+			}
+		});
+	});
 </script>
 
 <svelte:window
@@ -31,7 +47,12 @@
 	}}
 />
 
-<ReverseScroll class="text-sm" data={chat.messages} getKey={(message) => message.id}>
+<ReverseScroll
+	class="text-sm"
+	data={chat.messages}
+	getKey={(message) => message.id}
+	bind:this={scroller}
+>
 	{#snippet children(message, i)}
 		{@const prev = chat.messages[i - 1]}
 		{@const isNewDay =

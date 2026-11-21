@@ -27,6 +27,7 @@
 	);
 
 	const hlType = $derived(highlightOf(message.text, message.viewer, app.user?.username));
+	const jumpedTo = $derived(message.channel.chat.jumpTarget?.id === message.id);
 
 	function getSuspicionInfo() {
 		if (!message.viewer.suspicious) return;
@@ -39,7 +40,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="group relative"
+	class={["group relative", jumpedTo ? "bg-twitch/20" : "transition-colors duration-500"]}
 	aria-disabled={message.deleted}
 	data-deleted={deletedAppearance(message)}
 	oncontextmenu={(event) => openMenu(event, () => createMessageMenu(message))}
@@ -78,7 +79,16 @@
 		{#if message.reply}
 			{@const viewer = message.channel.viewers.get(message.reply.parent.user.id)}
 
-			<div class="mb-0.5 flex items-center gap-2">
+			{@const parentId = message.reply.parent.message_id}
+			{@const inChat = message.channel.chat.has(parentId)}
+
+			<button
+				class="group/reply mb-0.5 flex w-full items-center gap-2 text-left enabled:cursor-pointer"
+				type="button"
+				title={inChat ? "Jump to message" : undefined}
+				disabled={!inChat}
+				onclick={() => message.channel.chat.jumpTo(parentId)}
+			>
 				<IconRepliedTo class="ml-1 shrink-0 scale-x-125 text-muted-foreground" />
 
 				<div class="line-clamp-1 text-xs">
@@ -86,11 +96,13 @@
 						@{message.reply.parent.user.name}
 					</span>:
 
-					<p class="inline text-muted-foreground">
+					<p
+						class="inline text-muted-foreground transition-colors group-enabled/reply:group-hover/reply:text-foreground"
+					>
 						{message.reply.parent.message_text}
 					</p>
 				</div>
-			</div>
+			</button>
 		{/if}
 
 		<Message {message} />

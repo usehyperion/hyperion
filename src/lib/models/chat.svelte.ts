@@ -89,7 +89,14 @@ export class Chat {
 	 */
 	public replyTarget = $state<UserMessage | null>(null);
 
+	/**
+	 * The message last jumped to with {@linkcode jumpTo}, cleared shortly
+	 * after.
+	 */
+	public jumpTarget = $state.raw<{ id: string } | null>(null);
+
 	#ids = new Set<string>();
+	#jumpTimeout: ReturnType<typeof setTimeout> | undefined;
 
 	#bypassNext = false;
 
@@ -130,6 +137,30 @@ export class Chat {
 		}
 
 		return this;
+	}
+
+	/**
+	 * Whether a message with the given id is in the chat.
+	 */
+	public has(id: string) {
+		return this.#ids.has(id);
+	}
+
+	/**
+	 * Scrolls to and briefly highlights the message with the given id if it's
+	 * in the chat.
+	 */
+	public jumpTo(id: string) {
+		if (!this.#ids.has(id)) return false;
+
+		clearTimeout(this.#jumpTimeout);
+
+		// This uses an object instead of a string so that Svelte will update
+		// the value even if the same id is jumped to again.
+		this.jumpTarget = { id };
+		this.#jumpTimeout = setTimeout(() => (this.jumpTarget = null), 1500);
+
+		return true;
 	}
 
 	public repost(message: Message) {
@@ -184,6 +215,7 @@ export class Chat {
 		this.#lastSent = null;
 		this.#lastRecentAt = null;
 		this.replyTarget = null;
+		this.jumpTarget = null;
 		this.messages = [];
 		this.history = [];
 
