@@ -24,7 +24,7 @@
 <!-- Width and height only size the avatar when the class doesn't. -->
 <Avatar
 	class={cn(
-		"relative inline-flex h-[var(--avatar-height,auto)] w-[var(--avatar-width,auto)] shrink-0 items-center justify-center overflow-hidden rounded-full object-cover ring-1 ring-line not-data-[loading-status=loaded]:bg-surface-2",
+		"relative inline-flex h-(--avatar-height,auto) w-(--avatar-width,auto) shrink-0 items-center justify-center overflow-hidden rounded-full object-cover ring-1 ring-line not-data-[loading-status=loaded]:bg-surface-2",
 		className,
 	)}
 	style={size}

@@ -78,9 +78,9 @@
 				<DialogTitle class="text-sm font-semibold">{title}</DialogTitle>
 
 				{#if description}
-					<DialogDescription class="text-xs text-fg-muted"
-						>{description}</DialogDescription
-					>
+					<DialogDescription class="text-xs text-fg-muted">
+						{description}
+					</DialogDescription>
 				{/if}
 			</header>
 		{/if}

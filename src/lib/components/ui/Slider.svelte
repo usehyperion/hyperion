@@ -114,7 +114,7 @@
 			<SliderThumb
 				class={cn(
 					"top-1/2 size-3 -translate-1/2 rounded-full bg-fg shadow-raised transition-[scale] duration-100",
-					"outline-0 outline-offset-1 outline-focus outline-solid has-[:focus-visible]:outline-[1.5px]",
+					"outline-0 outline-offset-1 outline-focus outline-solid has-focus-visible:outline-[1.5px]",
 					"data-dragging:scale-110",
 				)}
 				aria-label={label}
