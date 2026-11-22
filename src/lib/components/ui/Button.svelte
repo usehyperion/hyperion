@@ -59,38 +59,38 @@
 </script>
 
 <script lang="ts">
-	import { Button, type ButtonOptions } from "@ui-sdk/svelte/button";
+	import { type ButtonActionDetails, Button, type ButtonOptions } from "@ui-sdk/svelte/button";
 	import type { HTMLButtonAttributes } from "svelte/elements";
+
+	import type { WithElementRef } from "#lib/util/index.js";
 
 	import { cn } from "#lib/util/styles.js";
 
-	type Props = Omit<HTMLButtonAttributes, "onclick" | "type"> &
-		ButtonOptions & {
-			variant?: ButtonVariant;
-			size?: ButtonSize;
-			ref?: HTMLButtonElement | null;
-			onclick?: (event: MouseEvent) => unknown;
-			onclickwait?: (event: MouseEvent) => Promise<unknown>;
-		};
+	interface Props
+		extends Omit<HTMLButtonAttributes, "type" | "disabled" | "onclick">, ButtonOptions {
+		variant?: ButtonVariant;
+		size?: ButtonSize;
+		onclick?: (event: MouseEvent, details: ButtonActionDetails) => unknown;
+	}
 
 	let {
 		class: className,
 		variant = "default",
 		size = "default",
 		ref = $bindable(null),
-		onclick,
-		onclickwait,
 		children,
 		...rest
-	}: Props = $props();
+	}: WithElementRef<Props, HTMLButtonElement> = $props();
 </script>
 
 <Button
-	class={cn(buttonVariants({ variant, size: variant === "inline" ? "none" : size }), className)}
-	onclick={(event: MouseEvent) => {
-		const result = onclick?.(event);
-		return onclickwait ? onclickwait(event) : result;
-	}}
+	class={cn(
+		buttonVariants({
+			variant,
+			size: variant === "inline" ? "none" : size,
+		}),
+		className,
+	)}
 	{...rest}
 >
 	{#snippet render({ props })}

@@ -27,7 +27,7 @@
 		Clear selection
 	</Button>
 
-	<Button size="sm" variant="outline" onclickwait={loadThemes}>Reload themes</Button>
+	<Button size="sm" variant="outline" onclick={loadThemes}>Reload themes</Button>
 </div>
 
 {#if themes.size}

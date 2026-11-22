@@ -34,7 +34,7 @@
 		<Button
 			class="text-fg-muted"
 			variant="ghost"
-			onclickwait={async () => {
+			onclick={async () => {
 				closeDialog(dialogs.settings);
 				await app.logOut();
 			}}

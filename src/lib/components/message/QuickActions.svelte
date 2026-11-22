@@ -60,7 +60,7 @@
 				aria-label={config.label()}
 				disabled={!config.enabled(message)}
 				{...props}
-				onclickwait={() => runAction(message, config)}
+				onclick={() => runAction(message, config)}
 			>
 				<config.icon />
 			</Button>

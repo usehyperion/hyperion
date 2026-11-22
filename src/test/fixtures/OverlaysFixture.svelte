@@ -61,11 +61,7 @@
 
 <Tooltip>
 	{#snippet trigger(props)}
-		<Button
-			{...props}
-			aria-label="Restart"
-			onclickwait={() => onrestart?.() ?? Promise.resolve()}
-		>
+		<Button {...props} aria-label="Restart" onclick={() => onrestart?.() ?? Promise.resolve()}>
 			R
 		</Button>
 	{/snippet}

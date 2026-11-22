@@ -79,6 +79,6 @@
 	{/if}
 
 	{#snippet footer()}
-		<Button size="sm" onclickwait={save}>Save</Button>
+		<Button size="sm" onclick={save}>Save</Button>
 	{/snippet}
 </Dialog>

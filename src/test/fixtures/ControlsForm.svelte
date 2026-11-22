@@ -44,7 +44,7 @@
 	</InputGroup.Addon>
 </InputGroup.Root>
 
-<Button onclickwait={onsave}>Save</Button>
+<Button onclick={onsave}>Save</Button>
 <Link href="https://example.com" disabled>Docs</Link>
 
 <output data-testid="state">{JSON.stringify({ name, notes, points, search })}</output>

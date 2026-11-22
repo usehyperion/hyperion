@@ -179,6 +179,6 @@
 	{/if}
 
 	{#snippet footer()}
-		<Button size="sm" disabled={!canSubmit} onclickwait={start}>{submitLabel}</Button>
+		<Button size="sm" disabled={!canSubmit} onclick={start}>{submitLabel}</Button>
 	{/snippet}
 </Dialog>

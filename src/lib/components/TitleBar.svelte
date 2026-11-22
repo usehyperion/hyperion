@@ -121,7 +121,7 @@
 							size="icon"
 							variant="ghost"
 							aria-label={label}
-							onclickwait={() => updater.restart()}
+							onclick={() => updater.restart()}
 						>
 							<IconUpdate />
 						</Button>
