@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
 
 	import type { WithElementRef } from "#lib/util/index.js";
+
+	import { cn } from "#lib/util/styles.js";
 
 	let {
 		ref = $bindable(null),
@@ -16,7 +17,7 @@
 	bind:this={ref}
 	data-slot="empty"
 	class={cn(
-		"flex min-w-0 flex-1 flex-col items-center justify-center gap-6 rounded-lg border-dashed p-6 text-center text-balance md:p-12",
+		"flex min-w-0 flex-1 flex-col items-center justify-center gap-4 rounded-panel border-dashed border-line p-6 text-center text-balance",
 		className,
 	)}
 	{...restProps}

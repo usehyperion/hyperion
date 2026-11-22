@@ -1,24 +1,38 @@
 <script lang="ts">
+	import { Textarea, type TextareaOptions, type TextControlProps } from "@ui-sdk/svelte/textarea";
 	import type { HTMLTextareaAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
 
-	import { type WithElementRef, type WithoutChildren } from "#lib/util/index.js";
+	import { cn } from "#lib/util/styles.js";
+
+	type Props = Omit<HTMLTextareaAttributes, "value" | "defaultValue" | "children"> &
+		TextControlProps &
+		Pick<TextareaOptions, "autoResize" | "submitShortcut" | "onSubmit"> & {
+			bare?: boolean;
+			ref?: HTMLTextAreaElement | null;
+		};
 
 	let {
-		ref = $bindable(null),
-		value = $bindable(),
 		class: className,
-		"data-slot": dataSlot = "textarea",
-		...restProps
-	}: WithoutChildren<WithElementRef<HTMLTextareaAttributes>> = $props();
+		bare = false,
+		value = $bindable(),
+		ref = $bindable(null),
+		...rest
+	}: Props = $props();
 </script>
 
-<textarea
-	bind:this={ref}
-	data-slot={dataSlot}
+<Textarea
 	class={cn(
-		"flex field-sizing-content min-h-16 w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+		bare
+			? "min-h-16 bg-transparent px-2 py-1.5 text-ui outline-none placeholder:text-fg-faint"
+			: "control-field h-auto min-h-16 w-full items-start py-1.5",
+		"resize-none selection:bg-fg/20",
 		className,
 	)}
+	autoResize
+	{...rest}
 	bind:value
-	{...restProps}></textarea>
+>
+	{#snippet render({ props })}
+		<textarea {...props} bind:this={ref}></textarea>
+	{/snippet}
+</Textarea>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
-	import { cn } from "tailwind-variants";
+
+	import { cn } from "#lib/util/styles.js";
 
 	interface Props {
 		children: Snippet;
@@ -12,7 +13,7 @@
 
 <div
 	class={cn(
-		"relative flex h-4 w-full items-center gap-2 px-2 text-muted-foreground",
+		"relative flex h-4 w-full items-center gap-2 px-2 text-fg-muted",
 		"before:mr-1 before:h-px before:min-w-0 before:flex-1 before:bg-current/80",
 		"after:ml-1 after:h-px after:min-w-0 after:flex-1 after:bg-current/80",
 		className,

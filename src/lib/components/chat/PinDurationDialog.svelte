@@ -42,12 +42,14 @@
 	}
 </script>
 
-<Dialog id={dialogId} onclose={() => (error = null)}>
-	{#snippet header()}
-		<h2>Pin duration</h2>
-		<p>Choose how long this message stays pinned</p>
-	{/snippet}
-
+<Dialog
+	id={dialogId}
+	title="Pin duration"
+	description="Choose how long this message stays pinned"
+	onOpenChange={(open) => {
+		if (!open) error = null;
+	}}
+>
 	<RadioGroup.Root bind:value={mode}>
 		<Field.Field class="mb-1" orientation="horizontal">
 			<RadioGroup.Item id="d-{id}" value="duration" />
@@ -73,10 +75,10 @@
 	</RadioGroup.Root>
 
 	{#if error}
-		<p class="text-sm text-destructive">{error}</p>
+		<p class="text-xs text-danger">{error}</p>
 	{/if}
 
 	{#snippet footer()}
-		<Button onclickwait={save}>Save</Button>
+		<Button size="sm" onclickwait={save}>Save</Button>
 	{/snippet}
 </Dialog>

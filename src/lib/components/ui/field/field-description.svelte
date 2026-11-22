@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { FieldDescription } from "@ui-sdk/svelte/field";
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
 
 	import type { WithElementRef } from "#lib/util/index.js";
+
+	import { cn } from "#lib/util/styles.js";
 
 	let {
 		ref = $bindable(null),
@@ -12,16 +14,15 @@
 	}: WithElementRef<HTMLAttributes<HTMLParagraphElement>> = $props();
 </script>
 
-<p
-	bind:this={ref}
-	data-slot="field-description"
+<FieldDescription
 	class={cn(
-		"text-sm leading-normal font-normal text-muted-foreground",
-		"last:mt-0 nth-last-2:-mt-1 [[data-variant=legend]+&]:-mt-1.5",
-		"[&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
+		"text-2xs leading-normal text-fg-muted data-disabled:opacity-50",
+		"[&>a]:underline [&>a]:underline-offset-2 [&>a:hover]:text-fg",
 		className,
 	)}
 	{...restProps}
 >
-	{@render children?.()}
-</p>
+	{#snippet render({ props })}
+		<p {...props} bind:this={ref}>{@render children?.()}</p>
+	{/snippet}
+</FieldDescription>

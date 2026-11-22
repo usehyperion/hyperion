@@ -22,12 +22,12 @@
 	const sidebar = useSidebar();
 </script>
 
-<Tooltip class="max-w-64" delay={0} side="right">
+<Tooltip class="max-w-64 px-2 py-1.5 text-xs" delay={0} side="right" sideOffset={4}>
 	{#snippet trigger(props)}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="relative flex cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-accent"
+			class="relative flex cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-surface-3"
 			{...props}
 			onclick={() => app.open(channel)}
 			oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}

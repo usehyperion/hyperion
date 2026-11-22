@@ -100,7 +100,7 @@
 
 		<div
 			class={[
-				"pointer-events-none absolute z-20 bg-primary/50 brightness-50 transition-[opacity,top,left,width,height] duration-75 ease-out",
+				"pointer-events-none absolute z-20 bg-fg/50 brightness-50 transition-[opacity,top,left,width,height] duration-75 ease-out",
 				overlayClass ? "opacity-100" : "opacity-0",
 				overlayClass ?? "inset-0",
 			]}

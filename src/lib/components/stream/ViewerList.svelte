@@ -1,4 +1,11 @@
 <script lang="ts">
+	import {
+		createDrawerController,
+		DrawerClose,
+		DrawerTitle,
+		DrawerTrigger,
+	} from "@ui-sdk/svelte/drawer";
+	import { createPopoverController } from "@ui-sdk/svelte/popover";
 	import { tick } from "svelte";
 
 	import type { Channel } from "#lib/models/channel.svelte.js";
@@ -39,7 +46,9 @@
 		viewer: "Viewers",
 	};
 
-	let sheet = $state<HTMLDialogElement | null>(null);
+	const sheet = createDrawerController();
+	const card = createPopoverController();
+
 	let search = $state<HTMLInputElement | null>(null);
 
 	let query = $state("");
@@ -48,9 +57,6 @@
 	let resolving = $state<string | null>(null);
 
 	const list = $derived(new ChatterList(channel));
-
-	const id = $derived(`viewer-list-${channel.id}`);
-	const cardId = $derived(`viewer-card-${channel.id}`);
 
 	const filtered = $derived.by(() => {
 		const needle = query.trim().toLowerCase();
@@ -72,13 +78,6 @@
 		});
 	});
 
-	function open() {
-		sheet?.showModal();
-		search?.focus();
-
-		void list.refresh();
-	}
-
 	async function select(chatter: Chatter, anchor: HTMLElement) {
 		if (resolving) return;
 
@@ -89,7 +88,7 @@
 			selected = { user: viewer.user, anchor };
 
 			await tick();
-			document.getElementById(cardId)?.showPopover();
+			void card.open({ anchor });
 		} catch (cause) {
 			log.error(`Failed to fetch user ${chatter.login}`, cause);
 		} finally {
@@ -98,33 +97,40 @@
 	}
 </script>
 
-<Button
-	class="size-8 rounded-none border-r text-muted-foreground hover:text-foreground"
-	size="icon-sm"
-	variant="ghost"
-	aria-label="Viewer list"
-	aria-haspopup="dialog"
-	onclick={open}
->
-	<IconViewers class="size-3.5" />
-</Button>
+<DrawerTrigger controller={sheet}>
+	{#snippet render({ props })}
+		<Button
+			{...props}
+			class="size-8 rounded-none border-r text-fg-muted hover:text-fg"
+			size="icon-sm"
+			variant="ghost"
+			aria-label="Viewer list"
+		>
+			<IconViewers class="size-3.5" />
+		</Button>
+	{/snippet}
+</DrawerTrigger>
 
 <Sheet
-	{id}
-	aria-label="Viewer list"
-	onclose={() => {
+	controller={sheet}
+	initialFocus={() => search}
+	onOpenChange={(open) => {
+		if (open) void list.refresh();
+	}}
+	onOpenChangeComplete={(open) => {
+		if (open) return;
+
 		query = "";
 		selected = null;
 	}}
-	bind:ref={sheet}
 >
 	{#snippet header()}
 		<div class="flex items-center gap-1">
 			<div class="mr-auto flex items-baseline gap-1.5">
-				<h2 class="text-sm font-semibold">Viewers</h2>
+				<DrawerTitle class="text-ui font-semibold">Viewers</DrawerTitle>
 
 				{#if list.count !== null}
-					<span class="text-xs text-muted-foreground tabular-nums">
+					<span class="text-2xs text-fg-muted tabular-nums">
 						{list.count.toLocaleString()} in chat
 					</span>
 				{/if}
@@ -140,15 +146,18 @@
 				<IconRefresh class={["size-3.5", list.loading && "animate-spin"]} />
 			</Button>
 
-			<Button
-				command="close"
-				commandfor={id}
-				size="icon-sm"
-				variant="ghost"
-				aria-label="Close viewer list"
-			>
-				<IconClose class="size-3.5" />
-			</Button>
+			<DrawerClose>
+				{#snippet render({ props })}
+					<Button
+						{...props}
+						size="icon-sm"
+						variant="ghost"
+						aria-label="Close viewer list"
+					>
+						<IconClose class="size-3.5" />
+					</Button>
+				{/snippet}
+			</DrawerClose>
 		</div>
 
 		<InputGroup.Root>
@@ -168,7 +177,7 @@
 		</InputGroup.Root>
 
 		{#if list.error}
-			<p class="text-xs text-destructive">
+			<p class="text-xs text-danger">
 				Couldn't load the full viewer list. Showing viewers seen in chat.
 			</p>
 		{/if}
@@ -178,7 +187,7 @@
 		{#each sections as section (section.role)}
 			<section class="pb-2">
 				<h3
-					class="sticky top-0 z-10 flex items-center justify-between bg-popover px-3 pt-3 pb-1 text-xs font-semibold text-muted-foreground uppercase"
+					class="sticky top-0 z-10 flex items-center justify-between bg-surface-1 px-3 pt-3 pb-1 section-label"
 				>
 					{section.label}
 					<span class="tabular-nums">{section.chatters.length.toLocaleString()}</span>
@@ -190,7 +199,7 @@
 
 						<li class="[contain-intrinsic-size:auto_1.75rem] [content-visibility:auto]">
 							<button
-								class="flex h-7 w-full min-w-0 items-center gap-1.5 rounded-md px-1.5 text-left text-sm transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none disabled:opacity-50"
+								class="flex h-7 w-full min-w-0 items-center gap-1.5 rounded-md px-1.5 text-left text-sm transition-colors hover:bg-surface-2 focus-visible:bg-surface-2 focus-visible:outline-none disabled:opacity-50"
 								disabled={resolving === chatter.login}
 								onclick={(event) => select(chatter, event.currentTarget)}
 							>
@@ -230,7 +239,7 @@
 
 		{#key current}
 			<UserCard
-				id={cardId}
+				controller={card}
 				user={current.user}
 				anchor={current.anchor}
 				{channel}

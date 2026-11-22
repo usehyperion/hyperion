@@ -45,7 +45,7 @@
 <div class="space-y-2">
 	<h1 class="text-4xl font-semibold">Hyperion</h1>
 
-	<p class="max-w-sm text-muted-foreground">Connect your Twitch account to start chatting.</p>
+	<p class="max-w-sm text-fg-muted">Connect your Twitch account to start chatting.</p>
 </div>
 
 <Button class="h-12" size="lg" onclickwait={() => handleLogIn()}>
@@ -54,5 +54,5 @@
 </Button>
 
 {#if error}
-	<p class="text-sm text-destructive">{error}</p>
+	<p class="text-sm text-danger">{error}</p>
 {/if}

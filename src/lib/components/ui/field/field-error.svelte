@@ -1,9 +1,11 @@
 <script lang="ts">
+	import { FieldError } from "@ui-sdk/svelte/field";
 	import type { Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
 
 	import type { WithElementRef } from "#lib/util/index.js";
+
+	import { cn } from "#lib/util/styles.js";
 
 	let {
 		ref = $bindable(null),
@@ -36,25 +38,23 @@
 </script>
 
 {#if hasContent}
-	<div
-		bind:this={ref}
-		role="alert"
-		data-slot="field-error"
-		class={cn("text-sm font-normal text-destructive", className)}
-		{...restProps}
-	>
-		{#if children}
-			{@render children()}
-		{:else if singleErrorMessage}
-			{singleErrorMessage}
-		{:else if isMultipleErrors}
-			<ul class="ms-4 flex list-disc flex-col gap-1">
-				{#each errors ?? [] as error, index (index)}
-					{#if error?.message}
-						<li>{error.message}</li>
-					{/if}
-				{/each}
-			</ul>
-		{/if}
-	</div>
+	<FieldError match class={cn("text-2xs text-danger", className)} {...restProps}>
+		{#snippet render({ props })}
+			<div {...props} bind:this={ref}>
+				{#if children}
+					{@render children()}
+				{:else if singleErrorMessage}
+					{singleErrorMessage}
+				{:else if isMultipleErrors}
+					<ul class="ms-4 flex list-disc flex-col gap-0.5">
+						{#each errors ?? [] as error, index (index)}
+							{#if error?.message}
+								<li>{error.message}</li>
+							{/if}
+						{/each}
+					</ul>
+				{/if}
+			</div>
+		{/snippet}
+	</FieldError>
 {/if}

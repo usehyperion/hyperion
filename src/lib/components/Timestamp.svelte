@@ -41,7 +41,7 @@
 
 {#if settings.state["chat.messages.timestamps.show"]}
 	<time
-		class="text-xs text-muted-foreground tabular-nums"
+		class="text-xs text-fg-muted tabular-nums"
 		title={date.toLocaleString(navigator.languages)}
 		datetime={date.toISOString()}
 	>

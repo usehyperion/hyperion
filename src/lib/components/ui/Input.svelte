@@ -1,13 +1,18 @@
 <script lang="ts">
+	import { Input, type TextControlProps } from "@ui-sdk/svelte/input";
 	import type { HTMLInputAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
 
-	import type { WithElementRef } from "#lib/util/index.js";
+	import { cn } from "#lib/util/styles.js";
 
-	type Props = WithElementRef<HTMLInputAttributes>;
+	type Props = Omit<HTMLInputAttributes, "value" | "defaultValue" | "children"> &
+		TextControlProps & {
+			bare?: boolean;
+			ref?: HTMLInputElement | null;
+		};
 
 	let {
 		class: className,
+		bare = false,
 		type = "text",
 		value = $bindable(),
 		ref = $bindable(null),
@@ -15,16 +20,19 @@
 	}: Props = $props();
 </script>
 
-<input
+<Input
 	class={cn(
-		"flex h-9 w-full min-w-0 rounded-lg border border-input bg-background px-3 py-1 text-sm shadow-xs ring-offset-background transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
-		"focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
-		"aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
+		bare
+			? "min-w-0 bg-transparent text-ui outline-none placeholder:text-fg-faint"
+			: "control-field w-full",
+		"selection:bg-fg/20",
 		className,
 	)}
 	{type}
-	data-component="input"
 	{...rest}
 	bind:value
-	bind:this={ref}
-/>
+>
+	{#snippet render({ props })}
+		<input {...props} bind:this={ref} />
+	{/snippet}
+</Input>

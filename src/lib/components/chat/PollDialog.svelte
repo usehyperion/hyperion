@@ -4,7 +4,7 @@
 	import { dialogs } from "#lib/dialog.js";
 
 	import * as Field from "../ui/field";
-	import Input from "../ui/Input.svelte";
+	import NumberInput from "../ui/NumberInput.svelte";
 	import Switch from "../ui/Switch.svelte";
 	import NoticeDialog from "./NoticeDialog.svelte";
 
@@ -56,14 +56,12 @@
 
 	{#if pointsEnabled}
 		<Field.Field>
-			<Field.Label for="cost-{id}">Points per vote</Field.Label>
+			<Field.Label>Points per vote</Field.Label>
 
-			<Input
-				id="cost-{id}"
-				type="number"
+			<NumberInput
 				min={1}
 				max={POINTS_MAX}
-				bind:value={pointsPerVote}
+				bind:value={() => pointsPerVote, (value) => (pointsPerVote = value ?? 1)}
 			/>
 		</Field.Field>
 	{/if}

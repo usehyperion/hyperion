@@ -1,41 +1,57 @@
 <script lang="ts">
-	import { Checkbox } from "bits-ui";
-	import type { WithoutChildrenOrChild } from "bits-ui";
-	import { cn } from "tailwind-variants";
+	import { Checkbox, CheckboxIndicator, type CheckedState } from "@ui-sdk/svelte/checkbox";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
 	import { IconChecked, IconIndeterminate } from "#lib/icons.js";
+	import { cn } from "#lib/util/styles.js";
+
+	interface Props extends Omit<
+		HTMLButtonAttributes,
+		"children" | "disabled" | "name" | "value" | "form"
+	> {
+		disabled?: boolean;
+		readOnly?: boolean;
+		required?: boolean;
+		name?: string;
+		value?: string;
+		form?: string;
+		checked?: boolean;
+		indeterminate?: boolean;
+	}
 
 	let {
 		class: className,
 		checked = $bindable(false),
 		indeterminate = $bindable(false),
-		ref = $bindable(null),
 		...rest
-	}: WithoutChildrenOrChild<Checkbox.RootProps> = $props();
+	}: Props = $props();
+
+	function setChecked(next: CheckedState) {
+		indeterminate = next === "indeterminate";
+		checked = next === true;
+	}
 </script>
 
-<Checkbox.Root
+<Checkbox
 	class={cn(
-		"peer flex size-4 shrink-0 items-center justify-center rounded-sm border border-input shadow-xs transition-shadow outline-none",
-		"focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
-		"aria-invalid:border-destructive aria-invalid:ring-destructive/20",
-		"data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
-		"dark:bg-input/30 dark:aria-invalid:ring-destructive/40 dark:data-[state=checked]:bg-primary",
+		"peer inline-flex size-3.5 shrink-0 items-center justify-center rounded-[3px] border border-fg-faint bg-surface-2 text-fg-inverse control-focus transition-colors",
+		"hover:not-data-disabled:border-fg-muted",
+		"data-checked:border-fg data-checked:bg-fg data-indeterminate:border-fg data-indeterminate:bg-fg",
+		"aria-invalid:border-danger data-disabled:cursor-not-allowed data-disabled:opacity-50",
 		className,
 	)}
-	data-component="checkbox"
 	{...rest}
-	bind:checked
-	bind:indeterminate
-	bind:ref
+	bind:checked={() => (indeterminate ? "indeterminate" : checked), setChecked}
 >
-	{#snippet children({ checked, indeterminate })}
-		<div class="text-current transition-none" data-slot="checkbox-indicator">
-			{#if checked}
-				<IconChecked class="size-3.5" />
-			{:else if indeterminate}
-				<IconIndeterminate class="size-3.5" />
+	<CheckboxIndicator
+		class="flex transition-[opacity,scale] duration-100 data-ending-style:scale-75 data-ending-style:opacity-0 data-starting-style:scale-75 data-starting-style:opacity-0"
+	>
+		{#snippet children(state)}
+			{#if state.indeterminate}
+				<IconIndeterminate class="size-3" aria-hidden="true" />
+			{:else}
+				<IconChecked class="size-3" aria-hidden="true" />
 			{/if}
-		</div>
-	{/snippet}
-</Checkbox.Root>
+		{/snippet}
+	</CheckboxIndicator>
+</Checkbox>

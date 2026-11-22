@@ -1,9 +1,10 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
 
 	import type { WithElementRef } from "#lib/util/index.js";
+
+	import { cn } from "#lib/util/styles.js";
 
 	let {
 		ref = $bindable(null),
@@ -17,7 +18,7 @@
 	const mergedProps = $derived({
 		...restProps,
 		class: cn(
-			"bg-muted shadow-xs flex items-center gap-2 rounded-md border px-4 text-sm font-medium [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none",
+			"flex items-center gap-1.5 rounded-control border border-line bg-surface-2 px-2 text-2xs font-medium text-fg-muted [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-3.5",
 			className,
 		),
 	});

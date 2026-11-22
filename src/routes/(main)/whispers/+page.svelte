@@ -30,7 +30,7 @@
 				<h1 class="text-lg font-semibold">Whispers</h1>
 
 				{#if unread}
-					<span class="text-sm text-muted-foreground tabular-nums">{unread} unread</span>
+					<span class="text-sm text-fg-muted tabular-nums">{unread} unread</span>
 				{/if}
 			</header>
 
@@ -41,19 +41,19 @@
 
 					<li>
 						<a
-							class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-2 focus-visible:-outline-offset-2"
+							class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-2/60 focus-visible:bg-surface-2/60 focus-visible:outline-2 focus-visible:-outline-offset-2"
 							href={resolve("/(main)/whispers/[id]", { id })}
 						>
 							{#if sender.avatarUrl}
 								<Avatar
-									class="size-10 shrink-0 bg-muted"
+									class="size-10 shrink-0 bg-surface-2"
 									src={sender.avatarUrl}
 									alt=""
 									width="40"
 									height="40"
 								/>
 							{:else}
-								<div class="size-10 shrink-0 rounded-full bg-muted"></div>
+								<div class="size-10 shrink-0 rounded-full bg-surface-2"></div>
 							{/if}
 
 							<div class="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -65,9 +65,7 @@
 									<time
 										class={[
 											"ml-auto shrink-0 text-xs tabular-nums",
-											whisper.unread
-												? "text-foreground"
-												: "text-muted-foreground",
+											whisper.unread ? "text-fg" : "text-fg-muted",
 										]}
 										datetime={message.createdAt.toISOString()}
 									>
@@ -80,14 +78,12 @@
 										class={[
 											"truncate text-sm",
 											whisper.unread
-												? "font-medium text-foreground"
-												: "text-muted-foreground",
+												? "font-medium text-fg"
+												: "text-fg-muted",
 										]}
 									>
 										{#if message.user.id === app.user?.id}
-											<span class="font-normal text-muted-foreground">
-												You:
-											</span>
+											<span class="font-normal text-fg-muted"> You: </span>
 										{/if}
 
 										{message.text}

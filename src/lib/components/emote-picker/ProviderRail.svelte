@@ -16,10 +16,7 @@
 	{#each sets as set (set.id)}
 		<button class="group" type="button" onclick={() => onselect(set.id)}>
 			<Avatar
-				class={[
-					"size-7 object-contain",
-					activeId === set.id && "outline-1 outline-primary",
-				]}
+				class={["size-7 object-contain", activeId === set.id && "outline-1 outline-fg"]}
 				src={set.owner.avatarUrl}
 				alt={set.owner.displayName}
 				decoding="async"

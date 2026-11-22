@@ -12,7 +12,7 @@
 <div class="mt-2">
 	<!-- The height is fixed so messages don't shift around as GIFs load in. -->
 	<img
-		class="h-40 w-auto max-w-100 rounded-lg border bg-card object-contain"
+		class="h-40 w-auto max-w-100 rounded-lg border bg-surface-1 object-contain"
 		src={gif.url}
 		{alt}
 		title={alt}

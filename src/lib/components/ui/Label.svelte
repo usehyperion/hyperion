@@ -1,16 +1,35 @@
 <script lang="ts">
-	import { Label } from "bits-ui";
-	import { cn } from "tailwind-variants";
+	import { Label } from "@ui-sdk/svelte/label";
+	import type { HTMLLabelAttributes } from "svelte/elements";
 
-	let { class: className, ref = $bindable(null), ...rest }: Label.RootProps = $props();
+	import { cn } from "#lib/util/styles.js";
+
+	interface Props extends HTMLLabelAttributes {
+		ref?: HTMLLabelElement | null;
+		"data-slot"?: string;
+	}
+
+	let {
+		class: className,
+		ref = $bindable(null),
+		"data-slot": dataSlot,
+		...rest
+	}: Props = $props();
 </script>
 
-<Label.Root
+<Label
 	class={cn(
-		"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+		"flex items-center gap-2 text-ui leading-snug font-medium text-fg select-none",
+		"peer-disabled:cursor-not-allowed peer-disabled:opacity-50 peer-data-disabled:cursor-not-allowed peer-data-disabled:opacity-50",
+		"group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50",
 		className,
 	)}
-	data-component="label"
 	{...rest}
-	bind:ref
-/>
+>
+	{#snippet render({ props, state, children })}
+		<!-- Wrappers like Field.Label restyle by their own slot, which ui-sdk would otherwise replace. -->
+		<label {...props} data-slot={dataSlot ?? props["data-slot"]} bind:this={ref}>
+			{@render children?.(state)}
+		</label>
+	{/snippet}
+</Label>

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
 
 	import type { WithElementRef } from "#lib/util/index.js";
 
 	import Separator from "#lib/components/ui/Separator.svelte";
+	import { cn } from "#lib/util/styles.js";
 
 	let {
 		ref = $bindable(null),
@@ -23,16 +23,13 @@
 	bind:this={ref}
 	data-slot="field-separator"
 	data-content={hasContent}
-	class={cn(
-		"relative -my-2 h-5 text-sm group-data-[variant=outline]/field-group:-mb-2",
-		className,
-	)}
+	class={cn("relative -my-1 h-5 text-2xs", className)}
 	{...restProps}
 >
 	<Separator class="absolute inset-0 top-1/2" />
 	{#if children}
 		<span
-			class="relative mx-auto block w-fit bg-background px-2 text-muted-foreground"
+			class="relative mx-auto block w-fit bg-surface-0 px-2 text-fg-muted"
 			data-slot="field-separator-content"
 		>
 			{@render children()}

@@ -17,7 +17,7 @@
 <div class="space-y-6">
 	<header class="flex items-center gap-3">
 		<div
-			class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"
+			class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-fg-muted"
 		>
 			<category.icon />
 		</div>
@@ -26,7 +26,7 @@
 			<h2 class="text-lg leading-tight font-semibold">{category.label}</h2>
 
 			{#if query}
-				<p class="text-sm text-muted-foreground">Matching "{query}"</p>
+				<p class="text-sm text-fg-muted">Matching "{query}"</p>
 			{/if}
 		</div>
 	</header>
@@ -46,7 +46,7 @@
 			</Empty.Header>
 		</Empty.Root>
 	{:else}
-		<div class="space-y-6 divide-y divide-border *:pb-6">
+		<div class="space-y-6 divide-y divide-line *:pb-6">
 			{#each category.fields as field, i (i)}
 				<FieldControl {field} />
 			{/each}

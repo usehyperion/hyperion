@@ -1,133 +1,59 @@
 <script lang="ts">
-	import { Slider } from "bits-ui";
-	import chroma from "chroma-js";
+	import {
+		ColorPicker,
+		ColorPickerArea,
+		ColorPickerAreaThumb,
+		ColorPickerInput,
+		ColorPickerSlider,
+		ColorPickerSliderThumb,
+	} from "@ui-sdk/svelte/color-picker";
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
 
-	import { clamp } from "#lib/util/math.js";
+	import { cn } from "#lib/util/styles.js";
 
-	import Input from "./Input.svelte";
-
-	interface Props extends HTMLAttributes<HTMLDivElement> {
-		value?: chroma.ChromaInput;
+	interface Props extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
+		value?: string;
+		disabled?: boolean;
+		readOnly?: boolean;
+		name?: string;
 	}
 
-	let { class: className, value = $bindable(), ...rest }: Props = $props();
+	let {
+		class: className,
+		value = $bindable("#ffffff"),
+		"aria-label": ariaLabel = "Color",
+		...rest
+	}: Props = $props();
 
-	const hsv = $derived(chroma(value ?? "#FFFFFF").hsv());
-
-	let h = $derived(Number.isNaN(hsv[0]) ? 0 : hsv[0]);
-	let s = $derived(hsv[1] * 100);
-	let v = $derived(hsv[2] * 100);
-
-	let well = $state<HTMLElement>();
-	let isDragging = $state(false);
-
-	const position = $derived({ x: s, y: 100 - v });
-	const hex = $derived(chroma.hsv(h, s / 100, v / 100).hex());
-
-	$effect(() => {
-		value = hex;
-	});
-
-	$effect(() => {
-		if (isDragging) {
-			addEventListener("pointermove", handlePointerMove);
-			addEventListener("pointerup", handlePointerUp);
-		}
-
-		return () => {
-			removeEventListener("pointermove", handlePointerMove);
-			removeEventListener("pointerup", handlePointerUp);
-		};
-	});
-
-	function handlePointerUp() {
-		isDragging = false;
-	}
-
-	function handlePointerMove(event: PointerEvent) {
-		if (!isDragging || !well) return;
-
-		const rect = well.getBoundingClientRect();
-
-		const x = clamp(0, event.clientX - rect.left, rect.width);
-		const y = clamp(0, event.clientY - rect.top, rect.height);
-
-		s = clamp(0, x / rect.width, 1) * 100;
-		v = clamp(0, (rect.height - y) / rect.height, 1) * 100;
-	}
-
-	function handleChange(event: Event & { currentTarget: HTMLInputElement }) {
-		if (!chroma.valid(event.currentTarget.value)) return;
-
-		const hsv = chroma(event.currentTarget.value).hsv();
-
-		h = Number.isNaN(hsv[0]) ? h : hsv[0];
-		s = hsv[1] * 100;
-		v = hsv[2] * 100;
-	}
+	const thumb = cn(
+		"absolute size-3 -translate-1/2 rounded-full border-2 border-white bg-(--color-picker-color) shadow-[0_0_0_1px_rgb(0_0_0/45%)]",
+		"outline-0 outline-offset-1 outline-focus outline-solid has-[:focus-visible]:outline-[1.5px] focus-visible:outline-[1.5px]",
+	);
 </script>
 
-<div class={cn("grid w-full gap-4", className)} data-component="color-picker" {...rest}>
-	<div
-		class="relative aspect-4/3 w-full cursor-crosshair rounded-md border border-muted"
-		role="group"
-		data-slot="color-picker-well"
-		onpointerdown={(event) => {
-			event.preventDefault();
-
-			isDragging = true;
-			handlePointerMove(event);
-		}}
-		style:--color-picker-well-hue={h}
-		bind:this={well}
+<ColorPicker
+	class={cn("grid w-full gap-2.5", className)}
+	format="hex"
+	aria-label={ariaLabel}
+	{...rest}
+	bind:value
+>
+	<ColorPickerArea
+		class="relative aspect-4/3 w-full cursor-crosshair touch-none rounded-control border border-line bg-(image:--color-area-background)"
 	>
-		<div
-			class="pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white"
-			style:top="{position.y}%"
-			style:left="{position.x}%"
-			style:box-shadow="0 0 0 2px rgb(0 0 0 / 50%)"
-		></div>
-	</div>
+		<ColorPickerAreaThumb class={thumb} />
+	</ColorPickerArea>
 
-	<Slider.Root
-		class="relative flex h-3 w-full items-center"
-		type="single"
-		step={0.1}
-		max={360}
-		bind:value={h}
+	<ColorPickerSlider
+		channel="hue"
+		class="relative h-2.5 w-full cursor-ew-resize touch-none rounded-full bg-(image:--color-slider-background)"
 	>
-		<div class="relative my-0.5 h-2 w-full grow rounded-full" data-slot="color-picker-hue">
-			<Slider.Range class="absolute w-full" />
-		</div>
+		<ColorPickerSliderThumb class={cn(thumb, "top-1/2")} />
+	</ColorPickerSlider>
 
-		<Slider.Thumb
-			class="block h-4 w-2 cursor-ew-resize rounded-sm border bg-primary shadow transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none active:cursor-ew-resize"
-			index={0}
-		/>
-	</Slider.Root>
-
-	<Input class="text-xs uppercase shadow-none" value={hex} onchange={handleChange} />
-</div>
-
-<style>
-	[data-slot="color-picker-well"] {
-		background:
-			linear-gradient(0deg, #000, transparent),
-			linear-gradient(90deg, #fff, hsl(var(--color-picker-well-hue), 100%, 50%));
-	}
-
-	[data-slot="color-picker-hue"] {
-		background: linear-gradient(
-			90deg,
-			#ff0000,
-			#ffff00,
-			#00ff00,
-			#00ffff,
-			#0000ff,
-			#ff00ff,
-			#ff0000
-		);
-	}
-</style>
+	<ColorPickerInput
+		class="control-field h-control-sm font-mono text-2xs uppercase"
+		aria-label="Hex"
+		spellcheck="false"
+	/>
+</ColorPicker>

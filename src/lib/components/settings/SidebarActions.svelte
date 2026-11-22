@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { appLogDir } from "@tauri-apps/api/path";
 	import { openPath } from "@tauri-apps/plugin-opener";
+	import { DialogTrigger } from "@ui-sdk/svelte/dialog";
 
 	import { app } from "#lib/app.svelte.js";
 	import Button from "#lib/components/ui/Button.svelte";
-	import { closeDialog, dialogs } from "#lib/dialog.js";
+	import { closeDialog, dialogController, dialogs } from "#lib/dialog.js";
 	import { IconAbout, IconLogOut, IconOpenFolder } from "#lib/icons.js";
 
 	import AboutDialog from "./AboutDialog.svelte";
@@ -15,24 +16,23 @@
 </script>
 
 <div class="space-y-0.5 *:w-full *:justify-start">
-	<Button class="text-muted-foreground" variant="ghost" onclick={openLogDir}>
+	<Button class="text-fg-muted" variant="ghost" onclick={openLogDir}>
 		<IconOpenFolder />
 		<span class="text-sm">Open logs</span>
 	</Button>
 
-	<Button
-		class="text-muted-foreground"
-		command="show-modal"
-		commandfor={dialogs.about}
-		variant="ghost"
-	>
-		<IconAbout />
-		<span class="text-sm">About</span>
-	</Button>
+	<DialogTrigger controller={dialogController(dialogs.about)}>
+		{#snippet render({ props })}
+			<Button {...props} class="text-fg-muted" variant="ghost">
+				<IconAbout />
+				<span class="text-sm">About</span>
+			</Button>
+		{/snippet}
+	</DialogTrigger>
 
 	{#if app.user}
 		<Button
-			class="text-muted-foreground"
+			class="text-fg-muted"
 			variant="ghost"
 			onclickwait={async () => {
 				closeDialog(dialogs.settings);

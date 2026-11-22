@@ -2,11 +2,12 @@
 	import "../styles/app.css";
 	import { HotkeysProvider } from "@tanstack/svelte-hotkeys";
 	import { invoke } from "@tauri-apps/api/core";
-	import { Tooltip } from "bits-ui";
 	import { ModeWatcher } from "mode-watcher";
 	import { onMount } from "svelte";
 
+	import EmoteTooltip from "#lib/components/emote/EmoteTooltip.svelte";
 	import TitleBar from "#lib/components/TitleBar.svelte";
+	import HintTooltip from "#lib/components/ui/HintTooltip.svelte";
 	import { log } from "#lib/log.js";
 	import { settings } from "#lib/settings.js";
 	import { injectTheme } from "#lib/themes.js";
@@ -65,18 +66,19 @@
 
 <ModeWatcher />
 
-<Tooltip.Provider delayDuration={300}>
-	<div class="flex h-screen flex-col overflow-hidden">
-		<TitleBar />
+<div class="flex h-screen flex-col overflow-hidden">
+	<TitleBar />
 
-		<HotkeysProvider
-			defaultOptions={{
-				hotkey: {
-					requireReset: true,
-				},
-			}}
-		>
-			{@render children()}
-		</HotkeysProvider>
-	</div>
-</Tooltip.Provider>
+	<HotkeysProvider
+		defaultOptions={{
+			hotkey: {
+				requireReset: true,
+			},
+		}}
+	>
+		{@render children()}
+	</HotkeysProvider>
+</div>
+
+<EmoteTooltip />
+<HintTooltip />

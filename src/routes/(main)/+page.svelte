@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createHotkey, createHotkeys } from "@tanstack/svelte-hotkeys";
+	import { DialogTrigger } from "@ui-sdk/svelte/dialog";
 	import { onMount } from "svelte";
 
 	import type { SplitDirection } from "#lib/splits/types.js";
@@ -8,7 +9,7 @@
 	import SplitNode from "#lib/components/split/SplitNode.svelte";
 	import Button from "#lib/components/ui/Button.svelte";
 	import * as Empty from "#lib/components/ui/empty/index.js";
-	import { dialogs } from "#lib/dialog.js";
+	import { dialogController, dialogs } from "#lib/dialog.js";
 	import { IconChat, IconLoading } from "#lib/icons.js";
 	import { createPane } from "#lib/splits/tree.js";
 
@@ -101,7 +102,11 @@
 			</Empty.Header>
 
 			<Empty.Content>
-				<Button command="show-modal" commandfor={dialogs.join}>Search channels</Button>
+				<DialogTrigger controller={dialogController(dialogs.join)}>
+					{#snippet render({ props })}
+						<Button {...props}>Search channels</Button>
+					{/snippet}
+				</DialogTrigger>
 			</Empty.Content>
 		</Empty.Root>
 	{/if}

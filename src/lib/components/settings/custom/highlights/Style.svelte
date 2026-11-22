@@ -3,7 +3,9 @@
 
 	import Select from "#lib/components/ui/Select.svelte";
 
-	const styles = [
+	type Style = HighlightConfig["style"] | "disabled";
+
+	const styles: { label: string; value: Style }[] = [
 		{ label: "Default", value: "default" },
 		{ label: "Compact", value: "compact" },
 		{ label: "Background", value: "background" },
@@ -14,7 +16,7 @@
 </script>
 
 <Select
-	class="h-8 min-w-32"
+	class="w-32"
 	options={styles}
 	aria-label="Highlight style"
 	bind:value={
@@ -22,7 +24,7 @@
 		(value) => {
 			if (value === "disabled") {
 				config.enabled = false;
-			} else {
+			} else if (value) {
 				config.enabled = true;
 				config.style = value;
 			}

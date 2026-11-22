@@ -12,7 +12,7 @@
 	import { percent } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
 
-	import Progress from "../ui/Progress.svelte";
+	import Meter from "../ui/Meter.svelte";
 	import Tooltip from "../ui/Tooltip.svelte";
 	import Username from "../user/Username.svelte";
 	import NoticeAction, { details, hide } from "./NoticeAction.svelte";
@@ -74,8 +74,8 @@
 	}
 </script>
 
-<div class="p-2 text-sm">
-	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
+<div class="p-2 text-ui">
+	<div class="mb-1 flex items-center gap-1 text-2xs text-fg-muted">
 		<IconPrediction class="size-3 shrink-0" />
 
 		<span class="truncate">
@@ -128,7 +128,7 @@
 						{/if}
 
 						<span
-							class="ml-auto shrink-0 text-xs whitespace-nowrap text-muted-foreground tabular-nums"
+							class="ml-auto shrink-0 text-2xs whitespace-nowrap text-fg-muted tabular-nums"
 						>
 							{pct}% ({outcome.points.toLocaleString()})
 						</span>
@@ -144,9 +144,10 @@
 
 					<Tooltip class="flex flex-col gap-0.5">
 						{#snippet trigger(props)}
-							<Progress
-								class={["h-1.5", lost && "opacity-25"]}
+							<Meter
+								class={[lost && "opacity-25"]}
 								value={pct}
+								aria-label={outcome.title}
 								indicatorClass={colorFor(i)}
 								{...props}
 							/>
@@ -175,7 +176,7 @@
 			{/each}
 		</ul>
 
-		<p class="mt-1.5 text-xs text-muted-foreground tabular-nums">
+		<p class="mt-1.5 text-2xs text-fg-muted tabular-nums">
 			{prediction.totalPoints.toLocaleString()} points ·
 			{prediction.totalUsers.toLocaleString()}
 			{prediction.totalUsers === 1 ? "predictor" : "predictors"}

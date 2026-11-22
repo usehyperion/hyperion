@@ -49,7 +49,7 @@
 			</Button>
 
 			<Button
-				class="text-destructive"
+				class="text-danger"
 				variant="inline"
 				disabled={message.deleted}
 				onclick={() => message.deny()}

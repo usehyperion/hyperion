@@ -75,7 +75,9 @@
 </div>
 
 {#snippet content(bordered: boolean)}
-	<div class={["py-2 not-group-aria-disabled:hover:bg-muted/50", bordered ? "px-1.5" : "px-3"]}>
+	<div
+		class={["py-2 not-group-aria-disabled:hover:bg-surface-2/50", bordered ? "px-1.5" : "px-3"]}
+	>
 		{#if message.reply}
 			{@const viewer = message.channel.viewers.get(message.reply.parent.user.id)}
 
@@ -89,7 +91,7 @@
 				disabled={!inChat}
 				onclick={() => message.channel.chat.jumpTo(parentId)}
 			>
-				<IconRepliedTo class="ml-1 shrink-0 scale-x-125 text-muted-foreground" />
+				<IconRepliedTo class="ml-1 shrink-0 scale-x-125 text-fg-muted" />
 
 				<div class="line-clamp-1 text-xs">
 					<span style={viewer?.user.mentionStyle}>
@@ -97,7 +99,7 @@
 					</span>:
 
 					<p
-						class="inline text-muted-foreground transition-colors group-enabled/reply:group-hover/reply:text-foreground"
+						class="inline text-fg-muted transition-colors group-enabled/reply:group-hover/reply:text-fg"
 					>
 						{message.reply.parent.message_text}
 					</p>

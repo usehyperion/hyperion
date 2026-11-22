@@ -1,13 +1,14 @@
 <script lang="ts">
 	import type { UnlistenFn } from "@tauri-apps/api/event";
 	import { getCurrentWindow } from "@tauri-apps/api/window";
+	import { DialogTrigger } from "@ui-sdk/svelte/dialog";
 	import { onDestroy, onMount } from "svelte";
 	import type { HTMLButtonAttributes } from "svelte/elements";
 
 	import { resolve } from "$app/paths";
 
 	import { app } from "#lib/app.svelte.js";
-	import { dialogs } from "#lib/dialog.js";
+	import { dialogController, dialogs } from "#lib/dialog.js";
 	import { useSidebar } from "#lib/hooks/use-sidebar.svelte.js";
 	import { IconSearch, IconSettings, IconSidebar, IconUpdate, IconWhispers } from "#lib/icons.js";
 	import { updater } from "#lib/updater.svelte.js";
@@ -56,7 +57,7 @@
 >
 	<div
 		class={[
-			"flex items-center text-muted-foreground",
+			"flex items-center text-fg-muted",
 			platform === "macos" && (fullscreen ? "pl-3" : "pl-20"),
 			["windows", "linux"].includes(platform) && "pl-3",
 		]}
@@ -70,7 +71,7 @@
 	{#if app.user}
 		<div class="flex items-center justify-center gap-1.5" data-tauri-drag-region>
 			<Button
-				class="relative size-min p-1 text-muted-foreground"
+				class="relative size-min p-1 text-fg-muted"
 				size="icon"
 				variant="ghost"
 				onclick={() => sidebar.toggle()}
@@ -79,18 +80,17 @@
 				<IconSidebar />
 			</Button>
 
-			<button
-				class="flex w-64 items-center justify-center gap-2 rounded-md bg-popover px-2 py-1 text-xs text-muted-foreground ring-1 ring-border transition-[background-color,scale] hover:bg-accent active:scale-[0.96]"
-				command="show-modal"
-				commandfor={dialogs.join}
+			<DialogTrigger
+				class="flex w-64 items-center justify-center gap-2 rounded-md bg-surface-1 px-2 py-1 text-xs text-fg-muted ring-1 ring-line transition-[background-color,scale] hover:bg-surface-3 active:scale-[0.96]"
+				controller={dialogController(dialogs.join)}
 			>
 				<IconSearch /> Search channels
-			</button>
+			</DialogTrigger>
 
 			<JoinDialog />
 
 			<Link
-				class="relative size-min p-1 text-muted-foreground"
+				class="relative size-min p-1 text-fg-muted"
 				href={resolve("whispers")}
 				size="icon"
 				variant="ghost"
@@ -117,7 +117,7 @@
 					{#snippet trigger(props)}
 						<Button
 							{...props}
-							class="size-min p-1 text-orange-500"
+							class="size-min p-1 text-warning"
 							size="icon"
 							variant="ghost"
 							aria-label={label}
@@ -131,16 +131,19 @@
 				</Tooltip>
 			{/if}
 
-			<Button
-				class="size-min p-1 text-muted-foreground"
-				command="show-modal"
-				commandfor={dialogs.settings}
-				size="icon"
-				variant="ghost"
-				aria-label="Open settings"
-			>
-				<IconSettings />
-			</Button>
+			<DialogTrigger controller={dialogController(dialogs.settings)}>
+				{#snippet render({ props })}
+					<Button
+						{...props}
+						class="size-min p-1 text-fg-muted"
+						size="icon"
+						variant="ghost"
+						aria-label="Open settings"
+					>
+						<IconSettings />
+					</Button>
+				{/snippet}
+			</DialogTrigger>
 		</div>
 
 		{#if platform === "windows"}

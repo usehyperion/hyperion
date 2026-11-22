@@ -1,21 +1,22 @@
 <script lang="ts" module>
-	import type { VariantProps } from "tailwind-variants";
-	import { tv } from "tailwind-variants/lite";
+	import type { VariantProps } from "#lib/util/styles.js";
+
+	import { tv } from "#lib/util/styles.js";
 
 	export const fieldVariants = tv({
-		base: "group/field data-[invalid=true]:text-destructive flex w-full gap-3",
+		base: "group/field flex w-full gap-1.5",
 		variants: {
 			orientation: {
-				vertical: "flex-col [&>*]:w-full [&>.sr-only]:w-auto",
+				vertical: "flex-col [&>:not([popover],[data-slot=button],.sr-only)]:w-full",
 				horizontal: [
 					"flex-row items-center",
 					"[&>[data-slot=field-label]]:flex-auto",
-					"has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px has-[>[data-slot=field-content]]:items-start",
+					"gap-3 has-[>[data-slot=field-content]]:items-start",
 				],
 				responsive: [
-					"@md/field-group:flex-row @md/field-group:items-center @md/field-group:[&>*]:w-auto flex-col [&>*]:w-full [&>.sr-only]:w-auto",
+					"flex-col @md/field-group:flex-row @md/field-group:items-center [&>:not([popover],[data-slot=button],.sr-only)]:w-full @md/field-group:[&>:not([popover],[data-slot=button])]:w-auto",
 					"@md/field-group:[&>[data-slot=field-label]]:flex-auto",
-					"@md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
+					"@md/field-group:gap-3 @md/field-group:has-[>[data-slot=field-content]]:items-start",
 				],
 			},
 		},
@@ -28,10 +29,12 @@
 </script>
 
 <script lang="ts">
+	import { Field } from "@ui-sdk/svelte/field";
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
 
 	import type { WithElementRef } from "#lib/util/index.js";
+
+	import { cn } from "#lib/util/styles.js";
 
 	let {
 		ref = $bindable(null),
@@ -44,13 +47,12 @@
 	} = $props();
 </script>
 
-<div
-	bind:this={ref}
-	role="group"
-	data-slot="field"
+<Field
 	data-orientation={orientation}
 	class={cn(fieldVariants({ orientation }), className)}
 	{...restProps}
 >
-	{@render children?.()}
-</div>
+	{#snippet render({ props })}
+		<div {...props} bind:this={ref}>{@render children?.()}</div>
+	{/snippet}
+</Field>

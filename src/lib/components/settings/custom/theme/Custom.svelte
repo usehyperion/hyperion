@@ -44,7 +44,7 @@
 							</Field.Description>
 						{/if}
 
-						<div class="flex h-5 items-center gap-x-2 text-xs text-muted-foreground">
+						<div class="flex h-5 items-center gap-x-2 text-xs text-fg-muted">
 							{theme.author}
 
 							{#if theme.repository}
@@ -71,5 +71,5 @@
 		{/each}
 	</RadioGroup.Root>
 {:else}
-	<p class="text-sm text-muted-foreground">No themes installed.</p>
+	<p class="text-sm text-fg-muted">No themes installed.</p>
 {/if}

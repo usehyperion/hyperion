@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
 
 	import type { WithElementRef } from "#lib/util/index.js";
+
+	import { cn } from "#lib/util/styles.js";
 
 	let {
 		ref = $bindable(null),
@@ -15,7 +16,7 @@
 <div
 	bind:this={ref}
 	data-slot="field-content"
-	class={cn("group/field-content flex flex-1 flex-col gap-1.5 leading-snug", className)}
+	class={cn("group/field-content flex min-w-0 flex-1 flex-col gap-0.5 leading-snug", className)}
 	{...restProps}
 >
 	{@render children?.()}

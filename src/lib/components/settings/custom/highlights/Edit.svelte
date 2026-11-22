@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { createDialogController, DialogClose, DialogTrigger } from "@ui-sdk/svelte/dialog";
+
 	import type { KeywordHighlightConfig } from "#lib/highlights.js";
 
 	import Button from "#lib/components/ui/Button.svelte";
@@ -12,26 +14,25 @@
 
 	const id = $props.id();
 
-	const dialogId = `edit-highlight-dialog-${id}`;
+	const dialog = createDialogController();
 </script>
 
-<Button
-	class="text-muted-foreground hover:text-foreground"
-	title="Edit"
-	command="show-modal"
-	commandfor={dialogId}
-	size="icon-sm"
-	variant="ghost"
-	aria-label="Edit pattern"
->
-	<IconEdit />
-</Button>
-
-<Dialog id={dialogId}>
-	{#snippet header()}
-		<h2>Edit pattern</h2>
+<DialogTrigger controller={dialog}>
+	{#snippet render({ props })}
+		<Button
+			{...props}
+			class="text-fg-muted hover:text-fg"
+			title="Edit"
+			size="icon-sm"
+			variant="ghost"
+			aria-label="Edit pattern"
+		>
+			<IconEdit />
+		</Button>
 	{/snippet}
+</DialogTrigger>
 
+<Dialog controller={dialog} title="Edit pattern">
 	<Field.Field>
 		<Field.Label for="p-{id}">Pattern</Field.Label>
 
@@ -65,6 +66,10 @@
 	</Field.Group>
 
 	{#snippet footer()}
-		<Button command="close" commandfor={dialogId}>Save</Button>
+		<DialogClose>
+			{#snippet render({ props })}
+				<Button {...props} size="sm">Save</Button>
+			{/snippet}
+		</DialogClose>
 	{/snippet}
 </Dialog>

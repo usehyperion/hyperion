@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { platform as getPlatform } from "@tauri-apps/plugin-os";
-	import { Tabs } from "bits-ui";
+	import { DialogClose } from "@ui-sdk/svelte/dialog";
 
 	import type { SettingsCategory } from "#lib/components/settings/schema/types.js";
 
@@ -9,6 +9,7 @@
 	import Dialog from "#lib/components/ui/Dialog.svelte";
 	import * as InputGroup from "#lib/components/ui/input-group/index.js";
 	import Separator from "#lib/components/ui/Separator.svelte";
+	import * as Tabs from "#lib/components/ui/tabs/index.js";
 	import { dialogs } from "#lib/dialog.js";
 	import { IconClear, IconClose, IconSearch } from "#lib/icons.js";
 	import { log } from "#lib/log.js";
@@ -67,17 +68,25 @@
 </script>
 
 <Dialog
-	id="settings-dialog"
-	class="m-0 h-screen max-h-none max-w-none! overflow-hidden rounded-none p-0 *:data-[slot=dialog-content]:h-full *:data-[slot=dialog-content]:space-y-0"
+	id={dialogs.settings}
+	class="h-screen max-h-none w-full max-w-none rounded-none! border-0! bg-surface-0! shadow-none!"
+	bodyClass="h-full gap-0 overflow-hidden p-0"
 	aria-label="Settings"
 	{onkeydown}
-	{onclose}
+	onOpenChange={(open) => {
+		if (!open) void onclose();
+	}}
 >
 	<Tabs.Root
 		id="settings-tabs"
-		class="flex h-full overflow-hidden"
+		class="flex h-full gap-0 overflow-hidden"
 		orientation="vertical"
-		bind:value={active}
+		bind:value={
+			() => active,
+			(value) => {
+				if (value) active = value;
+			}
+		}
 	>
 		<div
 			class={[
@@ -85,7 +94,7 @@
 				isMac && "pt-[calc(var(--spacing-title-bar)+4px)]",
 			]}
 		>
-			<InputGroup.Root class="h-9 bg-background">
+			<InputGroup.Root class="h-9 bg-surface-0">
 				<InputGroup.Addon>
 					<IconSearch />
 				</InputGroup.Addon>
@@ -120,31 +129,27 @@
 				{/if}
 			</InputGroup.Root>
 
-			<Tabs.List class="min-h-0 flex-1 space-y-0.5 overflow-y-auto">
+			<Tabs.List
+				class="min-h-0 flex-1 overflow-y-auto"
+				variant="nav"
+				aria-label="Settings categories"
+			>
 				{#each results as category (category.label)}
 					{@const count = counts.get(category.label) ?? 0}
 
-					<Tabs.Trigger value={category.label} disabled={searching && count === 0}>
-						{#snippet child({ props })}
-							<Button
-								class="w-full justify-start text-muted-foreground hover:bg-primary/10 data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-xs"
-								variant="ghost"
-								{...props}
+					<Tabs.Tab value={category.label} disabled={searching && count === 0}>
+						<category.icon aria-hidden="true" />
+
+						<span class="truncate">{category.label}</span>
+
+						{#if searching}
+							<span
+								class="ml-auto rounded-sm bg-surface-3 px-1 text-2xs text-fg-muted tabular-nums"
 							>
-								<category.icon />
-
-								<span class="truncate">{category.label}</span>
-
-								{#if searching}
-									<span
-										class="ml-auto rounded-full bg-primary/20 px-1.5 text-xs tabular-nums"
-									>
-										{count}
-									</span>
-								{/if}
-							</Button>
-						{/snippet}
-					</Tabs.Trigger>
+								{count}
+							</span>
+						{/if}
+					</Tabs.Tab>
 				{/each}
 			</Tabs.List>
 
@@ -153,10 +158,8 @@
 			<SidebarActions />
 		</div>
 
-		<div class="relative flex min-w-0 grow flex-col border-l bg-accent/15">
-			<div
-				class="flex items-center justify-end gap-2 px-4 pt-3 text-sm text-muted-foreground"
-			>
+		<div class="relative flex min-w-0 grow flex-col border-l border-line bg-surface-1">
+			<div class="flex items-center justify-end gap-2 px-4 pt-3 text-ui text-fg-muted">
 				<div class="mr-auto">
 					Settings
 
@@ -170,22 +173,25 @@
 					{/if}
 				</div>
 
-				<Button
-					command="close"
-					commandfor={dialogs.settings}
-					size="icon-sm"
-					variant="ghost"
-					aria-label="Close settings"
-				>
-					<IconClose />
-				</Button>
+				<DialogClose>
+					{#snippet render({ props })}
+						<Button
+							{...props}
+							size="icon-sm"
+							variant="ghost"
+							aria-label="Close settings"
+						>
+							<IconClose />
+						</Button>
+					{/snippet}
+				</DialogClose>
 			</div>
 
 			<div class="min-h-0 grow overflow-y-auto px-4 pt-2 pb-10">
 				{#each results as category (category.label)}
-					<Tabs.Content class="mx-auto max-w-xl" value={category.label}>
+					<Tabs.Panel class="mx-auto max-w-xl" value={category.label}>
 						<Category {category} query={searching ? query.trim() : ""} />
-					</Tabs.Content>
+					</Tabs.Panel>
 				{/each}
 			</div>
 		</div>

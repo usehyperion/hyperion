@@ -119,12 +119,14 @@
 	}
 </script>
 
-<Dialog id={dialogId} onclose={() => (error = null)}>
-	{#snippet header()}
-		<h2>{heading}</h2>
-		<p>{description}</p>
-	{/snippet}
-
+<Dialog
+	id={dialogId}
+	title={heading}
+	{description}
+	onOpenChange={(open) => {
+		if (!open) error = null;
+	}}
+>
 	<Field.Field>
 		<Field.Label for="title-{id}">Question</Field.Label>
 
@@ -173,10 +175,10 @@
 	{@render children?.()}
 
 	{#if error}
-		<p class="text-sm text-destructive">{error}</p>
+		<p class="text-xs text-danger">{error}</p>
 	{/if}
 
 	{#snippet footer()}
-		<Button disabled={!canSubmit} onclickwait={start}>{submitLabel}</Button>
+		<Button size="sm" disabled={!canSubmit} onclickwait={start}>{submitLabel}</Button>
 	{/snippet}
 </Dialog>

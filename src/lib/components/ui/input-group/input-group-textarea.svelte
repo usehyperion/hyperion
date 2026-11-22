@@ -1,24 +1,22 @@
 <script lang="ts">
 	import type { ComponentProps } from "svelte";
-	import { cn } from "tailwind-variants";
 
 	import Textarea from "#lib/components/ui/Textarea.svelte";
+	import { cn } from "#lib/util/styles.js";
 
 	let {
 		ref = $bindable(null),
 		value = $bindable(),
 		class: className,
 		...props
-	}: ComponentProps<typeof Textarea> = $props();
+	}: Omit<ComponentProps<typeof Textarea>, "bare"> = $props();
 </script>
 
 <Textarea
-	bind:ref
+	bare
 	data-slot="input-group-control"
-	class={cn(
-		"flex-1 resize-none rounded-none border-0 bg-transparent py-2 shadow-none ring-0 focus-visible:ring-0 disabled:bg-transparent aria-invalid:ring-0 dark:bg-transparent dark:disabled:bg-transparent",
-		className,
-	)}
-	bind:value
+	class={cn("w-full flex-1", className)}
 	{...props}
+	bind:value
+	bind:ref
 />

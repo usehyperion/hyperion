@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { Tabs } from "bits-ui";
-
 	import type { Emote, EmoteProvider, EmoteSet } from "#lib/emotes.js";
 	import type { Channel } from "#lib/models/channel.svelte.js";
 
@@ -11,6 +9,7 @@
 	import * as InputGroup from "../ui/input-group";
 	import Input from "../ui/Input.svelte";
 	import Popover from "../ui/Popover.svelte";
+	import * as Tabs from "../ui/tabs";
 	import Browser from "./Browser.svelte";
 	import Results from "./Results.svelte";
 
@@ -81,40 +80,57 @@
 	}
 </script>
 
-<InputGroup.Button
-	size="icon-sm"
-	popovertarget="emote-picker-{channel.id}"
-	disabled={channel.banned}
-	aria-label="Toggle emote picker"
+<Popover
+	class="flex h-100 w-120 flex-col overflow-hidden p-0"
+	side="top"
+	align="end"
+	container={document.body}
+	aria-label="Emote picker"
 >
-	<IconEmotes />
-</InputGroup.Button>
+	{#snippet trigger(props)}
+		<InputGroup.Button
+			{...props}
+			size="icon-sm"
+			disabled={channel.banned}
+			aria-label="Toggle emote picker"
+		>
+			<IconEmotes />
+		</InputGroup.Button>
+	{/snippet}
 
-<Popover id="emote-picker-{channel.id}" class="h-100 w-120 flex-col overflow-hidden p-0 open:flex">
-	<Tabs.Root class="flex min-h-0 flex-1 flex-col" bind:value={activeProvider}>
-		<Tabs.List class="flex shrink-0 border-b">
-			{#each TABS as tab (tab.provider)}
-				<Tabs.Trigger
-					class="group flex flex-1 justify-center py-2 transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-40 data-[state=active]:bg-accent"
-					value={tab.provider}
-					disabled={!providerSets[tab.provider]?.length}
-				>
-					<tab.icon
-						class="size-4 fill-muted-foreground group-hover:fill-foreground group-data-[state=active]:fill-foreground"
-					/>
-				</Tabs.Trigger>
-			{/each}
-		</Tabs.List>
+	<Tabs.Root
+		class="flex min-h-0 flex-1 flex-col gap-0"
+		bind:value={
+			() => activeProvider,
+			(value) => {
+				if (value) activeProvider = value as EmoteProvider;
+			}
+		}
+	>
+		<div class="flex shrink-0 flex-col gap-2 border-b border-line p-2">
+			<Tabs.List aria-label="Emote provider">
+				{#each TABS as tab (tab.provider)}
+					<Tabs.Tab
+						value={tab.provider}
+						disabled={!providerSets[tab.provider]?.length}
+						aria-label={tab.provider}
+						title={tab.provider}
+					>
+						<tab.icon class="fill-current" aria-hidden="true" />
+					</Tabs.Tab>
+				{/each}
+			</Tabs.List>
 
-		<Input
-			class="shrink-0 rounded-none border-0 border-b focus-visible:ring-0"
-			type="search"
-			placeholder="Search..."
-			bind:value={query}
-		/>
+			<Input
+				type="search"
+				placeholder="Search emotes"
+				aria-label="Search emotes"
+				bind:value={query}
+			/>
+		</div>
 
 		{#each TABS as tab (tab.provider)}
-			<Tabs.Content class="flex min-h-0 flex-1 flex-col" value={tab.provider}>
+			<Tabs.Panel class="flex min-h-0 flex-1 flex-col rounded-none" value={tab.provider}>
 				{#if query}
 					<Results emotes={results} onpick={appendEmote} />
 				{:else}
@@ -124,7 +140,7 @@
 						onpick={appendEmote}
 					/>
 				{/if}
-			</Tabs.Content>
+			</Tabs.Panel>
 		{/each}
 	</Tabs.Root>
 </Popover>

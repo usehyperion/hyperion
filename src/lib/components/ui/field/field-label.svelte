@@ -1,27 +1,28 @@
 <script lang="ts">
-	import type { ComponentProps } from "svelte";
-	import { cn } from "tailwind-variants";
+	import { FieldLabel } from "@ui-sdk/svelte/field";
+	import type { HTMLLabelAttributes } from "svelte/elements";
 
-	import Label from "#lib/components/ui/Label.svelte";
+	import type { WithElementRef } from "#lib/util/index.js";
+
+	import { cn } from "#lib/util/styles.js";
 
 	let {
 		ref = $bindable(null),
 		class: className,
 		children,
 		...restProps
-	}: ComponentProps<typeof Label> = $props();
+	}: WithElementRef<HTMLLabelAttributes, HTMLLabelElement> = $props();
 </script>
 
-<Label
-	bind:ref
-	data-slot="field-label"
+<FieldLabel
 	class={cn(
-		"group/field-label peer/field-label flex w-fit gap-2 leading-snug group-data-[disabled=true]/field:opacity-50",
-		"has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col has-[>[data-slot=field]]:rounded-lg has-[>[data-slot=field]]:border [&>*]:data-[slot=field]:p-4",
-		"has-data-[state=checked]:border-primary has-data-[state=checked]:bg-primary/5 dark:has-data-[state=checked]:bg-primary/10",
+		"flex w-fit items-center gap-2 text-ui leading-snug font-medium text-fg select-none",
+		"data-disabled:opacity-50 data-invalid:text-danger",
 		className,
 	)}
 	{...restProps}
 >
-	{@render children?.()}
-</Label>
+	{#snippet render({ props })}
+		<label {...props} bind:this={ref}>{@render children?.()}</label>
+	{/snippet}
+</FieldLabel>

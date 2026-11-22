@@ -38,7 +38,7 @@
 		{/if}
 
 		<Field.Group>
-			{#each field.fields as subField}
+			{#each field.fields as subField (subField)}
 				<FieldControl field={subField} />
 			{/each}
 		</Field.Group>
@@ -79,11 +79,12 @@
 			{#each field.items as option (option.value)}
 				<Field.Field class={[option.description && "items-start"]} orientation="horizontal">
 					<RadioGroup.Item
+						id="{field.id}-{option.value}"
 						class={[option.description && "mt-0.5"]}
 						value={option.value}
 					/>
 
-					<Field.Label aria-disabled={field.disabled?.()}>
+					<Field.Label for="{field.id}-{option.value}" aria-disabled={field.disabled?.()}>
 						<Field.Content>
 							{option.label}
 
@@ -115,7 +116,6 @@
 
 		<Slider
 			id={field.id}
-			type="single"
 			formatValue={field.formatValue}
 			showSteps={field.showSteps}
 			min={field.min}

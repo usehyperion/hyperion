@@ -2,7 +2,7 @@
 	import type { Pin } from "#lib/models/pin.svelte.js";
 
 	import { everySecond } from "#lib/clock.js";
-	import { dialogs } from "#lib/dialog.js";
+	import { dialogController, dialogs } from "#lib/dialog.js";
 	import { IconPin, IconPinDuration, IconUnpin } from "#lib/icons.js";
 	import { clamp } from "#lib/util/math.js";
 	import { formatDuration } from "#lib/util/time.js";
@@ -25,7 +25,7 @@
 </script>
 
 <div class="relative p-2 text-sm">
-	<div class="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
+	<div class="mb-1 flex items-center gap-1 text-xs text-fg-muted">
 		<IconPin class="size-3" />
 
 		<span>Pinned by <Username user={pin.pinner} /></span>
@@ -35,8 +35,7 @@
 				<NoticeAction
 					icon={IconPinDuration}
 					tooltip="Change duration"
-					command="show-modal"
-					commandfor={dialogs.pinDuration(pin.message.id)}
+					dialog={dialogController(dialogs.pinDuration(pin.message.id))}
 				/>
 
 				<NoticeAction icon={IconUnpin} tooltip="Unpin" onclick={() => pin.unpin()} />
@@ -53,12 +52,12 @@
 
 	{#if pin.duration !== null}
 		<div
-			class="absolute inset-x-0 bottom-0 h-0.5 bg-muted"
+			class="absolute inset-x-0 bottom-0 h-0.5 bg-surface-2"
 			role="timer"
 			aria-label="{formatDuration(Math.ceil(remaining / 1000))} remaining"
 		>
 			<div
-				class="h-full bg-primary transition-[width] duration-1000 ease-linear"
+				class="h-full bg-fg transition-[width] duration-1000 ease-linear"
 				style:width="{fraction * 100}%"
 			></div>
 		</div>

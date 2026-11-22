@@ -71,7 +71,7 @@
 
 					<div
 						class={[
-							"flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-muted/50",
+							"flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-surface-2/50",
 							!isNewDay && "border-t",
 						]}
 					>
@@ -101,7 +101,7 @@
 
 	<div class="p-2">
 		{#if sendError}
-			<p class="mb-1 text-sm text-destructive">{sendError}</p>
+			<p class="mb-1 text-sm text-danger">{sendError}</p>
 		{/if}
 
 		<Input

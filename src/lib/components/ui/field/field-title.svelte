@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
 
 	import type { WithElementRef } from "#lib/util/index.js";
+
+	import { cn } from "#lib/util/styles.js";
 
 	let {
 		ref = $bindable(null),
@@ -16,7 +17,7 @@
 	bind:this={ref}
 	data-slot="field-title"
 	class={cn(
-		"flex w-fit items-center gap-2 text-sm leading-snug font-medium group-data-[disabled=true]/field:opacity-50",
+		"flex w-fit items-center gap-2 text-ui leading-snug font-medium group-data-disabled/field:opacity-50",
 		className,
 	)}
 	{...restProps}

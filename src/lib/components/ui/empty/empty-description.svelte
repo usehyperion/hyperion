@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
 
 	import type { WithElementRef } from "#lib/util/index.js";
+
+	import { cn } from "#lib/util/styles.js";
 
 	let {
 		ref = $bindable(null),
@@ -16,7 +17,7 @@
 	bind:this={ref}
 	data-slot="empty-description"
 	class={cn(
-		"text-sm/relaxed text-muted-foreground [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
+		"text-2xs/relaxed text-fg-muted [&>a]:underline [&>a]:underline-offset-2 [&>a:hover]:text-fg",
 		className,
 	)}
 	{...restProps}

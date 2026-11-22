@@ -1,14 +1,14 @@
 <script lang="ts" module>
-	import { tv, type VariantProps } from "tailwind-variants/lite";
+	import { tv, type VariantProps } from "#lib/util/styles.js";
 
 	const inputGroupButtonVariants = tv({
-		base: "gap-2 text-sm flex items-center shadow-none",
+		base: "flex items-center",
 		variants: {
 			size: {
-				xs: "h-6 gap-1 rounded-[calc(var(--radius)-3px)] px-1.5 [&>svg:not([class*='size-'])]:size-3.5",
-				sm: "cn-input-group-button-size-sm",
-				"icon-xs": "size-6 rounded-[calc(var(--radius)-3px)] p-0 has-[>svg]:p-0",
-				"icon-sm": "size-8 p-0 has-[>svg]:p-0",
+				xs: "h-5.5 gap-1 rounded-[4px] px-1.5 text-2xs",
+				sm: "h-control-sm gap-1 rounded-[5px] px-2 text-2xs",
+				"icon-xs": "size-5.5 rounded-[4px] p-0",
+				"icon-sm": "size-control rounded-control p-0 [&_svg:not([class*='size-'])]:size-4",
 			},
 		},
 		defaultVariants: {
@@ -21,9 +21,9 @@
 
 <script lang="ts">
 	import type { ComponentProps } from "svelte";
-	import { cn } from "tailwind-variants";
 
 	import Button from "#lib/components/ui/Button.svelte";
+	import { cn } from "#lib/util/styles.js";
 
 	let {
 		ref = $bindable(null),
@@ -43,6 +43,7 @@
 	{type}
 	data-size={size}
 	{variant}
+	size="none"
 	class={cn(inputGroupButtonVariants({ size }), className)}
 	{...restProps}
 >

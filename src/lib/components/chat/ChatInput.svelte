@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { tick } from "svelte";
-	import type { HTMLInputAttributes, KeyboardEventHandler } from "svelte/elements";
+	import { DialogTrigger } from "@ui-sdk/svelte/dialog";
+	import { type ComponentProps, tick } from "svelte";
+	import type { KeyboardEventHandler } from "svelte/elements";
 
 	import type { Chat } from "#lib/models/chat.svelte.js";
 
 	import { Completer } from "#lib/completer.svelte.js";
-	import { dialogs } from "#lib/dialog.js";
+	import { dialogController, dialogs } from "#lib/dialog.js";
 	import { CommandError } from "#lib/errors/command-error.js";
 	import { IconPoll, IconPrediction } from "#lib/icons.js";
 
@@ -18,7 +19,7 @@
 
 	const MODIFIER_KEYS = new Set(["Shift", "Control", "Alt", "Meta"]);
 
-	interface Props extends HTMLInputAttributes {
+	interface Props extends Omit<ComponentProps<typeof InputGroup.Input>, "value" | "ref"> {
 		chat: Chat;
 	}
 
@@ -162,23 +163,23 @@
 			}
 		/>
 
-		<InputGroup.Addon class="mr-0! gap-1.5" align="inline-end">
+		<InputGroup.Addon class="gap-0.5 has-[>button]:pe-2" align="inline-end">
 			{#if chat.channel.isMod}
-				<InputGroup.Button
-					size="icon-sm"
-					command="show-modal"
-					commandfor={dialogs.poll(chat.channel.id)}
-				>
-					<IconPoll />
-				</InputGroup.Button>
+				<DialogTrigger controller={dialogController(dialogs.poll(chat.channel.id))}>
+					{#snippet render({ props })}
+						<InputGroup.Button {...props} size="icon-sm" aria-label="Create poll">
+							<IconPoll />
+						</InputGroup.Button>
+					{/snippet}
+				</DialogTrigger>
 
-				<InputGroup.Button
-					size="icon-sm"
-					command="show-modal"
-					commandfor={dialogs.prediction(chat.channel.id)}
-				>
-					<IconPrediction />
-				</InputGroup.Button>
+				<DialogTrigger controller={dialogController(dialogs.prediction(chat.channel.id))}>
+					{#snippet render({ props })}
+						<InputGroup.Button {...props} size="icon-sm" aria-label="Create prediction">
+							<IconPrediction />
+						</InputGroup.Button>
+					{/snippet}
+				</DialogTrigger>
 			{/if}
 
 			<EmotePicker channel={chat.channel} />
@@ -186,8 +187,8 @@
 	</InputGroup.Root>
 
 	<div class="flex items-center justify-between px-1">
-		<div class="text-xs text-muted-foreground tabular-nums">
-			<span class:text-foreground={chat.value.length === 500}>{chat.value.length}</span>
+		<div class="text-xs text-fg-muted tabular-nums">
+			<span class:text-fg={chat.value.length === 500}>{chat.value.length}</span>
 			/ 500
 		</div>
 
