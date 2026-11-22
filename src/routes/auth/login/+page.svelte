@@ -48,8 +48,8 @@
 	<p class="max-w-sm text-fg-muted">Connect your Twitch account to start chatting.</p>
 </div>
 
-<Button class="h-12" size="lg" onclick={() => handleLogIn()}>
-	<Twitch class="size-5 fill-white" />
+<Button size="lg" onclick={() => handleLogIn()}>
+	<Twitch class="fill-white dark:fill-twitch" />
 	Log in with Twitch
 </Button>
 
