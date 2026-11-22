@@ -16,3 +16,6 @@ permissions:
     skills: true
   "@ui-sdk/core":
     skills: true
+skills:
+  dirs:
+    - .claude/skills
