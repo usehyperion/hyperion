@@ -22,6 +22,6 @@
 	{...rest}
 >
 	<RadioIndicator
-		class="size-1.5 rounded-full bg-fg-inverse transition-[opacity,scale] duration-100 data-ending-style:scale-50 data-ending-style:opacity-0 data-starting-style:scale-50 data-starting-style:opacity-0"
+		class="size-1.5 rounded-full bg-fg-inverse transition-[opacity,scale] duration-100 starting:scale-50 starting:opacity-0 ending:scale-50 ending:opacity-0"
 	/>
 </Radio>

@@ -44,7 +44,7 @@
 	bind:checked={() => (indeterminate ? "indeterminate" : checked), setChecked}
 >
 	<CheckboxIndicator
-		class="flex transition-[opacity,scale] duration-100 data-ending-style:scale-75 data-ending-style:opacity-0 data-starting-style:scale-75 data-starting-style:opacity-0"
+		class="flex transition-[opacity,scale] duration-100 starting:scale-75 starting:opacity-0 ending:scale-75 ending:opacity-0"
 	>
 		{#snippet children(state)}
 			{#if state.indeterminate}

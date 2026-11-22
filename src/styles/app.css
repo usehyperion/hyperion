@@ -161,6 +161,15 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant heading (&:where(h1, h2, h3, h4, h5, h6));
 
+@custom-variant starting (&[data-starting-style]);
+@custom-variant ending (&[data-ending-style]);
+
+@custom-variant @starting {
+	@starting-style {
+		@slot;
+	}
+}
+
 @layer base {
 	* {
 		border-color: var(--color-line);

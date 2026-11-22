@@ -52,7 +52,7 @@
 
 <Dialog controller={resolved} {dismissible} {onOpenChange} {onOpenChangeComplete}>
 	<DialogBackdrop
-		class="fixed inset-0 bg-(--backdrop) transition-opacity duration-150 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0"
+		class="fixed inset-0 bg-(--backdrop) transition-opacity duration-150 ease-out starting:opacity-0 ending:opacity-0"
 	/>
 
 	<DialogContent

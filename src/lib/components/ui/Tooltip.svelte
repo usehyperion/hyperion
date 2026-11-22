@@ -2,7 +2,7 @@
 	export const tooltipContentClass = [
 		"m-0 w-max max-w-64 overflow-visible rounded-[5px] border border-line-strong bg-surface-3 px-1.5 py-0.5 text-2xs text-fg shadow-popup",
 		"origin-(--transform-origin) transition-[opacity,scale] duration-100 ease-out",
-		"data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0 data-instant:transition-none",
+		"ending:opacity-0 starting:scale-95 starting:opacity-0 data-instant:transition-none",
 	];
 </script>
 
