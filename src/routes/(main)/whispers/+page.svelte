@@ -6,7 +6,7 @@
 	import { app } from "#lib/app.svelte.js";
 	import { everyMinute } from "#lib/clock.js";
 	import Avatar from "#lib/components/ui/Avatar.svelte";
-	import * as Empty from "#lib/components/ui/empty/index.js";
+	import Empty from "#lib/components/ui/Empty.svelte";
 	import { IconWhispers } from "#lib/icons.js";
 
 	const { data } = $props();
@@ -105,16 +105,11 @@
 			</ul>
 		</div>
 	{:else}
-		<Empty.Root class="h-full">
-			<Empty.Header>
-				<Empty.Media variant="icon">
-					<IconWhispers />
-				</Empty.Media>
-
-				<Empty.Title>No whispers</Empty.Title>
-
-				<Empty.Description>Any whispers you receive will appear here.</Empty.Description>
-			</Empty.Header>
-		</Empty.Root>
+		<Empty
+			class="h-full"
+			icon={IconWhispers}
+			title="No whispers"
+			description="Any whispers you receive will appear here."
+		/>
 	{/if}
 </div>

@@ -8,7 +8,7 @@
 	import { app } from "#lib/app.svelte.js";
 	import SplitNode from "#lib/components/split/SplitNode.svelte";
 	import Button from "#lib/components/ui/Button.svelte";
-	import * as Empty from "#lib/components/ui/empty/index.js";
+	import Empty from "#lib/components/ui/Empty.svelte";
 	import { dialogController, dialogs } from "#lib/dialog.js";
 	import { IconChat, IconLoading } from "#lib/icons.js";
 	import { createPane } from "#lib/splits/tree.js";
@@ -87,27 +87,17 @@
 			<span class="mt-2 text-lg font-medium">Loading</span>
 		</div>
 	{:else}
-		<Empty.Root class="h-full">
-			<Empty.Header>
-				<Empty.Media variant="icon">
-					<IconChat />
-				</Empty.Media>
-
-				<Empty.Title>No channel selected</Empty.Title>
-
-				<Empty.Description>
-					Select a channel from your following list or search for a channel to start
-					chatting.
-				</Empty.Description>
-			</Empty.Header>
-
-			<Empty.Content>
-				<DialogTrigger controller={dialogController(dialogs.join)}>
-					{#snippet render({ props })}
-						<Button {...props}>Search channels</Button>
-					{/snippet}
-				</DialogTrigger>
-			</Empty.Content>
-		</Empty.Root>
+		<Empty
+			class="h-full"
+			icon={IconChat}
+			title="No channel selected"
+			description="Select a channel from your following list or search for a channel to start chatting."
+		>
+			<DialogTrigger controller={dialogController(dialogs.join)}>
+				{#snippet render({ props })}
+					<Button {...props}>Search channels</Button>
+				{/snippet}
+			</DialogTrigger>
+		</Empty>
 	{/if}
 </div>

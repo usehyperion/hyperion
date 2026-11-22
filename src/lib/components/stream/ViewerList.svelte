@@ -21,7 +21,7 @@
 	} from "#lib/models/chatter-list.svelte.js";
 
 	import Button from "../ui/Button.svelte";
-	import * as Empty from "../ui/empty";
+	import Empty from "../ui/Empty.svelte";
 	import * as InputGroup from "../ui/input-group";
 	import Sheet from "../ui/Sheet.svelte";
 	import UserCard from "../user/UserCard.svelte";
@@ -217,21 +217,14 @@
 			</section>
 		{/each}
 	{:else if !list.loading}
-		<Empty.Root class="h-full">
-			<Empty.Header>
-				<Empty.Media variant="icon">
-					<IconViewers />
-				</Empty.Media>
-
-				{#if query.trim()}
-					<Empty.Title>No matches</Empty.Title>
-					<Empty.Description>No viewers match "{query.trim()}".</Empty.Description>
-				{:else}
-					<Empty.Title>No viewers</Empty.Title>
-					<Empty.Description>Nobody is in chat right now.</Empty.Description>
-				{/if}
-			</Empty.Header>
-		</Empty.Root>
+		<Empty
+			class="h-full"
+			icon={IconViewers}
+			title={query.trim() ? "No matches" : "No viewers"}
+			description={query.trim()
+				? `No viewers match "${query.trim()}".`
+				: "Nobody is in chat right now."}
+		/>
 	{/if}
 
 	{#if selected}

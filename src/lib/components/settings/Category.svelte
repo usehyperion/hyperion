@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { SettingsCategory } from "#lib/components/settings/schema/types.js";
 
-	import * as Empty from "#lib/components/ui/empty/index.js";
+	import Empty from "#lib/components/ui/Empty.svelte";
 	import { IconSearch } from "#lib/icons.js";
 
 	import FieldControl from "./FieldControl.svelte";
@@ -32,19 +32,12 @@
 	</header>
 
 	{#if category.fields.length === 0}
-		<Empty.Root class="border">
-			<Empty.Header>
-				<Empty.Media variant="icon">
-					<IconSearch />
-				</Empty.Media>
-
-				<Empty.Title>No settings found</Empty.Title>
-
-				<Empty.Description>
-					Nothing in {category.label} matches "{query}". Try a different search.
-				</Empty.Description>
-			</Empty.Header>
-		</Empty.Root>
+		<Empty
+			class="border"
+			icon={IconSearch}
+			title="No settings found"
+			description={`Nothing in ${category.label} matches "${query}". Try a different search.`}
+		/>
 	{:else}
 		<div class="space-y-6 divide-y divide-line *:pb-6">
 			{#each category.fields as field, i (i)}
