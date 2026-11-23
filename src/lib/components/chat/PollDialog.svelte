@@ -3,7 +3,7 @@
 
 	import { dialogs } from "#lib/dialog.js";
 
-	import * as Field from "../ui/field";
+	import Field from "../ui/Field.svelte";
 	import NumberInput from "../ui/NumberInput.svelte";
 	import Switch from "../ui/Switch.svelte";
 	import NoticeDialog from "./NoticeDialog.svelte";
@@ -15,7 +15,6 @@
 	}
 
 	const { channel }: Props = $props();
-	const id = $props.id();
 
 	let pointsEnabled = $state(false);
 	let pointsPerVote = $state(100);
@@ -44,25 +43,21 @@
 		pointsPerVote = 100;
 	}}
 >
-	<Field.Field orientation="horizontal">
-		<Field.Content>
-			<Field.Label for="points-{id}">Channel points voting</Field.Label>
-
-			<Field.Description>Let viewers spend points for extra votes.</Field.Description>
-		</Field.Content>
-
-		<Switch id="points-{id}" bind:checked={pointsEnabled} />
-	</Field.Field>
+	<Field
+		layout="row"
+		label="Channel points voting"
+		description="Let viewers spend points for extra votes."
+	>
+		<Switch bind:checked={pointsEnabled} />
+	</Field>
 
 	{#if pointsEnabled}
-		<Field.Field>
-			<Field.Label>Points per vote</Field.Label>
-
+		<Field layout="inline" label="Points per vote">
 			<NumberInput
 				min={1}
 				max={POINTS_MAX}
 				bind:value={() => pointsPerVote, (value) => (pointsPerVote = value ?? 1)}
 			/>
-		</Field.Field>
+		</Field>
 	{/if}
 </NoticeDialog>

@@ -4,10 +4,10 @@
 
 	import { app } from "#lib/app.svelte.js";
 	import { PROVIDER_ICONS, THIRD_PARTY_PROVIDERS, toProviderSets } from "#lib/emotes.js";
-	import { IconEmotes } from "#lib/icons.js";
+	import { IconEmotes, IconSearch } from "#lib/icons.js";
 
-	import * as InputGroup from "../ui/input-group";
-	import Input from "../ui/Input.svelte";
+	import Button from "../ui/Button.svelte";
+	import InputGroup from "../ui/InputGroup.svelte";
 	import Popover from "../ui/Popover.svelte";
 	import * as Tabs from "../ui/tabs";
 	import Browser from "./Browser.svelte";
@@ -88,14 +88,16 @@
 	aria-label="Emote picker"
 >
 	{#snippet trigger(props)}
-		<InputGroup.Button
+		<Button
 			{...props}
-			size="icon-sm"
+			class="[&_svg:not([class*=\'size-\'])]:size-4"
+			size="icon"
+			variant="ghost"
 			disabled={channel.banned}
 			aria-label="Toggle emote picker"
 		>
 			<IconEmotes />
-		</InputGroup.Button>
+		</Button>
 	{/snippet}
 
 	<Tabs.Root
@@ -121,12 +123,16 @@
 				{/each}
 			</Tabs.List>
 
-			<Input
+			<InputGroup
 				type="search"
+				clearable
+				clearLabel="Clear search"
 				placeholder="Search emotes"
 				aria-label="Search emotes"
 				bind:value={query}
-			/>
+			>
+				{#snippet start()}<IconSearch />{/snippet}
+			</InputGroup>
 		</div>
 
 		{#each TABS as tab (tab.provider)}

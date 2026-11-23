@@ -2,7 +2,7 @@
 	import { openPath } from "@tauri-apps/plugin-opener";
 
 	import Button from "#lib/components/ui/Button.svelte";
-	import * as Field from "#lib/components/ui/field/index.js";
+	import Field from "#lib/components/ui/Field.svelte";
 	import * as RadioGroup from "#lib/components/ui/radio-group/index.js";
 	import Separator from "#lib/components/ui/Separator.svelte";
 	import { settings } from "#lib/settings.js";
@@ -31,43 +31,43 @@
 </div>
 
 {#if themes.size}
-	<RadioGroup.Root bind:value={settings.state["appearance.theme"]}>
+	<RadioGroup.Root
+		class="gap-2"
+		aria-label="Theme"
+		bind:value={settings.state["appearance.theme"]}
+	>
 		{#each themes as [id, theme] (id)}
-			<Field.Label for={id}>
-				<Field.Field orientation="horizontal">
-					<Field.Content>
-						<Field.Title>{theme.name}</Field.Title>
+			{#snippet details()}
+				{#if theme.description}
+					<span class="block">{theme.description}</span>
+				{/if}
 
-						{#if theme.description}
-							<Field.Description>
-								{theme.description}
-							</Field.Description>
-						{/if}
+				<span class="mt-1 flex h-4 items-center gap-x-2 text-fg-faint">
+					{theme.author}
 
-						<div class="flex h-5 items-center gap-x-2 text-xs text-fg-muted">
-							{theme.author}
+					{#if theme.repository}
+						<Separator orientation="vertical" />
 
-							{#if theme.repository}
-								<Separator orientation="vertical" />
+						<a href={theme.repository} target="_blank" rel="noreferrer noopener">
+							Repository
+						</a>
+					{/if}
 
-								<a
-									href={theme.repository}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									Repository
-								</a>
-							{/if}
+					<Separator orientation="vertical" />
 
-							<Separator orientation="vertical" />
+					<span class="font-mono">v{theme.version}</span>
+				</span>
+			{/snippet}
 
-							v{theme.version}
-						</div>
-					</Field.Content>
-
-					<RadioGroup.Item {id} value={id} />
-				</Field.Field>
-			</Field.Label>
+			<Field
+				class="rounded-panel border border-line bg-surface-1 p-3 transition-colors hover:border-line-strong has-data-checked:border-line-strong has-data-checked:bg-surface-2"
+				layout="choice"
+				trailing
+				label={theme.name}
+				description={details}
+			>
+				<RadioGroup.Item value={id} />
+			</Field>
 		{/each}
 	</RadioGroup.Root>
 {:else}

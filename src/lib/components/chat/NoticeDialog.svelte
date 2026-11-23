@@ -14,7 +14,8 @@
 
 	import Button from "../ui/Button.svelte";
 	import Dialog from "../ui/Dialog.svelte";
-	import * as Field from "../ui/field";
+	import Field from "../ui/Field.svelte";
+	import FieldSet from "../ui/FieldSet.svelte";
 	import Input from "../ui/Input.svelte";
 	import Select from "../ui/Select.svelte";
 
@@ -65,8 +66,6 @@
 		onstart,
 		onreset,
 	}: Props = $props();
-
-	const id = $props.id();
 
 	let title = $state("");
 	let options = $state(["", ""]);
@@ -127,18 +126,15 @@
 		if (!open) error = null;
 	}}
 >
-	<Field.Field>
-		<Field.Label for="title-{id}">Question</Field.Label>
+	<Field label="Question">
+		<Input {placeholder} maxlength={titleMax} bind:value={title} />
+	</Field>
 
-		<Input id="title-{id}" {placeholder} maxlength={titleMax} bind:value={title} />
-	</Field.Field>
-
-	<Field.Field>
-		<Field.Label>{label}s</Field.Label>
-
+	<FieldSet class="gap-1.5" legend="{label}s">
 		{#each options as _, index (index)}
 			<div class="flex items-center gap-1">
 				<Input
+					aria-label="{label} {index + 1}"
 					placeholder="{label} {index + 1}"
 					maxlength={OPTION_MAX}
 					bind:value={options[index]}
@@ -164,13 +160,11 @@
 				Add {noun}
 			</Button>
 		{/if}
-	</Field.Field>
+	</FieldSet>
 
-	<Field.Field>
-		<Field.Label for="duration-{id}">{durationLabel}</Field.Label>
-
-		<Select id="duration-{id}" options={durationOptions} bind:value={duration} />
-	</Field.Field>
+	<Field layout="inline" label={durationLabel}>
+		<Select options={durationOptions} bind:value={duration} />
+	</Field>
 
 	{@render children?.()}
 

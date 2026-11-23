@@ -7,7 +7,7 @@
 
 	import Button from "../ui/Button.svelte";
 	import Dialog from "../ui/Dialog.svelte";
-	import * as Field from "../ui/field";
+	import Field from "../ui/Field.svelte";
 	import * as RadioGroup from "../ui/radio-group";
 	import Slider from "../ui/Slider.svelte";
 
@@ -19,7 +19,6 @@
 	}
 
 	const { pin }: Props = $props();
-	const id = $props.id();
 
 	let error = $state<string | null>(null);
 
@@ -50,15 +49,14 @@
 		if (!open) error = null;
 	}}
 >
-	<RadioGroup.Root bind:value={mode}>
-		<Field.Field class="mb-1" orientation="horizontal">
-			<RadioGroup.Item id="d-{id}" value="duration" />
-
-			<Field.Label class="font-normal" for="d-{id}">For a set duration</Field.Label>
-		</Field.Field>
+	<RadioGroup.Root class="gap-2.5" aria-label="Pin duration" bind:value={mode}>
+		<Field layout="choice" label="For a set duration">
+			<RadioGroup.Item value="duration" />
+		</Field>
 
 		<Slider
-			type="single"
+			class="ps-6"
+			label="Duration"
 			min={MIN_DURATION}
 			max={MAX_DURATION}
 			step={[MIN_DURATION, 60, 120, 180, 300, 600, 900, 1200, MAX_DURATION]}
@@ -67,11 +65,9 @@
 			bind:value={duration}
 		/>
 
-		<Field.Field class="mt-4" orientation="horizontal">
-			<RadioGroup.Item id="s-{id}" value="stream" />
-
-			<Field.Label class="font-normal" for="s-{id}">Until the stream ends</Field.Label>
-		</Field.Field>
+		<Field layout="choice" label="Until the stream ends">
+			<RadioGroup.Item value="stream" />
+		</Field>
 	</RadioGroup.Root>
 
 	{#if error}

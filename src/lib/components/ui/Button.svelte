@@ -23,22 +23,22 @@
 				none: "",
 			},
 			variant: {
-				default: "bg-fg text-fg-inverse not-disabled:hover:bg-fg/88",
+				default: "bg-fg text-fg-inverse not-disabled:not-aria-disabled:hover:bg-fg/88",
 				destructive: [
 					"border border-danger/35 bg-danger/12 text-danger",
-					"not-disabled:hover:border-danger/55 not-disabled:hover:bg-danger/20",
+					"not-disabled:not-aria-disabled:hover:border-danger/55 not-disabled:not-aria-disabled:hover:bg-danger/20",
 				],
 				secondary: [
 					"border border-line-strong bg-surface-2 text-fg shadow-raised",
-					"not-disabled:hover:bg-surface-3",
+					"not-disabled:not-aria-disabled:hover:bg-surface-3",
 				],
 				outline: [
 					"border border-line text-fg-muted",
-					"not-disabled:hover:border-line-strong not-disabled:hover:bg-surface-2 not-disabled:hover:text-fg",
+					"not-disabled:not-aria-disabled:hover:border-line-strong not-disabled:not-aria-disabled:hover:bg-surface-2 not-disabled:not-aria-disabled:hover:text-fg",
 				],
 				ghost: [
 					"text-fg-muted",
-					"not-disabled:hover:bg-surface-3 not-disabled:hover:text-fg",
+					"not-disabled:not-aria-disabled:hover:bg-surface-3 not-disabled:not-aria-disabled:hover:text-fg",
 					"aria-expanded:bg-surface-3 aria-expanded:text-fg data-open:bg-surface-3 data-open:text-fg",
 				],
 				inline: [

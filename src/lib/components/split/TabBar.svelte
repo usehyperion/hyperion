@@ -4,7 +4,7 @@
 	import type { Pane } from "#lib/splits/types.js";
 
 	import { app } from "#lib/app.svelte.js";
-	import Button from "#lib/components/ui/Button.svelte";
+	import ButtonGroup, { type ButtonGroupItem } from "#lib/components/ui/ButtonGroup.svelte";
 	import { IconClose, IconSplitDown, IconSplitRight } from "#lib/icons.js";
 
 	import GuestList from "../stream/GuestList.svelte";
@@ -21,6 +21,24 @@
 	const showDropIndicator = $derived(
 		app.splits.dropTarget?.paneId === pane.id && app.splits.dropTarget.zone === "tab-bar",
 	);
+
+	const actions: ButtonGroupItem[] = [
+		{
+			label: "Split right",
+			icon: IconSplitRight,
+			onclick: () => app.splits.split(pane.id, "right"),
+		},
+		{
+			label: "Split down",
+			icon: IconSplitDown,
+			onclick: () => app.splits.split(pane.id, "down"),
+		},
+		{
+			label: "Close split",
+			icon: IconClose,
+			onclick: () => app.closePane(pane.id),
+		},
+	];
 
 	const droppable = createDroppable({
 		type: "tab-bar",
@@ -55,39 +73,7 @@
 			<GuestList {channel} />
 		{/if}
 
-		<Button
-			class="size-min p-1"
-			size="icon-sm"
-			variant="ghost"
-			title="Split right"
-			onclick={() => {
-				app.splits.split(pane.id, "right");
-			}}
-		>
-			<IconSplitRight />
-		</Button>
-
-		<Button
-			class="size-min p-1"
-			size="icon-sm"
-			variant="ghost"
-			title="Split down"
-			onclick={() => {
-				app.splits.split(pane.id, "down");
-			}}
-		>
-			<IconSplitDown />
-		</Button>
-
-		<Button
-			class="size-min p-1"
-			size="icon-sm"
-			variant="ghost"
-			title="Close split"
-			onclick={() => app.closePane(pane.id)}
-		>
-			<IconClose />
-		</Button>
+		<ButtonGroup items={actions} size="sm" aria-label="Pane actions" />
 	</div>
 </div>
 

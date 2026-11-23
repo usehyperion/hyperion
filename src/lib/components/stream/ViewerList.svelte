@@ -22,7 +22,7 @@
 
 	import Button from "../ui/Button.svelte";
 	import Empty from "../ui/Empty.svelte";
-	import * as InputGroup from "../ui/input-group";
+	import InputGroup from "../ui/InputGroup.svelte";
 	import Sheet from "../ui/Sheet.svelte";
 	import UserCard from "../user/UserCard.svelte";
 
@@ -160,21 +160,19 @@
 			</DrawerClose>
 		</div>
 
-		<InputGroup.Root>
-			<InputGroup.Addon>
-				<IconSearch />
-			</InputGroup.Addon>
-
-			<InputGroup.Input
-				type="search"
-				placeholder="Search viewers"
-				autocomplete="off"
-				spellcheck="false"
-				aria-label="Search viewers"
-				bind:ref={search}
-				bind:value={query}
-			/>
-		</InputGroup.Root>
+		<InputGroup
+			type="search"
+			clearable
+			clearLabel="Clear search"
+			placeholder="Search viewers"
+			autocomplete="off"
+			spellcheck="false"
+			aria-label="Search viewers"
+			bind:ref={search}
+			bind:value={query}
+		>
+			{#snippet start()}<IconSearch />{/snippet}
+		</InputGroup>
 
 		{#if list.error}
 			<p class="text-xs text-danger">

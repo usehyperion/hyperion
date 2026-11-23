@@ -7,11 +7,11 @@
 	import { countFields, filterCategory } from "#lib/components/settings/schema/search.js";
 	import Button from "#lib/components/ui/Button.svelte";
 	import Dialog from "#lib/components/ui/Dialog.svelte";
-	import * as InputGroup from "#lib/components/ui/input-group/index.js";
+	import InputGroup from "#lib/components/ui/InputGroup.svelte";
 	import Separator from "#lib/components/ui/Separator.svelte";
 	import * as Tabs from "#lib/components/ui/tabs/index.js";
 	import { dialogs } from "#lib/dialog.js";
-	import { IconClear, IconClose, IconSearch } from "#lib/icons.js";
+	import { IconClose, IconSearch } from "#lib/icons.js";
 	import { log } from "#lib/log.js";
 	import { settings } from "#lib/settings.js";
 
@@ -94,40 +94,28 @@
 				isMac && "pt-[calc(var(--spacing-title-bar)+4px)]",
 			]}
 		>
-			<InputGroup.Root class="h-9 bg-surface-0">
-				<InputGroup.Addon>
-					<IconSearch />
-				</InputGroup.Addon>
-
-				<InputGroup.Input
-					placeholder="Search settings"
-					aria-label="Search settings"
-					autocapitalize="off"
-					autocomplete="off"
-					spellcheck={false}
-					bind:ref={searchRef}
-					bind:value={query}
-					onkeydown={(event) => {
-						if (event.key === "Escape" && searching) {
-							event.stopPropagation();
-							event.preventDefault();
-							clearSearch();
-						}
-					}}
-				/>
-
-				{#if searching}
-					<InputGroup.Addon align="inline-end">
-						<InputGroup.Button
-							size="icon-xs"
-							aria-label="Clear search"
-							onclick={clearSearch}
-						>
-							<IconClear />
-						</InputGroup.Button>
-					</InputGroup.Addon>
-				{/if}
-			</InputGroup.Root>
+			<InputGroup
+				class="bg-surface-0"
+				size="lg"
+				placeholder="Search settings"
+				autocapitalize="off"
+				autocomplete="off"
+				spellcheck={false}
+				clearable
+				clearLabel="Clear search"
+				aria-label="Search settings"
+				onkeydown={(event) => {
+					if (event.key === "Escape" && searching) {
+						event.stopPropagation();
+						event.preventDefault();
+						clearSearch();
+					}
+				}}
+				bind:ref={searchRef}
+				bind:value={query}
+			>
+				{#snippet start()}<IconSearch />{/snippet}
+			</InputGroup>
 
 			<Tabs.List
 				class="min-h-0 flex-1 overflow-y-auto"
