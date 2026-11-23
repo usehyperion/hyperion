@@ -15,10 +15,10 @@
 </script>
 
 <Popover
-	class="w-(--anchor-width) max-w-[calc(100vw-1rem)]"
+	class="w-[calc(var(--anchor-width)-1rem)]"
 	{anchor}
 	side="bottom"
-	align="start"
+	align="center"
 	sideOffset={4}
 	aria-label="Stream info"
 >
