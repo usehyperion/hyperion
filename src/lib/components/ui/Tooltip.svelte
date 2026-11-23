@@ -1,6 +1,10 @@
 <script lang="ts" module>
+	export const tooltipSurfaceClass =
+		"rounded-[5px] border border-line-strong bg-surface-3 px-1.5 py-0.5 text-2xs text-fg shadow-popup";
+
 	export const tooltipContentClass = [
-		"m-0 w-max max-w-64 overflow-visible rounded-[5px] border border-line-strong bg-surface-3 px-1.5 py-0.5 text-2xs text-fg shadow-popup",
+		"m-0 w-max max-w-64 overflow-visible",
+		tooltipSurfaceClass,
 		"origin-(--transform-origin) transition-[opacity,scale] duration-100 ease-out",
 		"ending:opacity-0 starting:scale-95 starting:opacity-0 data-instant:transition-none",
 	];
