@@ -70,7 +70,7 @@
 	</SelectTrigger>
 
 	<SelectContent
-		class="max-h-(--available-height) min-w-(--anchor-width) popup-surface overflow-y-auto p-1"
+		class="popup-surface max-h-(--available-height) min-w-(--anchor-width) overflow-y-auto p-1"
 		sideOffset={4}
 	>
 		{#each items as item (item.value)}

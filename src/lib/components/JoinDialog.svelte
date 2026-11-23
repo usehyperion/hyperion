@@ -255,7 +255,7 @@
 			{/if}
 
 			{#if rows.length}
-				<div class="flex items-center gap-1.5 px-2 pt-1 pb-1.5 section-label">
+				<div class="section-label flex items-center gap-1.5 px-2 pt-1 pb-1.5">
 					{#if isSearch}
 						<IconChannels class="size-4" />
 						Channels

@@ -57,7 +57,7 @@
 
 	<DialogContent
 		class={cn(
-			"fixed inset-0 m-auto flex h-fit max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md popup-surface flex-col overflow-hidden outline-none",
+			"popup-surface fixed inset-0 m-auto flex h-fit max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md flex-col overflow-hidden outline-none",
 			className,
 		)}
 		{initialFocus}

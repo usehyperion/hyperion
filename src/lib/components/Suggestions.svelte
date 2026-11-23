@@ -55,7 +55,7 @@
 	}}
 >
 	<PopoverContent
-		class="flex max-h-72 w-(--anchor-width) popup-surface flex-col overflow-y-auto p-1"
+		class="popup-surface flex max-h-72 w-(--anchor-width) flex-col overflow-y-auto p-1"
 		aria-label="Suggestions"
 		{anchor}
 		side="top"

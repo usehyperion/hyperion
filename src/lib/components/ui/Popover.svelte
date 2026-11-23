@@ -53,7 +53,7 @@
 
 	<PopoverContent
 		class={cn(
-			"m-0 max-h-(--available-height) max-w-[calc(100vw-1rem)] popup-surface overflow-y-auto p-3 outline-none",
+			"popup-surface m-0 max-h-(--available-height) max-w-[calc(100vw-1rem)] overflow-y-auto p-3 outline-none",
 			className,
 		)}
 		{anchor}

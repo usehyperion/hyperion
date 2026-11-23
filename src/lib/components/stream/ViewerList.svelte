@@ -185,7 +185,7 @@
 		{#each sections as section (section.role)}
 			<section class="pb-2">
 				<h3
-					class="sticky top-0 z-10 flex items-center justify-between bg-surface-1 px-3 pt-3 pb-1 section-label"
+					class="section-label sticky top-0 z-10 flex items-center justify-between bg-surface-1 px-3 pt-3 pb-1"
 				>
 					{section.label}
 					<span class="tabular-nums">{section.chatters.length.toLocaleString()}</span>
