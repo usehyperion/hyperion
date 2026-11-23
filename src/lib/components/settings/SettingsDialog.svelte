@@ -118,7 +118,7 @@
 			</InputGroup>
 
 			<Tabs.List
-				class="min-h-0 flex-1 overflow-y-auto"
+				class="min-h-0 flex-1 gap-y-1 overflow-y-auto"
 				variant="nav"
 				aria-label="Settings categories"
 			>
