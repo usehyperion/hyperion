@@ -19,7 +19,7 @@
 
 <SegmentedControl
 	class={cn(
-		"relative isolate inline-flex shrink-0 control-track p-0.5 data-disabled:opacity-50 data-[orientation=vertical]:h-auto data-[orientation=vertical]:flex-col",
+		"relative isolate inline-flex shrink-0 control-track p-0.5 data-disabled:opacity-50 vertical:h-auto vertical:flex-col",
 		size === "sm" ? "h-control-sm" : "h-control",
 		className,
 	)}

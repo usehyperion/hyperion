@@ -161,6 +161,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant heading (&:where(h1, h2, h3, h4, h5, h6));
 
+@custom-variant horizontal (&[data-orientation="horizontal"]);
+@custom-variant vertical (&[data-orientation="vertical"]);
 @custom-variant starting (&[data-starting-style]);
 @custom-variant ending (&[data-ending-style]);
 

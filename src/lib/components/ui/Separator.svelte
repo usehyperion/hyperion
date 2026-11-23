@@ -21,7 +21,7 @@
 
 <Separator
 	class={cn(
-		"shrink-0 bg-line data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px",
+		"shrink-0 bg-line horizontal:h-px horizontal:w-full vertical:h-full vertical:w-px",
 		className,
 	)}
 	{...rest}

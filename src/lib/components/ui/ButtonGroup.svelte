@@ -46,7 +46,7 @@
 </script>
 
 <Toolbar
-	class={cn("flex w-fit items-center gap-0.5 data-[orientation=vertical]:flex-col", className)}
+	class={cn("flex w-fit items-center gap-0.5 vertical:flex-col", className)}
 	{orientation}
 	{loop}
 	{disabled}

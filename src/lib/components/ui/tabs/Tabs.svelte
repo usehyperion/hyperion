@@ -7,8 +7,4 @@
 	let { class: className, value = $bindable(), ...rest }: ComponentProps<typeof Tabs> = $props();
 </script>
 
-<Tabs
-	class={cn("flex gap-2 data-[orientation=horizontal]:flex-col", className)}
-	bind:value
-	{...rest}
-/>
+<Tabs class={cn("flex gap-2 horizontal:flex-col", className)} bind:value {...rest} />

@@ -18,8 +18,8 @@
 <TabsList
 	class={cn(
 		variant === "segmented"
-			? "relative isolate flex h-control shrink-0 control-track p-0.5 data-[orientation=vertical]:h-auto data-[orientation=vertical]:flex-col"
-			: "flex flex-col gap-px data-[orientation=horizontal]:flex-row",
+			? "relative isolate flex h-control shrink-0 control-track p-0.5 vertical:h-auto vertical:flex-col"
+			: "flex flex-col gap-px horizontal:flex-row",
 		className,
 	)}
 	data-variant={variant}
