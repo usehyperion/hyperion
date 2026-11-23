@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { platform as getPlatform } from "@tauri-apps/plugin-os";
 	import { DialogClose } from "@ui-sdk/svelte/dialog";
 
 	import type { SettingsCategory } from "#lib/components/settings/schema/types.js";
@@ -14,6 +13,7 @@
 	import { IconClose, IconSearch } from "#lib/icons.js";
 	import { log } from "#lib/log.js";
 	import { settings } from "#lib/settings.js";
+	import { platform } from "#lib/util/index.js";
 
 	import Category from "./Category.svelte";
 	import SidebarActions from "./SidebarActions.svelte";
@@ -24,7 +24,7 @@
 	});
 
 	const categories = Object.values(imports).toSorted((a, b) => a.order - b.order);
-	const isMac = getPlatform() === "macos";
+	const isMac = platform === "macos";
 
 	let query = $state("");
 	let active = $state(categories[0].label);
