@@ -7,6 +7,7 @@
 	import { everySecond } from "#lib/clock.js";
 	import { IconUptime } from "#lib/icons.js";
 
+	import Tooltip from "../ui/Tooltip.svelte";
 	import GuestList from "./GuestList.svelte";
 	import StreamInfo from "./StreamInfo.svelte";
 	import ViewerList from "./ViewerList.svelte";
@@ -26,6 +27,14 @@
 
 		return `${hours}:${diff.format("mm:ss")}`;
 	});
+
+	const started = $derived.by(() => {
+		const date = dayjs(stream.createdAt);
+
+		return date.format(
+			date.isSame(dayjs(), "day") ? "[Started at] LT" : "[Started] MMM D [at] LT",
+		);
+	});
 </script>
 
 <header
@@ -38,15 +47,21 @@
 		<GuestList {channel} />
 	{/if}
 
-	<div
-		class="hidden shrink-0 items-center gap-1 px-1.5 text-fg-muted tabular-nums @2xs:flex"
-		title="Uptime"
-	>
-		<IconUptime class="size-3.5 text-fg-faint" aria-hidden="true" />
+	<Tooltip type="description" side="bottom">
+		{#snippet trigger(props)}
+			<div
+				{...props}
+				class="hidden h-6 shrink-0 items-center gap-1 rounded-control px-1.5 text-fg-muted tabular-nums @2xs:flex"
+			>
+				<IconUptime class="size-3.5 text-fg-faint" aria-hidden="true" />
 
-		<span class="sr-only">Uptime</span>
-		{uptime}
-	</div>
+				<span class="sr-only">Uptime</span>
+				{uptime}
+			</div>
+		{/snippet}
+
+		{started}
+	</Tooltip>
 
 	<ViewerList {channel} />
 </header>
