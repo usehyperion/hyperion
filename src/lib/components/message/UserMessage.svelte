@@ -44,6 +44,7 @@
 	aria-disabled={message.deleted}
 	data-deleted={deletedAppearance(message)}
 	data-action={message.action || undefined}
+	data-author={message.author.username}
 	oncontextmenu={(event) => openMenu(event, () => createMessageMenu(message))}
 >
 	{#if !message.deleted && !message.channel.banned}
