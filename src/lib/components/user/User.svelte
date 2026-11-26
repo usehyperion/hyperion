@@ -26,7 +26,7 @@
 	const defaultProps = $derived({
 		class: "font-semibold wrap-break-word disabled:cursor-default",
 		controller,
-		disable: nested,
+		disabled: nested,
 		onclick,
 	});
 
