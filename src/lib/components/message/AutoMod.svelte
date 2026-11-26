@@ -27,7 +27,7 @@
 				height="18"
 			/>
 
-			<span class="font-semibold text-accent">AutoMod</span>:
+			<span class="font-semibold text-fg">AutoMod</span>:
 
 			{#if metadata.reason === "blocked-term"}
 				Message held for using blocked terms
