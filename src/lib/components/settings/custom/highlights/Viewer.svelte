@@ -6,22 +6,24 @@
 	import { IconReset } from "#lib/icons.js";
 	import { settings } from "#lib/settings.js";
 
+	import { STYLES } from "./Appearance.svelte";
 	import Row from "./Row.svelte";
 
-	const highlights = Object.entries(HIGHLIGHTS).map(([value, kind]) => ({
+	const kinds = Object.entries(HIGHLIGHTS).map(([type, kind]) => ({
+		type: type as HighlightType,
+		icon: kind.icon,
 		label: `${kind.label}s`,
-		value: value as HighlightType,
 	}));
 
 	const viewers = $derived(settings.state["highlights.viewers"]);
 
-	function reset(key: HighlightType) {
-		viewers[key] = { ...HIGHLIGHTS[key].defaults };
+	function reset(type: HighlightType) {
+		viewers[type] = { ...HIGHLIGHTS[type].defaults };
 	}
 
-	function isDefault(key: HighlightType) {
-		const config = viewers[key];
-		const original = HIGHLIGHTS[key].defaults;
+	function isDefault(type: HighlightType) {
+		const config = viewers[type];
+		const original = HIGHLIGHTS[type].defaults;
 
 		return Object.entries(original).every(
 			([field, value]) => config[field as keyof typeof original] === value,
@@ -29,27 +31,37 @@
 	}
 </script>
 
-<div class="flex flex-col gap-2">
-	{#each highlights as highlight (highlight.value)}
-		<Row
-			type={highlight.value}
-			id={highlight.value}
-			label={highlight.label}
-			bind:config={viewers[highlight.value]}
-		>
-			{#snippet actions()}
+<ul class="@container divide-y divide-line rounded-panel border border-line">
+	{#each kinds as kind (kind.type)}
+		<Row label={kind.label} bind:config={viewers[kind.type]}>
+			<kind.icon
+				class="size-3.5 shrink-0 text-fg-muted transition-opacity group-data-[enabled=false]/row:opacity-40"
+				aria-hidden="true"
+			/>
+
+			<span
+				class="truncate transition-colors group-data-[enabled=false]/row:text-fg-faint"
+				title={kind.label}
+			>
+				{kind.label}
+			</span>
+
+			<span class="ms-auto hidden shrink-0 text-caption text-fg-faint @sm:inline">
+				{STYLES.find((style) => style.value === viewers[kind.type].style)?.label}
+			</span>
+
+			{#snippet footer()}
 				<Button
-					class="text-fg-muted hover:text-fg"
-					title="Reset to default"
-					size="icon-sm"
+					class="w-full justify-start"
+					size="sm"
 					variant="ghost"
-					aria-label="Reset {highlight.label} to default"
-					disabled={isDefault(highlight.value)}
-					onclick={() => reset(highlight.value)}
+					disabled={isDefault(kind.type)}
+					onclick={() => reset(kind.type)}
 				>
 					<IconReset />
+					Reset to default
 				</Button>
 			{/snippet}
 		</Row>
 	{/each}
-</div>
+</ul>
