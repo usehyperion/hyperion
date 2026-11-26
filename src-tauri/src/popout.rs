@@ -8,8 +8,9 @@
 use std::sync::atomic::{AtomicU32, Ordering};
 
 use tauri::webview::{NewWindowFeatures, NewWindowResponse};
-use tauri::{AppHandle, Runtime, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder};
 
+// Same as `src/lib/popout.ts`
 const LABEL_PREFIX: &str = "popout-";
 
 static NEXT_ID: AtomicU32 = AtomicU32::new(0);
@@ -33,6 +34,18 @@ pub fn open<R: Runtime>(app: &AppHandle<R>, features: NewWindowFeatures) -> NewW
         Err(error) => {
             tracing::error!(%error, "Failed to open popout");
             NewWindowResponse::Deny
+        }
+    }
+}
+
+pub fn close_all<R: Runtime>(app: &AppHandle<R>) {
+    for (label, window) in app.webview_windows() {
+        if !label.starts_with(LABEL_PREFIX) {
+            continue;
+        }
+
+        if let Err(error) = window.destroy() {
+            tracing::error!(%error, %label, "Failed to close popout");
         }
     }
 }
