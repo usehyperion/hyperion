@@ -147,7 +147,7 @@
 		</div>
 
 		<div class="relative flex min-w-0 grow flex-col border-l border-line bg-surface-1">
-			<div class="flex items-center justify-end gap-2 px-4 pt-3 text-ui text-fg-muted">
+			<div class="flex items-center justify-end gap-2 px-4 pt-3 pb-1 text-ui text-fg-muted">
 				<div class="mr-auto">
 					Settings
 
