@@ -136,10 +136,13 @@
 					hasNew && "pr-3",
 				]}
 				type="button"
+				aria-label={hasNew
+					? `Jump to latest, ${newCount} new ${newCount === 1 ? "message" : "messages"}`
+					: "Jump to latest"}
 				onclick={scrollToEnd}
 				transition:fly={{ y: 16, duration: 200 }}
 			>
-				<IconScrollToBottom class="size-4 shrink-0" />
+				<IconScrollToBottom class="size-4 shrink-0" aria-hidden="true" />
 
 				<span
 					class="grid overflow-hidden transition-[grid-template-columns] duration-200 ease-out"
