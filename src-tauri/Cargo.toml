@@ -37,7 +37,7 @@ serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 thiserror = "2.0.21"
 time = { version = "0.3", features = ["formatting", "local-offset"] }
-tauri = { version = "2", features = ["protocol-asset"] }
+tauri = { version = "2", features = [] }
 tauri-plugin-deep-link = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-notification = "2"
@@ -54,6 +54,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "time"] }
 twitch_oauth2 = { version = "0.15", features = ["reqwest"] }
 keyring = "4.2.0"
 zstd = "0.14.3"
+percent-encoding = "2.3"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }

@@ -5,7 +5,6 @@ import { SvelteMap } from "svelte/reactivity";
 import * as v from "valibot";
 
 import { log } from "./log";
-import { latest } from "./util/resource";
 
 const MANIFEST_FILE = "manifest.json";
 const STYLESHEET_FILE = "main.css";
@@ -189,7 +188,6 @@ export async function loadThemes() {
 	log.info(`Loaded ${themes.size} themes`);
 }
 
-const injection = latest();
 let revision = Date.now();
 
 // The theme whose stylesheet is applied. Reloading replaces the theme objects,
@@ -200,7 +198,7 @@ let applied: Theme | null = null;
  * Applies the theme's stylesheet, or none if it isn't installed. Reads
  * {@linkcode themes}, so an effect calling it re-runs when themes reload.
  */
-export async function injectTheme(id: string) {
+export function injectTheme(id: string) {
 	const element = document.getElementById("hyperion-custom-theme");
 
 	if (!(element instanceof HTMLLinkElement)) {
@@ -208,7 +206,6 @@ export async function injectTheme(id: string) {
 		return;
 	}
 
-	const signal = injection.next();
 	const theme = (id && themes.get(id)) || null;
 
 	if (id && !theme) {
@@ -223,11 +220,9 @@ export async function injectTheme(id: string) {
 		return;
 	}
 
-	const href = convertFileSrc(await join(theme.path, STYLESHEET_FILE));
-	if (signal.aborted) return;
-
 	applied = theme;
 
-	// Bypass the webview stylesheet cache.
-	element.href = `${href}?v=${++revision}`;
+	const origin = convertFileSrc("", "theme");
+
+	element.href = `${origin}${++revision}/${encodeURIComponent(theme.id)}/${STYLESHEET_FILE}`;
 }

@@ -23,6 +23,7 @@ mod log;
 mod popout;
 mod pubsub;
 mod seventv;
+mod theme;
 mod ws;
 
 const MAIN_WINDOW_LABEL: &str = "main";
@@ -94,6 +95,7 @@ pub fn run() {
                 .with_filter(|label| label == MAIN_WINDOW_LABEL)
                 .build(),
         )
+        .register_asynchronous_uri_scheme_protocol(theme::SCHEME, theme::handle)
         .setup(|app| {
             log::init_tracing(app);
 
