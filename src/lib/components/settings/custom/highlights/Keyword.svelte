@@ -99,7 +99,10 @@
 
 	<li>
 		<button
-			class="flex h-9 w-full cursor-pointer items-center gap-2 rounded-b-panel px-2.5 text-fg-muted control-focus transition-colors not-first:rounded-t-none first:rounded-t-panel hover:bg-tint hover:text-fg [&_svg]:size-3.5"
+			class={[
+				"flex h-9 w-full cursor-pointer items-center gap-2 rounded-b-panel px-2.5 text-fg-muted control-focus transition-colors hover:bg-tint hover:text-fg [&_svg]:size-3.5",
+				keywords.length === 0 && "rounded-t-panel",
+			]}
 			type="button"
 			onclick={add}
 		>
