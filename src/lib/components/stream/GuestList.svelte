@@ -94,7 +94,7 @@
 		</div>
 
 		{#if viewers != null}
-			<div class="flex items-center text-detail text-danger tabular-nums">
+			<div class="flex items-center text-detail text-live tabular-nums">
 				<IconViewers class="mr-1" />
 				{viewers}
 			</div>

@@ -46,6 +46,7 @@
 		--accent: oklch(0.54 0.24 293);
 		--focus: oklch(0.55 0.01 286);
 		--danger: oklch(0.55 0.21 27);
+		--live: oklch(0.55 0.21 27);
 		--success: oklch(0.55 0.15 150);
 		--warning: oklch(0.62 0.15 70);
 
@@ -74,6 +75,7 @@
 		--accent: oklch(0.75 0.155 301);
 		--focus: oklch(0.72 0.006 286);
 		--danger: oklch(0.7 0.18 25);
+		--live: oklch(0.7 0.18 25);
 		--success: oklch(0.74 0.15 155);
 		--warning: oklch(0.8 0.14 80);
 
@@ -103,6 +105,7 @@
 	--color-accent: var(--accent);
 	--color-focus: var(--focus);
 	--color-danger: var(--danger);
+	--color-live: var(--live);
 	--color-success: var(--success);
 	--color-warning: var(--warning);
 

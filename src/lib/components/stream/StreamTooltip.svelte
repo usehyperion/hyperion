@@ -65,7 +65,7 @@
 			<p class="line-clamp-2">{channel.stream.title}</p>
 
 			{#if !sidebar.collapsed}
-				<div class="flex items-center text-danger">
+				<div class="flex items-center text-live">
 					<IconViewers class="mr-1 size-3" />
 
 					<p class="text-detail">

@@ -88,7 +88,7 @@
 		{/if}
 
 		{#if message.recent && !nextRecent && settings.state["chat.messages.history.separator"]}
-			<ChatSeparator class="text-danger">Live messages</ChatSeparator>
+			<ChatSeparator class="text-live">Live messages</ChatSeparator>
 		{/if}
 	{/snippet}
 </ReverseScroll>
