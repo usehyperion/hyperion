@@ -116,8 +116,8 @@ export function highlightOf(text: string, viewer: Viewer, username: string | und
 	return null;
 }
 
-export function matchesKeyword(text: string, config: KeywordHighlightConfig) {
-	if (!config.pattern.trim()) return false;
+export function compilePattern(config: KeywordHighlightConfig) {
+	if (!config.pattern.trim()) return null;
 
 	let pattern = config.regex ? config.pattern : RegExp.escape(config.pattern);
 
@@ -126,8 +126,12 @@ export function matchesKeyword(text: string, config: KeywordHighlightConfig) {
 	}
 
 	try {
-		return new RegExp(pattern, config.matchCase ? "" : "i").test(text);
+		return new RegExp(pattern, config.matchCase ? "" : "i");
 	} catch {
-		return false;
+		return null;
 	}
+}
+
+export function matchesKeyword(text: string, config: KeywordHighlightConfig) {
+	return compilePattern(config)?.test(text) ?? false;
 }

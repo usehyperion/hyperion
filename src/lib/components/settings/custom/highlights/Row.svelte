@@ -1,64 +1,31 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 
-	import type { HighlightConfig, HighlightType } from "#lib/highlights.js";
+	import type { HighlightConfig } from "#lib/highlights.js";
 
-	import { HIGHLIGHTS, KEYWORD_HIGHLIGHT } from "#lib/highlights.js";
+	import Switch from "#lib/components/ui/Switch.svelte";
 
-	import Color from "./Color.svelte";
-	import StyleSelect from "./Style.svelte";
+	import Appearance from "./Appearance.svelte";
 
 	interface Props {
-		type: HighlightType | "custom";
-		id: string;
 		label: string;
 		config: HighlightConfig;
-		actions?: Snippet;
-		badges?: Snippet;
+		children: Snippet;
+		footer?: Snippet;
+		trailing?: Snippet;
 	}
 
-	let { type, id, label, config = $bindable(), actions, badges }: Props = $props();
-
-	const decoration = $derived(type === "custom" ? KEYWORD_HIGHLIGHT : HIGHLIGHTS[type]);
+	let { label, config = $bindable(), children, footer, trailing }: Props = $props();
 </script>
 
-<div class="@container">
-	<div
-		class="group flex flex-wrap items-center gap-2 rounded-xl border bg-tint px-3 py-2.5 transition-[border-color] duration-200"
-		data-enabled={config.enabled}
-		style:border-color={config.enabled ? config.color : undefined}
-	>
-		<div
-			class="flex min-w-0 flex-1 items-center gap-2.5 transition-opacity duration-200 group-data-[enabled=false]:opacity-45"
-		>
-			<span
-				class="shrink-0 group-data-[enabled=false]:text-fg-muted"
-				style:color={config.enabled ? config.color : undefined}
-			>
-				<decoration.icon class="size-4" />
-			</span>
+<li class="group/row flex h-9 items-center gap-1.5 ps-1.5 pe-2.5">
+	<Appearance {label} {footer} bind:config />
 
-			<span
-				class="truncate text-body font-medium group-data-[enabled=false]:text-fg-muted"
-				title={label}
-			>
-				{label}
-			</span>
-
-			{@render badges?.()}
-		</div>
-
-		<div class="flex shrink-0 items-center gap-2 @max-[350px]:order-last @max-[350px]:w-full">
-			<Color {id} bind:value={config.color} />
-			<StyleSelect bind:config />
-		</div>
-
-		{#if actions}
-			<div
-				class="flex shrink-0 items-center gap-0.5 transition-opacity duration-200 group-data-[enabled=false]:opacity-45"
-			>
-				{@render actions()}
-			</div>
-		{/if}
+	<div class="flex min-w-0 flex-1 items-center gap-2">
+		{@render children()}
 	</div>
-</div>
+
+	<Switch aria-label="Highlight {label}" bind:checked={config.enabled} />
+
+	{@render trailing?.()}
+</li>
