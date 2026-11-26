@@ -74,8 +74,8 @@
 	}
 </script>
 
-<div class="p-2 text-body">
-	<div class="mb-1 flex items-center gap-1 text-caption text-fg-muted">
+<div class="prediction p-2 text-body" data-status={prediction.status}>
+	<div class="prediction-header mb-1 flex items-center gap-1 text-caption text-fg-muted">
 		<IconPrediction class="size-3 shrink-0" />
 
 		<span class="truncate">
@@ -108,7 +108,7 @@
 		</div>
 	</div>
 
-	<p class="mb-1.5 font-medium">{prediction.title}</p>
+	<p class="prediction-title mb-1.5 font-medium">{prediction.title}</p>
 
 	{#if expanded}
 		<ul class="flex flex-col gap-1.5">
@@ -119,7 +119,11 @@
 				{@const lost =
 					prediction.status === "RESOLVED" && prediction.winningOutcomeId !== outcome.id}
 
-				<li class="flex flex-col">
+				<li
+					class="prediction-outcome flex flex-col"
+					data-won={won || undefined}
+					data-lost={lost || undefined}
+				>
 					<div class="mb-0.5 flex items-center gap-1.5">
 						<span class="truncate">{outcome.title}</span>
 

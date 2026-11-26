@@ -46,7 +46,7 @@
 <Popover
 	{controller}
 	{anchor}
-	class="w-sm overflow-hidden p-0"
+	class="user-card w-sm overflow-hidden p-0"
 	aria-label={user.displayName}
 	onOpenChangeComplete={(open) => {
 		if (!open) onclose?.();

@@ -30,7 +30,7 @@
 	});
 </script>
 
-<div class="flex h-full flex-col">
+<div class="channel flex h-full flex-col">
 	{#if channel.stream}
 		<StreamHeader {channel} stream={channel.stream} />
 	{/if}

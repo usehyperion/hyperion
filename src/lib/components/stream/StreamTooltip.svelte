@@ -27,7 +27,10 @@
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="relative flex cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-surface-3"
+			class="channel-list-item relative flex cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-surface-3"
+			data-live={!!channel.stream}
+			data-pinned={channel.pinned || undefined}
+			data-ephemeral={channel.ephemeral || undefined}
 			{...props}
 			onclick={() => app.open(channel)}
 			oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}

@@ -14,7 +14,7 @@
 </script>
 
 <div
-	class="rounded-t-md border border-b-0 border-line bg-tint px-3 pt-1.5 pb-2.5 text-body transition-colors duration-200 has-[+div>input:focus-visible]:border-line-strong"
+	class="chat-reply rounded-t-md border border-b-0 border-line bg-tint px-3 pt-1.5 pb-2.5 text-body transition-colors duration-200 has-[+div>input:focus-visible]:border-line-strong"
 >
 	<div class="flex items-center justify-between">
 		<span class="text-fg-muted">Replying to:</span>

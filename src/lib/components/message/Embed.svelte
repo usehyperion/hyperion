@@ -138,7 +138,10 @@
 		{/if}
 	{/await}
 {:else if target.type === "spotify"}
-	<div class="w-full max-w-100 overflow-hidden rounded-lg border bg-surface-1">
+	<div
+		class="embed w-full max-w-100 overflow-hidden rounded-lg border bg-surface-1"
+		data-type="spotify"
+	>
 		<iframe
 			class="block"
 			title="Spotify Web Player"
@@ -199,9 +202,10 @@
 {#snippet card(href: string, label: string, media: Snippet, body: Snippet)}
 	<div
 		class={[
-			"group relative flex h-19 w-full max-w-100 gap-3 overflow-hidden rounded-lg border bg-surface-1",
+			"embed group relative flex h-19 w-full max-w-100 gap-3 overflow-hidden rounded-lg border bg-surface-1",
 			"transition-[background-color,border-color] hover:border-line-strong hover:bg-tint",
 		]}
+		data-type={target.type}
 	>
 		<a class="absolute inset-0 z-10 rounded-lg" {href} target="_blank" aria-label={label}></a>
 

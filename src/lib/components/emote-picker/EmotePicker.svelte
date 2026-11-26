@@ -81,7 +81,7 @@
 </script>
 
 <Popover
-	class="flex h-100 w-120 flex-col overflow-hidden p-0"
+	class="emote-picker flex h-100 w-120 flex-col overflow-hidden p-0"
 	side="top"
 	align="end"
 	container={document.body}

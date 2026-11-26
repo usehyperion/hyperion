@@ -24,8 +24,8 @@
 	const fraction = $derived(pin.duration ? clamp(0, remaining / (pin.duration * 1000), 1) : 0);
 </script>
 
-<div class="relative p-2 text-body">
-	<div class="mb-1 flex items-center gap-1 text-detail text-fg-muted">
+<div class="pin relative p-2 text-body">
+	<div class="pin-header mb-1 flex items-center gap-1 text-detail text-fg-muted">
 		<IconPin class="size-3" />
 
 		<span>Pinned by <Username user={pin.pinner} /></span>
@@ -52,7 +52,7 @@
 
 	{#if pin.duration !== null}
 		<div
-			class="absolute inset-x-0 bottom-0 h-0.5 bg-surface-2"
+			class="pin-timer absolute inset-x-0 bottom-0 h-0.5 bg-surface-2"
 			role="timer"
 			aria-label="{formatDuration(Math.ceil(remaining / 1000))} remaining"
 		>

@@ -16,7 +16,7 @@
 	const { reward, message, viewer }: Props = $props();
 </script>
 
-<Callout color={reward.background_color}>
+<Callout class="redemption" color={reward.background_color}>
 	<p>
 		<Username user={message?.viewer?.user ?? viewer?.user} />
 		used <span class="font-medium">{reward.cost}</span> channel points to redeem

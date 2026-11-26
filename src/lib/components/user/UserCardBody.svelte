@@ -85,7 +85,7 @@
 	}
 </script>
 
-<div class="relative h-18 shrink-0 bg-accent" style:background-color={user.color}>
+<div class="user-card-banner relative h-18 shrink-0 bg-accent" style:background-color={user.color}>
 	{#if onpopout}
 		<button
 			class="absolute top-2 left-2 z-10 rounded bg-black/40 p-1 text-white/80 transition-colors hover:bg-black/60 hover:text-white"

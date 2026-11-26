@@ -28,7 +28,7 @@
 			<Button
 				{...props}
 				title="Live with {guests.map((guest) => guest.displayName).join(', ')}"
-				class="h-6 gap-1.5 px-1.5 text-detail font-normal tabular-nums"
+				class="guest-list h-6 gap-1.5 px-1.5 text-detail font-normal tabular-nums"
 				variant="ghost"
 				aria-label="View {guests.length} guests"
 			>

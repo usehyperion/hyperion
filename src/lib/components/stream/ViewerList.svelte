@@ -102,7 +102,7 @@
 	{#snippet render({ props })}
 		<Button
 			{...props}
-			class="h-6 gap-1 px-1.5 text-detail font-normal tabular-nums"
+			class="viewer-count h-6 gap-1 px-1.5 text-detail font-normal tabular-nums"
 			variant="ghost"
 			title="Viewer list"
 		>

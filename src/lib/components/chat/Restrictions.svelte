@@ -51,7 +51,10 @@
 	{#snippet trigger(props)}
 		<button
 			{...props}
-			class={["flex items-center control-focus", topMostActive && "text-success"]}
+			class={[
+				"chat-restrictions flex items-center control-focus",
+				topMostActive && "text-success",
+			]}
 		>
 			<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
 

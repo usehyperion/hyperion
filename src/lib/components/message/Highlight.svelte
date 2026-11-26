@@ -36,16 +36,25 @@
 </script>
 
 {#if config.style === "background"}
-	<div class={cn("bg-(--highlight)/30", className)} style:--highlight={config.color}>
+	<div
+		class={cn("highlight bg-(--highlight)/30", className)}
+		data-type={type}
+		data-style={config.style}
+		style:--highlight={config.color}
+	>
 		{@render children()}
 	</div>
 {:else if config.style === "default" || config.style === "compact"}
 	<div
-		class={cn("m-1 box-border overflow-hidden rounded-md border", className)}
+		class={cn("highlight m-1 box-border overflow-hidden rounded-md border", className)}
+		data-type={type}
+		data-style={config.style}
 		style:border-color={config.color}
 	>
 		{#if config.style === "default"}
-			<div class="flex items-center bg-surface-2 px-2.5 py-1.5 text-detail font-medium">
+			<div
+				class="highlight-header flex items-center bg-surface-2 px-2.5 py-1.5 text-detail font-medium"
+			>
 				<div class="flex items-center">
 					<decoration.icon class="mr-2 size-4" />
 

@@ -38,7 +38,7 @@
 </script>
 
 <header
-	class="@container flex h-8 shrink-0 items-center gap-0.5 border-b border-line bg-surface-2 px-1 text-detail"
+	class="stream-header @container flex h-8 shrink-0 items-center gap-0.5 border-b border-line bg-surface-2 px-1 text-detail"
 	bind:this={header}
 >
 	<StreamInfo {stream} anchor={header} />
@@ -51,7 +51,7 @@
 		{#snippet trigger(props)}
 			<div
 				{...props}
-				class="hidden h-6 shrink-0 items-center gap-1 rounded-control px-1.5 text-fg-muted tabular-nums @2xs:flex"
+				class="stream-uptime hidden h-6 shrink-0 items-center gap-1 rounded-control px-1.5 text-fg-muted tabular-nums @2xs:flex"
 			>
 				<IconUptime class="size-3.5 text-fg-faint" aria-hidden="true" />
 

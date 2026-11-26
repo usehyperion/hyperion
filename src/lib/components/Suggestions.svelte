@@ -55,7 +55,7 @@
 	}}
 >
 	<PopoverContent
-		class="popup-surface flex max-h-72 w-(--anchor-width) flex-col overflow-y-auto p-1"
+		class="suggestions popup-surface flex max-h-72 w-(--anchor-width) flex-col overflow-y-auto p-1"
 		aria-label="Suggestions"
 		{anchor}
 		side="top"
@@ -72,7 +72,8 @@
 		>
 			{#each suggestions as suggestion, i (suggestion.value)}
 				<ListboxItem
-					class="flex min-h-8 cursor-default items-center gap-2 rounded-control px-2 py-1 text-body control-focus select-none data-selected:bg-surface-3"
+					class="suggestion flex min-h-8 cursor-default items-center gap-2 rounded-control px-2 py-1 text-body control-focus select-none data-selected:bg-surface-3"
+					data-type={suggestion.type}
 					value={suggestion.value}
 					label={suggestion.display}
 					title={suggestion.display}

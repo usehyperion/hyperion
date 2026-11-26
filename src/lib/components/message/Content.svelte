@@ -13,7 +13,7 @@
 </script>
 
 <p
-	class={["inline", message.action && "italic"]}
+	class={["message-content inline", message.action && "italic"]}
 	data-slot="message-content"
 	style:color={message.action ? message.author.color : null}
 >
@@ -33,7 +33,7 @@
 						@{node.data.user?.displayName ?? node.value.slice(1)}
 					</mark>
 				{:else if !node.data.user}
-					<span class="font-semibold wrap-break-word">
+					<span class="mention font-semibold wrap-break-word">
 						{node.value}
 					</span>
 				{:else}
@@ -49,14 +49,14 @@
 				)}
 
 				<img
-					class="-my-2 inline-block align-middle"
+					class="cheer -my-2 inline-block align-middle"
 					srcset={srcset.join(", ")}
 					alt="{node.data.prefix} {node.data.bits}"
 					width="28"
 					height="28"
 				/>
 
-				<span class="font-semibold" style:color={node.data.tier.color}
+				<span class="cheer-amount font-semibold" style:color={node.data.tier.color}
 					>{node.data.bits}</span
 				>
 			{/if}

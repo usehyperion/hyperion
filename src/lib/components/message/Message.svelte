@@ -44,7 +44,7 @@
 {/if}
 
 {#if embeds.length}
-	<div class="mt-2 flex flex-wrap gap-2">
+	<div class="embeds mt-2 flex flex-wrap gap-2">
 		{#each embeds as embed}
 			<Embed {...embed} />
 		{/each}
