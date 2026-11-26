@@ -2,6 +2,8 @@
 	"app": {
 		"windows": [
 			{
+				"label": "main",
+				"create": false,
 				"title": "Hyperion",
 				"minWidth": 500,
 				"decorations": false
