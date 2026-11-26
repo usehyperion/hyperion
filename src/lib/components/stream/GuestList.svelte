@@ -15,8 +15,9 @@
 
 	const { tooltip = false, channel }: Props = $props();
 
-	// This was already checked in <TitleBar />
+	// Only rendered for channels that are live.
 	const stream = $derived(channel.stream!);
+	const guests = $derived([...stream.guests.values()]);
 </script>
 
 {#if tooltip}
@@ -26,12 +27,26 @@
 		{#snippet trigger(props)}
 			<Button
 				{...props}
-				class="size-min p-1 text-detail"
-				size="sm"
+				title="Live with {guests.map((guest) => guest.displayName).join(', ')}"
+				class="h-6 gap-1.5 px-1.5 text-detail font-normal tabular-nums"
 				variant="ghost"
-				aria-label="View guests"
+				aria-label="View {guests.length} guests"
 			>
-				+{stream.guests.size}
+				<span class="flex -space-x-1.5" aria-hidden="true">
+					{#each guests.slice(0, 3) as guest (guest.id)}
+						<Avatar
+							class="size-4 rounded-full ring-2 ring-surface-2"
+							src={guest.avatarUrl}
+							alt=""
+							width="50"
+							height="50"
+						/>
+					{/each}
+				</span>
+
+				{#if guests.length > 3}
+					+{guests.length - 3}
+				{/if}
 			</Button>
 		{/snippet}
 
@@ -46,14 +61,14 @@
 
 	<span
 		class={[
-			"mb-1 inline-block text-detail font-medium text-fg-muted uppercase",
+			"mb-1.5 inline-block text-detail font-medium text-fg-muted uppercase",
 			tooltip ? "mt-2" : "mt-3",
 		]}
 	>
 		Live with
 	</span>
 
-	<ul class="flex flex-col gap-y-1">
+	<ul class="flex flex-col gap-y-1.5">
 		{#each stream.guests as [id, guest] (id)}
 			<li>
 				{@render participant(guest, guest.viewers)}

@@ -1,9 +1,8 @@
 <script lang="ts">
 	import type { Stream } from "#lib/models/stream.svelte.js";
 
-	import { IconCategory, IconStreamInfo } from "#lib/icons.js";
+	import { IconCategory, IconExpand } from "#lib/icons.js";
 
-	import Button from "../ui/Button.svelte";
 	import Popover from "../ui/Popover.svelte";
 
 	interface Props {
@@ -23,15 +22,17 @@
 	aria-label="Stream info"
 >
 	{#snippet trigger(props)}
-		<Button
+		<button
 			{...props}
-			class="size-8 rounded-none text-fg-muted hover:text-fg"
-			size="icon-sm"
-			variant="ghost"
-			aria-label="Stream info"
+			title={stream.title}
+			class="flex h-6 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-control px-1.5 text-left control-focus transition-colors hover:bg-surface-3 aria-expanded:bg-surface-3"
+			type="button"
+			aria-label="Stream info: {stream.title}"
 		>
-			<IconStreamInfo class="size-3.5" />
-		</Button>
+			<span class="truncate text-fg">{stream.title}</span>
+
+			<IconExpand class="ms-auto size-3 shrink-0 text-fg-faint" aria-hidden="true" />
+		</button>
 	{/snippet}
 
 	<div class="@container">
