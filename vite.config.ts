@@ -55,12 +55,6 @@ export default defineConfig({
 			ignored: ["**/src-tauri/**"],
 		},
 	},
-	resolve: process.env.VITEST ? { conditions: ["browser"] } : undefined,
-	test: {
-		environment: "jsdom",
-		include: ["src/**/*.test.ts"],
-		setupFiles: ["./src/test/setup.ts"],
-	},
 	staged: {
 		"*.{ts,svelte,json}": "vp check --fix",
 	},
