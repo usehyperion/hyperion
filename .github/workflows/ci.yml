@@ -7,6 +7,24 @@ on:
   pull_request:
 
 jobs:
+  typecheck:
+    name: Type check
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1.21.2
+        with:
+          node-version: 24
+          cache: true
+      - name: GQL checks
+        run: |
+          vpx gql-tada generate output
+          vpx gql-tada check
+      - name: Type check
+        run: vpr check
+
   lint:
     name: Lint
     runs-on: blacksmith-2vcpu-ubuntu-2404
@@ -18,16 +36,21 @@ jobs:
         with:
           node-version: 24
           cache: true
-          run-install: true
-      - name: GQL checks
-        run: |
-          vpx gql-tada generate output
-          vpx gql-tada check
-      - name: Type check
-        run: vpr check
+      - name: Generate GQL types
+        run: vpx gql-tada generate output
       - name: Check
-        if: ${{ !cancelled() }}
         run: vp check
+
+  build:
+    name: Build
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1.21.2
+        with:
+          node-version: 24
+          cache: true
       - name: Build
-        if: ${{ !cancelled() }}
         run: vp build
