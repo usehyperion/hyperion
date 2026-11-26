@@ -177,13 +177,17 @@ export class Whisper {
 	public async send(message: string) {
 		if (!message) return;
 
-		await this.client.gql(sendWhisperMutation, {
+		const { sendWhisper } = await this.client.gql(sendWhisperMutation, {
 			input: {
 				message,
 				recipientUserID: this.sender.id,
 				nonce: crypto.randomUUID(),
 			},
 		});
+
+		if (sendWhisper?.error) {
+			throw new Error(`Whisper not sent: ${sendWhisper.error.code}`);
+		}
 	}
 
 	async #loadHistory(buffered: WhisperMessage[]) {

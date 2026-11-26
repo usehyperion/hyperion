@@ -6,6 +6,7 @@ import { page } from "$app/state";
 
 import type { Channel } from "./models/channel.svelte";
 import type { Followed } from "./models/current-user.svelte";
+import type { NotificationOptions, NotificationResponse } from "./notifications";
 import type { DispatchPayload } from "./seventv";
 import type { IrcMessage } from "./twitch/irc";
 import type { PubSubMessage } from "./twitch/pubsub";
@@ -88,6 +89,22 @@ class App {
 	public get focused() {
 		const id = this.splits.focused?.active;
 		return id ? (this.channels.get(id) ?? null) : null;
+	}
+
+	/**
+	 * Shows a system notification. Resolves with the user's response, or
+	 * `null` if the notification couldn't be shown.
+	 *
+	 * It only resolves once the user responds, which may be never, so don't
+	 * await it where that would hold up other work.
+	 */
+	public async notify(options: NotificationOptions) {
+		try {
+			return await invoke<NotificationResponse>("notify", { options });
+		} catch (error) {
+			log.warn("Failed to show notification", error);
+			return null;
+		}
 	}
 
 	/**

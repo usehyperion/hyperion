@@ -20,6 +20,7 @@ mod connection;
 mod error;
 mod irc;
 mod log;
+mod notify;
 mod pubsub;
 mod seventv;
 mod ws;
@@ -83,7 +84,6 @@ pub fn run() {
     builder
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_process::init())
@@ -157,5 +157,6 @@ fn get_handler() -> impl Fn(Invoke) -> bool {
         pubsub::connect_pubsub,
         seventv::connect_seventv,
         seventv::sync_seventv,
+        notify::notify,
     ]
 }
