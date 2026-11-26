@@ -270,7 +270,7 @@
 					<div
 						class={cn(
 							"group flex items-center rounded-control transition-colors",
-							active === index ? "bg-surface-3" : "hover:bg-surface-3/60",
+							active === index ? "bg-surface-3" : "hover:bg-tint",
 						)}
 						onmouseenter={() => (active = index)}
 					>
@@ -299,7 +299,7 @@
 							</div>
 
 							{#if isSearch && item.isLive}
-								<span class="flex items-center gap-1.5 text-red-500">
+								<span class="flex items-center gap-1.5 text-danger">
 									<span class="size-1.5 animate-pulse rounded-full bg-current"
 									></span>
 									<span class="text-xs font-medium">Live</span>

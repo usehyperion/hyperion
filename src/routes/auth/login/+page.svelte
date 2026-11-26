@@ -49,7 +49,7 @@
 </div>
 
 <Button size="lg" onclick={() => handleLogIn()}>
-	<Twitch class="fill-white dark:fill-twitch" />
+	<Twitch class="fill-current" />
 	Log in with Twitch
 </Button>
 

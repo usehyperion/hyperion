@@ -76,7 +76,7 @@
 
 <style>
 	mark {
-		color: white;
-		background-color: --alpha(var(--color-red-500) / 40%);
+		color: var(--color-fg);
+		background-color: --alpha(var(--color-danger) / 40%);
 	}
 </style>

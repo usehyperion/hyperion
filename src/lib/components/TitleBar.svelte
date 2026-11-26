@@ -101,9 +101,9 @@
 				{#if hasUnread}
 					<span class="pointer-events-none absolute top-0.5 right-0.5 flex size-1.5">
 						<span
-							class="absolute inline-flex size-full animate-ping rounded-full bg-red-400 opacity-75 motion-reduce:hidden"
+							class="absolute inline-flex size-full animate-ping rounded-full bg-danger opacity-75 motion-reduce:hidden"
 						></span>
-						<span class="relative inline-flex size-1.5 rounded-full bg-red-500"></span>
+						<span class="relative inline-flex size-1.5 rounded-full bg-danger"></span>
 					</span>
 				{/if}
 			</Link>
@@ -168,7 +168,7 @@
 
 {#snippet control(type: ControlType, rest: HTMLButtonAttributes)}
 	<button
-		class="flex h-title-bar w-12 items-center justify-center bg-transparent text-[10px] font-light transition-colors hover:bg-white/10 hover:data-[control=close]:bg-[#ff0000]/70"
+		class="flex h-title-bar w-12 items-center justify-center bg-transparent text-[10px] font-light transition-colors hover:bg-surface-3 hover:data-[control=close]:bg-danger hover:data-[control=close]:text-fg-inverse"
 		data-control={type}
 		{...rest}
 	>

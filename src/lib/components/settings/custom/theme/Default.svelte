@@ -57,33 +57,29 @@
 </div>
 
 {#snippet shell(dark: boolean)}
-	{const surface = $derived(dark ? "bg-neutral-950" : "bg-white")}
-	{const chrome = $derived(dark ? "bg-neutral-900" : "bg-neutral-100")}
-	{const bar = $derived(dark ? "bg-neutral-700" : "bg-neutral-300")}
-	{const dot = $derived(dark ? "bg-neutral-800" : "bg-neutral-200")}
-
-	<span class="flex size-full flex-col {surface}">
-		<span class="flex shrink-0 items-center gap-1 px-1.5 py-1.5 {chrome}">
-			<span class="block h-1 w-4 rounded-full {bar}"></span>
-			<span class="block h-1 w-3 rounded-full {bar}"></span>
-			<span class="ml-auto block h-1 w-1 rounded-full {bar}"></span>
+	<!-- Scope the theme tokens so each preview shows its own palette. -->
+	<span class={["flex size-full flex-col bg-surface-1", dark ? "dark" : "light"]}>
+		<span class="flex shrink-0 items-center gap-1 bg-surface-0 px-1.5 py-1.5">
+			<span class="block h-1 w-4 rounded-full bg-fg-muted/40"></span>
+			<span class="block h-1 w-3 rounded-full bg-fg-muted/40"></span>
+			<span class="ml-auto block h-1 w-1 rounded-full bg-fg-muted/40"></span>
 		</span>
 
 		<span class="flex min-h-0 flex-1">
-			<span class="flex shrink-0 flex-col items-center gap-1 px-1 py-1.5 {chrome}">
-				<span class="block size-2 rounded-full {bar}"></span>
-				<span class="block size-2 rounded-full {dot}"></span>
-				<span class="block size-2 rounded-full {dot}"></span>
+			<span class="flex shrink-0 flex-col items-center gap-1 bg-surface-0 px-1 py-1.5">
+				<span class="block size-2 rounded-full bg-fg-muted/40"></span>
+				<span class="block size-2 rounded-full bg-line-strong"></span>
+				<span class="block size-2 rounded-full bg-line-strong"></span>
 			</span>
 
 			<span class="flex min-w-0 flex-1 flex-col gap-1 p-1.5">
-				<span class="block h-1 w-10/12 rounded-full {bar}"></span>
-				<span class="block h-1 w-7/12 rounded-full {dot}"></span>
-				<span class="block h-1 w-9/12 rounded-full {dot}"></span>
-				<span class="block h-1 w-6/12 rounded-full {bar}"></span>
-				<span class="block h-1 w-8/12 rounded-full {dot}"></span>
+				<span class="block h-1 w-10/12 rounded-full bg-fg-muted/40"></span>
+				<span class="block h-1 w-7/12 rounded-full bg-line-strong"></span>
+				<span class="block h-1 w-9/12 rounded-full bg-line-strong"></span>
+				<span class="block h-1 w-6/12 rounded-full bg-fg-muted/40"></span>
+				<span class="block h-1 w-8/12 rounded-full bg-line-strong"></span>
 
-				<span class="mt-auto block h-2.5 w-full rounded-sm {chrome}"></span>
+				<span class="mt-auto block h-2.5 w-full rounded-sm bg-surface-0"></span>
 			</span>
 		</span>
 	</span>

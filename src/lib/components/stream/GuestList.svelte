@@ -79,7 +79,7 @@
 		</div>
 
 		{#if viewers != null}
-			<div class="flex items-center text-xs text-red-500 tabular-nums dark:text-red-400">
+			<div class="flex items-center text-xs text-danger tabular-nums">
 				<IconViewers class="mr-1" />
 				{viewers}
 			</div>

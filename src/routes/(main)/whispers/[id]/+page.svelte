@@ -71,7 +71,7 @@
 
 					<div
 						class={[
-							"flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-surface-2/50",
+							"flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-tint",
 							!isNewDay && "border-t",
 						]}
 					>

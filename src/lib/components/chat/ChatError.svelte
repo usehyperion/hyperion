@@ -9,10 +9,10 @@
 </script>
 
 <div
-	class="rounded-t-md border border-b-0 border-line bg-surface-2/50 px-3 py-2.5 text-sm transition-colors duration-200 has-[+div>input:focus-visible]:border-line-strong"
+	class="rounded-t-md border border-b-0 border-line bg-tint px-3 py-2.5 text-sm transition-colors duration-200 has-[+div>input:focus-visible]:border-line-strong"
 >
 	<div class="flex gap-1">
-		<IconWarning class="mt-px shrink-0 text-yellow-400" />
+		<IconWarning class="mt-px shrink-0 text-warning" />
 
 		<p class="text-fg-muted">{message}</p>
 	</div>

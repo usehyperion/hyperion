@@ -84,11 +84,11 @@
 		{@const nextRecent = next?.recent}
 
 		{#if message === lastRead && next && settings.state["chat.newSeparator"]}
-			<ChatSeparator class="text-twitch-400">New messages</ChatSeparator>
+			<ChatSeparator class="text-accent">New messages</ChatSeparator>
 		{/if}
 
 		{#if message.recent && !nextRecent && settings.state["chat.messages.history.separator"]}
-			<ChatSeparator class="text-red-400">Live messages</ChatSeparator>
+			<ChatSeparator class="text-danger">Live messages</ChatSeparator>
 		{/if}
 	{/snippet}
 </ReverseScroll>

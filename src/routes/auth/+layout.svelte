@@ -14,14 +14,12 @@
 
 <style>
 	.rails {
-		--line: light-dark(oklch(0.93 0 0), oklch(0.21 0 0));
-
 		background-image: repeating-linear-gradient(
 			-45deg,
 			transparent,
 			transparent 7px,
-			var(--line) 7px,
-			var(--line) 8px
+			var(--color-line) 7px,
+			var(--color-line) 8px
 		);
 	}
 

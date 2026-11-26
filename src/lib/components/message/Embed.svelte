@@ -88,7 +88,7 @@
 	{#await fetchEmote(target.id) then emote}
 		{#if emote}
 			{#snippet emoteMedia()}
-				<div class="flex h-full w-19 items-center justify-center bg-surface-2/40 p-1.5">
+				<div class="flex h-full w-19 items-center justify-center bg-tint p-1.5">
 					<img
 						class="max-h-full w-auto"
 						srcset={emote.srcset.join(", ")}
@@ -100,7 +100,7 @@
 				{#if !emote.listed && blurred}
 					<button
 						class="absolute inset-0 z-20 grid place-items-center backdrop-blur-lg
-							transition-colors hover:bg-surface-0/20"
+							transition-colors hover:bg-tint"
 						aria-label="Click to reveal unlisted emote"
 						onclick={() => (blurred = false)}
 					>
@@ -117,8 +117,8 @@
 
 					{#if !emote.listed}
 						<span
-							class="shrink-0 rounded-sm bg-red-500/15 px-1 py-px text-[10px]
-								font-medium tracking-wide text-red-400 uppercase"
+							class="shrink-0 rounded-sm bg-danger/12 px-1 py-px text-[10px]
+								font-medium tracking-wide text-danger uppercase"
 						>
 							unlisted
 						</span>
@@ -200,7 +200,7 @@
 	<div
 		class={[
 			"group relative flex h-19 w-full max-w-100 gap-3 overflow-hidden rounded-lg border bg-surface-1",
-			"transition-[background-color,border-color] hover:border-focus/40 hover:bg-surface-3/40",
+			"transition-[background-color,border-color] hover:border-line-strong hover:bg-tint",
 		]}
 	>
 		<a class="absolute inset-0 z-10 rounded-lg" {href} target="_blank" aria-label={label}></a>

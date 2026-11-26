@@ -56,9 +56,7 @@
 				<div class="flex items-center gap-1">
 					{@render indicators()}
 
-					<div
-						class="overflow-hidden text-ellipsis whitespace-nowrap text-twitch dark:text-twitch-link"
-					>
+					<div class="overflow-hidden text-ellipsis whitespace-nowrap text-accent">
 						{channel.user.displayName} &bullet; {channel.stream.game.name}
 					</div>
 				</div>
@@ -67,7 +65,7 @@
 			<p class="line-clamp-2">{channel.stream.title}</p>
 
 			{#if !sidebar.collapsed}
-				<div class="flex items-center text-red-500 dark:text-red-400">
+				<div class="flex items-center text-danger">
 					<IconViewers class="mr-1 size-3" />
 
 					<p class="text-xs">

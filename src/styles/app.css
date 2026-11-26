@@ -25,7 +25,8 @@
 }
 
 @layer {
-	:root {
+	:root,
+	.light {
 		--surface-0: oklch(0.975 0.002 286);
 		--surface-1: oklch(1 0 0);
 		--surface-2: oklch(0.962 0.002 286);
@@ -40,6 +41,9 @@
 		--fg-faint: oklch(0.55 0.008 286);
 		--fg-inverse: oklch(0.985 0 0);
 
+		--tint: oklch(0.21 0.006 286 / 4%);
+
+		--accent: oklch(0.54 0.24 293);
 		--focus: oklch(0.55 0.01 286);
 		--danger: oklch(0.55 0.21 27);
 		--success: oklch(0.55 0.15 150);
@@ -65,6 +69,9 @@
 		--fg-faint: oklch(0.6 0.006 286);
 		--fg-inverse: oklch(0.16 0.004 286);
 
+		--tint: oklch(1 0 0 / 4%);
+
+		--accent: oklch(0.75 0.155 301);
 		--focus: oklch(0.72 0.006 286);
 		--danger: oklch(0.7 0.18 25);
 		--success: oklch(0.74 0.15 155);
@@ -91,6 +98,9 @@
 	--color-fg-faint: var(--fg-faint);
 	--color-fg-inverse: var(--fg-inverse);
 
+	--color-tint: var(--tint);
+
+	--color-accent: var(--accent);
 	--color-focus: var(--focus);
 	--color-danger: var(--danger);
 	--color-success: var(--success);
@@ -118,21 +128,6 @@
 
 @theme {
 	--font-geist: "Geist", sans-serif;
-
-	--color-twitch: oklch(0.59 0.2535 296);
-	--color-twitch-link: oklch(0.75 0.1549 301.29);
-
-	--color-twitch-50: #ede0ff;
-	--color-twitch-100: #e3d1ff;
-	--color-twitch-200: #d1b3ff;
-	--color-twitch-300: #bf94ff;
-	--color-twitch-400: #a970ff;
-	--color-twitch-500: #9147ff;
-	--color-twitch-600: #772ce8;
-	--color-twitch-700: #5c16c5;
-	--color-twitch-800: #451093;
-	--color-twitch-900: #330c6e;
-	--color-twitch-950: #23094e;
 
 	--spacing-title-bar: 2.25rem;
 
@@ -195,7 +190,7 @@
 		@apply transition-colors;
 
 		cursor: pointer;
-		color: var(--color-blue-400);
+		color: var(--color-accent);
 		text-decoration: underline;
 	}
 

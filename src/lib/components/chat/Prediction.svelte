@@ -124,7 +124,7 @@
 						<span class="truncate">{outcome.title}</span>
 
 						{#if won}
-							<IconWinner class="size-3 shrink-0 text-yellow-400" />
+							<IconWinner class="size-3 shrink-0 text-warning" />
 						{/if}
 
 						<span
@@ -159,7 +159,7 @@
 							{outcome.title}
 
 							{#if won}
-								<IconWinner class="size-3 text-yellow-400" />
+								<IconWinner class="size-3 text-warning" />
 							{/if}
 						</span>
 

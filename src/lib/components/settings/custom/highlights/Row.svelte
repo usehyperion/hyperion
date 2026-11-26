@@ -24,7 +24,7 @@
 
 <div class="@container">
 	<div
-		class="group flex flex-wrap items-center gap-2 rounded-xl border bg-surface-0/50 px-3 py-2.5 transition-[border-color] duration-200"
+		class="group flex flex-wrap items-center gap-2 rounded-xl border bg-tint px-3 py-2.5 transition-[border-color] duration-200"
 		data-enabled={config.enabled}
 		style:border-color={config.enabled ? config.color : undefined}
 	>

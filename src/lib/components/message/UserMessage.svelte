@@ -40,7 +40,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class={["group relative", jumpedTo ? "bg-twitch/20" : "transition-colors duration-500"]}
+	class={["group relative", jumpedTo ? "bg-accent/20" : "transition-colors duration-500"]}
 	aria-disabled={message.deleted}
 	data-deleted={deletedAppearance(message)}
 	oncontextmenu={(event) => openMenu(event, () => createMessageMenu(message))}
@@ -75,9 +75,7 @@
 </div>
 
 {#snippet content(bordered: boolean)}
-	<div
-		class={["py-2 not-group-aria-disabled:hover:bg-surface-2/50", bordered ? "px-1.5" : "px-3"]}
-	>
+	<div class={["py-2 not-group-aria-disabled:hover:bg-tint", bordered ? "px-1.5" : "px-3"]}>
 		{#if message.reply}
 			{@const viewer = message.channel.viewers.get(message.reply.parent.user.id)}
 

@@ -45,7 +45,7 @@
 				<IconAnnouncement class="mr-2 -scale-x-100" /> Announcement
 			</div>
 
-			<div class="bg-surface-2/50 p-2">
+			<div class="bg-tint p-2">
 				<Message {message} />
 			</div>
 		</div>

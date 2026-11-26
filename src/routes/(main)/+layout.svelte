@@ -64,7 +64,7 @@
 			<Sidebar />
 		{/if}
 
-		<main class={["grow overflow-hidden bg-surface-3/15", app.user && "border-l"]}>
+		<main class={["grow overflow-hidden bg-surface-1", app.user && "border-l"]}>
 			{@render children()}
 		</main>
 	</div>

@@ -51,7 +51,7 @@
 	{#snippet trigger(props)}
 		<button
 			{...props}
-			class={["flex items-center control-focus", topMostActive && "text-green-500"]}
+			class={["flex items-center control-focus", topMostActive && "text-success"]}
 		>
 			<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
 
@@ -63,7 +63,7 @@
 
 	<ul class="space-y-1">
 		{#each modes as mode (mode.label)}
-			<li class={["flex items-center", mode.active ? "text-green-500" : "text-fg-muted"]}>
+			<li class={["flex items-center", mode.active ? "text-success" : "text-fg-muted"]}>
 				<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
 
 				{mode.label}

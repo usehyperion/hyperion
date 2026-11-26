@@ -82,7 +82,7 @@
 		if (!open) onclose?.();
 	}}
 >
-	<div class="h-18 bg-twitch" style:background-color={user.color}>
+	<div class="h-18 bg-accent" style:background-color={user.color}>
 		{#if user.bannerUrl}
 			<img
 				class="size-full object-cover"
@@ -176,7 +176,7 @@
 
 					{#if !showAllBadges && relationship.badges.length > 10}
 						<button
-							class="ml-1 text-xs text-twitch transition-colors hover:text-twitch-link"
+							class="ml-1 text-xs text-accent transition-colors hover:text-fg"
 							type="button"
 							onclick={() => (showAllBadges = true)}
 							aria-label="Show {relationship.badges.length - 10} more badges"

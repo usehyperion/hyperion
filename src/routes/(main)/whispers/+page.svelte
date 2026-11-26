@@ -41,7 +41,7 @@
 
 					<li>
 						<a
-							class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-2/60 focus-visible:bg-surface-2/60 focus-visible:outline-2 focus-visible:-outline-offset-2"
+							class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-tint focus-visible:bg-tint focus-visible:outline-2 focus-visible:-outline-offset-2"
 							href={resolve("/(main)/whispers/[id]", { id })}
 						>
 							{#if sender.avatarUrl}
@@ -91,7 +91,7 @@
 
 									{#if whisper.unread}
 										<span
-											class="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-red-400 px-1.5 text-[0.6875rem] font-semibold tabular-nums"
+											class="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-danger px-1.5 text-2xs font-semibold text-fg-inverse tabular-nums"
 										>
 											{whisper.unread > 9 ? "9+" : whisper.unread}
 											<span class="sr-only">unread</span>
