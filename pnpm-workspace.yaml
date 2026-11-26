@@ -1,17 +1,12 @@
 allowBuilds:
   esbuild: false
 catalog:
-  vite: npm:@voidzero-dev/vite-plus-core@^1.6.0
-  vite-plus: ^1.6.0
+  vite: npm:@voidzero-dev/vite-plus-core@8.3.8000
+  vite-plus: 1.7.0
 minimumReleaseAgeExclude:
   - "@sveltejs/kit"
   - "@voidzero-dev/*"
   - "svelte"
   - vite-plus
 overrides:
-  vite: "catalog:"
-peerDependencyRules:
-  allowAny:
-    - vite
-  allowedVersions:
-    vite: "*"
+  vite@*: "catalog:"
