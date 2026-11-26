@@ -6,7 +6,7 @@
 	import { settings } from "#lib/settings.js";
 
 	import EmoteLayers from "./EmoteLayers.svelte";
-	import { emoteTooltip } from "./EmoteTooltip.svelte";
+	import { getEmoteTooltip } from "./EmoteTooltip.svelte";
 
 	interface Props {
 		emote: Emote;
@@ -15,10 +15,11 @@
 
 	const { emote, layers = [] }: Props = $props();
 
+	const tooltip = getEmoteTooltip();
 	const payload = $derived({ emote, layers });
 </script>
 
-<TooltipTrigger controller={emoteTooltip} {payload}>
+<TooltipTrigger controller={tooltip} {payload}>
 	{#snippet render({ props })}
 		<button
 			class="-my-2 inline-grid align-middle"

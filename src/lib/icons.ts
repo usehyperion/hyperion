@@ -9,6 +9,7 @@ export { default as IconEdit } from "~icons/hugeicons/pencil-edit-01";
 export { default as IconHide } from "~icons/hugeicons/cancel-01";
 export { default as IconLoading } from "~icons/hugeicons/loading-03";
 export { default as IconOpenFolder } from "~icons/hugeicons/folder-open";
+export { default as IconPopout } from "~icons/hugeicons/square-arrow-up-right";
 export { default as IconRefresh } from "~icons/hugeicons/refresh";
 export { default as IconRemove } from "~icons/hugeicons/cancel-01";
 export { default as IconReset } from "~icons/hugeicons/reload";

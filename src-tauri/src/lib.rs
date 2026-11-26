@@ -20,6 +20,7 @@ mod connection;
 mod error;
 mod irc;
 mod log;
+mod popout;
 mod pubsub;
 mod seventv;
 mod ws;
@@ -128,7 +129,29 @@ pub fn run() {
                 auth::ensure_integrity(&handle).await;
             });
 
+            // The main window is built here rather than from the config so it
+            // can open popouts.
+            let config = app
+                .config()
+                .app
+                .windows
+                .iter()
+                .find(|window| window.label == MAIN_WINDOW_LABEL)
+                .expect("no main window config");
+
+            let handle = app_handle.clone();
+
+            tauri::WebviewWindowBuilder::from_config(app_handle, config)?
+                .on_new_window(move |_, features| popout::open(&handle, features))
+                .build()?;
+
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            if window.label() == MAIN_WINDOW_LABEL && matches!(event, tauri::WindowEvent::Destroyed)
+            {
+                popout::close_all(window.app_handle());
+            }
         })
         .invoke_handler(get_handler())
         .run(tauri::generate_context!())

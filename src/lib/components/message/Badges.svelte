@@ -3,17 +3,19 @@
 
 	import type { Badge } from "#lib/models/badge.js";
 
-	import { hintTooltip } from "../ui/HintTooltip.svelte";
+	import { getHintTooltip } from "../ui/HintTooltip.svelte";
 
 	interface Props {
 		badges: Badge[];
 	}
 
 	const { badges }: Props = $props();
+
+	const tooltip = getHintTooltip();
 </script>
 
 {#each badges as badge, i (badge.id)}
-	<TooltipTrigger controller={hintTooltip} payload={badge.title}>
+	<TooltipTrigger controller={tooltip} payload={badge.title}>
 		{#snippet render({ props })}
 			<!-- Badges stay out of the tab order, as they did as plain images -->
 			{@const { tabindex: _tabindex, type: _type, ...triggerProps } = props}

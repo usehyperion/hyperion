@@ -5,14 +5,17 @@
 	import { ModeWatcher } from "mode-watcher";
 	import { onMount } from "svelte";
 
-	import EmoteTooltip from "#lib/components/emote/EmoteTooltip.svelte";
+	import EmoteTooltip, { provideEmoteTooltip } from "#lib/components/emote/EmoteTooltip.svelte";
 	import TitleBar from "#lib/components/TitleBar.svelte";
-	import HintTooltip from "#lib/components/ui/HintTooltip.svelte";
+	import HintTooltip, { provideHintTooltip } from "#lib/components/ui/HintTooltip.svelte";
 	import { log } from "#lib/log.js";
 	import { settings } from "#lib/settings.js";
 	import { injectTheme } from "#lib/themes.js";
 
 	const { children } = $props();
+
+	const emoteTooltip = provideEmoteTooltip();
+	const hintTooltip = provideHintTooltip();
 
 	onMount(() => {
 		// The root load has resolved by the time this mounts, so the splash can
@@ -80,5 +83,5 @@
 	</HotkeysProvider>
 </div>
 
-<EmoteTooltip />
-<HintTooltip />
+<EmoteTooltip controller={emoteTooltip} />
+<HintTooltip controller={hintTooltip} />

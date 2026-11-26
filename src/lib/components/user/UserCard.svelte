@@ -1,19 +1,15 @@
 <script lang="ts">
 	import type { PopoverController } from "@ui-sdk/svelte/popover";
-	import dayjs from "dayjs";
 
 	import type { Channel } from "#lib/models/channel.svelte.js";
 	import type { User } from "#lib/models/user.svelte.js";
 
-	import { IconAvatarFallback, IconCreated, IconFollowing, IconSubscriber } from "#lib/icons.js";
-	import { log } from "#lib/log.js";
 	import { MessageHistory } from "#lib/models/message-history.svelte.js";
-	import { deletedAppearance } from "#lib/settings.js";
+	import { openPopout } from "#lib/popout.js";
 
-	import Message from "../message/Message.svelte";
-	import ReverseScroll from "../ReverseScroll.svelte";
-	import Avatar from "../ui/Avatar.svelte";
 	import Popover from "../ui/Popover.svelte";
+	import UserCardBody from "./UserCardBody.svelte";
+	import UserCardPopout from "./UserCardPopout.svelte";
 
 	interface Props {
 		controller: PopoverController;
@@ -25,45 +21,25 @@
 
 	const { controller, user, channel, anchor, onclose }: Props = $props();
 
-	let loading = $state(false);
-	let loadingHistory = $state(false);
-	let showAllBadges = $state(false);
-
-	const relationship = $derived(user.relationships.get(channel.id));
 	const viewer = $derived(channel.viewers.get(user.id));
-
 	const history = $derived(viewer && new MessageHistory(viewer));
-	const messages = $derived(history?.messages ?? []);
 
-	async function fetchInfo() {
-		try {
-			loading = true;
-
-			if (user.partial) {
-				await user.fetch();
-			}
-
-			if (!relationship) {
-				await user.fetchRelationship(channel);
-			}
-		} catch (error) {
-			log.error("Failed to fetch user info", error);
-		} finally {
-			loading = false;
-		}
+	export function popOut(user: User, channel: Channel) {
+		openPopout(
+			UserCardPopout,
+			{ user, channel },
+			{
+				title: user.displayName,
+				width: 400,
+				height: 600,
+				key: `user-card:${user.id}:${channel.id}`,
+			},
+		);
 	}
 
-	async function loadHistory() {
-		if (!history) return;
-
-		try {
-			loadingHistory = true;
-			await history.load();
-		} catch (error) {
-			log.error("Failed to load message history", error);
-		} finally {
-			loadingHistory = false;
-		}
+	function handlePopout() {
+		controller.close();
+		popOut(user, channel);
 	}
 </script>
 
@@ -72,145 +48,9 @@
 	{anchor}
 	class="w-sm overflow-hidden p-0"
 	aria-label={user.displayName}
-	onOpenChange={(open) => {
-		if (!open) return;
-
-		void fetchInfo();
-		void loadHistory();
-	}}
 	onOpenChangeComplete={(open) => {
 		if (!open) onclose?.();
 	}}
 >
-	<div class="h-18 bg-accent" style:background-color={user.color}>
-		{#if user.bannerUrl}
-			<img
-				class="size-full object-cover"
-				src={user.bannerUrl}
-				alt=""
-				loading="lazy"
-				decoding="async"
-			/>
-		{/if}
-	</div>
-
-	<div class="relative border-t p-4">
-		<Avatar
-			class="-mt-14 flex size-20 border-4 border-surface-1 ring-0 not-data-[loading-status=loaded]:bg-fg"
-			src={user.avatarUrl}
-			alt={user.displayName}
-		>
-			{#snippet fallback()}
-				<IconAvatarFallback class="size-10 text-fg-inverse" aria-hidden="true" />
-			{/snippet}
-		</Avatar>
-
-		<div class="absolute top-2 right-2 space-y-1 text-detail text-fg-muted">
-			<div class="flex items-center gap-1">
-				<IconCreated class="mr-1 size-3" />
-
-				{#if loading}
-					Loading...
-				{:else if user.createdAt}
-					<time datetime={user.createdAt.toISOString()}>
-						{dayjs(user.createdAt).format("LL")}
-					</time>
-				{:else}
-					Unknown
-				{/if}
-			</div>
-
-			<div class="flex items-center gap-1">
-				<IconFollowing class="mr-1 size-3" />
-
-				{#if loading}
-					Loading...
-				{:else if relationship?.followedAt}
-					<time datetime={relationship.followedAt.toISOString()}>
-						{dayjs(relationship.followedAt).format("LL")}
-					</time>
-				{:else}
-					Not following
-				{/if}
-			</div>
-
-			<div class="flex items-center gap-1">
-				<IconSubscriber
-					class={["mr-1 size-3", relationship?.subscription.tier && "*:fill-current"]}
-				/>
-
-				{#if loading}
-					Loading...
-				{:else if relationship?.subscription.months}
-					{@const { tier, type, months } = relationship.subscription}
-					{@const noun = `month${months > 1 ? "s" : ""}`}
-
-					{#if tier}
-						{type === "prime" ? "Prime" : `Tier ${tier}`} ({months} {noun})
-					{:else}
-						{months} {noun}
-					{/if}
-				{:else}
-					Subscription unknown
-				{/if}
-			</div>
-		</div>
-
-		<div class="mt-1 flex flex-col gap-y-2">
-			<span class="font-semibold" style={user.style}>{user.displayName}</span>
-
-			{#if relationship?.badges.length}
-				{@const badges = showAllBadges
-					? relationship.badges
-					: relationship.badges.slice(0, 10)}
-
-				<div class="flex flex-wrap items-center gap-1">
-					{#each badges as badge (badge.id)}
-						<img
-							class="size-4"
-							title={badge.title}
-							src={badge.imageUrl}
-							alt={badge.description}
-						/>
-					{/each}
-
-					{#if !showAllBadges && relationship.badges.length > 10}
-						<button
-							class="ml-1 text-detail text-accent transition-colors hover:text-fg"
-							type="button"
-							onclick={() => (showAllBadges = true)}
-							aria-label="Show {relationship.badges.length - 10} more badges"
-						>
-							+{relationship.badges.length - 10} more
-						</button>
-					{/if}
-				</div>
-			{/if}
-
-			{#if user.bio}
-				<p class="text-detail text-fg-muted">{user.bio}</p>
-			{/if}
-		</div>
-	</div>
-
-	{#if history && messages.length}
-		<div class="h-24 border-t">
-			<ReverseScroll
-				class="px-4"
-				data={messages}
-				showJumpButton={false}
-				getKey={(message) => message.id}
-				lazy={history.hasOlder}
-				onloadmore={() => history.loadOlder()}
-			>
-				{#snippet children(message)}
-					<div class="origin-left scale-80" data-deleted={deletedAppearance(message)}>
-						<Message {message} nested />
-					</div>
-				{/snippet}
-			</ReverseScroll>
-		</div>
-	{:else if loadingHistory}
-		<p class="border-t px-4 py-2 text-detail text-fg-muted">Loading message history...</p>
-	{/if}
+	<UserCardBody {user} {channel} {history} onpopout={handlePopout} />
 </Popover>

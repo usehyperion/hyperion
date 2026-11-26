@@ -18,31 +18,36 @@
 
 	const { message, nested = false, mention }: Props = $props();
 
-	const card = createPopoverController();
+	const controller = createPopoverController();
+
+	let card = $state<UserCard>();
 
 	const user = $derived(mention ?? message.author);
+	const defaultProps = $derived({
+		class: "font-semibold wrap-break-word disabled:cursor-default",
+		controller,
+		disabled: nested,
+		onclick,
+	});
+
+	function onclick(event: MouseEvent) {
+		if (!event.shiftKey || !card) return;
+
+		event.preventDefault();
+		card.popOut(user, message.channel);
+	}
 </script>
 
 {#if mention}
-	<PopoverTrigger
-		class="font-semibold wrap-break-word disabled:cursor-default"
-		controller={card}
-		disabled={nested}
-		style={mention.mentionStyle}
-	>
+	<PopoverTrigger style={mention.mentionStyle} {...defaultProps}>
 		@{mention.displayName}
 	</PopoverTrigger>
 {:else}
-	<PopoverTrigger
-		class="font-semibold wrap-break-word disabled:cursor-default"
-		controller={card}
-		disabled={nested}
-		style={message.author.style}
-	>
+	<PopoverTrigger style={message.author.style} {...defaultProps}>
 		{message.author.displayName}
 	</PopoverTrigger>{#if !message.action}:{/if}
 {/if}
 
 {#if !nested}
-	<UserCard controller={card} {user} channel={message.channel} />
+	<UserCard {controller} {user} channel={message.channel} bind:this={card} />
 {/if}
