@@ -41,6 +41,7 @@
 			class="notification my-1 border-x-4 [border-image-slice:1]"
 			data-type={type}
 			data-color={message.event.color}
+			style:--user-color={message.author.color}
 			style:border-image-source="linear-gradient({stops[0]}, {stops[1]})"
 		>
 			<div
@@ -56,7 +57,12 @@
 	{:else if type === "sub_or_resub" || type === "sub_mystery_gift" || type === "sub_gift" || type === "prime_paid_upgrade" || type === "gift_paid_upgrade"}
 		<Sub {message} sub={message.event} />
 	{:else}
-		<Callout class="notification" color={message.source.user.color} data-type={type}>
+		<Callout
+			class="notification"
+			color={message.source.user.color}
+			data-type={type}
+			--user-color={message.author.color}
+		>
 			{#if type === "bits_badge_tier"}
 				<div class="flex gap-1">
 					<IconBitsBadge class="mt-0.5 shrink-0" />

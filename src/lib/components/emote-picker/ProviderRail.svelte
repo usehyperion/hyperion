@@ -12,9 +12,14 @@
 	const { sets, activeId, onselect }: Props = $props();
 </script>
 
-<div class="flex flex-col gap-3 overflow-y-auto p-2">
+<div class="emote-set-rail flex flex-col gap-3 overflow-y-auto p-2">
 	{#each sets as set (set.id)}
-		<button class="group" type="button" onclick={() => onselect(set.id)}>
+		<button
+			class="emote-set-button group"
+			type="button"
+			data-active={activeId === set.id || undefined}
+			onclick={() => onselect(set.id)}
+		>
 			<Avatar
 				class={["size-7 object-contain", activeId === set.id && "outline-1 outline-fg"]}
 				src={set.owner.avatarUrl}

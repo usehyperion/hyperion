@@ -16,7 +16,11 @@
 	const { message, metadata }: Props = $props();
 </script>
 
-<Callout class="automod border-danger" data-deleted={deletedAppearance(message)}>
+<Callout
+	class="automod border-danger"
+	data-deleted={deletedAppearance(message)}
+	--user-color={message.author.color}
+>
 	<div class="automod-header mb-2 flex w-full items-start justify-between gap-x-4">
 		<div>
 			<img

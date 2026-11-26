@@ -197,7 +197,7 @@
 
 <Dialog
 	id={dialogs.join}
-	class="max-w-xl"
+	class="join-dialog max-w-xl"
 	bodyClass="gap-0 p-0"
 	aria-label="Search channels"
 	onOpenChangeComplete={(open) => {
@@ -205,7 +205,7 @@
 	}}
 >
 	<div class="flex flex-col">
-		<div class="flex items-center gap-2 border-b border-line px-3 py-2">
+		<div class="join-search flex items-center gap-2 border-b border-line px-3 py-2">
 			<!-- svelte-ignore a11y_autofocus -- palette should be typeable on open -->
 			<input
 				class="h-control w-full bg-transparent text-body outline-none placeholder:text-fg-faint"
@@ -232,16 +232,17 @@
 			</DialogClose>
 		</div>
 
-		<div class="flex items-center gap-4 border-b border-line px-3 text-detail">
+		<div class="join-filters flex items-center gap-4 border-b border-line px-3 text-detail">
 			{#each filters as { key, label } (key)}
 				<button
 					class={cn(
-						"-mb-px border-b py-2 font-medium transition-colors",
+						"join-filter -mb-px border-b py-2 font-medium transition-colors",
 						filter === key
 							? "border-fg text-fg"
 							: "border-transparent text-fg-muted hover:text-fg",
 					)}
 					type="button"
+					data-active={filter === key || undefined}
 					onclick={() => (filter = key)}
 				>
 					{label}
@@ -269,9 +270,11 @@
 					<!-- svelte-ignore a11y_no_static_element_interactions -- keyboard nav lives on the search input -->
 					<div
 						class={cn(
-							"group flex items-center rounded-control transition-colors",
+							"join-result group flex items-center rounded-control transition-colors",
 							active === index ? "bg-surface-3" : "hover:bg-tint",
 						)}
+						data-active={active === index || undefined}
+						data-live={(isSearch && item.isLive) || undefined}
 						onmouseenter={() => (active = index)}
 					>
 						<button

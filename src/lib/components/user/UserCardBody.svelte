@@ -108,9 +108,9 @@
 	{/if}
 </div>
 
-<div class="relative shrink-0 border-t p-4">
+<div class="user-card-header relative shrink-0 border-t p-4">
 	<Avatar
-		class="-mt-14 flex size-20 border-4 border-surface-1 ring-0 not-data-[loading-status=loaded]:bg-fg"
+		class="user-card-avatar -mt-14 flex size-20 border-4 border-surface-1 ring-0 not-data-[loading-status=loaded]:bg-fg"
 		src={user.avatarUrl}
 		alt={user.displayName}
 	>
@@ -119,7 +119,7 @@
 		{/snippet}
 	</Avatar>
 
-	<div class="absolute top-2 right-2 space-y-1 text-detail text-fg-muted">
+	<div class="user-card-stats absolute top-2 right-2 space-y-1 text-detail text-fg-muted">
 		<div class="flex items-center gap-1">
 			<IconCreated class="mr-1 size-3" />
 
@@ -171,12 +171,12 @@
 	</div>
 
 	<div class="mt-1 flex flex-col gap-y-2">
-		<span class="font-semibold" style={user.style}>{user.displayName}</span>
+		<span class="user-card-name font-semibold" style={user.style}>{user.displayName}</span>
 
 		{#if relationship?.badges.length}
 			{@const badges = showAllBadges ? relationship.badges : relationship.badges.slice(0, 10)}
 
-			<div class="flex flex-wrap items-center gap-1">
+			<div class="user-card-badges flex flex-wrap items-center gap-1">
 				{#each badges as badge (badge.id)}
 					<img
 						class="size-4"
@@ -200,13 +200,13 @@
 		{/if}
 
 		{#if user.bio}
-			<p class="text-detail text-fg-muted">{user.bio}</p>
+			<p class="user-card-bio text-detail text-fg-muted">{user.bio}</p>
 		{/if}
 	</div>
 </div>
 
 {#if history && messages.length}
-	<div class={["border-t", fill ? "min-h-24 grow" : "h-24"]}>
+	<div class={["user-card-history border-t", fill ? "min-h-24 grow" : "h-24"]}>
 		<ReverseScroll
 			class="px-4"
 			data={messages}

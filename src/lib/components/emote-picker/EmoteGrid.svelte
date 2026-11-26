@@ -21,8 +21,9 @@
 
 {#each emotes as emote (`${emote.displayName}:${emote.id}`)}
 	<button
-		class="w-full"
+		class="emote-picker-item w-full"
 		title={emote.displayName}
+		data-provider={emote.provider}
 		type="button"
 		onclick={() => onpick(emote.displayName)}
 	>

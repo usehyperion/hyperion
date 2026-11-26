@@ -6,6 +6,7 @@
 	import Timestamp from "#lib/components/Timestamp.svelte";
 	import Avatar from "#lib/components/ui/Avatar.svelte";
 	import Input from "#lib/components/ui/Input.svelte";
+	import Username from "#lib/components/user/Username.svelte";
 	import { log } from "#lib/log.js";
 
 	const { data } = $props();
@@ -43,7 +44,7 @@
 	};
 </script>
 
-<div class="flex h-full flex-col">
+<div class="whisper-thread flex h-full flex-col">
 	<div class="min-h-0 grow">
 		<!-- Start each thread scrolled to the end. -->
 		{#key data.whisper}
@@ -60,7 +61,7 @@
 						!prev || prev.createdAt.toDateString() !== message.createdAt.toDateString()}
 
 					{#if isNewDay}
-						<ChatSeparator class="my-3">
+						<ChatSeparator class="date-separator my-3">
 							<time datetime={message.createdAt.toISOString()}>
 								{message.createdAt.toLocaleDateString(navigator.languages, {
 									dateStyle: "long",
@@ -71,7 +72,7 @@
 
 					<div
 						class={[
-							"flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-tint",
+							"whisper-message flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-tint",
 							!isNewDay && "border-t",
 						]}
 					>
@@ -84,10 +85,7 @@
 
 						<div class="flex w-full flex-col">
 							<div class="flex w-full items-center justify-between gap-2">
-								<span class="font-semibold" style={message.user.style}>
-									{message.user.displayName}
-								</span>
-
+								<Username user={message.user} />
 								<Timestamp date={message.createdAt} />
 							</div>
 
@@ -105,7 +103,7 @@
 		{/if}
 
 		<Input
-			class="h-12"
+			class="whisper-input h-12"
 			autocapitalize="off"
 			autocorrect="off"
 			placeholder="Send a message"

@@ -61,12 +61,12 @@
 	<ProviderRail {sets} activeId={activeSet} onselect={scrollToSet} />
 
 	<Accordion.Root
-		class="min-w-0 flex-1 overflow-y-auto overscroll-none border-l border-line"
+		class="emote-sets min-w-0 flex-1 overflow-y-auto overscroll-none border-l border-line"
 		multiple
 		bind:value={open}
 	>
 		{#each sets as set (set.id)}
-			<div id={set.id} {@attach observe}>
+			<div class="emote-set" id={set.id} {@attach observe}>
 				<Accordion.Item value={set.id}>
 					<Accordion.Trigger class="h-9" headerClass="sticky top-0 z-10">
 						<Avatar
