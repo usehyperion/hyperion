@@ -24,9 +24,7 @@
 	const viewer = $derived(channel.viewers.get(user.id));
 	const history = $derived(viewer && new MessageHistory(viewer));
 
-	function popout() {
-		controller.close();
-
+	export function popOut(user: User, channel: Channel) {
 		openPopout(
 			UserCardPopout,
 			{ user, channel },
@@ -37,6 +35,11 @@
 				key: `user-card:${user.id}`,
 			},
 		);
+	}
+
+	function handlePopout() {
+		controller.close();
+		popOut(user, channel);
 	}
 </script>
 
@@ -49,5 +52,5 @@
 		if (!open) onclose?.();
 	}}
 >
-	<UserCardBody {user} {channel} {history} onpopout={popout} />
+	<UserCardBody {user} {channel} {history} onpopout={handlePopout} />
 </Popover>
