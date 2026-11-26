@@ -10,7 +10,7 @@
 
 	import Button from "#lib/components/ui/Button.svelte";
 	import InputGroup from "#lib/components/ui/InputGroup.svelte";
-	import { KEYWORD_HIGHLIGHT } from "#lib/highlights.js";
+	import { compilePattern, KEYWORD_HIGHLIGHT } from "#lib/highlights.js";
 	import { IconAdd, IconDelete } from "#lib/icons.js";
 	import { settings } from "#lib/settings.js";
 
@@ -42,13 +42,7 @@
 	}
 
 	function invalid(config: KeywordHighlightConfig) {
-		if (!config.regex || !config.pattern) return false;
-
-		try {
-			return !new RegExp(config.pattern);
-		} catch {
-			return true;
-		}
+		return config.pattern.trim() !== "" && !compilePattern(config);
 	}
 </script>
 
