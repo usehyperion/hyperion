@@ -148,8 +148,7 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            if window.label() == MAIN_WINDOW_LABEL
-                && matches!(event, tauri::WindowEvent::Destroyed)
+            if window.label() == MAIN_WINDOW_LABEL && matches!(event, tauri::WindowEvent::Destroyed)
             {
                 popout::close_all(window.app_handle());
             }
