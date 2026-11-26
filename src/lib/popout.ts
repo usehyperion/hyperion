@@ -1,28 +1,46 @@
+import { getAllWebviewWindows, WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { mount, unmount, type Component } from "svelte";
 
+import Popout from "./components/Popout.svelte";
 import { log } from "./log";
+
+const LABEL_PREFIX = "popout-";
 
 interface PopoutOptions {
 	title: string;
 	width: number;
 	height: number;
+	key?: string;
 }
 
-const popouts = new Set<Window>();
+interface OpenPopout {
+	window: Window;
+	label: Promise<string | null>;
+}
+
+const windows = new Set<Window>();
+const popouts = new Map<string, OpenPopout>();
 
 // Popouts are rendered by the main window, so they would be left frozen if it
 // reloaded.
 addEventListener("pagehide", () => {
-	for (const popout of popouts) popout.close();
+	windows.forEach((w) => w.close());
 });
 
-// Popups share state with the main window but anything `component` does with
+// Popups share state with the main window, but anything `component` does with
 // the global `window` or `document` still refers to the main window.
-export function openPopout<Props extends Record<string, any>>(
-	component: Component<Props>,
-	props: Props,
+export function openPopout<P extends Record<string, any>>(
+	component: Component<P>,
+	props: P,
 	options: PopoutOptions,
 ) {
+	const existing = options.key && popouts.get(options.key);
+
+	if (existing) {
+		void focus(existing);
+		return existing.window;
+	}
+
 	const popout = window.open(
 		"",
 		"_blank",
@@ -38,14 +56,30 @@ export function openPopout<Props extends Record<string, any>>(
 	target.title = options.title;
 
 	const stopMirroring = mirrorStyles(target);
-	const instance = mount(component, { target: target.body, props });
 
-	popouts.add(popout);
+	const instance = mount(Popout<P>, {
+		target: target.body,
+		props: { component, props },
+	});
+
+	windows.add(popout);
+
+	if (options.key) {
+		popouts.set(options.key, {
+			window: popout,
+			label: newestLabel(),
+		});
+	}
 
 	popout.addEventListener(
 		"pagehide",
 		() => {
-			popouts.delete(popout);
+			windows.delete(popout);
+
+			if (options.key) {
+				popouts.delete(options.key);
+			}
+
 			stopMirroring();
 			void unmount(instance);
 		},
@@ -55,13 +89,33 @@ export function openPopout<Props extends Record<string, any>>(
 	return popout;
 }
 
+async function focus(popout: OpenPopout) {
+	try {
+		const label = await popout.label;
+		const window = label && (await WebviewWindow.getByLabel(label));
+		if (!window) return;
+
+		await window.unminimize();
+		await window.setFocus();
+	} catch (error) {
+		log.error("Failed to focus popout", error);
+	}
+}
+
+async function newestLabel() {
+	const ids = (await getAllWebviewWindows())
+		.map((window) => window.label)
+		.filter((label) => label.startsWith(LABEL_PREFIX))
+		.map((label) => Number(label.slice(LABEL_PREFIX.length)));
+
+	return ids.length ? LABEL_PREFIX + Math.max(...ids) : null;
+}
+
 function mirrorStyles(target: Document) {
 	let clones: Element[] = [];
 
 	function sync() {
-		for (const clone of clones) {
-			clone.remove();
-		}
+		clones.forEach((node) => node.remove());
 
 		clones = document.head
 			.querySelectorAll("style, link[rel='stylesheet']")

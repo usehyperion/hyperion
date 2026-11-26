@@ -11,6 +11,7 @@
 		"core:window:allow-close",
 		"core:window:allow-start-dragging",
 		"core:window:allow-set-focus",
+		"core:window:allow-unminimize",
 		"core:webview:allow-create-webview-window",
 		"deep-link:default",
 		"fs:allow-exists",

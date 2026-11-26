@@ -30,7 +30,12 @@
 		openPopout(
 			UserCardPopout,
 			{ user, channel },
-			{ title: user.displayName, width: 400, height: 600 },
+			{
+				title: user.displayName,
+				width: 400,
+				height: 600,
+				key: `user-card:${user.id}`,
+			},
 		);
 	}
 </script>
