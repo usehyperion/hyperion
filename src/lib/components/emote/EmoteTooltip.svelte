@@ -1,5 +1,6 @@
 <script lang="ts" module>
-	import { createTooltipController } from "@ui-sdk/svelte/tooltip";
+	import { createTooltipController, type TooltipController } from "@ui-sdk/svelte/tooltip";
+	import { createContext } from "svelte";
 
 	import type { Emote } from "#lib/emotes.js";
 
@@ -8,7 +9,12 @@
 		layers: Emote[];
 	}
 
-	export const emoteTooltip = createTooltipController<EmotePayload>();
+	export const [getEmoteTooltip, setEmoteTooltip] =
+		createContext<TooltipController<EmotePayload>>();
+
+	export function provideEmoteTooltip() {
+		return setEmoteTooltip(createTooltipController<EmotePayload>());
+	}
 </script>
 
 <script lang="ts">
@@ -19,10 +25,16 @@
 
 	import { tooltipContentClass } from "../ui/Tooltip.svelte";
 	import EmoteLayers from "./EmoteLayers.svelte";
+
+	interface Props {
+		controller: TooltipController<EmotePayload>;
+	}
+
+	const { controller }: Props = $props();
 </script>
 
-<!-- Mounted once for the whole app: every emote is a trigger of this one tooltip. -->
-<Tooltip controller={emoteTooltip} delay={300}>
+<!-- Mounted once per window: every emote is a trigger of this one tooltip. -->
+<Tooltip {controller} delay={300}>
 	<TooltipContent
 		class={cn(tooltipContentClass, "max-w-40 rounded-control p-0")}
 		sideOffset={6}

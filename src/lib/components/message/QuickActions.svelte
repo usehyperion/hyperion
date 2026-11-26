@@ -11,7 +11,7 @@
 	import { settings } from "#lib/settings.js";
 
 	import Button from "../ui/Button.svelte";
-	import { hintTooltip } from "../ui/HintTooltip.svelte";
+	import { getHintTooltip } from "../ui/HintTooltip.svelte";
 	import Separator from "../ui/Separator.svelte";
 
 	interface Props {
@@ -20,6 +20,8 @@
 	}
 
 	const { class: className, message }: Props = $props();
+
+	const tooltip = getHintTooltip();
 </script>
 
 <div
@@ -48,7 +50,7 @@
 </div>
 
 {#snippet action(config: MessageAction)}
-	<TooltipTrigger controller={hintTooltip} payload={config.label()}>
+	<TooltipTrigger controller={tooltip} payload={config.label()}>
 		{#snippet render({ props })}
 			<Button
 				class={[
