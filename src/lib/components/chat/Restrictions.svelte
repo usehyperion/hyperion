@@ -47,26 +47,23 @@
 	const topMostActive = $derived(modes.find((m) => m.active));
 </script>
 
-<button
-	class={["flex items-center", topMostActive && "text-green-500"]}
-	popovertarget="restrictions-{chat.channel.id}"
->
-	<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
+<Popover class="w-max p-2 text-detail" aria-label="Chat restrictions">
+	{#snippet trigger(props)}
+		<button
+			{...props}
+			class={["flex items-center control-focus", topMostActive && "text-success"]}
+		>
+			<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
 
-	<span class="text-xs">
-		{topMostActive?.label ?? "No chat restrictions"}
-	</span>
-</button>
+			<span class="text-detail">
+				{topMostActive?.label ?? "No chat restrictions"}
+			</span>
+		</button>
+	{/snippet}
 
-<Popover id="restrictions-{chat.channel.id}" class="w-max p-3 text-xs">
 	<ul class="space-y-1">
 		{#each modes as mode (mode.label)}
-			<li
-				class={[
-					"flex items-center",
-					mode.active ? "text-green-500" : "text-muted-foreground",
-				]}
-			>
+			<li class={["flex items-center", mode.active ? "text-success" : "text-fg-muted"]}>
 				<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
 
 				{mode.label}

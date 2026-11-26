@@ -13,10 +13,7 @@
 {#if message.bare}
 	<message.component {...message.props} />
 {:else}
-	<div
-		class="px-3 py-2 text-muted-foreground aria-disabled:opacity-50"
-		aria-disabled={message.deleted}
-	>
+	<div class="px-3 py-2 text-fg-muted aria-disabled:opacity-50" aria-disabled={message.deleted}>
 		<Timestamp date={message.timestamp} />
 
 		<p class="inline">

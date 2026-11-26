@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invoke } from "@tauri-apps/api/core";
+	import { DialogClose, DialogTitle } from "@ui-sdk/svelte/dialog";
 	import { scale } from "svelte/transition";
 
 	import Button from "#lib/components/ui/Button.svelte";
@@ -34,8 +35,8 @@
 
 	const rows = $derived(info ? [{ label: "Version", value: info.version }, ...details] : []);
 
-	async function ontoggle(event: ToggleEvent) {
-		if (event.newState !== "open") return;
+	async function onOpenChange(open: boolean) {
+		if (!open) return;
 
 		try {
 			info = await invoke<AboutInfo>("get_about_info");
@@ -63,30 +64,30 @@
 	}
 </script>
 
-<Dialog id="about-dialog" aria-label="About" {ontoggle}>
+<Dialog id={dialogs.about} class="max-w-sm" {onOpenChange}>
 	{#snippet header()}
-		<div class="flex flex-col items-center gap-3 text-center">
-			<img class="size-16" src="/logo.svg" alt="Hyperion logo" />
+		<div class="flex items-center gap-2.5">
+			<img class="size-8" src="/logo.svg" alt="" />
 
-			<h2 class="font-geist text-2xl/tight font-medium">Hyperion</h2>
+			<DialogTitle class="font-geist text-body font-semibold">Hyperion</DialogTitle>
 		</div>
 	{/snippet}
 
 	{#if failed && !info}
-		<p class="px-3 py-2 text-sm text-muted-foreground">Version details are unavailable.</p>
+		<p class="text-detail text-fg-muted">Version details are unavailable.</p>
 	{/if}
 
-	<dl class="divide-y text-sm">
+	<dl class="divide-y divide-line rounded-control border border-line bg-inset text-detail">
 		{#each rows as row (row.label)}
-			<div class="flex items-baseline justify-between gap-4 px-3 py-2">
-				<dt class="shrink-0 text-muted-foreground">{row.label}</dt>
-				<dd class="truncate text-right tabular-nums">{row.value}</dd>
+			<div class="flex items-baseline justify-between gap-4 px-2.5 py-1.5">
+				<dt class="shrink-0 text-fg-muted">{row.label}</dt>
+				<dd class="truncate text-right font-mono tabular-nums">{row.value}</dd>
 			</div>
 		{/each}
 	</dl>
 
 	{#snippet footer()}
-		<Button variant="ghost" disabled={!info} onclick={copyInfo}>
+		<Button class="mr-auto" size="sm" variant="ghost" disabled={!info} onclick={copyInfo}>
 			{#if copied}
 				<span in:scale={{ duration: 300, start: 0.85 }}>
 					<IconCopied />
@@ -97,9 +98,13 @@
 				</span>
 			{/if}
 
-			<span class="text-sm">Copy info</span>
+			Copy info
 		</Button>
 
-		<Button command="close" commandfor={dialogs.about}>Close</Button>
+		<DialogClose>
+			{#snippet render({ props })}
+				<Button {...props} size="sm" variant="secondary">Close</Button>
+			{/snippet}
+		</DialogClose>
 	{/snippet}
 </Dialog>

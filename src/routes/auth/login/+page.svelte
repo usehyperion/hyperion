@@ -43,16 +43,16 @@
 <img class="size-16" src="/logo.svg" alt="Hyperion logo" />
 
 <div class="space-y-2">
-	<h1 class="text-4xl font-semibold">Hyperion</h1>
+	<h1 class="text-display font-semibold">Hyperion</h1>
 
-	<p class="max-w-sm text-muted-foreground">Connect your Twitch account to start chatting.</p>
+	<p class="max-w-sm text-fg-muted">Connect your Twitch account to start chatting.</p>
 </div>
 
-<Button class="h-12" size="lg" onclickwait={() => handleLogIn()}>
-	<Twitch class="size-5 fill-white" />
+<Button size="lg" onclick={() => handleLogIn()}>
+	<Twitch class="fill-current" />
 	Log in with Twitch
 </Button>
 
 {#if error}
-	<p class="text-sm text-destructive">{error}</p>
+	<p class="text-body text-danger">{error}</p>
 {/if}

@@ -1,70 +1,64 @@
 <script lang="ts">
+	import { createDialogController, DialogClose, DialogTrigger } from "@ui-sdk/svelte/dialog";
+
 	import type { KeywordHighlightConfig } from "#lib/highlights.js";
 
 	import Button from "#lib/components/ui/Button.svelte";
 	import Checkbox from "#lib/components/ui/Checkbox.svelte";
 	import Dialog from "#lib/components/ui/Dialog.svelte";
-	import * as Field from "#lib/components/ui/field/index.js";
+	import Field from "#lib/components/ui/Field.svelte";
 	import Input from "#lib/components/ui/Input.svelte";
 	import { IconEdit } from "#lib/icons.js";
 
 	let { config = $bindable<KeywordHighlightConfig>() } = $props();
 
-	const id = $props.id();
-
-	const dialogId = `edit-highlight-dialog-${id}`;
+	const dialog = createDialogController();
 </script>
 
-<Button
-	class="text-muted-foreground hover:text-foreground"
-	title="Edit"
-	command="show-modal"
-	commandfor={dialogId}
-	size="icon-sm"
-	variant="ghost"
-	aria-label="Edit pattern"
->
-	<IconEdit />
-</Button>
-
-<Dialog id={dialogId}>
-	{#snippet header()}
-		<h2>Edit pattern</h2>
+<DialogTrigger controller={dialog}>
+	{#snippet render({ props })}
+		<Button
+			{...props}
+			class="text-fg-muted hover:text-fg"
+			title="Edit"
+			size="icon-sm"
+			variant="ghost"
+			aria-label="Edit pattern"
+		>
+			<IconEdit />
+		</Button>
 	{/snippet}
+</DialogTrigger>
 
-	<Field.Field>
-		<Field.Label for="p-{id}">Pattern</Field.Label>
-
+<Dialog controller={dialog} title="Edit pattern">
+	<Field label="Pattern">
 		<Input
-			id="p-{id}"
 			autocapitalize="off"
 			autocorrect="off"
 			placeholder="Enter pattern"
 			bind:value={config.pattern}
 		/>
-	</Field.Field>
+	</Field>
 
-	<Field.Group class="gap-3">
-		<Field.Field orientation="horizontal">
-			<Checkbox id="r-{id}" bind:checked={config.regex} />
+	<div class="flex flex-col gap-2">
+		<Field layout="choice" label="Match as regular expression">
+			<Checkbox bind:checked={config.regex} />
+		</Field>
 
-			<Field.Label class="font-normal" for="r-{id}">Match as regular expression</Field.Label>
-		</Field.Field>
+		<Field layout="choice" label="Match whole word">
+			<Checkbox bind:checked={config.wholeWord} />
+		</Field>
 
-		<Field.Field orientation="horizontal">
-			<Checkbox id="w-{id}" bind:checked={config.wholeWord} />
-
-			<Field.Label class="font-normal" for="w-{id}">Match whole word</Field.Label>
-		</Field.Field>
-
-		<Field.Field orientation="horizontal">
-			<Checkbox id="c-{id}" bind:checked={config.matchCase} />
-
-			<Field.Label class="font-normal" for="c-{id}">Match case</Field.Label>
-		</Field.Field>
-	</Field.Group>
+		<Field layout="choice" label="Match case">
+			<Checkbox bind:checked={config.matchCase} />
+		</Field>
+	</div>
 
 	{#snippet footer()}
-		<Button command="close" commandfor={dialogId}>Save</Button>
+		<DialogClose>
+			{#snippet render({ props })}
+				<Button {...props} size="sm">Save</Button>
+			{/snippet}
+		</DialogClose>
 	{/snippet}
 </Dialog>

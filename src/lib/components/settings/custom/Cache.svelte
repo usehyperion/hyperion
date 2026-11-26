@@ -32,12 +32,12 @@
 </script>
 
 <div class="flex items-center gap-x-2">
-	<Button size="sm" disabled={!bytes} onclickwait={clearCache}>
+	<Button size="sm" disabled={!bytes} onclick={clearCache}>
 		<IconClearCache /> Free up {size}
 	</Button>
 
 	{#if import.meta.env.DEV}
-		<Button size="sm" variant="outline" onclickwait={async () => openPath(await appCacheDir())}>
+		<Button size="sm" variant="outline" onclick={async () => openPath(await appCacheDir())}>
 			<IconOpenFolder /> Open folder
 		</Button>
 	{/if}

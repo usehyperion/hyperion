@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { Tooltip } from "bits-ui";
-
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 
 	import Emote from "../emote/Emote.svelte";
-	import EmoteTooltip, { type EmotePayload } from "../emote/EmoteTooltip.svelte";
 	import User from "../user/User.svelte";
 
 	interface Props {
@@ -13,10 +10,6 @@
 	}
 
 	const { message, nested = false }: Props = $props();
-
-	const emoteTether = Tooltip.createTether<EmotePayload>();
-
-	const hasEmotes = $derived(message.nodes.some((node) => node.type === "emote" && !node.marked));
 </script>
 
 <p
@@ -71,7 +64,7 @@
 			{#if node.marked}
 				<mark class="wrap-anywhere">{node.data.emote.displayName}</mark>
 			{:else}
-				<Emote emote={node.data.emote} layers={node.data.layers} tether={emoteTether} />
+				<Emote emote={node.data.emote} layers={node.data.layers} />
 			{/if}
 		{:else}
 			<svelte:element this={node.marked ? "mark" : "span"} class="wrap-anywhere">
@@ -81,13 +74,9 @@
 	{/each}
 </p>
 
-{#if hasEmotes}
-	<EmoteTooltip tether={emoteTether} />
-{/if}
-
 <style>
 	mark {
-		color: white;
-		background-color: --alpha(var(--color-red-500) / 40%);
+		color: var(--color-fg);
+		background-color: --alpha(var(--color-danger) / 40%);
 	}
 </style>

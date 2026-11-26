@@ -1,11 +1,9 @@
 <script lang="ts">
-	import { Accordion } from "bits-ui";
 	import { onDestroy, tick } from "svelte";
 
 	import type { EmoteSet } from "#lib/emotes.js";
 
-	import { IconDisclosure } from "#lib/icons.js";
-
+	import * as Accordion from "../ui/accordion";
 	import Avatar from "../ui/Avatar.svelte";
 	import EmoteGrid from "./EmoteGrid.svelte";
 	import ProviderRail from "./ProviderRail.svelte";
@@ -63,43 +61,30 @@
 	<ProviderRail {sets} activeId={activeSet} onselect={scrollToSet} />
 
 	<Accordion.Root
-		class="min-w-0 flex-1 divide-y overflow-y-auto overscroll-none border-l"
-		type="multiple"
+		class="min-w-0 flex-1 overflow-y-auto overscroll-none border-l border-line"
+		multiple
 		bind:value={open}
 	>
 		{#each sets as set (set.id)}
-			<Accordion.Item
-				id={set.id}
-				class="group flex flex-col"
-				value={set.id}
-				{@attach observe}
-			>
-				<Accordion.Header class="sticky top-0 z-10 bg-sidebar p-2">
-					<Accordion.Trigger class="group flex w-full items-center justify-between">
-						<div class="flex items-center">
-							<Avatar
-								class="mr-2 size-5 object-contain"
-								src={set.owner.avatarUrl}
-								alt={set.owner.displayName}
-								decoding="async"
-								loading="lazy"
-							/>
-
-							<span class="text-sm font-medium">{set.name}</span>
-						</div>
-
-						<IconDisclosure
-							class="text-muted-foreground group-data-[state=open]:rotate-90"
+			<div id={set.id} {@attach observe}>
+				<Accordion.Item value={set.id}>
+					<Accordion.Trigger class="h-9" headerClass="sticky top-0 z-10">
+						<Avatar
+							class="size-5 object-contain"
+							src={set.owner.avatarUrl}
+							alt=""
+							decoding="async"
+							loading="lazy"
 						/>
-					</Accordion.Trigger>
-				</Accordion.Header>
 
-				{#if open.includes(set.id)}
-					<Accordion.Content class="grid grid-cols-9 gap-1.5 px-2 pb-2">
+						<span class="truncate">{set.name}</span>
+					</Accordion.Trigger>
+
+					<Accordion.Panel class="grid grid-cols-9 gap-1.5">
 						<EmoteGrid emotes={set.emotes} {onpick} />
-					</Accordion.Content>
-				{/if}
-			</Accordion.Item>
+					</Accordion.Panel>
+				</Accordion.Item>
+			</div>
 		{/each}
 	</Accordion.Root>
 </div>

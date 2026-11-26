@@ -4,7 +4,7 @@
 	import type { Pane } from "#lib/splits/types.js";
 
 	import { app } from "#lib/app.svelte.js";
-	import * as Empty from "#lib/components/ui/empty/index.js";
+	import Empty from "#lib/components/ui/Empty.svelte";
 	import { IconSplits } from "#lib/icons.js";
 
 	import Channel from "../channel/Channel.svelte";
@@ -75,19 +75,12 @@
 					<Channel {channel} />
 				{/key}
 			{:else}
-				<Empty.Root class="h-full">
-					<Empty.Header>
-						<Empty.Media variant="icon">
-							<IconSplits />
-						</Empty.Media>
-
-						<Empty.Title>Empty split</Empty.Title>
-
-						<Empty.Description>
-							Drag a tab or channel here, or click a channel to open it.
-						</Empty.Description>
-					</Empty.Header>
-				</Empty.Root>
+				<Empty
+					class="h-full"
+					icon={IconSplits}
+					title="Empty split"
+					description="Drag a tab or channel here, or click a channel to open it."
+				/>
 			{/if}
 		</div>
 
@@ -100,7 +93,7 @@
 
 		<div
 			class={[
-				"pointer-events-none absolute z-20 bg-primary/50 brightness-50 transition-[opacity,top,left,width,height] duration-75 ease-out",
+				"pointer-events-none absolute z-20 bg-fg/50 brightness-50 transition-[opacity,top,left,width,height] duration-75 ease-out",
 				overlayClass ? "opacity-100" : "opacity-0",
 				overlayClass ?? "inset-0",
 			]}

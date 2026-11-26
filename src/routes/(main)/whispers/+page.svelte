@@ -6,7 +6,7 @@
 	import { app } from "#lib/app.svelte.js";
 	import { everyMinute } from "#lib/clock.js";
 	import Avatar from "#lib/components/ui/Avatar.svelte";
-	import * as Empty from "#lib/components/ui/empty/index.js";
+	import Empty from "#lib/components/ui/Empty.svelte";
 	import { IconWhispers } from "#lib/icons.js";
 
 	const { data } = $props();
@@ -27,10 +27,10 @@
 	{#if whispers.length}
 		<div class="mx-auto w-full max-w-3xl pb-6">
 			<header class="flex items-baseline gap-2 p-4">
-				<h1 class="text-lg font-semibold">Whispers</h1>
+				<h1 class="text-title font-semibold">Whispers</h1>
 
 				{#if unread}
-					<span class="text-sm text-muted-foreground tabular-nums">{unread} unread</span>
+					<span class="text-body text-fg-muted tabular-nums">{unread} unread</span>
 				{/if}
 			</header>
 
@@ -41,19 +41,19 @@
 
 					<li>
 						<a
-							class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-2 focus-visible:-outline-offset-2"
+							class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-tint focus-visible:bg-tint focus-visible:outline-2 focus-visible:-outline-offset-2"
 							href={resolve("/(main)/whispers/[id]", { id })}
 						>
 							{#if sender.avatarUrl}
 								<Avatar
-									class="size-10 shrink-0 bg-muted"
+									class="size-10 shrink-0 bg-surface-2"
 									src={sender.avatarUrl}
 									alt=""
 									width="40"
 									height="40"
 								/>
 							{:else}
-								<div class="size-10 shrink-0 rounded-full bg-muted"></div>
+								<div class="size-10 shrink-0 rounded-full bg-surface-2"></div>
 							{/if}
 
 							<div class="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -64,10 +64,8 @@
 
 									<time
 										class={[
-											"ml-auto shrink-0 text-xs tabular-nums",
-											whisper.unread
-												? "text-foreground"
-												: "text-muted-foreground",
+											"ml-auto shrink-0 text-detail tabular-nums",
+											whisper.unread ? "text-fg" : "text-fg-muted",
 										]}
 										datetime={message.createdAt.toISOString()}
 									>
@@ -78,16 +76,14 @@
 								<div class="flex items-center gap-3">
 									<p
 										class={[
-											"truncate text-sm",
+											"truncate text-body",
 											whisper.unread
-												? "font-medium text-foreground"
-												: "text-muted-foreground",
+												? "font-medium text-fg"
+												: "text-fg-muted",
 										]}
 									>
 										{#if message.user.id === app.user?.id}
-											<span class="font-normal text-muted-foreground">
-												You:
-											</span>
+											<span class="font-normal text-fg-muted"> You: </span>
 										{/if}
 
 										{message.text}
@@ -95,7 +91,7 @@
 
 									{#if whisper.unread}
 										<span
-											class="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-red-400 px-1.5 text-[0.6875rem] font-semibold tabular-nums"
+											class="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-danger px-1.5 text-caption font-semibold text-fg-inverse tabular-nums"
 										>
 											{whisper.unread > 9 ? "9+" : whisper.unread}
 											<span class="sr-only">unread</span>
@@ -109,16 +105,11 @@
 			</ul>
 		</div>
 	{:else}
-		<Empty.Root class="h-full">
-			<Empty.Header>
-				<Empty.Media variant="icon">
-					<IconWhispers />
-				</Empty.Media>
-
-				<Empty.Title>No whispers</Empty.Title>
-
-				<Empty.Description>Any whispers you receive will appear here.</Empty.Description>
-			</Empty.Header>
-		</Empty.Root>
+		<Empty
+			class="h-full"
+			icon={IconWhispers}
+			title="No whispers"
+			description="Any whispers you receive will appear here."
+		/>
 	{/if}
 </div>

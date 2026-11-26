@@ -1,3 +1,5 @@
+import { createDialogController, type DialogController } from "@ui-sdk/svelte/dialog";
+
 export const dialogs = {
 	about: "about-dialog",
 	join: "join-dialog",
@@ -7,10 +9,23 @@ export const dialogs = {
 	pinDuration: (messageId: string) => `pin-duration-dialog-${messageId}`,
 } as const;
 
+const controllers = new Map<string, DialogController>();
+
+export function dialogController(id: string) {
+	let controller = controllers.get(id);
+
+	if (!controller) {
+		controller = createDialogController();
+		controllers.set(id, controller);
+	}
+
+	return controller;
+}
+
 export function openDialog(id: string) {
-	document.querySelector<HTMLDialogElement>(`#${CSS.escape(id)}`)?.showModal();
+	return dialogController(id).open();
 }
 
 export function closeDialog(id: string) {
-	document.querySelector<HTMLDialogElement>(`#${CSS.escape(id)}`)?.close();
+	return dialogController(id).close();
 }

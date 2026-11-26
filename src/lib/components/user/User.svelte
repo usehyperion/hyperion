@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { createPopoverController, PopoverTrigger } from "@ui-sdk/svelte/popover";
+
 	import type { UserMessage } from "#lib/models/message/user-message.svelte.js";
 	import type { User } from "#lib/models/user.svelte.js";
 
@@ -16,38 +18,31 @@
 
 	const { message, nested = false, mention }: Props = $props();
 
-	const id = $props.id();
-
-	let opened = $state(false);
+	const card = createPopoverController();
 
 	const user = $derived(mention ?? message.author);
-	const popoverId = $derived(`user-card-${user.id}-${id}`);
 </script>
 
 {#if mention}
-	<button
+	<PopoverTrigger
 		class="font-semibold wrap-break-word disabled:cursor-default"
-		popovertarget={popoverId}
+		controller={card}
 		disabled={nested}
 		style={mention.mentionStyle}
-		onpointerdown={() => (opened = true)}
-		onfocus={() => (opened = true)}
 	>
 		@{mention.displayName}
-	</button>
+	</PopoverTrigger>
 {:else}
-	<button
+	<PopoverTrigger
 		class="font-semibold wrap-break-word disabled:cursor-default"
-		popovertarget={popoverId}
+		controller={card}
 		disabled={nested}
 		style={message.author.style}
-		onpointerdown={() => (opened = true)}
-		onfocus={() => (opened = true)}
 	>
 		{message.author.displayName}
-	</button>{#if !message.action}:{/if}
+	</PopoverTrigger>{#if !message.action}:{/if}
 {/if}
 
-{#if !nested && opened}
-	<UserCard id={popoverId} {user} channel={message.channel} onclose={() => (opened = false)} />
+{#if !nested}
+	<UserCard controller={card} {user} channel={message.channel} />
 {/if}

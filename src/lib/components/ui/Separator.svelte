@@ -1,21 +1,33 @@
 <script lang="ts">
-	import { Separator as SeparatorPrimitive } from "bits-ui";
-	import { cn } from "tailwind-variants";
+	import { Separator } from "@ui-sdk/svelte/separator";
+	import type { HTMLAttributes } from "svelte/elements";
+
+	import { cn } from "#lib/util/styles.js";
+
+	interface Props extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
+		orientation?: "horizontal" | "vertical";
+		decorative?: boolean;
+		ref?: HTMLElement | null;
+		"data-slot"?: string;
+	}
 
 	let {
-		ref = $bindable(null),
 		class: className,
-		"data-slot": dataSlot = "separator",
-		...restProps
-	}: SeparatorPrimitive.RootProps = $props();
+		ref = $bindable(null),
+		"data-slot": dataSlot,
+		...rest
+	}: Props = $props();
 </script>
 
-<SeparatorPrimitive.Root
-	bind:ref
-	data-slot={dataSlot}
+<Separator
 	class={cn(
-		"shrink-0 bg-border data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px",
+		"shrink-0 bg-line horizontal:h-px horizontal:w-full vertical:h-full vertical:w-px",
 		className,
 	)}
-	{...restProps}
-/>
+	{...rest}
+>
+	{#snippet render({ props })}
+		<!-- Wrappers like ButtonGroup.Separator restyle by their own slot, which ui-sdk would otherwise replace. -->
+		<div {...props} data-slot={dataSlot ?? props["data-slot"]} bind:this={ref}></div>
+	{/snippet}
+</Separator>

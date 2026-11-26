@@ -16,7 +16,7 @@
 	const { message, metadata }: Props = $props();
 </script>
 
-<Callout class="border-red-500" data-deleted={deletedAppearance(message)}>
+<Callout class="border-danger" data-deleted={deletedAppearance(message)}>
 	<div class="mb-2 flex w-full items-start justify-between gap-x-4">
 		<div>
 			<img
@@ -27,7 +27,7 @@
 				height="18"
 			/>
 
-			<span class="font-semibold text-twitch">AutoMod</span>:
+			<span class="font-semibold text-accent">AutoMod</span>:
 
 			{#if metadata.reason === "blocked-term"}
 				Message held for using blocked terms
@@ -40,7 +40,7 @@
 
 		<div class="flex gap-x-4">
 			<Button
-				class="text-green-400"
+				class="text-success"
 				variant="inline"
 				disabled={message.deleted}
 				onclick={() => message.allow()}
@@ -49,7 +49,7 @@
 			</Button>
 
 			<Button
-				class="text-destructive"
+				class="text-danger"
 				variant="inline"
 				disabled={message.deleted}
 				onclick={() => message.deny()}

@@ -5,8 +5,17 @@ catalog:
   vite-plus: 1.7.0
 minimumReleaseAgeExclude:
   - "@sveltejs/kit"
+  - "@ui-sdk/*"
   - "@voidzero-dev/*"
   - "svelte"
-  - vite-plus
+  - "vite-plus"
 overrides:
   vite@*: "catalog:"
+permissions:
+  "@tanstack/svelte-hotkeys":
+    skills: true
+  "@ui-sdk/core":
+    skills: true
+skills:
+  dirs:
+    - .claude/skills

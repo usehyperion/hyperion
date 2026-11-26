@@ -48,7 +48,7 @@
 		<!-- Start each thread scrolled to the end. -->
 		{#key data.whisper}
 			<ReverseScroll
-				class="text-sm"
+				class="text-body"
 				data={data.whisper.messages}
 				getKey={(message) => message.id}
 				lazy={data.whisper.hasOlder}
@@ -71,7 +71,7 @@
 
 					<div
 						class={[
-							"flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-muted/50",
+							"flex items-start gap-2.5 px-5 py-3 transition-colors hover:bg-tint",
 							!isNewDay && "border-t",
 						]}
 					>
@@ -101,7 +101,7 @@
 
 	<div class="p-2">
 		{#if sendError}
-			<p class="mb-1 text-sm text-destructive">{sendError}</p>
+			<p class="mb-1 text-body text-danger">{sendError}</p>
 		{/if}
 
 		<Input

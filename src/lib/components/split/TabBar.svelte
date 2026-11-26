@@ -4,7 +4,7 @@
 	import type { Pane } from "#lib/splits/types.js";
 
 	import { app } from "#lib/app.svelte.js";
-	import Button from "#lib/components/ui/Button.svelte";
+	import ButtonGroup, { type ButtonGroupItem } from "#lib/components/ui/ButtonGroup.svelte";
 	import { IconClose, IconSplitDown, IconSplitRight } from "#lib/icons.js";
 
 	import GuestList from "../stream/GuestList.svelte";
@@ -22,6 +22,24 @@
 		app.splits.dropTarget?.paneId === pane.id && app.splits.dropTarget.zone === "tab-bar",
 	);
 
+	const actions: ButtonGroupItem[] = [
+		{
+			label: "Split right",
+			icon: IconSplitRight,
+			onclick: () => app.splits.split(pane.id, "right"),
+		},
+		{
+			label: "Split down",
+			icon: IconSplitDown,
+			onclick: () => app.splits.split(pane.id, "down"),
+		},
+		{
+			label: "Close split",
+			icon: IconClose,
+			onclick: () => app.closePane(pane.id),
+		},
+	];
+
 	const droppable = createDroppable({
 		type: "tab-bar",
 		accept: ["tab", "channel"],
@@ -34,7 +52,7 @@
 	});
 </script>
 
-<div class="flex h-8 shrink-0 items-center border-b bg-sidebar" data-slot="tab-bar">
+<div class="flex h-8 shrink-0 items-center border-b bg-surface-1" data-slot="tab-bar">
 	<div
 		class="flex h-full min-w-0 grow scrollbar-none items-stretch overflow-x-auto"
 		role="tablist"
@@ -46,53 +64,21 @@
 		{/each}
 
 		{#if showDropIndicator}
-			<div class="w-0.5 shrink-0 self-stretch bg-primary" aria-hidden="true"></div>
+			<div class="w-0.5 shrink-0 self-stretch bg-fg" aria-hidden="true"></div>
 		{/if}
 	</div>
 
-	<div class="flex shrink-0 items-center gap-x-1 px-1 text-muted-foreground">
+	<div class="flex shrink-0 items-center gap-x-1 px-1 text-fg-muted">
 		{#if channel?.stream?.guests.size}
 			<GuestList {channel} />
 		{/if}
 
-		<Button
-			class="size-min p-1"
-			size="icon-sm"
-			variant="ghost"
-			title="Split right"
-			onclick={() => {
-				app.splits.split(pane.id, "right");
-			}}
-		>
-			<IconSplitRight />
-		</Button>
-
-		<Button
-			class="size-min p-1"
-			size="icon-sm"
-			variant="ghost"
-			title="Split down"
-			onclick={() => {
-				app.splits.split(pane.id, "down");
-			}}
-		>
-			<IconSplitDown />
-		</Button>
-
-		<Button
-			class="size-min p-1"
-			size="icon-sm"
-			variant="ghost"
-			title="Close split"
-			onclick={() => app.closePane(pane.id)}
-		>
-			<IconClose />
-		</Button>
+		<ButtonGroup items={actions} size="sm" aria-label="Pane actions" />
 	</div>
 </div>
 
 <style>
 	[data-slot="tab-bar"] :global(button:hover) {
-		color: var(--color-foreground);
+		color: var(--color-fg);
 	}
 </style>

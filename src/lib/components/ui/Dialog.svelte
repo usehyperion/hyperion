@@ -1,88 +1,103 @@
 <script lang="ts">
-	import type { WithElementRef } from "bits-ui";
+	import {
+		Dialog,
+		DialogBackdrop,
+		DialogContent,
+		type DialogController,
+		DialogDescription,
+		type DialogInitialFocus,
+		type DialogOpenChangeDetails,
+		DialogTitle,
+	} from "@ui-sdk/svelte/dialog";
 	import type { Snippet } from "svelte";
-	import type { HTMLDialogAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
+	import type { HTMLAttributes } from "svelte/elements";
 
-	interface Props extends WithElementRef<HTMLDialogAttributes> {
-		id: string;
-		alert?: boolean;
+	import { dialogController } from "#lib/dialog.js";
+	import { cn } from "#lib/util/styles.js";
+
+	interface Props extends HTMLAttributes<HTMLDivElement> {
+		id?: string;
+		controller?: DialogController;
+		bodyClass?: string;
+		title?: string;
+		description?: string;
+		dismissible?: boolean;
+		initialFocus?: DialogInitialFocus;
 		header?: Snippet;
 		footer?: Snippet;
+		onOpenChange?: (open: boolean, details: DialogOpenChangeDetails) => void;
+		onOpenChangeComplete?: (open: boolean) => void;
 	}
 
-	let {
+	const {
 		id,
+		controller,
 		class: className,
-		alert,
-		ref = $bindable(null),
+		bodyClass,
+		title,
+		description,
+		dismissible,
+		initialFocus,
 		header,
-		children,
 		footer,
+		children,
+		onOpenChange,
+		onOpenChangeComplete,
 		...rest
 	}: Props = $props();
+
+	const resolved = $derived(controller ?? (id ? dialogController(id) : undefined));
 </script>
 
-<dialog
-	{id}
-	class={cn(
-		"fixed inset-0 m-auto w-full max-w-[calc(100%-2rem)] space-y-4 rounded-3xl bg-popover p-6 text-popover-foreground smooth-shadow-ring-lg sm:max-w-lg",
-		"scale-95 opacity-0 transition-[opacity,scale,overlay,display] transition-discrete ease-out",
-		className,
-	)}
-	role={alert ? "alertdialog" : null}
-	data-component="dialog"
-	bind:this={ref}
-	{...rest}
->
-	{#if header}
-		<header
-			class="flex flex-col gap-2 *:heading:text-xl *:heading:font-semibold *:[p]:text-sm *:[p]:text-muted-foreground"
-			data-slot="dialog-header"
+<Dialog controller={resolved} {dismissible} {onOpenChange} {onOpenChangeComplete}>
+	<DialogBackdrop
+		class="fixed inset-0 bg-(--backdrop) transition-opacity duration-150 ease-out starting:opacity-0 ending:opacity-0"
+	/>
+
+	<DialogContent
+		class={cn(
+			"popup-surface fixed inset-0 m-auto flex h-fit max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md flex-col overflow-hidden outline-none",
+			className,
+		)}
+		{initialFocus}
+		{...rest}
+	>
+		{#if header}
+			<header
+				class="flex flex-col gap-1 border-b border-line px-4 py-3"
+				data-slot="dialog-header"
+			>
+				{@render header()}
+			</header>
+		{:else if title}
+			<header
+				class="flex flex-col gap-0.5 border-b border-line px-4 py-3"
+				data-slot="dialog-header"
+			>
+				<DialogTitle class="text-body font-semibold">{title}</DialogTitle>
+
+				{#if description}
+					<DialogDescription class="text-detail text-fg-muted">
+						{description}
+					</DialogDescription>
+				{/if}
+			</header>
+		{/if}
+
+		<div
+			class={cn("flex min-h-0 grow flex-col gap-3 overflow-y-auto p-4", bodyClass)}
+			data-slot="dialog-body"
 		>
-			{@render header()}
-		</header>
-	{/if}
+			{@render children?.()}
+		</div>
 
-	<div class="space-y-4" data-slot="dialog-content">
-		{@render children?.()}
-	</div>
-
-	{#if footer}
-		<footer class="flex justify-end gap-2" data-slot="dialog-footer">
-			{@render footer()}
-		</footer>
-	{/if}
-</dialog>
-
-<style>
-	dialog {
-		&::backdrop {
-			background-color: oklch(0% 0 0deg / 50%);
-			opacity: 0;
-			transition:
-				opacity 200ms ease-out,
-				display 200ms ease-out allow-discrete;
-		}
-
-		&:is(:open, [open]) {
-			opacity: 1;
-			scale: 1;
-
-			&::backdrop {
-				opacity: 1;
-				backdrop-filter: blur(6px);
-
-				@starting-style {
-					opacity: 0;
-					backdrop-filter: blur(0);
-				}
-			}
-
-			@starting-style {
-				opacity: 0;
-				scale: 0.95;
-			}
-		}
-	}
-</style>
+		{#if footer}
+			<footer
+				class="flex shrink-0 justify-end gap-2 border-t border-line px-4 py-3"
+				data-slot="dialog-footer"
+			>
+				{@render footer()}
+			</footer>
+		{/if}
+	</DialogContent>
+</Dialog>

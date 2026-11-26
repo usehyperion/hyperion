@@ -1,151 +1,105 @@
 <script lang="ts">
-	import { Slider } from "bits-ui";
-	import { cn } from "tailwind-variants";
-
-	import type { WithoutChildrenOrChild } from "#lib/util/index.js";
+	import {
+		Slider,
+		SliderControl,
+		SliderIndicator,
+		SliderThumb,
+		SliderTrack,
+		SliderValue,
+	} from "@ui-sdk/svelte/slider";
+	import type { HTMLAttributes } from "svelte/elements";
 
 	import { clamp } from "#lib/util/math.js";
+	import { type ClassValue, cn } from "#lib/util/styles.js";
 
-	const THUMB_SIZE = 20;
-	const TRACK_INSET = 1;
+	import { tooltipSurfaceClass } from "./Tooltip.svelte";
+
+	const THUMB_INSET = 10;
 	const TOOLTIP_DELAY = 100;
 
-	type ValuePosition = "left" | "right" | "top" | "bottom" | "tooltip";
+	interface Preview {
+		start: number;
+		size: number;
+		center: number;
+		position: number;
+		before: boolean;
+	}
 
-	type Props = WithoutChildrenOrChild<Slider.RootProps> & {
+	interface Props extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
+		value?: number;
+		min?: number;
+		max?: number;
+		disabled?: boolean;
+		readOnly?: boolean;
+		name?: string;
+		step?: number | number[];
 		showSteps?: boolean;
 		showValue?: boolean;
-		valuePosition?: ValuePosition;
 		formatValue?: (value: number) => string;
 		label?: string;
-		trackClass?: string;
-		fillClass?: string;
-		thumbClass?: string;
-	};
+		trackClass?: ClassValue;
+		fillClass?: ClassValue;
+		thumbClass?: ClassValue;
+	}
 
 	let {
 		class: className,
+		value = $bindable(),
+		min = 0,
+		max = 100,
+		step = 1,
+		disabled = false,
+		showSteps = false,
+		showValue = true,
+		formatValue,
+		label,
 		trackClass,
 		fillClass,
 		thumbClass,
-		min,
-		max,
-		step,
-		orientation = "horizontal",
-		disabled,
-		showSteps = false,
-		showValue = true,
-		valuePosition = "left",
-		formatValue,
-		label,
-		value = $bindable(),
-		ref = $bindable(null),
 		...rest
 	}: Props = $props();
 
-	const stepValues = $derived(
+	let rail = $state<HTMLElement | null>(null);
+	let hovered = $state(false);
+	let dragging = $state(false);
+	let delayElapsed = $state(false);
+	let preview = $state<Preview>();
+
+	const stops = $derived(
 		Array.isArray(step) ? [...new Set(step)].toSorted((a, b) => a - b) : null,
 	);
-	const stepSize = $derived(typeof step === "number" ? step : 1);
 
-	const lowerBound = $derived(min ?? stepValues?.at(0) ?? 0);
-	const upperBound = $derived(max ?? stepValues?.at(-1) ?? 100);
+	const bounds = $derived(
+		stops ? { min: 0, max: stops.length - 1, step: 1 } : { min, max, step: step as number },
+	);
 
-	const isHorizontal = $derived(orientation === "horizontal");
-	const isInline = $derived(valuePosition === "left" || valuePosition === "right");
-	const isLeading = $derived(valuePosition === "left" || valuePosition === "top");
+	const position = $derived.by(() => {
+		if (value === undefined) {
+			return bounds.min;
+		}
 
-	let dragging = $state(false);
-	let hovered = $state(false);
-	let tooltipDelayElapsed = $state(false);
-	let preview = $state<{ start: number; size: number; center: number; value: number }>();
+		return stops ? nearestStop(value, stops) : value;
+	});
+
+	const tickCount = $derived(
+		stops || showSteps ? Math.floor((bounds.max - bounds.min) / bounds.step) + 1 : 0,
+	);
 
 	const interacting = $derived(hovered || dragging);
 	const previewVisible = $derived(hovered && !dragging && preview !== undefined);
-	const tooltipVisible = $derived(previewVisible && tooltipDelayElapsed);
-
-	const values = $derived(Array.isArray(value) ? value : [value ?? lowerBound]);
-	const valueText = $derived(values.map(display).join(" — "));
-
-	/**
-	 * Reserves the width of the widest value the slider can show, so the track
-	 * doesn't jitter as digits are gained and lost.
-	 */
-	const widestValueText = $derived(
-		(label ? `${label}: ` : "") +
-			(values.length > 1
-				? `${display(upperBound)} — ${display(upperBound)}`
-				: display(upperBound)),
+	const tooltipVisible = $derived(previewVisible && delayElapsed);
+	const readout = $derived(label ? `${label}: ${display(position)}` : display(position));
+	const widestReadout = $derived(
+		label ? `${label}: ${display(bounds.max)}` : display(bounds.max),
 	);
-
-	function display(value: number) {
-		return formatValue?.(value) ?? String(value);
-	}
-
-	function thumbLabel(index: number) {
-		if (values.length === 1) return label;
-		if (!label) return index === 0 ? "Minimum" : "Maximum";
-
-		return index === 0 ? `${label} minimum` : `${label} maximum`;
-	}
-
-	function snap(value: number) {
-		if (stepValues) {
-			return stepValues.reduce((a, b) => (Math.abs(b - value) < Math.abs(a - value) ? b : a));
-		}
-
-		const snapped = Math.round((value - lowerBound) / stepSize) * stepSize + lowerBound;
-
-		return clamp(lowerBound, snapped, upperBound);
-	}
-
-	function ratio(value: number) {
-		return upperBound === lowerBound ? 0 : (value - lowerBound) / (upperBound - lowerBound);
-	}
-
-	/**
-	 * Tracks the value the pointer would commit to, so the track can preview the
-	 * jump as a bar reaching out from the nearest thumb towards the cursor.
-	 */
-	function previewValueAt(event: PointerEvent) {
-		if (disabled || dragging || !isHorizontal || !ref) return;
-
-		const rect = ref.getBoundingClientRect();
-		const width = ref.offsetWidth;
-		if (width <= 0 || rect.width <= 0) return;
-
-		// Normalise the cursor into layout space so the pixel constants below still
-		// hold when an ancestor applies a CSS transform.
-		const scale = rect.width / width;
-		const usable = width - THUMB_SIZE;
-		const local = clamp(0, (event.clientX - rect.left) / scale - THUMB_SIZE / 2, usable);
-		const raw =
-			usable > 0 ? (local / usable) * (upperBound - lowerBound) + lowerBound : lowerBound;
-		const target = snap(raw);
-
-		const center = THUMB_SIZE / 2 + ratio(target) * usable;
-
-		// Run the bar into the rounded cap at either extreme so it leaves no gap.
-		const edge = target === lowerBound ? 0 : target === upperBound ? width : center;
-		const thumb = values
-			.map((value) => THUMB_SIZE / 2 + ratio(value) * usable)
-			.reduce((a, b) => (Math.abs(center - b) < Math.abs(center - a) ? b : a));
-
-		preview = {
-			start: Math.min(thumb, edge),
-			size: Math.abs(edge - thumb),
-			center,
-			value: target,
-		};
-	}
 
 	$effect(() => {
 		if (!hovered) {
-			tooltipDelayElapsed = false;
+			delayElapsed = false;
 			return;
 		}
 
-		const timeout = setTimeout(() => (tooltipDelayElapsed = true), TOOLTIP_DELAY);
+		const timeout = setTimeout(() => (delayElapsed = true), TOOLTIP_DELAY);
 
 		return () => clearTimeout(timeout);
 	});
@@ -153,8 +107,6 @@
 	$effect(() => {
 		if (!dragging) return;
 
-		// The committed value has moved, so the preview is stale — drop it and let
-		// the next pointer move recompute from the thumb's new position.
 		const stop = () => {
 			dragging = false;
 			preview = undefined;
@@ -168,169 +120,199 @@
 			window.removeEventListener("pointercancel", stop);
 		};
 	});
+
+	function nearestStop(target: number, list: number[]) {
+		let best = 0;
+
+		for (let i = 1; i < list.length; i++) {
+			if (Math.abs(list[i] - target) < Math.abs(list[best] - target)) {
+				best = i;
+			}
+		}
+
+		return best;
+	}
+
+	function display(at: number) {
+		const actual = stops ? stops[at] : at;
+		return formatValue?.(actual) ?? String(actual);
+	}
+
+	function write(next: number | number[]) {
+		const at = Array.isArray(next) ? next[0] : next;
+		value = stops ? stops[at] : at;
+	}
+
+	function ratio(at: number) {
+		return bounds.max === bounds.min ? 0 : (at - bounds.min) / (bounds.max - bounds.min);
+	}
+
+	function snap(raw: number) {
+		const snapped = Math.round((raw - bounds.min) / bounds.step) * bounds.step + bounds.min;
+		return clamp(bounds.min, snapped, bounds.max);
+	}
+
+	// Measures in layout pixels so a transformed ancestor (like an opening
+	// dialog) doesn't skew the preview.
+	function previewAt(event: PointerEvent) {
+		if (disabled || dragging || !rail) return;
+
+		const rect = rail.getBoundingClientRect();
+		const width = rail.offsetWidth;
+
+		if (width <= 0 || rect.width <= 0) return;
+
+		const local = clamp(0, (event.clientX - rect.left) / (rect.width / width), width);
+		const target = snap(bounds.min + (local / width) * (bounds.max - bounds.min));
+		const center = ratio(target) * width;
+		const thumb = ratio(position) * width;
+
+		// Run into the rounded cap at either end so the bar leaves no gap.
+		const edge =
+			target === bounds.min
+				? -(THUMB_INSET - 1)
+				: target === bounds.max
+					? width + THUMB_INSET - 1
+					: center;
+
+		preview = {
+			start: Math.min(thumb, edge),
+			size: Math.abs(edge - thumb),
+			center,
+			position: target,
+			before: edge < thumb,
+		};
+	}
 </script>
 
-<div
+<Slider
 	class={cn(
-		"flex w-full touch-none select-none",
-		isInline ? "flex-row items-center gap-2" : "flex-col",
-		disabled && "pointer-events-none opacity-50",
+		"group/slider flex w-full touch-none items-center gap-2 select-none data-disabled:opacity-50",
 		className,
 	)}
-	data-slot="slider-container"
+	min={bounds.min}
+	max={bounds.max}
+	step={bounds.step}
+	format={display}
+	{disabled}
+	{...rest}
+	bind:value={() => position, write}
 >
-	{#if showValue && valuePosition !== "tooltip" && isLeading}
-		{@render valueDisplay()}
-	{/if}
-
-	<Slider.Root
-		class={cn(
-			"relative flex touch-none items-center select-none",
-			isHorizontal
-				? cn("h-9", isInline ? "min-w-0 flex-1" : "w-full")
-				: "min-h-44 w-9 flex-col justify-center",
-			isHorizontal && !disabled && "cursor-ew-resize",
-		)}
-		{min}
-		{max}
-		{step}
-		{orientation}
-		{disabled}
-		data-slot="slider"
+	<SliderControl
+		class="relative flex h-9 min-w-0 flex-1 cursor-ew-resize items-center data-disabled:cursor-not-allowed"
 		onpointerdown={() => !disabled && (dragging = true)}
 		onpointerenter={() => (hovered = true)}
-		onpointerleave={() => (hovered = false)}
-		onpointermove={previewValueAt}
-		bind:value={value as never}
-		bind:ref
-		{...rest}
+		onpointerleave={() => {
+			hovered = false;
+			preview = undefined;
+		}}
+		onpointermove={previewAt}
 	>
-		{#snippet children({ tickItems, thumbItems })}
+		<span
+			class={cn(
+				"pointer-events-none absolute inset-x-0 h-4.5 rounded-full border border-line-strong",
+				trackClass,
+			)}
+			aria-hidden="true"
+		></span>
+
+		<SliderTrack class="relative mx-2.5 h-4 flex-1">
+			{#snippet render({ props, children, state })}
+				<div {...props} bind:this={rail}>
+					{@render children?.(state)}
+				</div>
+			{/snippet}
+
+			<SliderIndicator
+				class={cn(
+					"-ms-2.25 box-content h-full rounded-s-full bg-fg/10 ps-2.25 duration-300 ease-out-quint",
+					dragging ? "transition-none" : "transition-[left,width]",
+					fillClass,
+				)}
+			/>
+
 			<span
 				class={cn(
-					"pointer-events-none absolute overflow-hidden rounded-full border border-input",
-					isHorizontal ? "inset-x-px h-4.5" : "inset-y-px w-4.5",
-					trackClass,
+					"pointer-events-none absolute h-full bg-fg/20 transition-opacity duration-150",
+					previewVisible ? "opacity-100" : "opacity-0",
+					preview?.before ? "rounded-s-full" : "rounded-e-full",
 				)}
-				data-orientation={orientation}
-				data-slot="slider-track"
-			>
-				<Slider.Range
-					class={cn(
-						"absolute bg-foreground/10 duration-300 ease-out-quint",
-						isHorizontal ? "h-full" : "w-full",
-						dragging ? "transition-none" : "transition-[top,right,bottom,left]",
-						fillClass,
-					)}
-					data-slot="slider-range"
-				/>
+				style:left="{preview?.start ?? 0}px"
+				style:width="{preview?.size ?? 0}px"
+				aria-hidden="true"
+			></span>
 
-				{#if isHorizontal}
+			{#if tickCount > 2 && tickCount <= 100}
+				{#each { length: tickCount - 2 }, index (index)}
 					<span
 						class={cn(
-							"absolute h-full bg-foreground/20 transition-opacity duration-150",
-							previewVisible ? "opacity-100" : "opacity-0",
-						)}
-						style:left="{(preview?.start ?? 0) - TRACK_INSET}px"
-						style:width="{preview?.size ?? 0}px"
-						style:border-radius={(preview?.center ?? 0) > (preview?.start ?? 0)
-							? "0 9999px 9999px 0"
-							: "9999px 0 0 9999px"}
-						aria-hidden="true"
-					></span>
-				{/if}
-			</span>
-
-			{#if showSteps || Array.isArray(step)}
-				{#each tickItems as tick (tick.index)}
-					<Slider.Tick
-						class={cn(
-							"z-1 size-1 rounded-full bg-muted-foreground/40 transition-[scale,opacity] duration-200 data-bounded:opacity-0",
-							isHorizontal ? "top-[calc(50%-2px)]" : "left-[calc(50%-2px)]",
+							"pointer-events-none absolute top-1/2 size-1 -translate-1/2 rounded-full bg-fg-muted/40 transition-[scale] duration-200",
 							hovered && "scale-125",
 						)}
-						index={tick.index}
-					/>
+						style:left="{((index + 1) / (tickCount - 1)) * 100}%"
+						aria-hidden="true"
+					></span>
 				{/each}
 			{/if}
 
-			{#each thumbItems as thumb (thumb.index)}
-				<Slider.Thumb
-					class={cn(
-						"z-2 flex size-5 shrink-0 items-center justify-center rounded-full outline-hidden duration-300 ease-out-quint",
-						"focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ring",
-						dragging ? "transition-none" : "transition-[top,bottom,left]",
-					)}
-					index={thumb.index}
-					aria-label={thumbLabel(thumb.index)}
-					data-slot="slider-thumb"
-				>
-					<span
-						class={cn(
-							"size-4 rounded-full bg-background shadow-sm dark:bg-foreground",
-							thumbClass,
-						)}
-					></span>
-				</Slider.Thumb>
+			<SliderThumb
+				class={cn(
+					"top-1/2 z-2 flex size-5 -translate-1/2 items-center justify-center rounded-full duration-300 ease-out-quint",
+					"outline-0 outline-offset-2 outline-focus outline-solid has-focus-visible:outline-[1.5px]",
+					dragging ? "transition-none" : "transition-[left]",
+				)}
+				aria-label={label}
+			>
+				{#snippet render({ props, children, state })}
+					<div {...props}>
+						{@render children?.(state)}
 
-				{#if showValue && valuePosition === "tooltip"}
-					<Slider.ThumbLabel
-						class={cn(
-							"duration-300 ease-out-quint",
-							dragging ? "transition-none" : "transition-[left]",
-						)}
-						index={thumb.index}
-						position="top"
-					>
-						{@render tooltip(display(thumb.value), interacting)}
-					</Slider.ThumbLabel>
-				{/if}
-			{/each}
+						<span
+							class={cn(
+								"size-4 rounded-full bg-surface-1 shadow-sm dark:bg-fg",
+								thumbClass,
+							)}
+						></span>
+					</div>
+				{/snippet}
+			</SliderThumb>
 
-			{#if isHorizontal && preview && valuePosition !== "tooltip"}
+			{#if preview}
 				<span
-					class="pointer-events-none absolute bottom-full z-10"
+					class="pointer-events-none absolute bottom-full z-10 -translate-x-1/2"
 					style:left="{preview.center}px"
-					style:translate="-50% 0"
 					aria-hidden="true"
 				>
-					{@render tooltip(display(preview.value), tooltipVisible)}
+					{@render tooltip(display(preview.position), tooltipVisible)}
 				</span>
 			{/if}
-		{/snippet}
-	</Slider.Root>
+		</SliderTrack>
+	</SliderControl>
 
-	{#if showValue && valuePosition !== "tooltip" && !isLeading}
-		{@render valueDisplay()}
-	{/if}
-</div>
-
-{#snippet valueDisplay()}
-	<span
-		class={cn(
-			"inline-grid shrink-0 text-xs leading-none text-muted-foreground tabular-nums",
-			interacting && "font-medium",
-		)}
-		data-slot="slider-value"
-	>
-		<span
-			class="invisible col-start-1 row-start-1 font-medium whitespace-nowrap"
-			aria-hidden="true"
+	{#if showValue}
+		<SliderValue
+			class={cn(
+				"inline-grid shrink-0 text-detail leading-none text-fg-muted tabular-nums",
+				interacting && "font-medium",
+			)}
 		>
-			{widestValueText}
-		</span>
-
-		<span class="col-start-1 row-start-1 whitespace-nowrap">
-			{label ? `${label}: ${valueText}` : valueText}
-		</span>
-	</span>
-{/snippet}
+			<span
+				class="invisible col-start-1 row-start-1 font-medium whitespace-nowrap"
+				aria-hidden="true"
+			>
+				{widestReadout}
+			</span>
+			<span class="col-start-1 row-start-1 whitespace-nowrap">{readout}</span>
+		</SliderValue>
+	{/if}
+</Slider>
 
 {#snippet tooltip(text: string, visible: boolean)}
 	<span
 		class={cn(
-			"pointer-events-none mb-1 block rounded-md bg-foreground px-2 py-1 text-xs font-medium whitespace-nowrap text-background tabular-nums transition-[opacity,translate] duration-150",
-			visible ? "opacity-100" : "translate-y-1 opacity-0",
+			tooltipSurfaceClass,
+			"mb-1.5 block origin-bottom whitespace-nowrap tabular-nums transition-[opacity,scale] duration-100 ease-out",
+			visible ? "opacity-100" : "scale-95 opacity-0",
 		)}
 	>
 		{text}

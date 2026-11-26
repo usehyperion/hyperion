@@ -14,14 +14,14 @@
 </script>
 
 <div
-	class="rounded-t-md border border-b-0 border-muted bg-muted/50 px-3 pt-1.5 pb-2.5 text-sm transition-colors duration-200 has-[+div>input:focus-visible]:border-input"
+	class="rounded-t-md border border-b-0 border-line bg-tint px-3 pt-1.5 pb-2.5 text-body transition-colors duration-200 has-[+div>input:focus-visible]:border-line-strong"
 >
 	<div class="flex items-center justify-between">
-		<span class="text-muted-foreground">Replying to:</span>
+		<span class="text-fg-muted">Replying to:</span>
 
 		<button type="button" aria-label="Cancel reply" onclick={oncancel}>
 			<IconCancelReply
-				class="block text-muted-foreground transition-colors duration-150 hover:text-foreground"
+				class="block text-fg-muted transition-colors duration-150 hover:text-fg"
 			/>
 		</button>
 	</div>

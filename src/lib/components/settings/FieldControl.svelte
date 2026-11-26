@@ -1,7 +1,8 @@
 <script lang="ts">
-	import type { BaseField, SettingsField } from "#lib/components/settings/schema/types.js";
+	import type { SettingsField } from "#lib/components/settings/schema/types.js";
 
-	import * as Field from "#lib/components/ui/field/index.js";
+	import Field from "#lib/components/ui/Field.svelte";
+	import FieldSet from "#lib/components/ui/FieldSet.svelte";
 	import Input from "#lib/components/ui/Input.svelte";
 	import * as RadioGroup from "#lib/components/ui/radio-group/index.js";
 	import Select from "#lib/components/ui/Select.svelte";
@@ -31,124 +32,92 @@
 	}
 </script>
 
+{#snippet markdown(text: string)}
+	{@html parseDescription(text)}
+{/snippet}
+
 {#if field.type === "group"}
-	<Field.Set>
-		{#if field.label}
-			<Field.Legend>{field.label}</Field.Legend>
+	<FieldSet class="gap-4" legend={field.label}>
+		{#each field.fields as subField (subField)}
+			<FieldControl field={subField} />
+		{/each}
+	</FieldSet>
+{:else}
+	{#snippet description()}
+		{#if field.description}
+			{@render markdown(field.description)}
 		{/if}
+	{/snippet}
 
-		<Field.Group>
-			{#each field.fields as subField}
-				<FieldControl field={subField} />
-			{/each}
-		</Field.Group>
-	</Field.Set>
-{:else if field.type === "custom"}
-	<Field.Set>
-		<Field.Legend>{field.label}</Field.Legend>
+	{@const described = field.description ? description : undefined}
 
-		{@render description(field.description)}
+	{#if field.type === "custom"}
+		<FieldSet legend={field.label} description={described}>
+			<field.component />
+		</FieldSet>
+	{:else if field.type === "input"}
+		<Field label={field.label} description={described} disabled={field.disabled?.()}>
+			<Input
+				class="max-w-1/2"
+				autocapitalize="off"
+				autocomplete="off"
+				disabled={field.disabled?.()}
+				placeholder={field.placeholder}
+				bind:value={settings.state[field.id]}
+			/>
+		</Field>
+	{:else if field.type === "radio"}
+		<Field label={field.label} description={described} disabled={field.disabled?.()}>
+			<RadioGroup.Root
+				class="mt-1 gap-2.5"
+				disabled={field.disabled?.()}
+				bind:value={settings.state[field.id]}
+			>
+				{#each field.items as option (option.value)}
+					{#snippet optionDescription()}
+						{#if option.description}{@render markdown(option.description)}{/if}
+					{/snippet}
 
-		<field.component />
-	</Field.Set>
-{:else if field.type === "input"}
-	<Field.Field>
-		<Field.Label for={field.id}>{field.label}</Field.Label>
-
-		<Input
-			id={field.id}
-			class="max-w-1/2"
-			autocapitalize="off"
-			autocomplete="off"
-			disabled={field.disabled?.()}
-			placeholder={field.placeholder}
-			bind:value={settings.state[field.id]}
-		/>
-
-		{@render description(field.description)}
-	</Field.Field>
-{:else if field.type === "radio"}
-	<Field.Set>
-		{@render content(field)}
-
-		<RadioGroup.Root
-			id={field.id}
-			disabled={field.disabled?.()}
-			bind:value={settings.state[field.id]}
-		>
-			{#each field.items as option (option.value)}
-				<Field.Field class={[option.description && "items-start"]} orientation="horizontal">
-					<RadioGroup.Item
-						class={[option.description && "mt-0.5"]}
-						value={option.value}
-					/>
-
-					<Field.Label aria-disabled={field.disabled?.()}>
-						<Field.Content>
-							{option.label}
-
-							{@render description(option.description)}
-						</Field.Content>
-					</Field.Label>
-				</Field.Field>
-			{/each}
-		</RadioGroup.Root>
-	</Field.Set>
-{:else if field.type === "select"}
-	<Field.Field>
-		<Field.Label for={field.id}>{field.label}</Field.Label>
-
-		<div class="max-w-52">
-			<Select
-				id={field.id}
-				options={field.items}
+					<Field
+						layout="choice"
+						label={option.label}
+						description={option.description ? optionDescription : undefined}
+					>
+						<RadioGroup.Item value={option.value} />
+					</Field>
+				{/each}
+			</RadioGroup.Root>
+		</Field>
+	{:else if field.type === "select"}
+		<Field label={field.label} description={described} disabled={field.disabled?.()}>
+			<div class="max-w-52">
+				<Select
+					options={field.items}
+					disabled={field.disabled?.()}
+					bind:value={settings.state[field.id]}
+				/>
+			</div>
+		</Field>
+	{:else if field.type === "slider"}
+		<Field label={field.label} description={described} disabled={field.disabled?.()}>
+			<Slider
+				formatValue={field.formatValue}
+				showSteps={field.showSteps}
+				min={field.min}
+				max={field.max}
+				step={field.step}
 				disabled={field.disabled?.()}
 				bind:value={settings.state[field.id]}
 			/>
-		</div>
-
-		{@render description(field.description)}
-	</Field.Field>
-{:else if field.type === "slider"}
-	<Field.Field>
-		{@render content(field)}
-
-		<Slider
-			id={field.id}
-			type="single"
-			formatValue={field.formatValue}
-			showSteps={field.showSteps}
-			min={field.min}
-			max={field.max}
-			step={field.step}
+		</Field>
+	{:else if field.type === "switch"}
+		<Field
+			layout="row"
+			label={field.label}
+			description={described}
 			disabled={field.disabled?.()}
-			bind:value={settings.state[field.id]}
-		/>
-	</Field.Field>
-{:else if field.type === "switch"}
-	<Field.Field orientation="horizontal">
-		{@render content(field)}
-
-		<Switch
-			id={field.id}
-			disabled={field.disabled?.()}
-			bind:checked={settings.state[field.id]}
-		/>
-	</Field.Field>
-{/if}
-
-{#snippet description(description?: string)}
-	{#if description}
-		<Field.Description>
-			{@html parseDescription(description)}
-		</Field.Description>
+		>
+			<Switch disabled={field.disabled?.()} bind:checked={settings.state[field.id]} />
+		</Field>
 	{/if}
-{/snippet}
-
-{#snippet content(field: BaseField)}
-	<Field.Content>
-		<Field.Label for={field.id}>{field.label}</Field.Label>
-
-		{@render description(field.description)}
-	</Field.Content>
-{/snippet}
+{/if}

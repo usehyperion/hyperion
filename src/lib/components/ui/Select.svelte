@@ -1,52 +1,86 @@
-<script lang="ts">
-	import type { HTMLSelectAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
+<script lang="ts" generics="T extends string | number">
+	import {
+		Select,
+		SelectContent,
+		SelectItem,
+		SelectItemIndicator,
+		SelectTrigger,
+		SelectValue,
+	} from "@ui-sdk/svelte/select";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
-	import { IconExpand } from "#lib/icons.js";
+	import { IconChecked, IconExpand } from "#lib/icons.js";
+	import { cn } from "#lib/util/styles.js";
 
 	interface Option {
 		label: string;
-		value: string | number;
+		value: T;
 	}
 
-	interface Props extends HTMLSelectAttributes {
+	interface Props extends Omit<HTMLButtonAttributes, "children" | "value"> {
 		options: Option[];
-		ref?: HTMLSelectElement | null;
+		disabled?: boolean;
+		value?: T;
+		placeholder?: string;
+		name?: string;
+		required?: boolean;
 	}
 
 	let {
 		class: className,
 		options,
 		value = $bindable(),
-		ref = $bindable(null),
+		placeholder,
+		name,
+		required,
+		disabled,
 		...rest
 	}: Props = $props();
+
+	const items = $derived(
+		options.map((option) => ({ value: String(option.value), label: option.label })),
+	);
+
+	function select(next: string | null) {
+		const option = options.find((option) => String(option.value) === next);
+		if (option) value = option.value;
+	}
 </script>
 
-<div class="relative w-full">
-	<select
+<Select
+	{items}
+	{placeholder}
+	{name}
+	{required}
+	{disabled}
+	bind:value={() => (value === undefined ? null : String(value)), select}
+>
+	<SelectTrigger
 		class={cn(
-			"h-9 w-full min-w-0 appearance-none rounded-lg border border-input py-1 pr-8 pl-2.5 text-sm transition-colors outline-none select-none",
-			"selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground",
-			"focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
-			"disabled:pointer-events-none disabled:cursor-not-allowed",
-			"aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20",
-			"dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+			"control-field w-full cursor-default justify-between gap-1.5 pr-1.5 text-left data-open:border-line-strong",
 			className,
 		)}
-		bind:value
-		bind:this={ref}
 		{...rest}
 	>
-		{#each options as option}
-			<option class="bg-[canvas] text-[canvastext]" value={option.value}>
-				{option.label}
-			</option>
-		{/each}
-	</select>
+		<SelectValue class="truncate data-placeholder:text-fg-faint" />
+		<IconExpand class="size-3.5 shrink-0 text-fg-muted" aria-hidden="true" />
+	</SelectTrigger>
 
-	<IconExpand
-		class="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-		aria-hidden="true"
-	/>
-</div>
+	<SelectContent
+		class="popup-surface max-h-(--available-height) min-w-(--anchor-width) overflow-y-auto p-1"
+		sideOffset={4}
+	>
+		{#each items as item (item.value)}
+			<SelectItem
+				class="flex h-control-sm cursor-default items-center gap-2 rounded-[4px] pr-1.5 pl-2 outline-none select-none data-disabled:opacity-50 data-highlighted:bg-surface-3"
+				value={item.value}
+			>
+				<span class="truncate">{item.label}</span>
+
+				<SelectItemIndicator class="ml-auto flex text-fg-muted">
+					<IconChecked class="size-3.5" aria-hidden="true" />
+				</SelectItemIndicator>
+			</SelectItem>
+		{/each}
+	</SelectContent>
+</Select>

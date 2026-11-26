@@ -1,36 +1,41 @@
 <script lang="ts">
 	import { createHotkey } from "@tanstack/svelte-hotkeys";
-	import { ScrollArea } from "bits-ui";
+	import {
+		ScrollArea,
+		ScrollAreaContent,
+		ScrollAreaScrollbar,
+		ScrollAreaThumb,
+		ScrollAreaViewport,
+	} from "@ui-sdk/svelte/scroll-area";
 
 	import { useSidebar } from "#lib/hooks/use-sidebar.svelte.js";
 
 	import ChannelList from "./channel/ChannelList.svelte";
+
 	const sidebar = useSidebar();
 
 	createHotkey("Mod+B", () => sidebar.toggle());
 </script>
 
-<ScrollArea.Root
+<ScrollArea
 	class={[
 		"group shrink-0 overflow-hidden transition-[width] duration-200 ease-out-quint",
 		sidebar.collapsed ? "w-0" : "w-12",
 	]}
 	data-collapsed={sidebar.collapsed}
 >
-	<ScrollArea.Viewport class="h-full">
-		<nav>
-			<ChannelList />
-		</nav>
-	</ScrollArea.Viewport>
+	<ScrollAreaViewport class="size-full">
+		<ScrollAreaContent>
+			<nav aria-label="Channels">
+				<ChannelList />
+			</nav>
+		</ScrollAreaContent>
+	</ScrollAreaViewport>
 
-	<ScrollArea.Scrollbar
-		class={[
-			"w-2 p-0.5 opacity-50",
-			"data-[state=hidden]:animate-out data-[state=hidden]:fade-out-0 data-[state=visible]:animate-in data-[state=visible]:fade-in-0",
-			"group-data-[collapsed=true]:hidden",
-		]}
+	<ScrollAreaScrollbar
+		class="w-2 p-0.5 opacity-0 transition-opacity duration-150 group-data-[collapsed=true]:hidden data-visible:opacity-50"
 		orientation="vertical"
 	>
-		<ScrollArea.Thumb class="rounded-full bg-muted-foreground/80" />
-	</ScrollArea.Scrollbar>
-</ScrollArea.Root>
+		<ScrollAreaThumb class="w-full rounded-full bg-fg-muted" />
+	</ScrollAreaScrollbar>
+</ScrollArea>

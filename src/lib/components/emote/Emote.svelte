@@ -1,27 +1,25 @@
 <script lang="ts">
-	import { Tooltip } from "bits-ui";
+	import { TooltipTrigger } from "@ui-sdk/svelte/tooltip";
 
 	import type { Emote } from "#lib/emotes.js";
 
 	import { settings } from "#lib/settings.js";
 
-	import type { EmoteTether } from "./EmoteTooltip.svelte";
-
 	import EmoteLayers from "./EmoteLayers.svelte";
+	import { emoteTooltip } from "./EmoteTooltip.svelte";
 
 	interface Props {
 		emote: Emote;
 		layers?: Emote[];
-		tether: EmoteTether;
 	}
 
-	const { emote, layers = [], tether }: Props = $props();
+	const { emote, layers = [] }: Props = $props();
 
 	const payload = $derived({ emote, layers });
 </script>
 
-<Tooltip.Trigger {tether} {payload}>
-	{#snippet child({ props })}
+<TooltipTrigger controller={emoteTooltip} {payload}>
+	{#snippet render({ props })}
 		<button
 			class="-my-2 inline-grid align-middle"
 			type="button"
@@ -31,4 +29,4 @@
 			<EmoteLayers {emote} {layers} size="display" />
 		</button>
 	{/snippet}
-</Tooltip.Trigger>
+</TooltipTrigger>

@@ -15,7 +15,7 @@
 
 {#if name}
 	changed the active emote set to
-	<span class="font-medium text-foreground">{name}</span>.
+	<span class="font-medium text-fg">{name}</span>.
 {:else}
 	disabled the channel's emote set.
 {/if}

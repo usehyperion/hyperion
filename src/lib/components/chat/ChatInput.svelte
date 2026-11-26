@@ -1,30 +1,37 @@
 <script lang="ts">
-	import { tick } from "svelte";
-	import type { HTMLInputAttributes, KeyboardEventHandler } from "svelte/elements";
+	import { DialogTrigger } from "@ui-sdk/svelte/dialog";
+	import { type ComponentProps, tick } from "svelte";
+	import type { KeyboardEventHandler } from "svelte/elements";
 
 	import type { Chat } from "#lib/models/chat.svelte.js";
 
 	import { Completer } from "#lib/completer.svelte.js";
-	import { dialogs } from "#lib/dialog.js";
+	import { dialogController, dialogs } from "#lib/dialog.js";
 	import { CommandError } from "#lib/errors/command-error.js";
 	import { IconPoll, IconPrediction } from "#lib/icons.js";
 
 	import EmotePicker from "../emote-picker/EmotePicker.svelte";
 	import Suggestions from "../Suggestions.svelte";
-	import * as InputGroup from "../ui/input-group";
+	import Button from "../ui/Button.svelte";
+	import InputGroup from "../ui/InputGroup.svelte";
 	import ChatError from "./ChatError.svelte";
 	import ChatReply from "./ChatReply.svelte";
 	import Restrictions from "./Restrictions.svelte";
 
 	const MODIFIER_KEYS = new Set(["Shift", "Control", "Alt", "Meta"]);
 
-	interface Props extends HTMLInputAttributes {
+	interface Props extends Omit<
+		ComponentProps<typeof InputGroup>,
+		"value" | "ref" | "groupRef" | "end"
+	> {
 		chat: Chat;
 	}
 
 	const { class: className, chat, ...rest }: Props = $props();
 
-	let anchor = $state<HTMLElement | null>(null);
+	const chatButton = "[&_svg:not([class*='size-'])]:size-4";
+
+	let anchor = $state<HTMLDivElement | null>(null);
 	let input = $state<HTMLInputElement | null>(null);
 	let completer = $state<Completer>();
 
@@ -139,55 +146,72 @@
 {/if}
 
 <div class="flex flex-col gap-1.5">
-	<InputGroup.Root class="h-12 rounded-xl" bind:ref={anchor}>
-		<InputGroup.Input
-			class={[(chat.replyTarget || error) && "rounded-t-none", className]}
-			autocapitalize="off"
-			autocorrect="off"
-			disabled={banned}
-			maxlength={500}
-			placeholder={banned ? "You are banned from the channel" : "Send a message"}
-			oninput={() => completer?.search()}
-			onkeydown={send}
-			onmousedown={() => completer?.reset()}
-			{...rest}
-			bind:value={chat.value}
-			bind:ref={
-				() => input,
-				(el) => {
-					input = el;
-					chat.input = el;
-					completer = el ? new Completer(chat, el) : undefined;
-				}
+	<InputGroup
+		class={["h-12 rounded-xl", (chat.replyTarget || error) && "rounded-t-none", className]}
+		inputClass="px-3"
+		aria-label="Chat message"
+		autocapitalize="off"
+		autocorrect="off"
+		disabled={banned}
+		maxlength={500}
+		placeholder={banned ? "You are banned from the channel" : "Send a message"}
+		oninput={() => completer?.search()}
+		onkeydown={send}
+		onmousedown={() => completer?.reset()}
+		{...rest}
+		bind:value={chat.value}
+		bind:ref={
+			() => input,
+			(el) => {
+				input = el;
+				chat.input = el;
+				completer = el ? new Completer(chat, el) : undefined;
 			}
-		/>
+		}
+		bind:groupRef={anchor}
+	>
+		{#snippet end()}
+			<span class="flex items-center gap-0.5 pe-1">
+				{#if chat.channel.isMod}
+					<DialogTrigger controller={dialogController(dialogs.poll(chat.channel.id))}>
+						{#snippet render({ props })}
+							<Button
+								{...props}
+								class={chatButton}
+								size="icon"
+								variant="ghost"
+								aria-label="Create poll"
+							>
+								<IconPoll />
+							</Button>
+						{/snippet}
+					</DialogTrigger>
 
-		<InputGroup.Addon class="mr-0! gap-1.5" align="inline-end">
-			{#if chat.channel.isMod}
-				<InputGroup.Button
-					size="icon-sm"
-					command="show-modal"
-					commandfor={dialogs.poll(chat.channel.id)}
-				>
-					<IconPoll />
-				</InputGroup.Button>
+					<DialogTrigger
+						controller={dialogController(dialogs.prediction(chat.channel.id))}
+					>
+						{#snippet render({ props })}
+							<Button
+								{...props}
+								class={chatButton}
+								size="icon"
+								variant="ghost"
+								aria-label="Create prediction"
+							>
+								<IconPrediction />
+							</Button>
+						{/snippet}
+					</DialogTrigger>
+				{/if}
 
-				<InputGroup.Button
-					size="icon-sm"
-					command="show-modal"
-					commandfor={dialogs.prediction(chat.channel.id)}
-				>
-					<IconPrediction />
-				</InputGroup.Button>
-			{/if}
-
-			<EmotePicker channel={chat.channel} />
-		</InputGroup.Addon>
-	</InputGroup.Root>
+				<EmotePicker channel={chat.channel} />
+			</span>
+		{/snippet}
+	</InputGroup>
 
 	<div class="flex items-center justify-between px-1">
-		<div class="text-xs text-muted-foreground tabular-nums">
-			<span class:text-foreground={chat.value.length === 500}>{chat.value.length}</span>
+		<div class="text-detail text-fg-muted tabular-nums">
+			<span class:text-fg={chat.value.length === 500}>{chat.value.length}</span>
 			/ 500
 		</div>
 

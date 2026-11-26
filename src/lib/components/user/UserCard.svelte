@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Avatar } from "bits-ui";
+	import type { PopoverController } from "@ui-sdk/svelte/popover";
 	import dayjs from "dayjs";
 
 	import type { Channel } from "#lib/models/channel.svelte.js";
@@ -12,17 +12,18 @@
 
 	import Message from "../message/Message.svelte";
 	import ReverseScroll from "../ReverseScroll.svelte";
+	import Avatar from "../ui/Avatar.svelte";
 	import Popover from "../ui/Popover.svelte";
 
 	interface Props {
-		id: string;
+		controller: PopoverController;
 		user: User;
 		channel: Channel;
 		anchor?: HTMLElement | null;
 		onclose?: () => void;
 	}
 
-	const { id, user, channel, anchor, onclose }: Props = $props();
+	const { controller, user, channel, anchor, onclose }: Props = $props();
 
 	let loading = $state(false);
 	let loadingHistory = $state(false);
@@ -67,26 +68,21 @@
 </script>
 
 <Popover
-	{id}
+	{controller}
 	{anchor}
 	class="w-sm overflow-hidden p-0"
-	onbeforetoggle={(event) => {
-		if (event.newState !== "open") return;
+	aria-label={user.displayName}
+	onOpenChange={(open) => {
+		if (!open) return;
 
 		void fetchInfo();
 		void loadHistory();
 	}}
-	ontoggle={async (event) => {
-		if (event.newState !== "closed") return;
-
-		const popover = event.currentTarget;
-
-		await Promise.allSettled(popover.getAnimations().map((animation) => animation.finished));
-
-		if (!popover.matches(":popover-open")) onclose?.();
+	onOpenChangeComplete={(open) => {
+		if (!open) onclose?.();
 	}}
 >
-	<div class="h-18 bg-twitch" style:background-color={user.color}>
+	<div class="h-18 bg-accent" style:background-color={user.color}>
 		{#if user.bannerUrl}
 			<img
 				class="size-full object-cover"
@@ -99,19 +95,17 @@
 	</div>
 
 	<div class="relative border-t p-4">
-		<Avatar.Root class="-mt-14">
-			<div
-				class="flex size-20 items-center justify-center overflow-hidden rounded-full border-4 border-popover bg-primary"
-			>
-				<Avatar.Image src={user.avatarUrl} alt={user.displayName} />
+		<Avatar
+			class="-mt-14 flex size-20 border-4 border-surface-1 ring-0 not-data-[loading-status=loaded]:bg-fg"
+			src={user.avatarUrl}
+			alt={user.displayName}
+		>
+			{#snippet fallback()}
+				<IconAvatarFallback class="size-10 text-fg-inverse" aria-hidden="true" />
+			{/snippet}
+		</Avatar>
 
-				<Avatar.Fallback>
-					<IconAvatarFallback class="size-10 text-primary-foreground" />
-				</Avatar.Fallback>
-			</div>
-		</Avatar.Root>
-
-		<div class="absolute top-2 right-2 space-y-1 text-xs text-muted-foreground">
+		<div class="absolute top-2 right-2 space-y-1 text-detail text-fg-muted">
 			<div class="flex items-center gap-1">
 				<IconCreated class="mr-1 size-3" />
 
@@ -182,7 +176,7 @@
 
 					{#if !showAllBadges && relationship.badges.length > 10}
 						<button
-							class="ml-1 text-xs text-twitch transition-colors hover:text-twitch-link"
+							class="ml-1 text-detail text-accent transition-colors hover:text-fg"
 							type="button"
 							onclick={() => (showAllBadges = true)}
 							aria-label="Show {relationship.badges.length - 10} more badges"
@@ -194,7 +188,7 @@
 			{/if}
 
 			{#if user.bio}
-				<p class="text-xs text-muted-foreground">{user.bio}</p>
+				<p class="text-detail text-fg-muted">{user.bio}</p>
 			{/if}
 		</div>
 	</div>
@@ -217,6 +211,6 @@
 			</ReverseScroll>
 		</div>
 	{:else if loadingHistory}
-		<p class="border-t px-4 py-2 text-xs text-muted-foreground">Loading message history...</p>
+		<p class="border-t px-4 py-2 text-detail text-fg-muted">Loading message history...</p>
 	{/if}
 </Popover>

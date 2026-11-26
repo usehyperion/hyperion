@@ -14,7 +14,8 @@
 
 	import Button from "../ui/Button.svelte";
 	import Dialog from "../ui/Dialog.svelte";
-	import * as Field from "../ui/field";
+	import Field from "../ui/Field.svelte";
+	import FieldSet from "../ui/FieldSet.svelte";
 	import Input from "../ui/Input.svelte";
 	import Select from "../ui/Select.svelte";
 
@@ -65,8 +66,6 @@
 		onstart,
 		onreset,
 	}: Props = $props();
-
-	const id = $props.id();
 
 	let title = $state("");
 	let options = $state(["", ""]);
@@ -119,24 +118,23 @@
 	}
 </script>
 
-<Dialog id={dialogId} onclose={() => (error = null)}>
-	{#snippet header()}
-		<h2>{heading}</h2>
-		<p>{description}</p>
-	{/snippet}
+<Dialog
+	id={dialogId}
+	title={heading}
+	{description}
+	onOpenChange={(open) => {
+		if (!open) error = null;
+	}}
+>
+	<Field label="Question">
+		<Input {placeholder} maxlength={titleMax} bind:value={title} />
+	</Field>
 
-	<Field.Field>
-		<Field.Label for="title-{id}">Question</Field.Label>
-
-		<Input id="title-{id}" {placeholder} maxlength={titleMax} bind:value={title} />
-	</Field.Field>
-
-	<Field.Field>
-		<Field.Label>{label}s</Field.Label>
-
+	<FieldSet class="gap-1.5" legend="{label}s">
 		{#each options as _, index (index)}
 			<div class="flex items-center gap-1">
 				<Input
+					aria-label="{label} {index + 1}"
 					placeholder="{label} {index + 1}"
 					maxlength={OPTION_MAX}
 					bind:value={options[index]}
@@ -162,21 +160,19 @@
 				Add {noun}
 			</Button>
 		{/if}
-	</Field.Field>
+	</FieldSet>
 
-	<Field.Field>
-		<Field.Label for="duration-{id}">{durationLabel}</Field.Label>
-
-		<Select id="duration-{id}" options={durationOptions} bind:value={duration} />
-	</Field.Field>
+	<Field layout="inline" label={durationLabel}>
+		<Select options={durationOptions} bind:value={duration} />
+	</Field>
 
 	{@render children?.()}
 
 	{#if error}
-		<p class="text-sm text-destructive">{error}</p>
+		<p class="text-detail text-danger">{error}</p>
 	{/if}
 
 	{#snippet footer()}
-		<Button disabled={!canSubmit} onclickwait={start}>{submitLabel}</Button>
+		<Button size="sm" disabled={!canSubmit} onclick={start}>{submitLabel}</Button>
 	{/snippet}
 </Dialog>

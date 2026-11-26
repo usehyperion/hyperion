@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
-	import { cn } from "tailwind-variants";
 
 	import CaseSensitive from "~icons/local/case-sensitive";
 	import Regex from "~icons/local/regex";
@@ -13,6 +12,7 @@
 	} from "#lib/highlights.js";
 
 	import { HIGHLIGHTS, KEYWORD_HIGHLIGHT } from "#lib/highlights.js";
+	import { cn } from "#lib/util/styles.js";
 
 	type Props = {
 		children: Snippet;
@@ -45,7 +45,7 @@
 		style:border-color={config.color}
 	>
 		{#if config.style === "default"}
-			<div class="flex items-center bg-muted px-2.5 py-1.5 text-xs font-medium">
+			<div class="flex items-center bg-surface-2 px-2.5 py-1.5 text-detail font-medium">
 				<div class="flex items-center">
 					<decoration.icon class="mr-2 size-4" />
 

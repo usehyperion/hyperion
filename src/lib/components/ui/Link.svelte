@@ -1,21 +1,16 @@
 <script lang="ts">
+	import { Button } from "@ui-sdk/svelte/button";
 	import type { HTMLAnchorAttributes } from "svelte/elements";
-	import { cn } from "tailwind-variants";
 
-	import type { WithElementRef } from "#lib/util/index.js";
+	import { cn } from "#lib/util/styles.js";
 
-	import {
-		type ButtonSize,
-		type ButtonVariant,
-		buttonVariants,
-		emphasisOverlayClass,
-		isEmphasisVariant,
-	} from "./Button.svelte";
+	import { type ButtonSize, type ButtonVariant, buttonVariants } from "./Button.svelte";
 
-	interface Props extends WithElementRef<HTMLAnchorAttributes, HTMLAnchorElement> {
+	interface Props extends HTMLAnchorAttributes {
 		variant?: ButtonVariant;
 		size?: ButtonSize;
 		disabled?: boolean;
+		ref?: HTMLAnchorElement | null;
 	}
 
 	let {
@@ -34,25 +29,22 @@
 	const external = $derived(href?.startsWith("http") ?? false);
 </script>
 
-<a
-	class={cn(buttonVariants({ variant, size }), className)}
-	href={disabled ? undefined : href}
-	target={target ?? (external ? "_blank" : undefined)}
-	rel={rel ?? (external ? "noreferrer" : undefined)}
-	role={disabled ? "link" : undefined}
-	tabindex={disabled ? -1 : undefined}
-	aria-disabled={disabled || undefined}
-	data-component="link"
-	bind:this={ref}
-	{...rest}
->
-	{#if isEmphasisVariant(variant)}
-		<span class={emphasisOverlayClass} aria-hidden="true"></span>
-
-		<span class="relative flex items-center gap-1.5">
+<Button {disabled}>
+	{#snippet render({ props })}
+		<a
+			{...rest}
+			{href}
+			target={target ?? (external ? "_blank" : undefined)}
+			rel={rel ?? (external ? "noreferrer" : undefined)}
+			data-bare
+			{...props}
+			class={cn(
+				buttonVariants({ variant, size: variant === "inline" ? "none" : size }),
+				className,
+			)}
+			bind:this={ref}
+		>
 			{@render children?.()}
-		</span>
-	{:else}
-		{@render children?.()}
-	{/if}
-</a>
+		</a>
+	{/snippet}
+</Button>

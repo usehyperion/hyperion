@@ -9,7 +9,10 @@
 </script>
 
 <script lang="ts">
-	import { Combobox } from "bits-ui";
+	import { Listbox, ListboxItem } from "@ui-sdk/svelte/listbox";
+	import { Popover, PopoverContent } from "@ui-sdk/svelte/popover";
+
+	import Avatar from "./ui/Avatar.svelte";
 
 	interface Props {
 		anchor: HTMLElement | null;
@@ -29,17 +32,14 @@
 		onhighlight,
 	}: Props = $props();
 
-	const items = $state<(HTMLElement | null)[]>(Array.from({ length: 25 }, () => null));
+	const selected = $derived(suggestions[current]?.value ?? null);
 
-	// Keep the highlighted row in view as the selection moves via keyboard.
-	$effect(() => {
-		items[current]?.scrollIntoView({ block: "nearest" });
-	});
-
-	function select(value: string) {
+	function highlight(value: string | null) {
 		const index = suggestions.findIndex((s) => s.value === value);
-		if (index === -1) return;
+		if (index !== -1) onhighlight(index);
+	}
 
+	function select(index: number) {
 		// Sync the highlight to the clicked row so completion targets it, not
 		// whatever the keyboard last landed on.
 		onhighlight(index);
@@ -47,25 +47,40 @@
 	}
 </script>
 
-<Combobox.Root type="single" onValueChange={select} bind:open>
-	<Combobox.Portal>
-		<Combobox.Content
-			class="flex max-h-72 w-(--bits-combobox-anchor-width) flex-col gap-0.5 overflow-y-auto rounded-2xl bg-popover p-1 text-popover-foreground smooth-shadow-ring-md"
-			customAnchor={anchor}
-			side="top"
-			sideOffset={8}
+<!-- The chat input keeps focus and drives the highlight, so only an outside press may close this. -->
+<Popover
+	bind:open
+	onOpenChange={(next, details) => {
+		if (!next && details.reason !== "outside-press") details.cancel();
+	}}
+>
+	<PopoverContent
+		class="popup-surface flex max-h-72 w-(--anchor-width) flex-col overflow-y-auto p-1"
+		aria-label="Suggestions"
+		{anchor}
+		side="top"
+		align="start"
+		sideOffset={6}
+		initialFocus="none"
+		finalFocus="none"
+	>
+		<Listbox
+			class="flex flex-col gap-px"
+			aria-label="Suggestions"
+			value={selected}
+			onValueChange={highlight}
 		>
 			{#each suggestions as suggestion, i (suggestion.value)}
-				<Combobox.Item
-					class={[
-						"relative flex cursor-pointer items-center gap-2 rounded-xl px-2 py-1.5 text-sm outline-hidden transition-colors select-none",
-						"data-current:bg-accent data-current:text-accent-foreground",
-					]}
-					title={suggestion.display}
+				<ListboxItem
+					class="flex min-h-8 cursor-default items-center gap-2 rounded-control px-2 py-1 text-body control-focus select-none data-selected:bg-surface-3"
 					value={suggestion.value}
-					data-current={current === i ? true : null}
+					label={suggestion.display}
+					title={suggestion.display}
 					onmouseenter={() => onhighlight(i)}
-					bind:ref={items[i]}
+					onclick={() => select(i)}
+					{@attach (element) => {
+						if (current === i) element.scrollIntoView({ block: "nearest" });
+					}}
 				>
 					{#if suggestion.type === "command"}
 						<div class="flex min-w-0 flex-1 flex-col">
@@ -74,40 +89,31 @@
 
 								{#each suggestion.command.args as arg (arg.name)}
 									<span
-										class="rounded border border-primary/20 bg-background px-1 py-0.5 text-xs text-muted-foreground"
+										class="rounded-sm border border-line bg-surface-2 px-1 font-mono text-caption text-fg-muted"
 									>
 										{arg.name}
 									</span>
 								{/each}
 							</div>
 
-							<p class="truncate text-xs text-muted-foreground">
+							<p class="truncate text-caption text-fg-muted">
 								{suggestion.command.description}
 							</p>
 						</div>
 
-						<span class="shrink-0 text-xs text-muted-foreground">
+						<span class="shrink-0 text-caption text-fg-muted">
 							{suggestion.command.provider}
 						</span>
 					{:else if suggestion.type === "emote"}
 						<img
-							class="size-8 shrink-0 object-contain"
+							class="size-7 shrink-0 object-contain"
 							src={suggestion.imageUrl}
-							alt={suggestion.display}
+							alt=""
 						/>
 
 						<span class="truncate">{suggestion.display}</span>
 					{:else}
-						{#if suggestion.user.avatarUrl}
-							<img
-								class="size-6 shrink-0 rounded-full bg-muted object-cover"
-								src={suggestion.user.avatarUrl}
-								alt={suggestion.display}
-							/>
-						{:else}
-							<!-- Placeholder until the avatar is backfilled in the background. -->
-							<div class="size-6 shrink-0 rounded-full bg-muted"></div>
-						{/if}
+						<Avatar class="size-5" src={suggestion.user.avatarUrl} alt="" />
 
 						<span class="truncate font-semibold" style={suggestion.style}>
 							{suggestion.display}
@@ -115,14 +121,14 @@
 
 						{#if suggestion.role}
 							<span
-								class="ml-auto shrink-0 rounded bg-background px-1 py-0.5 text-xs text-muted-foreground"
+								class="ml-auto shrink-0 rounded-sm bg-surface-2 px-1 text-caption text-fg-muted"
 							>
 								{roleLabels[suggestion.role]}
 							</span>
 						{/if}
 					{/if}
-				</Combobox.Item>
+				</ListboxItem>
 			{/each}
-		</Combobox.Content>
-	</Combobox.Portal>
-</Combobox.Root>
+		</Listbox>
+	</PopoverContent>
+</Popover>

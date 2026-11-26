@@ -4,7 +4,7 @@
 	import WholeWord from "~icons/local/whole-word";
 
 	import Button from "#lib/components/ui/Button.svelte";
-	import * as Empty from "#lib/components/ui/empty/index.js";
+	import Empty from "#lib/components/ui/Empty.svelte";
 	import { KEYWORD_HIGHLIGHT } from "#lib/highlights.js";
 	import { IconAdd, IconDelete, IconKeywordHighlight } from "#lib/icons.js";
 	import { settings } from "#lib/settings.js";
@@ -21,19 +21,12 @@
 
 <div class="flex flex-col gap-2">
 	{#if keywords.length === 0}
-		<Empty.Root class="border border-dashed py-8">
-			<Empty.Header>
-				<Empty.Media variant="icon">
-					<IconKeywordHighlight />
-				</Empty.Media>
-
-				<Empty.Title>No keyword triggers</Empty.Title>
-
-				<Empty.Description>
-					Add a trigger to highlight messages containing specific words.
-				</Empty.Description>
-			</Empty.Header>
-		</Empty.Root>
+		<Empty
+			class="border border-dashed py-8"
+			icon={IconKeywordHighlight}
+			title="No keyword triggers"
+			description="Add a trigger to highlight messages containing specific words."
+		/>
 	{/if}
 
 	{#each keywords as config, i (config)}
@@ -44,7 +37,7 @@
 			bind:config={keywords[i]}
 		>
 			{#snippet badges()}
-				<div class="flex shrink-0 items-center gap-1.5 text-muted-foreground">
+				<div class="flex shrink-0 items-center gap-1.5 text-fg-muted">
 					{#if config.matchCase}
 						<span title="Match case"><CaseSensitive class="size-4" /></span>
 					{/if}
@@ -63,7 +56,7 @@
 				<Edit bind:config={keywords[i]} />
 
 				<Button
-					class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+					class="text-fg-muted hover:bg-danger/10 hover:text-danger"
 					title="Delete"
 					size="icon-sm"
 					variant="ghost"

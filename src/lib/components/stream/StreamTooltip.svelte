@@ -22,12 +22,12 @@
 	const sidebar = useSidebar();
 </script>
 
-<Tooltip class="max-w-64" delay={0} side="right">
+<Tooltip class="max-w-64 px-2 py-1.5 text-detail" delay={0} side="right" sideOffset={4}>
 	{#snippet trigger(props)}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="relative flex cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-accent"
+			class="relative flex cursor-pointer items-center gap-2 p-2 transition-colors hover:bg-surface-3"
 			{...props}
 			onclick={() => app.open(channel)}
 			oncontextmenu={(event) => openMenu(event, () => createChannelMenu(channel))}
@@ -56,9 +56,7 @@
 				<div class="flex items-center gap-1">
 					{@render indicators()}
 
-					<div
-						class="overflow-hidden text-ellipsis whitespace-nowrap text-twitch dark:text-twitch-link"
-					>
+					<div class="overflow-hidden text-ellipsis whitespace-nowrap text-accent">
 						{channel.user.displayName} &bullet; {channel.stream.game.name}
 					</div>
 				</div>
@@ -67,10 +65,10 @@
 			<p class="line-clamp-2">{channel.stream.title}</p>
 
 			{#if !sidebar.collapsed}
-				<div class="flex items-center text-red-500 dark:text-red-400">
+				<div class="flex items-center text-danger">
 					<IconViewers class="mr-1 size-3" />
 
-					<p class="text-xs">
+					<p class="text-detail">
 						<NumberFlow class="tabular-nums" value={channel.stream.viewers} /> viewers
 					</p>
 				</div>

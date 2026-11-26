@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from "tailwind-variants";
+	import { DialogClose } from "@ui-sdk/svelte/dialog";
 
 	import type { ChannelSuggestion } from "#lib/graphql/twitch.js";
 	import type { Channel } from "#lib/models/channel.svelte.js";
@@ -20,6 +20,7 @@
 	import { storage } from "#lib/stores.js";
 	import { debounce } from "#lib/util/index.js";
 	import { latest } from "#lib/util/resource.js";
+	import { cn } from "#lib/util/styles.js";
 
 	import Avatar from "./ui/Avatar.svelte";
 	import Dialog from "./ui/Dialog.svelte";
@@ -127,7 +128,7 @@
 
 			const channel = await app.resolveLogin(login);
 			record(channel, meta);
-			handleClose();
+			closeDialog(dialogs.join);
 
 			app.open(channel).catch(log.swallow(`Failed to join ${login}`));
 		} catch (err) {
@@ -192,18 +193,22 @@
 		searching = false;
 		active = 0;
 	}
-
-	function handleClose() {
-		closeDialog(dialogs.join);
-	}
 </script>
 
-<Dialog id={dialogs.join} class="overflow-hidden p-0 sm:max-w-xl" onclose={reset}>
+<Dialog
+	id={dialogs.join}
+	class="max-w-xl"
+	bodyClass="gap-0 p-0"
+	aria-label="Search channels"
+	onOpenChangeComplete={(open) => {
+		if (!open) reset();
+	}}
+>
 	<div class="flex flex-col">
-		<div class="flex items-center gap-3 border-b px-5 py-4">
+		<div class="flex items-center gap-2 border-b border-line px-3 py-2">
 			<!-- svelte-ignore a11y_autofocus -- palette should be typeable on open -->
 			<input
-				class="w-full bg-transparent text-lg outline-none placeholder:text-muted-foreground"
+				class="h-control w-full bg-transparent text-body outline-none placeholder:text-fg-faint"
 				autocapitalize="off"
 				autocomplete="off"
 				autocorrect="off"
@@ -216,27 +221,25 @@
 			/>
 
 			{#if searching || loading}
-				<IconLoading class="size-5 shrink-0 animate-spin text-muted-foreground" />
+				<IconLoading class="size-4 shrink-0 animate-spin text-fg-muted" />
 			{/if}
 
-			<button
-				class="flex size-10 shrink-0 items-center justify-center text-muted-foreground transition-[color,scale] hover:text-foreground active:scale-[0.96]"
-				type="button"
+			<DialogClose
+				class="flex size-7 shrink-0 items-center justify-center rounded-control text-fg-muted control-focus transition-colors hover:bg-surface-3 hover:text-fg"
 				aria-label="Close"
-				onclick={handleClose}
 			>
-				<IconClose class="size-5" />
-			</button>
+				<IconClose class="size-4" />
+			</DialogClose>
 		</div>
 
-		<div class="flex items-center gap-6 border-b px-5 text-sm">
+		<div class="flex items-center gap-4 border-b border-line px-3 text-detail">
 			{#each filters as { key, label } (key)}
 				<button
 					class={cn(
-						"-mb-px border-b-2 py-3 font-medium transition-colors",
+						"-mb-px border-b py-2 font-medium transition-colors",
 						filter === key
-							? "border-foreground text-foreground"
-							: "border-transparent text-muted-foreground hover:text-foreground",
+							? "border-fg text-fg"
+							: "border-transparent text-fg-muted hover:text-fg",
 					)}
 					type="button"
 					onclick={() => (filter = key)}
@@ -246,15 +249,13 @@
 			{/each}
 		</div>
 
-		<div class="max-h-96 min-h-32 overflow-y-auto p-2">
+		<div class="max-h-96 min-h-32 overflow-y-auto p-1.5">
 			{#if error}
-				<p class="px-3 py-2 text-sm text-destructive">{error}</p>
+				<p class="px-2 py-1.5 text-detail text-danger">{error}</p>
 			{/if}
 
 			{#if rows.length}
-				<div
-					class="flex items-center gap-2 px-3 pt-1 pb-2 text-xs font-medium text-muted-foreground"
-				>
+				<div class="section-label flex items-center gap-1.5 px-2 pt-1 pb-1.5">
 					{#if isSearch}
 						<IconChannels class="size-4" />
 						Channels
@@ -268,18 +269,18 @@
 					<!-- svelte-ignore a11y_no_static_element_interactions -- keyboard nav lives on the search input -->
 					<div
 						class={cn(
-							"group flex items-center rounded-2xl transition-colors",
-							active === index ? "bg-accent" : "hover:bg-accent/60",
+							"group flex items-center rounded-control transition-colors",
+							active === index ? "bg-surface-3" : "hover:bg-tint",
 						)}
 						onmouseenter={() => (active = index)}
 					>
 						<button
-							class="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left"
+							class="flex min-w-0 flex-1 items-center gap-2 px-2 py-1.5 text-left"
 							type="button"
 							onclick={() => join(item.login, item)}
 						>
 							<Avatar
-								class="size-9 shrink-0"
+								class="size-7 shrink-0"
 								src={item.profileImageURL}
 								alt={item.displayName}
 							/>
@@ -288,46 +289,47 @@
 								<span class="font-semibold">{item.displayName}</span>
 
 								{#if isSearch && item.streamTitle}
-									<p class="truncate text-sm" title={item.streamTitle}>
+									<p
+										class="truncate text-detail text-fg-muted"
+										title={item.streamTitle}
+									>
 										{item.streamTitle}
 									</p>
 								{/if}
 							</div>
 
 							{#if isSearch && item.isLive}
-								<span class="flex items-center gap-1.5 text-red-500">
-									<span class="size-2 animate-pulse rounded-full bg-current"
+								<span class="flex items-center gap-1.5 text-danger">
+									<span class="size-1.5 animate-pulse rounded-full bg-current"
 									></span>
-									<span class="text-sm font-medium">Live</span>
+									<span class="text-detail font-medium">Live</span>
 								</span>
 							{/if}
 						</button>
 
 						{#if isSearch}
-							<IconJoin class="mr-3 size-4 shrink-0 text-muted-foreground" />
+							<IconJoin class="mr-2 size-3.5 shrink-0 text-fg-muted" />
 						{:else}
 							<button
-								class="mr-1.5 flex size-10 shrink-0 items-center justify-center text-muted-foreground opacity-0 transition-[opacity,color,scale] group-hover:opacity-100 hover:text-foreground active:scale-[0.96]"
+								class="mr-1 flex size-7 shrink-0 items-center justify-center rounded-control text-fg-muted opacity-0 transition-[opacity,color] group-hover:opacity-100 hover:text-fg focus-visible:opacity-100"
 								type="button"
 								aria-label="Remove from recent searches"
 								onclick={(event) => removeRecent(event, item.id)}
 							>
-								<IconRemove class="size-4" />
+								<IconRemove class="size-3.5" />
 							</button>
 						{/if}
 					</div>
 				{/each}
 			{:else if searching}
-				<p class="flex items-center gap-2 px-3 py-8 text-sm text-muted-foreground">
+				<p class="flex items-center gap-2 px-2 py-8 text-detail text-fg-muted">
 					<IconLoading class="animate-spin" />
 					Searching&hellip;
 				</p>
 			{:else if isSearch}
-				<p class="px-3 py-8 text-center text-sm text-muted-foreground">
-					No channels found.
-				</p>
+				<p class="px-2 py-8 text-center text-detail text-fg-muted">No channels found.</p>
 			{:else}
-				<p class="px-3 py-8 text-center text-sm text-muted-foreground">
+				<p class="px-2 py-8 text-center text-detail text-fg-muted">
 					Search for a channel to join.
 				</p>
 			{/if}

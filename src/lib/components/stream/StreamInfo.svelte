@@ -12,36 +12,33 @@
 	}
 
 	const { stream, anchor }: Props = $props();
-
-	const id = $derived(`stream-info-${stream.channelId}`);
 </script>
 
-<Button
-	class="size-8 rounded-none text-muted-foreground hover:text-foreground"
-	size="icon-sm"
-	variant="ghost"
-	popovertarget={id}
-	aria-label="Stream info"
->
-	<IconStreamInfo class="size-3.5" />
-</Button>
-
 <Popover
-	{id}
-	class={[
-		"right-[anchor(right)] w-auto overflow-y-auto p-3 [--anchor-gap:0.5rem]",
-		"origin-top -translate-y-2 open:translate-y-0 starting:open:-translate-y-2",
-		"transition-[opacity,scale,translate,overlay,display] duration-200 ease-out-quart",
-	]}
+	class="w-[calc(var(--anchor-width)-1rem)]"
 	{anchor}
 	side="bottom"
-	align="start"
+	align="center"
+	sideOffset={4}
+	aria-label="Stream info"
 >
+	{#snippet trigger(props)}
+		<Button
+			{...props}
+			class="size-8 rounded-none text-fg-muted hover:text-fg"
+			size="icon-sm"
+			variant="ghost"
+			aria-label="Stream info"
+		>
+			<IconStreamInfo class="size-3.5" />
+		</Button>
+	{/snippet}
+
 	<div class="@container">
 		<div class="flex flex-col gap-2 @md:flex-row @md:items-start">
 			{#if stream.thumbnailUrl}
 				<img
-					class="aspect-video w-full shrink-0 rounded-lg bg-muted object-cover ring-1 ring-black/10 @md:w-56 dark:ring-white/10"
+					class="aspect-video w-full shrink-0 rounded-control border border-line bg-surface-2 object-cover @md:w-56"
 					src={stream.thumbnailUrl}
 					alt="Stream thumbnail"
 					width="640"
@@ -53,9 +50,9 @@
 			{/if}
 
 			<div class="min-w-0 space-y-2">
-				<p class="text-sm font-medium wrap-break-word">{stream.title}</p>
+				<p class="text-body font-medium wrap-break-word">{stream.title}</p>
 
-				<div class="flex items-center gap-1 text-xs text-twitch dark:text-twitch-link">
+				<div class="flex items-center gap-1 text-detail text-accent">
 					<IconCategory class="shrink-0" />
 
 					{#if stream.game.slug}
@@ -86,7 +83,7 @@
 			{#each stream.tags as tag}
 				<li>
 					<a
-						class="block rounded-full bg-muted px-2 py-0.5 text-[0.625rem] text-muted-foreground transition-colors hover:bg-orange-500 hover:text-foreground"
+						class="block rounded-full bg-surface-2 px-2 py-0.5 text-caption text-fg-muted transition-colors hover:bg-surface-3 hover:text-fg"
 						href="https://www.twitch.tv/directory/all/tags/{tag}"
 						target="_blank"
 						rel="noopener noreferrer"

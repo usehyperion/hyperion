@@ -1,19 +1,25 @@
 <script lang="ts">
-	import { RadioGroup } from "bits-ui";
-	import { cn } from "tailwind-variants";
+	import { RadioGroup } from "@ui-sdk/svelte/radio";
+	import type { HTMLAttributes } from "svelte/elements";
 
-	let {
-		class: className,
-		value = $bindable(""),
-		ref = $bindable(null),
-		...rest
-	}: RadioGroup.RootProps = $props();
+	import { cn } from "#lib/util/styles.js";
+
+	interface Props extends HTMLAttributes<HTMLDivElement> {
+		value?: string;
+		disabled?: boolean;
+		readOnly?: boolean;
+		required?: boolean;
+		name?: string;
+		form?: string;
+		loop?: boolean;
+	}
+
+	let { class: className, value = $bindable(), ...rest }: Props = $props();
 </script>
 
-<RadioGroup.Root
-	class={cn("grid gap-3", className)}
+<RadioGroup
+	class={cn("grid gap-2", className)}
 	data-component="radio-group"
-	bind:value
-	bind:ref
 	{...rest}
+	bind:value={() => value ?? null, (next) => next !== null && (value = next)}
 />

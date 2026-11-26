@@ -22,17 +22,19 @@
 {#if tooltip}
 	{@render content()}
 {:else}
-	<Button
-		class="size-min p-1 text-xs"
-		size="sm"
-		variant="ghost"
-		popovertarget="guest-list-{channel.id}"
-		aria-label="View guests"
-	>
-		+{stream.guests.size}
-	</Button>
+	<Popover class="w-fit" side="bottom" aria-label="Guests">
+		{#snippet trigger(props)}
+			<Button
+				{...props}
+				class="size-min p-1 text-detail"
+				size="sm"
+				variant="ghost"
+				aria-label="View guests"
+			>
+				+{stream.guests.size}
+			</Button>
+		{/snippet}
 
-	<Popover id="guest-list-{channel.id}" class="w-fit">
 		{@render content()}
 	</Popover>
 {/if}
@@ -44,8 +46,8 @@
 
 	<span
 		class={[
-			"mb-1 inline-block text-xs font-medium text-muted-foreground uppercase",
-			tooltip ? "mt-2" : "mt-4",
+			"mb-1 inline-block text-detail font-medium text-fg-muted uppercase",
+			tooltip ? "mt-2" : "mt-3",
 		]}
 	>
 		Live with
@@ -62,7 +64,7 @@
 
 {#snippet participant(guest: Omit<Guest, "viewers">, viewers: number | null)}
 	<div class="flex items-center justify-between gap-x-8">
-		<div class={["flex items-center", tooltip ? "gap-x-1 text-xs" : "gap-x-2 text-sm"]}>
+		<div class={["flex items-center", tooltip ? "gap-x-1 text-detail" : "gap-x-2 text-body"]}>
 			<Avatar
 				class={tooltip ? "size-5" : "size-6"}
 				src={guest.avatarUrl}
@@ -71,16 +73,13 @@
 				height="50"
 			/>
 
-			<span
-				class="font-medium"
-				style:color={tooltip ? "var(--color-text-primary-foreground)" : guest.color}
-			>
+			<span class="font-medium" style:color={tooltip ? "var(--color-fg)" : guest.color}>
 				{guest.displayName}
 			</span>
 		</div>
 
 		{#if viewers != null}
-			<div class="flex items-center text-xs text-red-500 tabular-nums dark:text-red-400">
+			<div class="flex items-center text-detail text-danger tabular-nums">
 				<IconViewers class="mr-1" />
 				{viewers}
 			</div>

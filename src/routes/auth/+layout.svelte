@@ -4,7 +4,7 @@
 
 <div class="rails fixed inset-0 top-title-bar z-0 flex justify-center" aria-hidden="true">
 	<main
-		class="relative flex size-full h-full items-center justify-center overflow-hidden border-x bg-background"
+		class="relative flex size-full h-full items-center justify-center overflow-hidden border-x bg-surface-0"
 	>
 		<div class="flex flex-col items-center gap-y-8 px-6 text-center">
 			{@render children()}
@@ -14,14 +14,12 @@
 
 <style>
 	.rails {
-		--line: light-dark(oklch(0.93 0 0), oklch(0.21 0 0));
-
 		background-image: repeating-linear-gradient(
 			-45deg,
 			transparent,
 			transparent 7px,
-			var(--line) 7px,
-			var(--line) 8px
+			var(--color-line) 7px,
+			var(--color-line) 8px
 		);
 	}
 
