@@ -15,12 +15,12 @@ interface BaseSuggestion {
 	display: string;
 }
 
-interface CommandSuggestion extends BaseSuggestion {
+export interface CommandSuggestion extends BaseSuggestion {
 	type: "command";
 	command: Command;
 }
 
-interface EmoteSuggestion extends BaseSuggestion {
+export interface EmoteSuggestion extends BaseSuggestion {
 	type: "emote";
 	imageUrl: string;
 }
@@ -33,6 +33,8 @@ export interface UserSuggestion extends BaseSuggestion {
 }
 
 export type Suggestion = CommandSuggestion | EmoteSuggestion | UserSuggestion;
+
+export type Trigger = "@" | ":" | "/";
 
 interface SearchOptions<T> {
 	source: () => T[];
@@ -48,13 +50,10 @@ interface Match<T> {
 
 export class Completer {
 	public query = "";
-	public prefixed = false;
 	public current = $state(0);
 	public suggestions = $state<Suggestion[]>([]);
 
-	#commandOptions: SearchOptions<Command>;
-	#emoteOptions: SearchOptions<Emote>;
-	#viewerOptions: SearchOptions<Viewer>;
+	#options: Record<Trigger, SearchOptions<any>>;
 
 	// Where the inserted suggestion is while cycling through suggestions.
 	#span: { start: number; end: number } | null = null;
@@ -70,7 +69,7 @@ export class Completer {
 		private readonly chat: Chat,
 		private readonly input: HTMLInputElement,
 	) {
-		this.#commandOptions = {
+		const commandOptions: SearchOptions<Command> = {
 			source: () => commands.filter((command) => hasPermission(command, chat.channel)),
 			comparee: (item) => item.name,
 			map: (item) => ({
@@ -81,7 +80,7 @@ export class Completer {
 			}),
 		};
 
-		this.#emoteOptions = {
+		const emoteOptions: SearchOptions<Emote> = {
 			source: () => [
 				...(app.user?.ownEmotes ?? []),
 				...app.emotes.values(),
@@ -101,7 +100,7 @@ export class Completer {
 			},
 		};
 
-		this.#viewerOptions = {
+		const viewerOptions: SearchOptions<Viewer> = {
 			source: () => chat.channel.viewers.values().toArray(),
 			comparee: (item) => item.username,
 			map: (item) => ({
@@ -112,13 +111,19 @@ export class Completer {
 				style: item.user.style,
 				user: item.user,
 				role: item.broadcaster
-					? ("broadcaster" as const)
+					? "broadcaster"
 					: item.moderator
-						? ("moderator" as const)
+						? "moderator"
 						: item.vip
-							? ("vip" as const)
+							? "vip"
 							: undefined,
 			}),
+		};
+
+		this.#options = {
+			"/": commandOptions,
+			":": emoteOptions,
+			"@": viewerOptions,
 		};
 	}
 
@@ -128,40 +133,50 @@ export class Completer {
 			return;
 		}
 
-		if (this.prefixed && this.suggestions.length) {
-			this.complete();
-		} else if (this.suggestions.length) {
+		if (this.suggestions.length) {
 			if (shift) {
 				this.prev();
 			} else {
 				this.next();
 			}
 
-			this.complete(false);
+			this.complete();
 		} else {
-			this.search(true);
+			this.#searchWord();
 
 			if (this.suggestions.length) {
-				this.complete(false);
+				this.complete();
 			}
 		}
 	}
 
-	public complete(reset = true) {
+	public suggest(trigger: Trigger, query: string) {
+		const suggestions = this.#search(this.#options[trigger], query);
+
+		// Backfill avatars for the visible user suggestions only, keeping the
+		// request small instead of hydrating every chatter.
+		const users = suggestions
+			.filter((suggestion) => suggestion.type === "user")
+			.map((suggestion) => suggestion.user);
+
+		if (users.length) {
+			this.#hydrateAvatars(users);
+		}
+
+		return suggestions;
+	}
+
+	public complete() {
 		const suggestion = this.suggestions[this.current];
 		const text = this.chat.value;
 		const cursor = this.input.selectionStart ?? text.length;
 
 		// The word being completed ends at the cursor. Once a suggestion was
-		// inserted, cycling replaces that instead; mentions keep their `@`.
-		let { start, end } = this.#span ?? {
+		// inserted, cycling replaces that instead.
+		const { start, end } = this.#span ?? {
 			start: cursor - this.query.length,
 			end: cursor,
 		};
-
-		if (!this.#span && this.query.startsWith("@")) {
-			start++;
-		}
 
 		this.chat.value = `${text.slice(0, start) + suggestion.value} ${text.slice(end).trim()}`;
 		this.input.focus();
@@ -169,58 +184,8 @@ export class Completer {
 		const endPos = start + suggestion.value.length + 1;
 		this.input.setSelectionRange(endPos, endPos);
 
-		if (reset) {
-			this.reset();
-		} else {
-			this.query = suggestion.value;
-			this.#span = { start, end: start + suggestion.value.length };
-		}
-	}
-
-	public search(tab = false) {
-		const text = this.chat.value;
-		const cursor = this.input.selectionStart ?? text.length;
-
-		const left = text.slice(0, cursor);
-		const lastWord = left.split(" ").pop();
-
-		this.#span = null;
-
-		if (!lastWord) {
-			this.suggestions = [];
-			return;
-		}
-
-		this.query = lastWord;
-
-		if (this.query.startsWith("/")) {
-			this.prefixed = true;
-			this.suggestions = this.#search(this.#commandOptions);
-		} else if (this.query.startsWith(":")) {
-			this.prefixed = true;
-			this.suggestions = this.#search(this.#emoteOptions);
-		} else if (this.query.startsWith("@")) {
-			this.prefixed = true;
-			this.suggestions = this.#search(this.#viewerOptions);
-		} else if (tab) {
-			const emotes = this.#search(this.#emoteOptions, true);
-			const names = new Set(emotes.map((suggestion) => suggestion.value));
-
-			this.suggestions = [
-				...emotes,
-				...this.#search(this.#viewerOptions, true).filter(
-					(suggestion) => !names.has(suggestion.value),
-				),
-			];
-		}
-
-		// Backfill avatars for the visible user suggestions only, keeping the
-		// request small instead of hydrating every chatter.
-		const users = this.suggestions
-			.filter((suggestion) => suggestion.type === "user")
-			.map((suggestion) => suggestion.user);
-
-		if (users.length) this.#hydrateAvatars(users);
+		this.query = suggestion.value;
+		this.#span = { start, end: start + suggestion.value.length };
 	}
 
 	public next() {
@@ -234,13 +199,30 @@ export class Completer {
 	public reset() {
 		this.#span = null;
 		this.query = "";
-		this.prefixed = false;
 		this.suggestions = [];
 		this.current = 0;
 	}
 
-	#search<T>(options: SearchOptions<T>, tab = false) {
-		const query = (tab ? this.query : this.query.slice(1)).toLowerCase();
+	#searchWord() {
+		const text = this.chat.value;
+		const cursor = this.input.selectionStart ?? text.length;
+
+		this.#span = null;
+		this.query = text.slice(0, cursor).split(" ").pop() ?? "";
+
+		const emotes = this.#search(this.#options[":"], this.query, true);
+		const names = new Set(emotes.map((suggestion) => suggestion.value));
+
+		this.suggestions = [
+			...emotes,
+			...this.#search(this.#options["@"], this.query, true).filter(
+				(suggestion) => !names.has(suggestion.value),
+			),
+		];
+	}
+
+	#search<T>(options: SearchOptions<T>, text: string, tab = false) {
+		const query = text.toLowerCase();
 		if (!query) return [];
 
 		const matches: Match<T>[] = [];

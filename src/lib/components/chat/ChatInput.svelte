@@ -37,9 +37,9 @@
 
 	let historyIdx = $state(-1);
 	let error = $state<string>("");
+	let suggesting = $state(false);
 
 	const banned = $derived(chat.channel.banned);
-	const showSuggestions = $derived(!!completer?.suggestions.length && completer.prefixed);
 
 	$effect(() => {
 		void error;
@@ -52,7 +52,7 @@
 	});
 
 	const send: KeyboardEventHandler<HTMLInputElement> = async (event) => {
-		if (!completer) return;
+		if (!completer || event.defaultPrevented || suggesting) return;
 
 		const input = event.currentTarget;
 
@@ -65,61 +65,48 @@
 			// Keep the caret from jumping to the start of the input.
 			event.preventDefault();
 
-			if (showSuggestions) {
-				completer.prev();
-			} else {
-				if (!chat.history.length) return;
+			if (!chat.history.length) return;
 
-				if (historyIdx === -1) {
-					historyIdx = chat.history.length - 1;
-				} else if (historyIdx > 0) {
-					historyIdx--;
-				}
-
-				chat.value = chat.history[historyIdx];
-
-				await tick();
-				input.setSelectionRange(chat.value.length, chat.value.length);
+			if (historyIdx === -1) {
+				historyIdx = chat.history.length - 1;
+			} else if (historyIdx > 0) {
+				historyIdx--;
 			}
+
+			chat.value = chat.history[historyIdx];
+
+			await tick();
+			input.setSelectionRange(chat.value.length, chat.value.length);
 		} else if (event.key === "ArrowDown") {
-			if (showSuggestions) {
-				event.preventDefault();
-				completer.next();
+			if (historyIdx === -1) return;
+
+			if (historyIdx < chat.history.length - 1) {
+				historyIdx++;
+				chat.value = chat.history[historyIdx];
 			} else {
-				if (historyIdx === -1) return;
-
-				if (historyIdx < chat.history.length - 1) {
-					historyIdx++;
-					chat.value = chat.history[historyIdx];
-				} else {
-					historyIdx = -1;
-					chat.value = "";
-				}
-
-				input.setSelectionRange(chat.value.length, chat.value.length);
+				historyIdx = -1;
+				chat.value = "";
 			}
+
+			input.setSelectionRange(chat.value.length, chat.value.length);
 		} else if (event.key === "Enter") {
 			event.preventDefault();
 
-			if (showSuggestions) {
-				completer.complete();
-			} else {
-				const message = chat.value.trim();
+			const message = chat.value.trim();
 
-				if (!message) return;
-				if (!event.ctrlKey) chat.value = "";
+			if (!message) return;
+			if (!event.ctrlKey) chat.value = "";
 
-				historyIdx = -1;
-				chat.history.push(message);
+			historyIdx = -1;
+			chat.history.push(message);
 
-				try {
-					await chat.send(message);
-				} catch (err) {
-					if (err instanceof CommandError) {
-						error = err.message;
-					} else {
-						error = "An unexpected error occurred.";
-					}
+			try {
+				await chat.send(message);
+			} catch (err) {
+				if (err instanceof CommandError) {
+					error = err.message;
+				} else {
+					error = "An unexpected error occurred.";
 				}
 			}
 		} else if (completer.suggestions.length && !MODIFIER_KEYS.has(event.key)) {
@@ -129,14 +116,10 @@
 </script>
 
 <Suggestions
+	{input}
 	{anchor}
-	open={showSuggestions}
-	current={completer?.current ?? 0}
-	suggestions={completer?.suggestions ?? []}
-	onhighlight={(index) => {
-		if (completer) completer.current = index;
-	}}
-	onselect={() => completer?.complete()}
+	search={(trigger, query) => completer?.suggest(trigger, query) ?? []}
+	bind:open={suggesting}
 />
 
 {#if chat.replyTarget}
@@ -159,7 +142,6 @@
 		disabled={banned}
 		maxlength={500}
 		placeholder={banned ? "You are banned from the channel" : "Send a message"}
-		oninput={() => completer?.search()}
 		onkeydown={send}
 		onmousedown={() => completer?.reset()}
 		{...rest}
