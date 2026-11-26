@@ -1,5 +1,9 @@
-import chroma from "chroma-js";
+import { colord, extend } from "colord";
+import a11yPlugin from "colord/plugins/a11y";
+import oklchPlugin from "colord/plugins/oklch";
 import { createSubscriber } from "svelte/reactivity";
+
+extend([a11yPlugin, oklchPlugin]);
 
 const colorCache = new Map<string, string>();
 
@@ -26,25 +30,25 @@ export function makeReadable(foreground: string) {
 
 	const [l, c, h] = (background.match(/[\d.]+/g) ?? []).map(Number);
 
-	let fg = chroma(foreground);
-	const bg = chroma.oklch(l, c, h);
-	let contrast = chroma.contrast(fg, bg);
+	let fg = colord(foreground);
+	const bg = colord({ l, c, h, ok: true });
+	let contrast = fg.contrast(bg);
 
 	if (contrast >= 4.5) {
-		colorCache.set(key, fg.hex());
-		return fg.hex();
+		colorCache.set(key, fg.toHex());
+		return fg.toHex();
 	}
 
 	const lighten = bg.luminance() < 0.5;
 	let i = 0;
 
 	while (contrast < 4.5 && i < 50) {
-		fg = lighten ? fg.brighten(0.1) : fg.darken(0.1);
-		contrast = chroma.contrast(fg, bg);
+		fg = lighten ? fg.lighten(0.1) : fg.darken(0.1);
+		contrast = fg.contrast(bg);
 		i++;
 	}
 
-	const adjusted = fg.hex();
+	const adjusted = fg.toHex();
 	colorCache.set(key, adjusted);
 
 	return adjusted;
