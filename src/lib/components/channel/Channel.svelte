@@ -16,9 +16,13 @@
 		channel: Channel;
 	}
 
-	const { channel }: Props = $props();
+	const props: Props = $props();
 
+	// SplitView keys this component by channel id, so the channel is fixed for
+	// its lifetime. Capturing it keeps descendants from reading the pane's
+	// channel after it becomes null while this subtree is being torn down.
 	// svelte-ignore state_referenced_locally
+	const { channel } = props;
 	const chat = channel.chat;
 
 	onMount(() => {
