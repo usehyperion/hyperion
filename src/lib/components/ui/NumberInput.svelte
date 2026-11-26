@@ -12,12 +12,13 @@
 	import { IconAdd, IconIndeterminate } from "#lib/icons.js";
 	import { cn } from "#lib/util/styles.js";
 
-	type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "defaultValue"> &
-		Omit<NumberInputOptions, "value"> & {
-			value?: number | null;
-			placeholder?: string;
-			"aria-label"?: string;
-		};
+	type BaseProps = HTMLAttributes<HTMLDivElement> & NumberInputOptions;
+
+	interface Props extends BaseProps {
+		value?: number | null;
+		placeholder?: string;
+		"aria-label"?: string;
+	}
 
 	let {
 		class: className,

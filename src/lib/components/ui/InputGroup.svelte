@@ -23,17 +23,19 @@
 		defaultVariants: { size: "default" },
 	});
 
-	type Props = Omit<HTMLInputAttributes, "value" | "defaultValue" | "children" | "size"> &
-		TextControlProps & {
-			size?: "sm" | "default" | "lg";
-			clearable?: boolean;
-			clearLabel?: string;
-			inputClass?: ClassValue;
-			start?: Snippet;
-			end?: Snippet;
-			ref?: HTMLInputElement | null;
-			groupRef?: HTMLDivElement | null;
-		};
+	type BaseProps = Omit<HTMLInputAttributes, "value" | "defaultValue" | "size"> &
+		TextControlProps;
+
+	interface Props extends BaseProps {
+		size?: "sm" | "default" | "lg";
+		clearable?: boolean;
+		clearLabel?: string;
+		inputClass?: ClassValue;
+		start?: Snippet;
+		end?: Snippet;
+		ref?: HTMLInputElement | null;
+		groupRef?: HTMLDivElement | null;
+	}
 
 	let {
 		class: className,

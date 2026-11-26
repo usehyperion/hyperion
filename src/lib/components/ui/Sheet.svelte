@@ -12,12 +12,11 @@
 
 	import { cn } from "#lib/util/styles.js";
 
-	interface Props extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
+	interface Props extends HTMLAttributes<HTMLDivElement> {
 		controller?: DrawerController;
 		side?: DrawerSide;
 		initialFocus?: DialogInitialFocus;
 		header?: Snippet;
-		children?: Snippet;
 		onOpenChange?: (open: boolean) => void;
 		onOpenChangeComplete?: (open: boolean) => void;
 	}

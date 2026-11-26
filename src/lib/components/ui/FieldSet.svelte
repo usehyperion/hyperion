@@ -1,17 +1,15 @@
 <script lang="ts">
 	import { FieldDescription, FieldLegend, FieldSet } from "@ui-sdk/svelte/field";
-	import type { Snippet } from "svelte";
 	import type { HTMLFieldsetAttributes } from "svelte/elements";
 
 	import { cn } from "#lib/util/styles.js";
 
 	import type { FieldText } from "./Field.svelte";
 
-	interface Props extends Omit<HTMLFieldsetAttributes, "children" | "disabled"> {
+	interface Props extends HTMLFieldsetAttributes {
 		legend?: FieldText;
 		description?: FieldText;
 		disabled?: boolean;
-		children?: Snippet;
 	}
 
 	const { class: className, legend, description, disabled, children, ...rest }: Props = $props();

@@ -5,10 +5,7 @@
 	import { IconChecked, IconIndeterminate } from "#lib/icons.js";
 	import { cn } from "#lib/util/styles.js";
 
-	interface Props extends Omit<
-		HTMLButtonAttributes,
-		"children" | "disabled" | "name" | "value" | "form"
-	> {
+	interface Props extends Omit<HTMLButtonAttributes, "children"> {
 		disabled?: boolean;
 		readOnly?: boolean;
 		required?: boolean;

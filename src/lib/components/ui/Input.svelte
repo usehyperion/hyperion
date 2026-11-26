@@ -4,11 +4,14 @@
 
 	import { cn } from "#lib/util/styles.js";
 
-	type Props = Omit<HTMLInputAttributes, "value" | "defaultValue" | "children"> &
-		TextControlProps & {
-			bare?: boolean;
-			ref?: HTMLInputElement | null;
-		};
+	// Svelte types `value` and `defaultValue` as `any`, which would swallow the
+	// `string` types from `TextControlProps` in the intersection.
+	type BaseProps = Omit<HTMLInputAttributes, "value" | "defaultValue"> & TextControlProps;
+
+	interface Props extends BaseProps {
+		bare?: boolean;
+		ref?: HTMLInputElement | null;
+	}
 
 	let {
 		class: className,

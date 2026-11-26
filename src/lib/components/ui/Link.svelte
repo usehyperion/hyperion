@@ -2,16 +2,15 @@
 	import { Button } from "@ui-sdk/svelte/button";
 	import type { HTMLAnchorAttributes } from "svelte/elements";
 
-	import type { WithElementRef } from "#lib/util/index.js";
-
 	import { cn } from "#lib/util/styles.js";
 
 	import { type ButtonSize, type ButtonVariant, buttonVariants } from "./Button.svelte";
 
-	interface Props extends WithElementRef<HTMLAnchorAttributes, HTMLAnchorElement> {
+	interface Props extends HTMLAnchorAttributes {
 		variant?: ButtonVariant;
 		size?: ButtonSize;
 		disabled?: boolean;
+		ref?: HTMLAnchorElement | null;
 	}
 
 	let {

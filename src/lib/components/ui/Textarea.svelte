@@ -4,12 +4,14 @@
 
 	import { cn } from "#lib/util/styles.js";
 
-	type Props = Omit<HTMLTextareaAttributes, "value" | "defaultValue" | "children"> &
+	type BaseProps = Omit<HTMLTextareaAttributes, "value" | "defaultValue"> &
 		TextControlProps &
-		Pick<TextareaOptions, "autoResize" | "submitShortcut" | "onSubmit"> & {
-			bare?: boolean;
-			ref?: HTMLTextAreaElement | null;
-		};
+		Pick<TextareaOptions, "autoResize" | "submitShortcut" | "onSubmit">;
+
+	interface Props extends BaseProps {
+		bare?: boolean;
+		ref?: HTMLTextAreaElement | null;
+	}
 
 	let {
 		class: className,

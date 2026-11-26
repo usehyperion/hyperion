@@ -15,7 +15,7 @@
 	import { dialogController } from "#lib/dialog.js";
 	import { cn } from "#lib/util/styles.js";
 
-	interface Props extends Omit<HTMLAttributes<HTMLDivElement>, "id" | "title" | "children"> {
+	interface Props extends HTMLAttributes<HTMLDivElement> {
 		id?: string;
 		controller?: DialogController;
 		bodyClass?: string;
@@ -25,7 +25,6 @@
 		initialFocus?: DialogInitialFocus;
 		header?: Snippet;
 		footer?: Snippet;
-		children?: Snippet;
 		onOpenChange?: (open: boolean, details: DialogOpenChangeDetails) => void;
 		onOpenChangeComplete?: (open: boolean) => void;
 	}

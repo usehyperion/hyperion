@@ -17,7 +17,7 @@
 
 	import { cn } from "#lib/util/styles.js";
 
-	interface Props extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
+	interface Props extends HTMLAttributes<HTMLDivElement> {
 		delay?: number;
 		side?: "top" | "right" | "bottom" | "left";
 		align?: "center" | "start" | "end";

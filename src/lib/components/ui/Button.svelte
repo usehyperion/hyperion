@@ -62,15 +62,15 @@
 	import { type ButtonActionDetails, Button, type ButtonOptions } from "@ui-sdk/svelte/button";
 	import type { HTMLButtonAttributes } from "svelte/elements";
 
-	import type { WithElementRef } from "#lib/util/index.js";
-
 	import { cn } from "#lib/util/styles.js";
 
-	interface Props
-		extends Omit<HTMLButtonAttributes, "type" | "disabled" | "onclick">, ButtonOptions {
+	type BaseProps = Omit<HTMLButtonAttributes, "type" | "disabled" | "onclick"> & ButtonOptions;
+
+	interface Props extends BaseProps {
 		variant?: ButtonVariant;
 		size?: ButtonSize;
 		onclick?: (event: MouseEvent, details: ButtonActionDetails) => unknown;
+		ref?: HTMLButtonElement | null;
 	}
 
 	let {
@@ -80,7 +80,7 @@
 		ref = $bindable(null),
 		children,
 		...rest
-	}: WithElementRef<Props, HTMLButtonElement> = $props();
+	}: Props = $props();
 </script>
 
 <Button

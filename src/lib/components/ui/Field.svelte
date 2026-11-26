@@ -17,14 +17,14 @@
 
 	import { cn } from "#lib/util/styles.js";
 
-	interface Props
-		extends Omit<HTMLAttributes<HTMLElement>, "children">, Omit<FieldOptions, "debug"> {
+	type BaseProps = HTMLAttributes<HTMLElement> & Omit<FieldOptions, "debug">;
+
+	interface Props extends BaseProps {
 		label?: FieldText;
 		description?: FieldText;
 		error?: string;
 		layout?: FieldLayout;
 		trailing?: boolean;
-		children?: Snippet;
 	}
 
 	const {

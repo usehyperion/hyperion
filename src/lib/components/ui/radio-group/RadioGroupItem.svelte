@@ -4,7 +4,7 @@
 
 	import { cn } from "#lib/util/styles.js";
 
-	interface Props extends Omit<HTMLButtonAttributes, "children" | "value" | "disabled"> {
+	interface Props extends Omit<HTMLButtonAttributes, "children"> {
 		value: string;
 		disabled?: boolean;
 	}

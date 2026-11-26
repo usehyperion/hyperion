@@ -12,14 +12,13 @@
 
 <script lang="ts">
 	import { Toolbar, ToolbarButton, type ToolbarOrientation } from "@ui-sdk/svelte/toolbar";
-	import type { Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";
 
 	import { cn } from "#lib/util/styles.js";
 
 	import { type ButtonVariant, buttonVariants } from "./Button.svelte";
 
-	interface Props extends Omit<HTMLAttributes<HTMLDivElement>, "children" | "aria-label"> {
+	interface Props extends HTMLAttributes<HTMLDivElement> {
 		"aria-label": string;
 		items?: ButtonGroupItem[];
 		variant?: Exclude<ButtonVariant, "inline">;
@@ -27,7 +26,6 @@
 		orientation?: ToolbarOrientation;
 		loop?: boolean;
 		disabled?: boolean;
-		children?: Snippet;
 	}
 
 	const {

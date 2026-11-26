@@ -4,13 +4,12 @@
 
 	import { cn } from "#lib/util/styles.js";
 
-	interface Props extends Omit<HTMLAttributes<HTMLDivElement>, "title" | "children"> {
+	interface Props extends HTMLAttributes<HTMLDivElement> {
 		icon?: Component<SvelteHTMLElements["svg"]>;
 		title?: string;
 		description?: string;
 		media?: Snippet;
 		header?: Snippet;
-		children?: Snippet;
 	}
 
 	const {

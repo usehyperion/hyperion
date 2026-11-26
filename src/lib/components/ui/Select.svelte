@@ -17,10 +17,7 @@
 		value: T;
 	}
 
-	interface Props extends Omit<
-		HTMLButtonAttributes,
-		"children" | "value" | "name" | "disabled" | "placeholder"
-	> {
+	interface Props extends Omit<HTMLButtonAttributes, "children" | "value"> {
 		options: Option[];
 		disabled?: boolean;
 		value?: T;

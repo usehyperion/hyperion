@@ -11,7 +11,7 @@
 
 	import { cn } from "#lib/util/styles.js";
 
-	interface Props extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
+	interface Props extends HTMLAttributes<HTMLDivElement> {
 		controller?: PopoverController;
 		anchor?: HTMLElement | null;
 		container?: Element | null;
@@ -20,7 +20,6 @@
 		sideOffset?: number;
 		initialFocus?: PopoverInitialFocus;
 		trigger?: Snippet<[props: Record<string, unknown>]>;
-		children?: Snippet;
 		onOpenChange?: (open: boolean) => void;
 		onOpenChangeComplete?: (open: boolean) => void;
 	}
