@@ -34,14 +34,15 @@
 				{/if}
 			</header>
 
-			<ul class="divide-y border-y">
+			<ul class="whisper-list divide-y border-y">
 				{#each whispers as [id, whisper] (id)}
 					{@const message = whisper.latest!}
 					{@const sender = whisper.sender}
 
 					<li>
 						<a
-							class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-tint focus-visible:bg-tint focus-visible:outline-2 focus-visible:-outline-offset-2"
+							class="whisper-list-item flex items-center gap-3 px-4 py-3 transition-colors hover:bg-tint focus-visible:bg-tint focus-visible:outline-2 focus-visible:-outline-offset-2"
+							data-unread={whisper.unread > 0 || undefined}
 							href={resolve("/(main)/whispers/[id]", { id })}
 						>
 							{#if sender.avatarUrl}
@@ -58,7 +59,10 @@
 
 							<div class="flex min-w-0 flex-1 flex-col gap-0.5">
 								<div class="flex items-baseline gap-3">
-									<span class="truncate font-semibold" style={sender.style}>
+									<span
+										class="username truncate font-semibold"
+										style={sender.style}
+									>
 										{sender.displayName}
 									</span>
 
@@ -91,7 +95,7 @@
 
 									{#if whisper.unread}
 										<span
-											class="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-danger px-1.5 text-caption font-semibold text-fg-inverse tabular-nums"
+											class="unread-count ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-danger px-1.5 text-caption font-semibold text-fg-inverse tabular-nums"
 										>
 											{whisper.unread > 9 ? "9+" : whisper.unread}
 											<span class="sr-only">unread</span>

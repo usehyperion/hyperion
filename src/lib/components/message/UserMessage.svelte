@@ -40,9 +40,12 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class={["group relative", jumpedTo ? "bg-accent/20" : "transition-colors duration-500"]}
+	class={["message group relative", jumpedTo ? "bg-accent/20" : "transition-colors duration-500"]}
 	aria-disabled={message.deleted}
 	data-deleted={deletedAppearance(message)}
+	data-action={message.action || undefined}
+	data-author={message.author.username}
+	style:--user-color={message.author.color}
 	oncontextmenu={(event) => openMenu(event, () => createMessageMenu(message))}
 >
 	{#if !message.deleted && !message.channel.banned}
@@ -52,7 +55,7 @@
 	{#if message.redemption}
 		<Redemption reward={message.redemption} {message} />
 	{:else if message.highlighted}
-		<Callout color={message.source.user.color}>
+		<Callout class="highlighted" color={message.source.user.color}>
 			<Message {message} />
 		</Callout>
 	{:else if settings.state["highlights.enabled"]}
@@ -75,7 +78,12 @@
 </div>
 
 {#snippet content(bordered: boolean)}
-	<div class={["py-2 not-group-aria-disabled:hover:bg-tint", bordered ? "px-1.5" : "px-3"]}>
+	<div
+		class={[
+			"message-body py-2 not-group-aria-disabled:hover:bg-tint",
+			bordered ? "px-1.5" : "px-3",
+		]}
+	>
 		{#if message.reply}
 			{@const viewer = message.channel.viewers.get(message.reply.parent.user.id)}
 
@@ -83,7 +91,7 @@
 			{@const inChat = message.channel.chat.has(parentId)}
 
 			<button
-				class="group/reply mb-0.5 flex w-full items-center gap-2 text-left enabled:cursor-pointer"
+				class="reply group/reply mb-0.5 flex w-full items-center gap-2 text-left enabled:cursor-pointer"
 				type="button"
 				title={inChat ? "Jump to message" : undefined}
 				disabled={!inChat}
@@ -97,7 +105,7 @@
 					</span>:
 
 					<p
-						class="inline text-fg-muted transition-colors group-enabled/reply:group-hover/reply:text-fg"
+						class="reply-text inline text-fg-muted transition-colors group-enabled/reply:group-hover/reply:text-fg"
 					>
 						{message.reply.parent.message_text}
 					</p>

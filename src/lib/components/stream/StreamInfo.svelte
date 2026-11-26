@@ -25,7 +25,7 @@
 		<button
 			{...props}
 			title={stream.title}
-			class="flex h-6 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-control px-1.5 text-left control-focus transition-colors hover:bg-surface-3 aria-expanded:bg-surface-3"
+			class="stream-title flex h-6 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-control px-1.5 text-left control-focus transition-colors hover:bg-surface-3 aria-expanded:bg-surface-3"
 			type="button"
 			aria-label="Stream info: {stream.title}"
 		>

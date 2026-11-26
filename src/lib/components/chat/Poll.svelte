@@ -29,8 +29,8 @@
 	const leading = $derived(Math.max(0, ...poll.choices.map((c) => c.votes)));
 </script>
 
-<div class="p-2 text-body">
-	<div class="mb-1 flex items-center gap-1 text-caption text-fg-muted">
+<div class="poll p-2 text-body" data-status={poll.status}>
+	<div class="poll-header mb-1 flex items-center gap-1 text-caption text-fg-muted">
 		<IconPoll class="size-3 shrink-0" />
 
 		<span class="truncate">
@@ -49,7 +49,7 @@
 		</div>
 	</div>
 
-	<p class="mb-1.5 font-medium">{poll.title}</p>
+	<p class="poll-title mb-1.5 font-medium">{poll.title}</p>
 
 	{#if expanded}
 		<ul class="flex flex-col gap-1.5">
@@ -57,7 +57,7 @@
 				{@const pct = percent(choice.votes, poll.totalVotes)}
 				{@const winner = !poll.active && choice.votes === leading && leading > 0}
 
-				<li>
+				<li class="poll-choice" data-winner={winner || undefined}>
 					<div class="mb-0.5 flex items-center justify-between gap-2">
 						<span class="truncate">{choice.title}</span>
 

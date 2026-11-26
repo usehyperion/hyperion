@@ -48,7 +48,7 @@
 />
 
 <ReverseScroll
-	class="text-body"
+	class="chat text-body"
 	data={chat.messages}
 	getKey={(message) => message.id}
 	bind:this={scroller}
@@ -59,7 +59,7 @@
 			prev && prev.timestamp.toDateString() !== message.timestamp.toDateString()}
 
 		{#if isNewDay}
-			<ChatSeparator>
+			<ChatSeparator class="date-separator">
 				<time datetime={message.timestamp.toISOString()}>
 					{message.timestamp.toLocaleDateString(navigator.languages, {
 						dateStyle: "long",
@@ -84,11 +84,11 @@
 		{@const nextRecent = next?.recent}
 
 		{#if message === lastRead && next && settings.state["chat.newSeparator"]}
-			<ChatSeparator class="text-accent">New messages</ChatSeparator>
+			<ChatSeparator class="new-separator text-accent">New messages</ChatSeparator>
 		{/if}
 
 		{#if message.recent && !nextRecent && settings.state["chat.messages.history.separator"]}
-			<ChatSeparator class="text-live">Live messages</ChatSeparator>
+			<ChatSeparator class="live-separator text-live">Live messages</ChatSeparator>
 		{/if}
 	{/snippet}
 </ReverseScroll>

@@ -147,7 +147,11 @@
 
 <div class="flex flex-col gap-1.5">
 	<InputGroup
-		class={["h-12 rounded-xl", (chat.replyTarget || error) && "rounded-t-none", className]}
+		class={[
+			"chat-input h-12 rounded-xl",
+			(chat.replyTarget || error) && "rounded-t-none",
+			className,
+		]}
 		inputClass="px-3"
 		aria-label="Chat message"
 		autocapitalize="off"
@@ -209,8 +213,8 @@
 		{/snippet}
 	</InputGroup>
 
-	<div class="flex items-center justify-between px-1">
-		<div class="text-detail text-fg-muted tabular-nums">
+	<div class="chat-input-footer flex items-center justify-between px-1">
+		<div class="character-counter text-detail text-fg-muted tabular-nums">
 			<span class:text-fg={chat.value.length === 500}>{chat.value.length}</span>
 			/ 500
 		</div>

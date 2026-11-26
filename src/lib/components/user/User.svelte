@@ -39,11 +39,19 @@
 </script>
 
 {#if mention}
-	<PopoverTrigger style={mention.mentionStyle} {...defaultProps}>
+	<PopoverTrigger
+		style={mention.mentionStyle}
+		{...defaultProps}
+		class="mention {defaultProps.class}"
+	>
 		@{mention.displayName}
 	</PopoverTrigger>
 {:else}
-	<PopoverTrigger style={message.author.style} {...defaultProps}>
+	<PopoverTrigger
+		style={message.author.style}
+		{...defaultProps}
+		class="username {defaultProps.class}"
+	>
 		{message.author.displayName}
 	</PopoverTrigger>{#if !message.action}:{/if}
 {/if}

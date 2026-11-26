@@ -81,7 +81,7 @@
 </script>
 
 <Popover
-	class="flex h-100 w-120 flex-col overflow-hidden p-0"
+	class="emote-picker flex h-100 w-120 flex-col overflow-hidden p-0"
 	side="top"
 	align="end"
 	container={document.body}
@@ -109,7 +109,7 @@
 			}
 		}
 	>
-		<div class="flex shrink-0 flex-col gap-2 border-b border-line p-2">
+		<div class="emote-picker-header flex shrink-0 flex-col gap-2 border-b border-line p-2">
 			<Tabs.List aria-label="Emote provider">
 				{#each TABS as tab (tab.provider)}
 					<Tabs.Tab

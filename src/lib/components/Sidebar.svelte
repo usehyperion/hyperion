@@ -19,7 +19,7 @@
 
 <ScrollArea
 	class={[
-		"group shrink-0 overflow-hidden transition-[width] duration-200 ease-out-quint",
+		"sidebar group shrink-0 overflow-hidden transition-[width] duration-200 ease-out-quint",
 		sidebar.collapsed ? "w-0" : "w-12",
 	]}
 	data-collapsed={sidebar.collapsed}

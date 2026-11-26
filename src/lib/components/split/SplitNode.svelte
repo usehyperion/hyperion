@@ -30,7 +30,7 @@
 
 		<PaneResizer
 			class={[
-				"relative flex items-center justify-center bg-surface-2 transition-colors hover:bg-accent",
+				"split-resizer relative flex items-center justify-center bg-surface-2 transition-colors hover:bg-accent",
 				node.axis === "horizontal" ? "w-1 cursor-col-resize" : "h-1 cursor-row-resize",
 			]}
 		/>

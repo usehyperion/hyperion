@@ -16,8 +16,12 @@
 	const { message, metadata }: Props = $props();
 </script>
 
-<Callout class="border-danger" data-deleted={deletedAppearance(message)}>
-	<div class="mb-2 flex w-full items-start justify-between gap-x-4">
+<Callout
+	class="automod border-danger"
+	data-deleted={deletedAppearance(message)}
+	--user-color={message.author.color}
+>
+	<div class="automod-header mb-2 flex w-full items-start justify-between gap-x-4">
 		<div>
 			<img
 				class="inline align-middle"
@@ -38,7 +42,7 @@
 			{/if}
 		</div>
 
-		<div class="flex gap-x-4">
+		<div class="automod-actions flex gap-x-4">
 			<Button
 				class="text-success"
 				variant="inline"

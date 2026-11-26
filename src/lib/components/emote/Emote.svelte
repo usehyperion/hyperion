@@ -22,7 +22,8 @@
 <TooltipTrigger controller={tooltip} {payload}>
 	{#snippet render({ props })}
 		<button
-			class="-my-2 inline-grid align-middle"
+			class="emote -my-2 inline-grid align-middle"
+			data-provider={emote.provider}
 			type="button"
 			style:padding="{settings.state['chat.emotes.padding']}px"
 			{...props}

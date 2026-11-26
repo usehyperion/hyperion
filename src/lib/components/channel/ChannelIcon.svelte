@@ -17,7 +17,7 @@
 
 <Avatar
 	class={[
-		"ease size-8 transition-opacity duration-200",
+		"channel-icon ease size-8 transition-opacity duration-200",
 		sidebar.collapsed && "opacity-0",
 		!channel.stream && "grayscale",
 	]}

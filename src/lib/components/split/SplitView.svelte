@@ -65,7 +65,11 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="relative flex size-full flex-col" onfocusin={setFocus} onpointerdowncapture={setFocus}>
+<div
+	class="split relative flex size-full flex-col"
+	onfocusin={setFocus}
+	onpointerdowncapture={setFocus}
+>
 	<TabBar {pane} />
 
 	<div class="relative h-full min-h-0">

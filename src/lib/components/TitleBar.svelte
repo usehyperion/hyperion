@@ -52,7 +52,7 @@
 </script>
 
 <div
-	class="relative flex min-h-title-bar w-full shrink-0 items-center justify-between border-b"
+	class="title-bar relative flex min-h-title-bar w-full shrink-0 items-center justify-between border-b"
 	data-tauri-drag-region
 >
 	<div
@@ -81,7 +81,7 @@
 			</Button>
 
 			<DialogTrigger
-				class="flex w-64 items-center justify-center gap-2 rounded-md bg-surface-1 px-2 py-1 text-detail text-fg-muted ring-1 ring-line transition-[background-color,scale] hover:bg-surface-3 active:scale-[0.96]"
+				class="channel-search flex w-64 items-center justify-center gap-2 rounded-md bg-surface-1 px-2 py-1 text-detail text-fg-muted ring-1 ring-line transition-[background-color,scale] hover:bg-surface-3 active:scale-[0.96]"
 				controller={dialogController(dialogs.join)}
 			>
 				<IconSearch /> Search channels

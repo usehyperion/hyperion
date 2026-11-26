@@ -9,4 +9,4 @@
 	const { user, name }: Props = $props();
 </script>
 
-<span class="font-semibold" style:color={user?.color}>{user?.displayName || name}</span>
+<span class="username font-semibold" style:color={user?.color}>{user?.displayName || name}</span>

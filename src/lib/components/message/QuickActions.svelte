@@ -26,7 +26,7 @@
 
 <div
 	class={[
-		"flex items-center gap-px rounded-control border border-line bg-surface-1 p-0.5 shadow-popup",
+		"quick-actions flex items-center gap-px rounded-control border border-line bg-surface-1 p-0.5 shadow-popup",
 		"pointer-events-none scale-95 opacity-0 transition-[opacity,scale] duration-150 ease-out-quart",
 		"group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100",
 		"focus-within:pointer-events-auto focus-within:scale-100 focus-within:opacity-100",
