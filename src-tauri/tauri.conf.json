@@ -4,9 +4,9 @@
 	"identifier": "com.hyperion.chat",
 	"mainBinaryName": "Hyperion",
 	"build": {
-		"beforeDevCommand": "pnpm dev",
+		"beforeDevCommand": "vp dev",
 		"devUrl": "http://localhost:1420",
-		"beforeBuildCommand": "pnpm build",
+		"beforeBuildCommand": "vp build",
 		"frontendDist": "../build"
 	},
 	"app": {

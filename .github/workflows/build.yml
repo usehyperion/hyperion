@@ -62,14 +62,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf pkg-config libssl-dev
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Setup Node
-        uses: actions/setup-node@v7
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1.21.2
         with:
-          node-version: lts/*
-          cache: pnpm
+          node-version: 24
+          cache: true
 
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
@@ -87,12 +84,9 @@ jobs:
         shell: bash
         run: rm -rf src-tauri/target/bundle src-tauri/target/*/bundle src-tauri/target/*/*/bundle
 
-      - name: Install frontend dependencies
-        run: pnpm install
-
       - name: Build app
         shell: bash
-        run: pnpm tauri build ${{ matrix.args }}
+        run: vpr tauri build ${{ matrix.args }}
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
