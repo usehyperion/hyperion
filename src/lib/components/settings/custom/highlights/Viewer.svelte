@@ -35,14 +35,11 @@
 	{#each kinds as kind (kind.type)}
 		<Row label={kind.label} bind:config={viewers[kind.type]}>
 			<kind.icon
-				class="size-3.5 shrink-0 text-fg-muted transition-opacity group-data-[enabled=false]/row:opacity-40"
+				class="size-3.5 shrink-0 text-fg-muted transition-opacity"
 				aria-hidden="true"
 			/>
 
-			<span
-				class="truncate transition-colors group-data-[enabled=false]/row:text-fg-faint"
-				title={kind.label}
-			>
+			<span class="truncate transition-colors" title={kind.label}>
 				{kind.label}
 			</span>
 

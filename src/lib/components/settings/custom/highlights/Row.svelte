@@ -18,7 +18,7 @@
 	let { label, config = $bindable(), children, footer, trailing }: Props = $props();
 </script>
 
-<li class="group/row flex h-9 items-center gap-1.5 ps-1.5 pe-2.5" data-enabled={config.enabled}>
+<li class="group/row flex h-9 items-center gap-1.5 ps-1.5 pe-2.5">
 	<Appearance {label} {footer} bind:config />
 
 	<div class="flex min-w-0 flex-1 items-center gap-2">
