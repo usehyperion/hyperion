@@ -1,6 +1,7 @@
 <script lang="ts" generics="T">
 	import { tick } from "svelte";
 	import type { Snippet } from "svelte";
+	import { prefersReducedMotion } from "svelte/motion";
 	import { fly } from "svelte/transition";
 	import { VList } from "virtua/svelte";
 
@@ -140,7 +141,7 @@
 					? `Jump to latest, ${newCount} new ${newCount === 1 ? "message" : "messages"}`
 					: "Jump to latest"}
 				onclick={scrollToEnd}
-				transition:fly={{ y: 16, duration: 200 }}
+				transition:fly={{ y: prefersReducedMotion.current ? 0 : 16, duration: 200 }}
 			>
 				<IconScrollToBottom class="size-4 shrink-0" aria-hidden="true" />
 
