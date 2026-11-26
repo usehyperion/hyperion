@@ -91,7 +91,7 @@
 			>
 				<IconRepliedTo class="ml-1 shrink-0 scale-x-125 text-fg-muted" />
 
-				<div class="line-clamp-1 text-xs">
+				<div class="line-clamp-1 text-detail">
 					<span style={viewer?.user.mentionStyle}>
 						@{message.reply.parent.user.name}
 					</span>:

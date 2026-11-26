@@ -208,7 +208,7 @@
 		<div class="flex items-center gap-2 border-b border-line px-3 py-2">
 			<!-- svelte-ignore a11y_autofocus -- palette should be typeable on open -->
 			<input
-				class="h-control w-full bg-transparent text-sm outline-none placeholder:text-fg-faint"
+				class="h-control w-full bg-transparent text-body outline-none placeholder:text-fg-faint"
 				autocapitalize="off"
 				autocomplete="off"
 				autocorrect="off"
@@ -232,7 +232,7 @@
 			</DialogClose>
 		</div>
 
-		<div class="flex items-center gap-4 border-b border-line px-3 text-xs">
+		<div class="flex items-center gap-4 border-b border-line px-3 text-detail">
 			{#each filters as { key, label } (key)}
 				<button
 					class={cn(
@@ -251,7 +251,7 @@
 
 		<div class="max-h-96 min-h-32 overflow-y-auto p-1.5">
 			{#if error}
-				<p class="px-2 py-1.5 text-xs text-danger">{error}</p>
+				<p class="px-2 py-1.5 text-detail text-danger">{error}</p>
 			{/if}
 
 			{#if rows.length}
@@ -290,7 +290,7 @@
 
 								{#if isSearch && item.streamTitle}
 									<p
-										class="truncate text-xs text-fg-muted"
+										class="truncate text-detail text-fg-muted"
 										title={item.streamTitle}
 									>
 										{item.streamTitle}
@@ -302,7 +302,7 @@
 								<span class="flex items-center gap-1.5 text-danger">
 									<span class="size-1.5 animate-pulse rounded-full bg-current"
 									></span>
-									<span class="text-xs font-medium">Live</span>
+									<span class="text-detail font-medium">Live</span>
 								</span>
 							{/if}
 						</button>
@@ -322,14 +322,14 @@
 					</div>
 				{/each}
 			{:else if searching}
-				<p class="flex items-center gap-2 px-2 py-8 text-xs text-fg-muted">
+				<p class="flex items-center gap-2 px-2 py-8 text-detail text-fg-muted">
 					<IconLoading class="animate-spin" />
 					Searching&hellip;
 				</p>
 			{:else if isSearch}
-				<p class="px-2 py-8 text-center text-xs text-fg-muted">No channels found.</p>
+				<p class="px-2 py-8 text-center text-detail text-fg-muted">No channels found.</p>
 			{:else}
-				<p class="px-2 py-8 text-center text-xs text-fg-muted">
+				<p class="px-2 py-8 text-center text-detail text-fg-muted">
 					Search for a channel to join.
 				</p>
 			{/if}

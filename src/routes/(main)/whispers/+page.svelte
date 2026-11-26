@@ -27,10 +27,10 @@
 	{#if whispers.length}
 		<div class="mx-auto w-full max-w-3xl pb-6">
 			<header class="flex items-baseline gap-2 p-4">
-				<h1 class="text-lg font-semibold">Whispers</h1>
+				<h1 class="text-title font-semibold">Whispers</h1>
 
 				{#if unread}
-					<span class="text-sm text-fg-muted tabular-nums">{unread} unread</span>
+					<span class="text-body text-fg-muted tabular-nums">{unread} unread</span>
 				{/if}
 			</header>
 
@@ -64,7 +64,7 @@
 
 									<time
 										class={[
-											"ml-auto shrink-0 text-xs tabular-nums",
+											"ml-auto shrink-0 text-detail tabular-nums",
 											whisper.unread ? "text-fg" : "text-fg-muted",
 										]}
 										datetime={message.createdAt.toISOString()}
@@ -76,7 +76,7 @@
 								<div class="flex items-center gap-3">
 									<p
 										class={[
-											"truncate text-sm",
+											"truncate text-body",
 											whisper.unread
 												? "font-medium text-fg"
 												: "text-fg-muted",
@@ -91,7 +91,7 @@
 
 									{#if whisper.unread}
 										<span
-											class="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-danger px-1.5 text-2xs font-semibold text-fg-inverse tabular-nums"
+											class="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-danger px-1.5 text-caption font-semibold text-fg-inverse tabular-nums"
 										>
 											{whisper.unread > 9 ? "9+" : whisper.unread}
 											<span class="sr-only">unread</span>

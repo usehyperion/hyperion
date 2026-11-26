@@ -132,7 +132,7 @@
 		<div class="absolute inset-x-0 bottom-4 z-10 flex justify-center">
 			<button
 				class={[
-					"flex items-center rounded-full border border-line-strong bg-surface-3/90 p-1.5 text-2xs font-medium text-fg shadow-popup backdrop-blur-lg transition-[background-color,padding] duration-200 ease-out hover:bg-surface-3",
+					"flex items-center rounded-full border border-line-strong bg-surface-3/90 p-1.5 text-caption font-medium text-fg shadow-popup backdrop-blur-lg transition-[background-color,padding] duration-200 ease-out hover:bg-surface-3",
 					hasNew && "pr-3",
 				]}
 				type="button"

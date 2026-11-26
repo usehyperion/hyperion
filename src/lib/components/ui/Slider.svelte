@@ -292,7 +292,7 @@
 	{#if showValue}
 		<SliderValue
 			class={cn(
-				"inline-grid shrink-0 text-xs leading-none text-fg-muted tabular-nums",
+				"inline-grid shrink-0 text-detail leading-none text-fg-muted tabular-nums",
 				interacting && "font-medium",
 			)}
 		>

@@ -29,8 +29,8 @@
 	const leading = $derived(Math.max(0, ...poll.choices.map((c) => c.votes)));
 </script>
 
-<div class="p-2 text-ui">
-	<div class="mb-1 flex items-center gap-1 text-2xs text-fg-muted">
+<div class="p-2 text-body">
+	<div class="mb-1 flex items-center gap-1 text-caption text-fg-muted">
 		<IconPoll class="size-3 shrink-0" />
 
 		<span class="truncate">
@@ -61,7 +61,7 @@
 					<div class="mb-0.5 flex items-center justify-between gap-2">
 						<span class="truncate">{choice.title}</span>
 
-						<span class="text-2xs whitespace-nowrap text-fg-muted tabular-nums">
+						<span class="text-caption whitespace-nowrap text-fg-muted tabular-nums">
 							{pct}% ({choice.votes})
 						</span>
 					</div>
@@ -75,7 +75,7 @@
 			{/each}
 		</ul>
 
-		<p class="mt-1.5 text-2xs text-fg-muted tabular-nums">
+		<p class="mt-1.5 text-caption text-fg-muted tabular-nums">
 			{poll.totalVotes.toLocaleString()}
 			{poll.totalVotes === 1 ? "vote" : "votes"}
 		</p>

@@ -127,10 +127,10 @@
 	{#snippet header()}
 		<div class="flex items-center gap-1">
 			<div class="mr-auto flex items-baseline gap-1.5">
-				<DrawerTitle class="text-ui font-semibold">Viewers</DrawerTitle>
+				<DrawerTitle class="text-body font-semibold">Viewers</DrawerTitle>
 
 				{#if list.count !== null}
-					<span class="text-2xs text-fg-muted tabular-nums">
+					<span class="text-caption text-fg-muted tabular-nums">
 						{list.count.toLocaleString()} in chat
 					</span>
 				{/if}
@@ -175,7 +175,7 @@
 		</InputGroup>
 
 		{#if list.error}
-			<p class="text-xs text-danger">
+			<p class="text-detail text-danger">
 				Couldn't load the full viewer list. Showing viewers seen in chat.
 			</p>
 		{/if}
@@ -197,7 +197,7 @@
 
 						<li class="[contain-intrinsic-size:auto_1.75rem] [content-visibility:auto]">
 							<button
-								class="flex h-7 w-full min-w-0 items-center gap-1.5 rounded-md px-1.5 text-left text-sm transition-colors hover:bg-surface-2 focus-visible:bg-surface-2 focus-visible:outline-none disabled:opacity-50"
+								class="flex h-7 w-full min-w-0 items-center gap-1.5 rounded-md px-1.5 text-left text-body transition-colors hover:bg-surface-2 focus-visible:bg-surface-2 focus-visible:outline-none disabled:opacity-50"
 								disabled={resolving === chatter.login}
 								onclick={(event) => select(chatter, event.currentTarget)}
 							>

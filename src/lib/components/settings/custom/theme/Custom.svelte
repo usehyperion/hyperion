@@ -71,5 +71,5 @@
 		{/each}
 	</RadioGroup.Root>
 {:else}
-	<p class="text-sm text-fg-muted">No themes installed.</p>
+	<p class="text-body text-fg-muted">No themes installed.</p>
 {/if}

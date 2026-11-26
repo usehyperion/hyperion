@@ -210,7 +210,7 @@
 	</InputGroup>
 
 	<div class="flex items-center justify-between px-1">
-		<div class="text-xs text-fg-muted tabular-nums">
+		<div class="text-detail text-fg-muted tabular-nums">
 			<span class:text-fg={chat.value.length === 500}>{chat.value.length}</span>
 			/ 500
 		</div>

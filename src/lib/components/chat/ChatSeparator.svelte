@@ -21,7 +21,7 @@
 	role="separator"
 	data-slot="chat-separator"
 >
-	<span class="min-w-0 flex-none text-center text-xs font-medium wrap-break-word uppercase">
+	<span class="min-w-0 flex-none text-center text-detail font-medium wrap-break-word uppercase">
 		{@render children()}
 	</span>
 </div>

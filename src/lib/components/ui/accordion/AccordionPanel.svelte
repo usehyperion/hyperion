@@ -7,4 +7,4 @@
 	const { class: className, ...rest }: ComponentProps<typeof AccordionPanel> = $props();
 </script>
 
-<AccordionPanel class={cn("px-3 py-2.5 text-ui", className)} {...rest} />
+<AccordionPanel class={cn("px-3 py-2.5 text-body", className)} {...rest} />

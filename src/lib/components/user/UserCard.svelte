@@ -105,7 +105,7 @@
 			{/snippet}
 		</Avatar>
 
-		<div class="absolute top-2 right-2 space-y-1 text-xs text-fg-muted">
+		<div class="absolute top-2 right-2 space-y-1 text-detail text-fg-muted">
 			<div class="flex items-center gap-1">
 				<IconCreated class="mr-1 size-3" />
 
@@ -176,7 +176,7 @@
 
 					{#if !showAllBadges && relationship.badges.length > 10}
 						<button
-							class="ml-1 text-xs text-accent transition-colors hover:text-fg"
+							class="ml-1 text-detail text-accent transition-colors hover:text-fg"
 							type="button"
 							onclick={() => (showAllBadges = true)}
 							aria-label="Show {relationship.badges.length - 10} more badges"
@@ -188,7 +188,7 @@
 			{/if}
 
 			{#if user.bio}
-				<p class="text-xs text-fg-muted">{user.bio}</p>
+				<p class="text-detail text-fg-muted">{user.bio}</p>
 			{/if}
 		</div>
 	</div>
@@ -211,6 +211,6 @@
 			</ReverseScroll>
 		</div>
 	{:else if loadingHistory}
-		<p class="border-t px-4 py-2 text-xs text-fg-muted">Loading message history...</p>
+		<p class="border-t px-4 py-2 text-detail text-fg-muted">Loading message history...</p>
 	{/if}
 </Popover>

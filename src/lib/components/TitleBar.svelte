@@ -81,7 +81,7 @@
 			</Button>
 
 			<DialogTrigger
-				class="flex w-64 items-center justify-center gap-2 rounded-md bg-surface-1 px-2 py-1 text-xs text-fg-muted ring-1 ring-line transition-[background-color,scale] hover:bg-surface-3 active:scale-[0.96]"
+				class="flex w-64 items-center justify-center gap-2 rounded-md bg-surface-1 px-2 py-1 text-detail text-fg-muted ring-1 ring-line transition-[background-color,scale] hover:bg-surface-3 active:scale-[0.96]"
 				controller={dialogController(dialogs.join)}
 			>
 				<IconSearch /> Search channels

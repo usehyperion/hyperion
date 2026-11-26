@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	export const tooltipSurfaceClass =
-		"rounded-[5px] border border-line-strong bg-surface-3 px-1.5 py-0.5 text-2xs text-fg shadow-popup";
+		"rounded-[5px] border border-line-strong bg-surface-3 px-1.5 py-0.5 text-caption text-fg shadow-popup";
 
 	export const tooltipContentClass = [
 		"m-0 w-max max-w-64 overflow-visible",

@@ -30,7 +30,7 @@
 
 <div class="flex items-center divide-x divide-line border-b shadow" bind:this={header}>
 	<div
-		class="flex h-8 min-w-0 flex-1 items-center justify-between overflow-hidden px-2 text-xs text-fg-muted"
+		class="flex h-8 min-w-0 flex-1 items-center justify-between overflow-hidden px-2 text-detail text-fg-muted"
 	>
 		<p class="truncate" title={stream.title}>{stream.title}</p>
 

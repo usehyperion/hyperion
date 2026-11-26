@@ -26,7 +26,7 @@
 <Input
 	class={cn(
 		bare
-			? "min-w-0 bg-transparent text-ui outline-none placeholder:text-fg-faint"
+			? "min-w-0 bg-transparent text-body outline-none placeholder:text-fg-faint"
 			: "control-field w-full",
 		"selection:bg-fg/20",
 		className,

@@ -45,7 +45,7 @@
 		style:border-color={config.color}
 	>
 		{#if config.style === "default"}
-			<div class="flex items-center bg-surface-2 px-2.5 py-1.5 text-xs font-medium">
+			<div class="flex items-center bg-surface-2 px-2.5 py-1.5 text-detail font-medium">
 				<div class="flex items-center">
 					<decoration.icon class="mr-2 size-4" />
 

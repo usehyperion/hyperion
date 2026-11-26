@@ -80,7 +80,7 @@
 		/>
 
 		<ColorPickerInput
-			class="control-field h-control-sm min-w-0 flex-1 px-2 font-mono text-2xs tracking-wide uppercase tabular-nums"
+			class="control-field h-control-sm min-w-0 flex-1 px-2 font-mono text-caption tracking-wide uppercase tabular-nums"
 			aria-label="Hex"
 			spellcheck="false"
 			autocomplete="off"

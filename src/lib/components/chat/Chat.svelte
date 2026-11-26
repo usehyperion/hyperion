@@ -48,7 +48,7 @@
 />
 
 <ReverseScroll
-	class="text-sm"
+	class="text-body"
 	data={chat.messages}
 	getKey={(message) => message.id}
 	bind:this={scroller}

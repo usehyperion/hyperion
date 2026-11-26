@@ -74,8 +74,8 @@
 	}
 </script>
 
-<div class="p-2 text-ui">
-	<div class="mb-1 flex items-center gap-1 text-2xs text-fg-muted">
+<div class="p-2 text-body">
+	<div class="mb-1 flex items-center gap-1 text-caption text-fg-muted">
 		<IconPrediction class="size-3 shrink-0" />
 
 		<span class="truncate">
@@ -128,7 +128,7 @@
 						{/if}
 
 						<span
-							class="ml-auto shrink-0 text-2xs whitespace-nowrap text-fg-muted tabular-nums"
+							class="ml-auto shrink-0 text-caption whitespace-nowrap text-fg-muted tabular-nums"
 						>
 							{pct}% ({outcome.points.toLocaleString()})
 						</span>
@@ -176,7 +176,7 @@
 			{/each}
 		</ul>
 
-		<p class="mt-1.5 text-2xs text-fg-muted tabular-nums">
+		<p class="mt-1.5 text-caption text-fg-muted tabular-nums">
 			{prediction.totalPoints.toLocaleString()} points ·
 			{prediction.totalUsers.toLocaleString()}
 			{prediction.totalUsers === 1 ? "predictor" : "predictors"}

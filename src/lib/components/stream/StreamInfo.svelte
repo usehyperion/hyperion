@@ -50,9 +50,9 @@
 			{/if}
 
 			<div class="min-w-0 space-y-2">
-				<p class="text-sm font-medium wrap-break-word">{stream.title}</p>
+				<p class="text-body font-medium wrap-break-word">{stream.title}</p>
 
-				<div class="flex items-center gap-1 text-xs text-accent">
+				<div class="flex items-center gap-1 text-detail text-accent">
 					<IconCategory class="shrink-0" />
 
 					{#if stream.game.slug}
@@ -83,7 +83,7 @@
 			{#each stream.tags as tag}
 				<li>
 					<a
-						class="block rounded-full bg-surface-2 px-2 py-0.5 text-[0.625rem] text-fg-muted transition-colors hover:bg-surface-3 hover:text-fg"
+						class="block rounded-full bg-surface-2 px-2 py-0.5 text-caption text-fg-muted transition-colors hover:bg-surface-3 hover:text-fg"
 						href="https://www.twitch.tv/directory/all/tags/{tag}"
 						target="_blank"
 						rel="noopener noreferrer"

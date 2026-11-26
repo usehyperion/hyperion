@@ -8,12 +8,12 @@ import {
 	type VariantProps,
 } from "tailwind-variants/config";
 
-// Without these, the merger reads `text-ui` as a color and can't see `size-control-sm` as a size.
+// Without these, the merger reads `text-body` as a color and can't see `size-control-sm` as a size.
 const twMergeConfig = {
 	extend: {
 		theme: {
 			spacing: ["control", "control-sm", "control-lg", "title-bar"],
-			text: ["ui", "2xs"],
+			text: ["caption", "detail", "body", "title", "display"],
 			radius: ["control", "panel"],
 			shadow: ["raised", "popup"],
 		},

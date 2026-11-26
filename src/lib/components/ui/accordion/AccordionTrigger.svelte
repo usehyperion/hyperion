@@ -16,7 +16,7 @@
 <AccordionHeader class={cn("flex bg-surface-1 data-open:bg-surface-2", headerClass)}>
 	<AccordionTrigger
 		class={cn(
-			"flex h-8 w-full min-w-0 items-center gap-2 px-3 text-left text-ui font-medium text-fg control-focus -outline-offset-2 transition-colors not-data-open:hover:bg-surface-2 data-disabled:opacity-50",
+			"flex h-8 w-full min-w-0 items-center gap-2 px-3 text-left text-body font-medium text-fg control-focus -outline-offset-2 transition-colors not-data-open:hover:bg-surface-2 data-disabled:opacity-50",
 			className,
 		)}
 		{...rest}

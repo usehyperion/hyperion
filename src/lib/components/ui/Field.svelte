@@ -79,7 +79,7 @@
 	{#if label}
 		<FieldLabel
 			class={cn(
-				"w-fit text-ui leading-5 font-medium text-fg select-none",
+				"w-fit text-body leading-5 font-medium text-fg select-none",
 				"data-disabled:opacity-50 data-invalid:text-danger",
 				layout === "inline" && "w-auto truncate font-normal text-fg-muted",
 			)}
@@ -93,7 +93,7 @@
 	{#if description}
 		<FieldDescription
 			class={cn(
-				"text-2xs/relaxed text-fg-muted data-disabled:opacity-50",
+				"text-caption/relaxed text-fg-muted data-disabled:opacity-50",
 				"[&_a]:underline [&_a]:underline-offset-2 [&_a]:hover:text-fg",
 				layout === "inline" && "col-start-2",
 			)}
@@ -105,7 +105,10 @@
 
 {#snippet errorPart()}
 	{#if error}
-		<FieldError match class={cn("text-2xs text-danger", layout === "inline" && "col-start-2")}>
+		<FieldError
+			match
+			class={cn("text-caption text-danger", layout === "inline" && "col-start-2")}
+		>
 			{error}
 		</FieldError>
 	{/if}
@@ -129,13 +132,13 @@
 		{#if label || description}
 			<span class="flex min-w-0 flex-col gap-0.5">
 				{#if label}
-					<span class="text-ui leading-5 text-fg" id="{uid}-label">
+					<span class="text-body leading-5 text-fg" id="{uid}-label">
 						{@render text(label)}
 					</span>
 				{/if}
 
 				{#if description}
-					<span class="text-2xs/relaxed text-fg-muted" id="{uid}-description">
+					<span class="text-caption/relaxed text-fg-muted" id="{uid}-description">
 						{@render text(description)}
 					</span>
 				{/if}

@@ -47,7 +47,7 @@
 	const topMostActive = $derived(modes.find((m) => m.active));
 </script>
 
-<Popover class="w-max p-2 text-xs" aria-label="Chat restrictions">
+<Popover class="w-max p-2 text-detail" aria-label="Chat restrictions">
 	{#snippet trigger(props)}
 		<button
 			{...props}
@@ -55,7 +55,7 @@
 		>
 			<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
 
-			<span class="text-xs">
+			<span class="text-detail">
 				{topMostActive?.label ?? "No chat restrictions"}
 			</span>
 		</button>

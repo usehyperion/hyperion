@@ -69,15 +69,15 @@
 		<div class="flex items-center gap-2.5">
 			<img class="size-8" src="/logo.svg" alt="" />
 
-			<DialogTitle class="font-geist text-sm font-semibold">Hyperion</DialogTitle>
+			<DialogTitle class="font-geist text-body font-semibold">Hyperion</DialogTitle>
 		</div>
 	{/snippet}
 
 	{#if failed && !info}
-		<p class="text-xs text-fg-muted">Version details are unavailable.</p>
+		<p class="text-detail text-fg-muted">Version details are unavailable.</p>
 	{/if}
 
-	<dl class="divide-y divide-line rounded-control border border-line bg-inset text-xs">
+	<dl class="divide-y divide-line rounded-control border border-line bg-inset text-detail">
 		{#each rows as row (row.label)}
 			<div class="flex items-baseline justify-between gap-4 px-2.5 py-1.5">
 				<dt class="shrink-0 text-fg-muted">{row.label}</dt>

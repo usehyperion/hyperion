@@ -72,7 +72,7 @@
 		>
 			{#each suggestions as suggestion, i (suggestion.value)}
 				<ListboxItem
-					class="flex min-h-8 cursor-default items-center gap-2 rounded-control px-2 py-1 text-ui control-focus select-none data-selected:bg-surface-3"
+					class="flex min-h-8 cursor-default items-center gap-2 rounded-control px-2 py-1 text-body control-focus select-none data-selected:bg-surface-3"
 					value={suggestion.value}
 					label={suggestion.display}
 					title={suggestion.display}
@@ -89,19 +89,19 @@
 
 								{#each suggestion.command.args as arg (arg.name)}
 									<span
-										class="rounded-sm border border-line bg-surface-2 px-1 font-mono text-2xs text-fg-muted"
+										class="rounded-sm border border-line bg-surface-2 px-1 font-mono text-caption text-fg-muted"
 									>
 										{arg.name}
 									</span>
 								{/each}
 							</div>
 
-							<p class="truncate text-2xs text-fg-muted">
+							<p class="truncate text-caption text-fg-muted">
 								{suggestion.command.description}
 							</p>
 						</div>
 
-						<span class="shrink-0 text-2xs text-fg-muted">
+						<span class="shrink-0 text-caption text-fg-muted">
 							{suggestion.command.provider}
 						</span>
 					{:else if suggestion.type === "emote"}
@@ -121,7 +121,7 @@
 
 						{#if suggestion.role}
 							<span
-								class="ml-auto shrink-0 rounded-sm bg-surface-2 px-1 text-2xs text-fg-muted"
+								class="ml-auto shrink-0 rounded-sm bg-surface-2 px-1 text-caption text-fg-muted"
 							>
 								{roleLabels[suggestion.role]}
 							</span>

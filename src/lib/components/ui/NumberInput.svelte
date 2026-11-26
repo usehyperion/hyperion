@@ -42,7 +42,7 @@
 		</NumberInputDecrement>
 
 		<NumberInputControl
-			class="h-full min-w-0 flex-1 bg-transparent px-2 text-center font-mono text-ui tabular-nums outline-none"
+			class="h-full min-w-0 flex-1 bg-transparent px-2 text-center font-mono text-body tabular-nums outline-none"
 			{placeholder}
 			aria-label={ariaLabel}
 		/>

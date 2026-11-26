@@ -117,7 +117,7 @@
 
 					{#if !emote.listed}
 						<span
-							class="shrink-0 rounded-sm bg-danger/12 px-1 py-px text-[10px]
+							class="shrink-0 rounded-sm bg-danger/12 px-1 py-px text-caption
 								font-medium tracking-wide text-danger uppercase"
 						>
 							unlisted
@@ -162,7 +162,7 @@
 
 				<div
 					class="absolute right-1.5 bottom-1.5 rounded bg-black/75 px-1 py-0.5
-						text-[10px] font-medium text-white tabular-nums"
+						text-caption font-medium text-white tabular-nums"
 				>
 					{formatClipLength(clip.durationSeconds)}
 				</div>
@@ -216,7 +216,7 @@
 {/snippet}
 
 {#snippet meta(children: Snippet)}
-	<div class="flex items-center gap-1.5 text-xs text-fg-muted">
+	<div class="flex items-center gap-1.5 text-detail text-fg-muted">
 		{@render children()}
 	</div>
 {/snippet}

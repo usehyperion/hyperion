@@ -14,9 +14,9 @@
 		],
 		variants: {
 			size: {
-				default: "h-control gap-1.5 rounded-control px-2.5 text-ui",
-				sm: "h-control-sm gap-1 rounded-[5px] px-2 text-2xs",
-				lg: "h-control-lg gap-1.5 rounded-control px-3 text-ui",
+				default: "h-control gap-1.5 rounded-control px-2.5 text-body",
+				sm: "h-control-sm gap-1 rounded-[5px] px-2 text-caption",
+				lg: "h-control-lg gap-1.5 rounded-control px-3 text-body",
 				icon: "size-control rounded-control",
 				"icon-sm": "size-control-sm rounded-[5px]",
 				"icon-lg": "size-control-lg rounded-control",

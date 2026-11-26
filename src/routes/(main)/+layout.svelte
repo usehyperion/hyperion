@@ -87,7 +87,7 @@
 							height="150"
 						/>
 
-						<span class="text-sm font-medium">{channel.user.displayName}</span>
+						<span class="text-body font-medium">{channel.user.displayName}</span>
 					</div>
 				{:else}
 					<div class="flex items-center gap-2">

@@ -63,7 +63,7 @@
 			<span class="tabular-nums">&bullet; {emote.width}&times;{emote.height}</span>
 
 			{#if emote.zeroWidth}
-				<span class="rounded-xs bg-surface-2 px-1 py-px text-[10px] text-fg-muted">
+				<span class="rounded-xs bg-surface-2 px-1 py-px text-caption text-fg-muted">
 					Zero-width
 				</span>
 			{/if}

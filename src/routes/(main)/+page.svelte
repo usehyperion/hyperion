@@ -84,7 +84,7 @@
 	{:else if loading}
 		<div class="flex size-full flex-col items-center justify-center">
 			<IconLoading class="size-6 animate-spin" />
-			<span class="mt-2 text-lg font-medium">Loading</span>
+			<span class="mt-2 text-title font-medium">Loading</span>
 		</div>
 	{:else}
 		<Empty

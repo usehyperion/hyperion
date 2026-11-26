@@ -25,7 +25,7 @@
 <Textarea
 	class={cn(
 		bare
-			? "min-h-16 bg-transparent px-2 py-1.5 text-ui outline-none placeholder:text-fg-faint"
+			? "min-h-16 bg-transparent px-2 py-1.5 text-body outline-none placeholder:text-fg-faint"
 			: "control-field h-auto min-h-16 w-full items-start py-1.5",
 		"resize-none selection:bg-fg/20",
 		className,

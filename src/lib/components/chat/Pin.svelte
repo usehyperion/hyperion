@@ -24,8 +24,8 @@
 	const fraction = $derived(pin.duration ? clamp(0, remaining / (pin.duration * 1000), 1) : 0);
 </script>
 
-<div class="relative p-2 text-sm">
-	<div class="mb-1 flex items-center gap-1 text-xs text-fg-muted">
+<div class="relative p-2 text-body">
+	<div class="mb-1 flex items-center gap-1 text-detail text-fg-muted">
 		<IconPin class="size-3" />
 
 		<span>Pinned by <Username user={pin.pinner} /></span>

@@ -23,14 +23,14 @@
 	{#if legend || description}
 		<div class="flex flex-col gap-0.5">
 			{#if legend}
-				<FieldLegend class="text-ui font-medium text-fg data-disabled:opacity-50">
+				<FieldLegend class="text-body font-medium text-fg data-disabled:opacity-50">
 					{@render text(legend)}
 				</FieldLegend>
 			{/if}
 
 			{#if description}
 				<FieldDescription
-					class="text-2xs/relaxed text-fg-muted [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-fg"
+					class="text-caption/relaxed text-fg-muted [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-fg"
 				>
 					{@render text(description)}
 				</FieldDescription>

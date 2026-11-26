@@ -43,7 +43,7 @@
 <img class="size-16" src="/logo.svg" alt="Hyperion logo" />
 
 <div class="space-y-2">
-	<h1 class="text-4xl font-semibold">Hyperion</h1>
+	<h1 class="text-display font-semibold">Hyperion</h1>
 
 	<p class="max-w-sm text-fg-muted">Connect your Twitch account to start chatting.</p>
 </div>
@@ -54,5 +54,5 @@
 </Button>
 
 {#if error}
-	<p class="text-sm text-danger">{error}</p>
+	<p class="text-body text-danger">{error}</p>
 {/if}

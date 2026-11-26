@@ -26,7 +26,7 @@
 		{#snippet trigger(props)}
 			<Button
 				{...props}
-				class="size-min p-1 text-xs"
+				class="size-min p-1 text-detail"
 				size="sm"
 				variant="ghost"
 				aria-label="View guests"
@@ -46,7 +46,7 @@
 
 	<span
 		class={[
-			"mb-1 inline-block text-xs font-medium text-fg-muted uppercase",
+			"mb-1 inline-block text-detail font-medium text-fg-muted uppercase",
 			tooltip ? "mt-2" : "mt-3",
 		]}
 	>
@@ -64,7 +64,7 @@
 
 {#snippet participant(guest: Omit<Guest, "viewers">, viewers: number | null)}
 	<div class="flex items-center justify-between gap-x-8">
-		<div class={["flex items-center", tooltip ? "gap-x-1 text-xs" : "gap-x-2 text-sm"]}>
+		<div class={["flex items-center", tooltip ? "gap-x-1 text-detail" : "gap-x-2 text-body"]}>
 			<Avatar
 				class={tooltip ? "size-5" : "size-6"}
 				src={guest.avatarUrl}
@@ -79,7 +79,7 @@
 		</div>
 
 		{#if viewers != null}
-			<div class="flex items-center text-xs text-danger tabular-nums">
+			<div class="flex items-center text-detail text-danger tabular-nums">
 				<IconViewers class="mr-1" />
 				{viewers}
 			</div>

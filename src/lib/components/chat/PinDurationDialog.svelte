@@ -71,7 +71,7 @@
 	</RadioGroup.Root>
 
 	{#if error}
-		<p class="text-xs text-danger">{error}</p>
+		<p class="text-detail text-danger">{error}</p>
 	{/if}
 
 	{#snippet footer()}

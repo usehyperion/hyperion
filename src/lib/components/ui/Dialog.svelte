@@ -74,10 +74,10 @@
 				class="flex flex-col gap-0.5 border-b border-line px-4 py-3"
 				data-slot="dialog-header"
 			>
-				<DialogTitle class="text-sm font-semibold">{title}</DialogTitle>
+				<DialogTitle class="text-body font-semibold">{title}</DialogTitle>
 
 				{#if description}
-					<DialogDescription class="text-xs text-fg-muted">
+					<DialogDescription class="text-detail text-fg-muted">
 						{description}
 					</DialogDescription>
 				{/if}

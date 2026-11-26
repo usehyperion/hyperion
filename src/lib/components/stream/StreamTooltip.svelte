@@ -22,7 +22,7 @@
 	const sidebar = useSidebar();
 </script>
 
-<Tooltip class="max-w-64 px-2 py-1.5 text-xs" delay={0} side="right" sideOffset={4}>
+<Tooltip class="max-w-64 px-2 py-1.5 text-detail" delay={0} side="right" sideOffset={4}>
 	{#snippet trigger(props)}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -68,7 +68,7 @@
 				<div class="flex items-center text-danger">
 					<IconViewers class="mr-1 size-3" />
 
-					<p class="text-xs">
+					<p class="text-detail">
 						<NumberFlow class="tabular-nums" value={channel.stream.viewers} /> viewers
 					</p>
 				</div>

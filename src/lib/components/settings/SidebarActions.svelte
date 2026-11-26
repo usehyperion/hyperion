@@ -18,14 +18,14 @@
 <div class="space-y-0.5 *:w-full *:justify-start">
 	<Button class="text-fg-muted" variant="ghost" onclick={openLogDir}>
 		<IconOpenFolder />
-		<span class="text-sm">Open logs</span>
+		<span class="text-body">Open logs</span>
 	</Button>
 
 	<DialogTrigger controller={dialogController(dialogs.about)}>
 		{#snippet render({ props })}
 			<Button {...props} class="text-fg-muted" variant="ghost">
 				<IconAbout />
-				<span class="text-sm">About</span>
+				<span class="text-body">About</span>
 			</Button>
 		{/snippet}
 	</DialogTrigger>
@@ -40,7 +40,7 @@
 			}}
 		>
 			<IconLogOut />
-			<span class="text-sm">Log out</span>
+			<span class="text-body">Log out</span>
 		</Button>
 	{/if}
 </div>

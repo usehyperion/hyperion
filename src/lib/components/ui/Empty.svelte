@@ -52,11 +52,11 @@
 			{/if}
 
 			{#if title}
-				<div class="text-ui font-medium text-fg" data-slot="empty-title">{title}</div>
+				<div class="text-body font-medium text-fg" data-slot="empty-title">{title}</div>
 			{/if}
 
 			{#if description}
-				<p class="text-2xs/relaxed text-fg-muted" data-slot="empty-description">
+				<p class="text-caption/relaxed text-fg-muted" data-slot="empty-description">
 					{description}
 				</p>
 			{/if}
@@ -65,7 +65,7 @@
 
 	{#if children}
 		<div
-			class="flex w-full max-w-xs min-w-0 flex-col items-center gap-3 text-ui"
+			class="flex w-full max-w-xs min-w-0 flex-col items-center gap-3 text-body"
 			data-slot="empty-content"
 		>
 			{@render children()}

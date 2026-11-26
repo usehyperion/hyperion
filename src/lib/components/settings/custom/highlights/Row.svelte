@@ -39,7 +39,7 @@
 			</span>
 
 			<span
-				class="truncate text-sm font-medium group-data-[enabled=false]:text-fg-muted"
+				class="truncate text-body font-medium group-data-[enabled=false]:text-fg-muted"
 				title={label}
 			>
 				{label}

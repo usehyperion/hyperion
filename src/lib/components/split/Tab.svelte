@@ -45,7 +45,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
 	class={[
-		"group flex h-full max-w-48 shrink-0 items-center gap-x-1.5 border-r px-2 text-sm select-none",
+		"group flex h-full max-w-48 shrink-0 items-center gap-x-1.5 border-r px-2 text-body select-none",
 		active ? "bg-surface-0 text-fg" : "text-fg-muted hover:bg-surface-0/50 hover:text-fg",
 		draggable.isDragging && "opacity-50",
 		droppable.isDropTarget && "shadow-[inset_2px_0_0_var(--color-fg)]",

@@ -51,7 +51,7 @@
 {#if notices.length}
 	<div class="popup-surface absolute inset-x-2 top-2 z-10 overflow-hidden">
 		{#if notices.length > 1}
-			<div class="flex items-center gap-1 border-b px-1 py-0.5 text-xs text-fg-muted">
+			<div class="flex items-center gap-1 border-b px-1 py-0.5 text-detail text-fg-muted">
 				<Button
 					class="size-5"
 					size="icon-sm"

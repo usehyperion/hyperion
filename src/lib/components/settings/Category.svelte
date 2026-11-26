@@ -23,10 +23,10 @@
 		</div>
 
 		<div>
-			<h2 class="text-lg leading-tight font-semibold">{category.label}</h2>
+			<h2 class="text-title leading-tight font-semibold">{category.label}</h2>
 
 			{#if query}
-				<p class="text-sm text-fg-muted">Matching "{query}"</p>
+				<p class="text-body text-fg-muted">Matching "{query}"</p>
 			{/if}
 		</div>
 	</header>

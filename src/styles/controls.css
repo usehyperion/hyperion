@@ -9,8 +9,8 @@
 		background-color: var(--color-surface-2);
 		padding-inline: 0.5rem;
 		color: var(--color-fg);
-		font-size: var(--text-ui);
-		line-height: var(--text-ui--line-height);
+		font-size: var(--text-body);
+		line-height: var(--text-body--line-height);
 		transition-property: border-color, background-color, outline-color;
 		transition-duration: 100ms;
 
@@ -47,8 +47,8 @@
 		background-color: var(--color-surface-1);
 		box-shadow: var(--shadow-popup);
 		color: var(--color-fg);
-		font-size: var(--text-ui);
-		line-height: var(--text-ui--line-height);
+		font-size: var(--text-body);
+		line-height: var(--text-body--line-height);
 		transform-origin: var(--transform-origin, center);
 		transition-property: opacity, scale, translate;
 		transition-duration: 120ms;
@@ -68,10 +68,10 @@
 
 	.section-label {
 		color: var(--color-fg-muted);
-		font-size: var(--text-2xs);
+		font-size: var(--text-caption);
 		font-weight: 500;
 		letter-spacing: 0.04em;
-		line-height: var(--text-2xs--line-height);
+		line-height: var(--text-caption--line-height);
 		text-transform: uppercase;
 	}
 }
