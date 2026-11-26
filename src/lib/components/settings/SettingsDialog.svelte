@@ -69,7 +69,7 @@
 
 <Dialog
 	id={dialogs.settings}
-	class="h-screen max-h-none w-full max-w-none rounded-none! border-0! bg-surface-0! shadow-none!"
+	class="h-screen max-h-none w-full max-w-none rounded-none border-0 bg-surface-0 shadow-none"
 	bodyClass="h-full gap-0 overflow-hidden p-0"
 	aria-label="Settings"
 	{onkeydown}
@@ -187,7 +187,9 @@
 </Dialog>
 
 <style>
-	:global(#settings-tabs [data-slot="separator"]) {
-		margin: calc(var(--spacing) * 1) 0;
+	@layer components {
+		:global(#settings-tabs [data-slot="separator"]) {
+			margin: calc(var(--spacing) * 1) 0;
+		}
 	}
 </style>
