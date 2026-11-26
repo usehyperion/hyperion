@@ -1,4 +1,5 @@
 <script lang="ts">
+	import NumberFlow from "@number-flow/svelte";
 	import {
 		createDrawerController,
 		DrawerClose,
@@ -101,12 +102,14 @@
 	{#snippet render({ props })}
 		<Button
 			{...props}
-			class="size-8 rounded-none border-r text-fg-muted hover:text-fg"
-			size="icon-sm"
+			class="h-6 gap-1 px-1.5 text-detail font-normal tabular-nums"
 			variant="ghost"
-			aria-label="Viewer list"
+			title="Viewer list"
 		>
-			<IconViewers class="size-3.5" />
+			<IconViewers class="text-fg-faint" aria-hidden="true" />
+
+			<NumberFlow value={channel.stream?.viewers ?? 0} />
+			<span class="sr-only">viewers</span>
 		</Button>
 	{/snippet}
 </DrawerTrigger>

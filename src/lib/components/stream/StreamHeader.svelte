@@ -1,13 +1,13 @@
 <script lang="ts">
-	import NumberFlow from "@number-flow/svelte";
 	import dayjs from "dayjs";
 
 	import type { Channel } from "#lib/models/channel.svelte.js";
 	import type { Stream } from "#lib/models/stream.svelte.js";
 
 	import { everySecond } from "#lib/clock.js";
-	import { IconUptime, IconViewers } from "#lib/icons.js";
+	import { IconUptime } from "#lib/icons.js";
 
+	import GuestList from "./GuestList.svelte";
 	import StreamInfo from "./StreamInfo.svelte";
 	import ViewerList from "./ViewerList.svelte";
 
@@ -28,25 +28,25 @@
 	});
 </script>
 
-<div class="flex items-center divide-x divide-line border-b shadow" bind:this={header}>
+<header
+	class="@container flex h-8 shrink-0 items-center gap-0.5 border-b border-line bg-surface-2 px-1 text-detail"
+	bind:this={header}
+>
+	<StreamInfo {stream} anchor={header} />
+
+	{#if stream.guests.size}
+		<GuestList {channel} />
+	{/if}
+
 	<div
-		class="flex h-8 min-w-0 flex-1 items-center justify-between overflow-hidden px-2 text-detail text-fg-muted"
+		class="hidden shrink-0 items-center gap-1 px-1.5 text-fg-muted tabular-nums @2xs:flex"
+		title="Uptime"
 	>
-		<p class="truncate" title={stream.title}>{stream.title}</p>
+		<IconUptime class="size-3.5 text-fg-faint" aria-hidden="true" />
 
-		<div class="ml-[3ch] flex items-center gap-x-2.5">
-			<div class="flex items-center">
-				<IconViewers class="mr-1" />
-				<NumberFlow class="tabular-nums" value={stream.viewers} />
-			</div>
-
-			<div class="flex items-center">
-				<IconUptime class="mr-1" />
-				<span class="tabular-nums">{uptime}</span>
-			</div>
-		</div>
+		<span class="sr-only">Uptime</span>
+		{uptime}
 	</div>
 
 	<ViewerList {channel} />
-	<StreamInfo {stream} anchor={header} />
-</div>
+</header>

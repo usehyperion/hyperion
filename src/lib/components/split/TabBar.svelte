@@ -7,7 +7,6 @@
 	import ButtonGroup, { type ButtonGroupItem } from "#lib/components/ui/ButtonGroup.svelte";
 	import { IconClose, IconSplitDown, IconSplitRight } from "#lib/icons.js";
 
-	import GuestList from "../stream/GuestList.svelte";
 	import Tab from "./Tab.svelte";
 
 	interface Props {
@@ -15,8 +14,6 @@
 	}
 
 	const { pane }: Props = $props();
-
-	const channel = $derived(pane.active ? app.channels.get(pane.active) : undefined);
 
 	const showDropIndicator = $derived(
 		app.splits.dropTarget?.paneId === pane.id && app.splits.dropTarget.zone === "tab-bar",
@@ -69,10 +66,6 @@
 	</div>
 
 	<div class="flex shrink-0 items-center gap-x-1 px-1 text-fg-muted">
-		{#if channel?.stream?.guests.size}
-			<GuestList {channel} />
-		{/if}
-
 		<ButtonGroup items={actions} size="sm" aria-label="Pane actions" />
 	</div>
 </div>
