@@ -38,7 +38,7 @@
 
 		--fg: oklch(0.21 0.006 286);
 		--fg-muted: oklch(0.48 0.008 286);
-		--fg-faint: oklch(0.55 0.008 286);
+		--fg-faint: oklch(0.53 0.008 286);
 		--fg-inverse: oklch(0.985 0 0);
 
 		--tint: oklch(0.21 0.006 286 / 4%);
@@ -67,7 +67,7 @@
 
 		--fg: oklch(0.94 0.002 286);
 		--fg-muted: oklch(0.7 0.006 286);
-		--fg-faint: oklch(0.6 0.006 286);
+		--fg-faint: oklch(0.63 0.006 286);
 		--fg-inverse: oklch(0.16 0.004 286);
 
 		--tint: oklch(1 0 0 / 4%);
@@ -82,6 +82,23 @@
 		--shadow-raised: 0 1px 0 0 oklch(1 0 0 / 6%) inset, 0 1px 2px 0 oklch(0 0 0 / 40%);
 		--shadow-popup: 0 12px 32px -8px oklch(0 0 0 / 60%), 0 2px 8px -2px oklch(0 0 0 / 40%);
 		--backdrop: oklch(0 0 0 / 55%);
+	}
+
+	@media (prefers-contrast: more) {
+		:root,
+		.light {
+			--line: oklch(0.2 0.01 286 / 22%);
+			--line-strong: oklch(0.2 0.01 286 / 50%);
+			--fg-muted: oklch(0.4 0.008 286);
+			--fg-faint: oklch(0.4 0.008 286);
+		}
+
+		.dark {
+			--line: oklch(1 0 0 / 20%);
+			--line-strong: oklch(1 0 0 / 35%);
+			--fg-muted: oklch(0.8 0.006 286);
+			--fg-faint: oklch(0.8 0.006 286);
+		}
 	}
 }
 
