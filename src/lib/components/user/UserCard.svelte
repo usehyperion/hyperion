@@ -32,7 +32,7 @@
 				title: user.displayName,
 				width: 400,
 				height: 600,
-				key: `user-card:${user.id}`,
+				key: `user-card:${user.id}:${channel.id}`,
 			},
 		);
 	}
