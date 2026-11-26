@@ -75,7 +75,7 @@
 
 	<button
 		class={[
-			"ml-auto shrink-0 rounded-sm p-0.5 hover:bg-surface-2",
+			"ml-auto flex size-5 shrink-0 items-center justify-center rounded-sm hover:bg-surface-2",
 			!active && "opacity-0 group-hover:opacity-100",
 		]}
 		aria-label="Close tab"
