@@ -81,16 +81,20 @@
 		children,
 		...rest
 	}: Props = $props();
+
+	const resolvedSize = $derived(variant === "inline" ? "none" : size);
 </script>
 
 <Button
 	class={cn(
 		buttonVariants({
 			variant,
-			size: variant === "inline" ? "none" : size,
+			size: resolvedSize,
 		}),
 		className,
 	)}
+	data-variant={variant}
+	data-size={resolvedSize}
 	{...rest}
 >
 	{#snippet render({ props })}

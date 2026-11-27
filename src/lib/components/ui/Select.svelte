@@ -63,7 +63,7 @@
 		{...rest}
 	>
 		<SelectValue class="truncate data-placeholder:text-fg-faint" />
-		<IconExpand class="size-3.5 shrink-0 text-fg-muted" aria-hidden="true" />
+		<IconExpand class="select-icon size-3.5 shrink-0 text-fg-muted" aria-hidden="true" />
 	</SelectTrigger>
 
 	<SelectContent
@@ -72,7 +72,7 @@
 	>
 		{#each items as item (item.value)}
 			<SelectItem
-				class="flex h-control-sm cursor-default items-center gap-2 rounded-[4px] pr-1.5 pl-2 outline-none select-none data-disabled:opacity-50 data-highlighted:bg-surface-3"
+				class="flex h-control-sm cursor-default items-center gap-2 rounded-sm pr-1.5 pl-2 outline-none select-none data-disabled:opacity-50 data-highlighted:bg-surface-3"
 				value={item.value}
 			>
 				<span class="truncate">{item.label}</span>

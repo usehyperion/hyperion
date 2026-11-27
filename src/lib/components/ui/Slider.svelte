@@ -210,7 +210,7 @@
 	>
 		<span
 			class={cn(
-				"pointer-events-none absolute inset-x-0 h-4.5 rounded-full border border-line-strong",
+				"slider-rail pointer-events-none absolute inset-x-0 h-4.5 rounded-full border border-line-strong",
 				trackClass,
 			)}
 			aria-hidden="true"
@@ -233,7 +233,7 @@
 
 			<span
 				class={cn(
-					"pointer-events-none absolute h-full bg-fg/20 transition-opacity duration-150",
+					"slider-preview pointer-events-none absolute h-full bg-fg/20 transition-opacity duration-150",
 					previewVisible ? "opacity-100" : "opacity-0",
 					preview?.before ? "rounded-s-full" : "rounded-e-full",
 				)}
@@ -246,7 +246,7 @@
 				{#each { length: tickCount - 2 }, index (index)}
 					<span
 						class={cn(
-							"pointer-events-none absolute top-1/2 size-1 -translate-1/2 rounded-full bg-fg-muted/40 transition-[scale] duration-200",
+							"slider-tick pointer-events-none absolute top-1/2 size-1 -translate-1/2 rounded-full bg-fg-muted/40 transition-[scale] duration-200",
 							hovered && "scale-125",
 						)}
 						style:left="{((index + 1) / (tickCount - 1)) * 100}%"
@@ -269,7 +269,7 @@
 
 						<span
 							class={cn(
-								"size-4 rounded-full bg-surface-1 shadow-sm dark:bg-fg",
+								"slider-knob size-4 rounded-full bg-surface-1 shadow-sm dark:bg-fg",
 								thumbClass,
 							)}
 						></span>

@@ -70,7 +70,7 @@
 					{#each notices as notice, i (notice.label)}
 						<button
 							class={[
-								"size-1.5 rounded-full transition-colors",
+								"status-dot size-1.5 rounded-full transition-colors",
 								i === index ? "bg-fg" : "bg-fg-muted opacity-40",
 							]}
 							type="button"

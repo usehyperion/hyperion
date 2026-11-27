@@ -303,7 +303,8 @@
 
 							{#if isSearch && item.isLive}
 								<span class="flex items-center gap-1.5 text-danger">
-									<span class="size-1.5 animate-pulse rounded-full bg-current"
+									<span
+										class="status-dot size-1.5 animate-pulse rounded-full bg-current"
 									></span>
 									<span class="text-detail font-medium">Live</span>
 								</span>

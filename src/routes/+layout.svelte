@@ -69,7 +69,7 @@
 
 <ModeWatcher />
 
-<div class="flex h-screen flex-col overflow-hidden">
+<div class="app-window flex h-screen flex-col overflow-hidden">
 	<TitleBar />
 
 	<HotkeysProvider

@@ -72,7 +72,7 @@
 >
 	<TabBar {pane} />
 
-	<div class="relative h-full min-h-0">
+	<div class="split-content relative h-full min-h-0">
 		<div class="h-full">
 			{#if channel}
 				{#key channel.id}
@@ -80,7 +80,7 @@
 				{/key}
 			{:else}
 				<Empty
-					class="h-full"
+					class="split-empty h-full"
 					icon={IconSplits}
 					title="Empty split"
 					description="Drag a tab or channel here, or click a channel to open it."

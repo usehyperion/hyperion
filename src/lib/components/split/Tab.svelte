@@ -52,6 +52,7 @@
 	]}
 	role="tab"
 	tabindex="-1"
+	data-drop-target={droppable.isDropTarget || undefined}
 	aria-selected={active}
 	onclick={() => app.activate(id)}
 	onauxclick={(event) => event.button === 1 && close(event)}
@@ -60,7 +61,7 @@
 >
 	{#if channel}
 		<img
-			class="size-4 shrink-0 rounded-full"
+			class="tab-avatar size-4 shrink-0 rounded-full"
 			src={channel.user.avatarUrl}
 			alt=""
 			width="150"
@@ -75,7 +76,7 @@
 
 	<button
 		class={[
-			"ml-auto flex size-5 shrink-0 items-center justify-center rounded-sm hover:bg-surface-2",
+			"tab-close ml-auto flex size-5 shrink-0 items-center justify-center rounded-sm hover:bg-surface-2",
 			!active && "opacity-0 group-hover:opacity-100",
 		]}
 		aria-label="Close tab"

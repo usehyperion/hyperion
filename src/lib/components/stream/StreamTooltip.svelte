@@ -59,7 +59,9 @@
 				<div class="flex items-center gap-1">
 					{@render indicators()}
 
-					<div class="overflow-hidden text-ellipsis whitespace-nowrap text-accent">
+					<div
+						class="stream-tooltip-channel overflow-hidden text-ellipsis whitespace-nowrap text-accent"
+					>
 						{channel.user.displayName} &bullet; {channel.stream.game.name}
 					</div>
 				</div>

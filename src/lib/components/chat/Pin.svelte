@@ -57,7 +57,7 @@
 			aria-label="{formatDuration(Math.ceil(remaining / 1000))} remaining"
 		>
 			<div
-				class="h-full bg-fg transition-[width] duration-1000 ease-linear"
+				class="pin-timer-progress h-full bg-fg transition-[width] duration-1000 ease-linear"
 				style:width="{fraction * 100}%"
 			></div>
 		</div>

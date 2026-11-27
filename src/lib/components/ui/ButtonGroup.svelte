@@ -51,11 +51,15 @@
 	{...rest}
 >
 	{#each items as item (item.label)}
+		{@const itemSize = item.icon ? iconSizes[size] : size}
+
 		<ToolbarButton
-			class={buttonVariants({ variant, size: item.icon ? iconSizes[size] : size })}
+			title={item.icon ? item.label : undefined}
+			class={buttonVariants({ variant, size: itemSize })}
 			disabled={item.disabled}
 			aria-label={item.icon ? item.label : undefined}
-			title={item.icon ? item.label : undefined}
+			data-variant={variant}
+			data-size={itemSize}
 			onclick={item.onclick}
 		>
 			{#if item.icon}

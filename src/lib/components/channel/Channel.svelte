@@ -35,7 +35,7 @@
 		<StreamHeader {channel} stream={channel.stream} />
 	{/if}
 
-	<div class="relative grow">
+	<div class="chat-container relative grow">
 		<LiveNotices {chat} />
 
 		<Chat {chat} />
@@ -45,7 +45,7 @@
 
 	<PredictionDialog {channel} />
 
-	<div class="p-2">
+	<div class="chat-input-container p-2">
 		<ChatInput {chat} />
 	</div>
 </div>

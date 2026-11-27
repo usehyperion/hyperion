@@ -158,7 +158,8 @@
 						{/snippet}
 
 						<span class="flex items-center gap-1 font-medium">
-							<span class={["size-2 shrink-0 rounded-full", colorFor(i)]}></span>
+							<span class={["status-dot size-2 shrink-0 rounded-full", colorFor(i)]}
+							></span>
 
 							{outcome.title}
 

@@ -88,7 +88,7 @@
 		</div>
 	{:else}
 		<Empty
-			class="h-full"
+			class="home-empty h-full"
 			icon={IconChat}
 			title="No channel selected"
 			description="Select a channel from your following list or search for a channel to start chatting."

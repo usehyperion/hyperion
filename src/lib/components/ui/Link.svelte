@@ -27,6 +27,7 @@
 	}: Props = $props();
 
 	const external = $derived(href?.startsWith("http") ?? false);
+	const resolvedSize = $derived(variant === "inline" ? "none" : size);
 </script>
 
 <Button {disabled}>
@@ -37,11 +38,10 @@
 			target={target ?? (external ? "_blank" : undefined)}
 			rel={rel ?? (external ? "noreferrer" : undefined)}
 			data-bare
+			data-variant={variant}
+			data-size={resolvedSize}
 			{...props}
-			class={cn(
-				buttonVariants({ variant, size: variant === "inline" ? "none" : size }),
-				className,
-			)}
+			class={cn(buttonVariants({ variant, size: resolvedSize }), className)}
 			bind:this={ref}
 		>
 			{@render children?.()}

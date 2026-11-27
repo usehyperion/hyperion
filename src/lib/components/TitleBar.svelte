@@ -57,7 +57,7 @@
 >
 	<div
 		class={[
-			"flex items-center text-fg-muted",
+			"title-bar-brand flex items-center text-fg-muted",
 			platform === "macos" && (fullscreen ? "pl-3" : "pl-20"),
 			["windows", "linux"].includes(platform) && "pl-3",
 		]}
@@ -101,9 +101,11 @@
 				{#if hasUnread}
 					<span class="pointer-events-none absolute top-0.5 right-0.5 flex size-1.5">
 						<span
-							class="absolute inline-flex size-full animate-ping rounded-full bg-danger opacity-75 motion-reduce:hidden"
+							class="status-dot absolute inline-flex size-full animate-ping rounded-full bg-danger opacity-75 motion-reduce:hidden"
 						></span>
-						<span class="relative inline-flex size-1.5 rounded-full bg-danger"></span>
+						<span
+							class="status-dot relative inline-flex size-1.5 rounded-full bg-danger"
+						></span>
 					</span>
 				{/if}
 			</Link>
@@ -117,7 +119,7 @@
 					{#snippet trigger(props)}
 						<Button
 							{...props}
-							class="size-min p-1 text-warning"
+							class="update-button size-min p-1 text-warning"
 							size="icon"
 							variant="ghost"
 							aria-label={label}
@@ -147,7 +149,7 @@
 		</div>
 
 		{#if platform === "windows"}
-			<div class="flex">
+			<div class="window-controls flex">
 				{@render control("minimize", {
 					onclick: () => currentWindow.minimize(),
 				})}

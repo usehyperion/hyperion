@@ -56,7 +56,7 @@
 				topMostActive && "text-success",
 			]}
 		>
-			<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
+			<div class="status-dot mr-1 size-1.5 rounded-full bg-current/50"></div>
 
 			<span class="text-detail">
 				{topMostActive?.label ?? "No chat restrictions"}
@@ -67,7 +67,7 @@
 	<ul class="space-y-1">
 		{#each modes as mode (mode.label)}
 			<li class={["flex items-center", mode.active ? "text-success" : "text-fg-muted"]}>
-				<div class="mr-1 size-1.5 rounded-full bg-current/50"></div>
+				<div class="status-dot mr-1 size-1.5 rounded-full bg-current/50"></div>
 
 				{mode.label}
 

@@ -90,7 +90,7 @@
 	>
 		<div
 			class={[
-				"flex h-full w-52 shrink-0 flex-col gap-3 p-3",
+				"settings-nav flex h-full w-52 shrink-0 flex-col gap-3 p-3",
 				isMac && "pt-[calc(var(--spacing-title-bar)+4px)]",
 			]}
 		>
@@ -132,7 +132,7 @@
 
 						{#if searching}
 							<span
-								class="ml-auto rounded-sm bg-surface-3 px-1 text-caption text-fg-muted tabular-nums"
+								class="settings-result-count ml-auto rounded-sm bg-surface-3 px-1 text-caption text-fg-muted tabular-nums"
 							>
 								{count}
 							</span>
@@ -146,7 +146,9 @@
 			<SidebarActions />
 		</div>
 
-		<div class="relative flex min-w-0 grow flex-col border-l border-line bg-surface-1">
+		<div
+			class="settings-content relative flex min-w-0 grow flex-col border-l border-line bg-surface-1"
+		>
 			<div class="flex items-center justify-end gap-2 px-4 pt-3 pb-1 text-body text-fg-muted">
 				<div class="mr-auto">
 					Settings

@@ -67,9 +67,9 @@
 
 		<span class="flex min-h-0 flex-1">
 			<span class="flex shrink-0 flex-col items-center gap-1 bg-surface-0 px-1 py-1.5">
-				<span class="block size-2 rounded-full bg-fg-muted/40"></span>
-				<span class="block size-2 rounded-full bg-line-strong"></span>
-				<span class="block size-2 rounded-full bg-line-strong"></span>
+				<span class="status-dot block size-2 rounded-full bg-fg-muted/40"></span>
+				<span class="status-dot block size-2 rounded-full bg-line-strong"></span>
+				<span class="status-dot block size-2 rounded-full bg-line-strong"></span>
 			</span>
 
 			<span class="flex min-w-0 flex-1 flex-col gap-1 p-1.5">

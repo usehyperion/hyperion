@@ -15,15 +15,17 @@
 </script>
 
 <div class="space-y-6">
-	<header class="flex items-center gap-3">
+	<header class="settings-category-header flex items-center gap-3">
 		<div
-			class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-fg-muted"
+			class="settings-category-icon flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-fg-muted"
 		>
 			<category.icon />
 		</div>
 
 		<div>
-			<h2 class="text-title leading-tight font-semibold">{category.label}</h2>
+			<h2 class="settings-category-title text-title leading-tight font-semibold">
+				{category.label}
+			</h2>
 
 			{#if query}
 				<p class="text-body text-fg-muted">Matching "{query}"</p>
@@ -39,7 +41,7 @@
 			description={`Nothing in ${category.label} matches "${query}". Try a different search.`}
 		/>
 	{:else}
-		<div class="space-y-6 divide-y divide-line *:pb-6">
+		<div class="settings-fields space-y-6 divide-y divide-line *:pb-6">
 			{#each category.fields as field, i (i)}
 				<FieldControl {field} />
 			{/each}

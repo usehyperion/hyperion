@@ -65,7 +65,7 @@
 		{/if}
 	</div>
 
-	<div class="flex shrink-0 items-center gap-x-1 px-1 text-fg-muted">
+	<div class="tab-bar-actions flex shrink-0 items-center gap-x-1 px-1 text-fg-muted">
 		<ButtonGroup items={actions} size="sm" aria-label="Pane actions" />
 	</div>
 </div>
