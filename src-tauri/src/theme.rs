@@ -194,6 +194,14 @@ fn webview_origin<R: Runtime>(app: &AppHandle<R>, label: &str) -> Option<String>
 mod tests {
     use super::*;
 
+    struct TempDir(PathBuf);
+
+    impl Drop for TempDir {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+
     #[test]
     fn theme_ids() {
         assert!(is_theme_id("windows-95"));
@@ -229,7 +237,11 @@ mod tests {
 
     #[test]
     fn resolves_inside_theme_only() {
-        let root = std::env::temp_dir().join(format!("hyperion-theme-test-{}", std::process::id()));
+        let temp = TempDir(
+            std::env::temp_dir().join(format!("hyperion-theme-test-{}", std::process::id())),
+        );
+
+        let root = &temp.0;
         let theme = root.join("demo");
 
         fs::create_dir_all(theme.join("fonts")).unwrap();
@@ -259,7 +271,5 @@ mod tests {
                 Err(StatusCode::FORBIDDEN)
             );
         }
-
-        fs::remove_dir_all(root).unwrap();
     }
 }
