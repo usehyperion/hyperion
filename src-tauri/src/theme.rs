@@ -23,7 +23,7 @@ pub fn handle<R: Runtime>(
     let path = request.uri().path().to_owned();
 
     tauri::async_runtime::spawn_blocking(move || {
-        let mut response = Response::builder().header(header::CACHE_CONTROL, "no-store");
+        let mut response = Response::builder();
 
         // Fonts are fetched in CORS mode, and the app's origin never matches
         // this scheme's.
@@ -32,10 +32,17 @@ pub fn handle<R: Runtime>(
         }
 
         let response = match serve(&app, &path) {
-            Ok((mime, bytes)) => response.header(header::CONTENT_TYPE, mime).body(bytes),
+            Ok((mime, bytes)) => response
+                .header(header::CACHE_CONTROL, "max-age=31536000, immutable")
+                .header(header::CONTENT_TYPE, mime)
+                .body(bytes),
             Err(status) => {
                 tracing::warn!(%path, %status, "Refused theme file request");
-                response.status(status).body(Vec::new())
+
+                response
+                    .header(header::CACHE_CONTROL, "no-store")
+                    .status(status)
+                    .body(Vec::new())
             }
         };
 
